@@ -16,6 +16,10 @@ const SCRIPT = path.join(HERE, 'check-coverage.mjs');
 // Piso deliberadamente alto: el fixture "bajo" (10%) siempre suspende.
 const CONFIG_JS = `export default { test: { coverage: { thresholds: {
   statements: 90, branches: 90, functions: 90, lines: 90 } } } };\n`;
+const GLOB_CONFIG_JS = `export default { test: { coverage: { thresholds: {
+  statements: 40, branches: 40, functions: 40, lines: 40,
+  'src/missing/**': { statements: 90, branches: 90, functions: 90, lines: 90 }
+} } } };\n`;
 
 function metric(total, covered) {
   return {
@@ -38,9 +42,9 @@ function summaryWith(pctCovered) {
 }
 
 /** Workspace temporal con `vitest.config.js` + `coverage/coverage-summary.json`. */
-function makeWs(summary) {
+function makeWs(summary, config = CONFIG_JS) {
   const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'check-coverage-'));
-  fs.writeFileSync(path.join(ws, 'vitest.config.js'), CONFIG_JS);
+  fs.writeFileSync(path.join(ws, 'vitest.config.js'), config);
   const covDir = path.join(ws, 'coverage');
   fs.mkdirSync(covDir, { recursive: true });
   fs.writeFileSync(
@@ -81,6 +85,23 @@ describe('check-coverage.mjs --advisory contract (task 2.0)', () => {
     });
     const runResult = run(ws, covDir);
     expect(runResult.status).toBe(1);
+  });
+
+  it('fails in strict mode when a declared glob matches no instrumented files', () => {
+    const { ws, covDir } = makeWs(summaryWith(50), GLOB_CONFIG_JS);
+    const runResult = run(ws, covDir);
+
+    expect(runResult.status).toBe(1);
+    expect(runResult.stdout + runResult.stderr).toContain('no files matched');
+  });
+
+  it('keeps unmatched glob thresholds advisory in --advisory mode', () => {
+    const { ws, covDir } = makeWs(summaryWith(50), GLOB_CONFIG_JS);
+    const runResult = run(ws, covDir, ['--advisory']);
+
+    expect(runResult.status).toBe(0);
+    expect(runResult.stdout + runResult.stderr).toContain('no files matched');
+    expect(runResult.stdout + runResult.stderr).toContain('[advisory]');
   });
 
   it('summary vacio (0 ficheros) con --advisory -> exit 0 + aviso', () => {

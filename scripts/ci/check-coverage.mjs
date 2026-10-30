@@ -6,10 +6,12 @@
  * coverage jobs (client-coverage, server-coverage) and by the local
  * `npm run coverage:check` command.
  *
- * It mirrors Vitest 4's own threshold semantics so the two can never disagree:
+ * It enforces the global and glob threshold semantics configured for the
+ * workspace, and is the pipeline's sole per-file enforcer:
  *   - global thresholds are compared against `summary.total`
- *   - glob thresholds are compared against the aggregate of the matched files
- *   - `perFile` compares EVERY matched file against the same thresholds
+ *   - glob thresholds are compared against the aggregate of matched files
+ *   - `perFile: true` inside a glob compares EVERY matched file (Vitest 4.1.11
+ *     ignores this option inside globs; this script is its sole enforcer)
  *   - a negative threshold means "at most N uncovered items", not a percentage
  *
  * Paths: Vitest matches glob patterns against each file's path relative to the
@@ -314,9 +316,13 @@ for (const [glob, spec] of globThresholds) {
   const matched = files.filter((f) => toRegExp(glob).test(f.rel));
   console.log(`\nGlob \`${glob}\` (${matched.length} file(s)):`);
   if (!matched.length) {
-    console.log(
-      '  ⚠️  no files matched — pattern does not match anything in this workspace'
-    );
+    const message = 'no files matched — declared threshold cannot be evaluated';
+    if (advisory) {
+      console.log(`  ⚠️  ${message}`);
+    } else {
+      console.error(`  ❌ ${message}`);
+      failed = true;
+    }
     continue;
   }
 
@@ -340,7 +346,7 @@ for (const [glob, spec] of globThresholds) {
     if (!r.ok) failed = true;
   }
 
-  // Globs do NOT inherit the top-level perFile — they must set their own.
+  // Workspace configs keep this off to avoid applying global thresholds to each file.
   if (spec.perFile) {
     const perFile = spec.perFile === true ? gNumeric : spec.perFile;
     const entries = Object.entries(perFile).filter(([k]) =>
