@@ -84,7 +84,7 @@
     "test:tia:reset": "node -e \"const fs=require('fs'),p=require('path');for(const ws of ['apps/client','apps/server']){for(const d of [p.join(ws,'node_modules','.cache','tia'),p.join(ws,'reports')]){for(const f of ['tia-history.json','tia-selection.json','coverage-map.json']){const fp=p.join(d,f);if(fs.existsSync(fp)){fs.rmSync(fp);console.log('removed',fp)}}}}\"",
     "snapshot:update-gate": "node scripts/ci/snapshot-update-gate.mjs",
     "snapshot:orphan-check": "node scripts/ci/snapshot-orphan-check.mjs",
-    "snapshot:size-check": "eslint \"apps/client/src/**/__snapshots__/*.snap\""
+    "snapshot:size-check": "eslint \"apps/client/src/**/__snapshots__/*.snap\" --max-warnings 0"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^1.0.1",
