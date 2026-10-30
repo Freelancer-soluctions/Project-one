@@ -29,6 +29,11 @@
 | test-smoke              | L1717 (`if:` activo)                | ✅ **Activo, NO advisory**: mismo patrón que integration — corre, pero sin COE                                                                                                                                          |
 | prebuild-tests-complete | L1946 agregador                     | ✅ Activo; `needs` = los **5** jobs tier-1 (2 test-unit + 2 coverage + property-tests). SUCCESS histórico (docs/ci-prebuild-substage-structure-phase2-verification.md L15/L34)                                          |
 
+> **Actualización 2026-10-29 (change `ci-testing-gate-promotion`):** la tabla de arriba es una foto del 2026-10-01.
+> Hoy los 5 jobs tier-1 (`test-unit-client`, `test-unit-server`, `client-coverage`, `server-coverage`,
+> `property-tests`) ya **no** llevan `continue-on-error`: son **blocking** y su rojo tiñe `prebuild-tests-complete`
+> → `ci-complete`. `test-integration`/`test-smoke` siguen como se describen (sin COE).
+
 ### TIA local presente (no en CI)
 
 - `.husky/pre-push:52,56` → `vitest run --changed origin/main` (client + server).
