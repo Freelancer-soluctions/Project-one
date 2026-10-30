@@ -23,9 +23,12 @@
 >
 > **Reescritura de FASE 2.** El spec vigente prometía FASE 2 = _required status check en el ruleset 21227644_. El
 > alcance cerrado con el usuario es otro: FASE 2 = quitar `continue-on-error` y añadir `sast` a
-> `prebuild-governance-complete.needs` (RF-CI-04). El ruleset 21227644 **no se toca** en este change; si en el
-> futuro se quisiera bindear el check, el nombre exacto a usar es `Governance: SAST (Semgrep)` (§3.2/§9.3.9 de
-> `docs/CONTEXT-CICD.md`), y ese binding requeriría su propio change de gobernanza.
+> `prebuild-governance-complete.needs` (RF-CI-04). El ruleset 21227644 **no se toca** en este change, y aun así el
+> hallazgo **bloquea el merge**: el bloqueo llega vía `Prebuild Governance Complete`, que es uno de los dos required
+> status checks del ruleset (junto a `Governance: PR Body Lint`; verificado por API el 2026-10-27). Bindear
+> `Governance: SAST (Semgrep)` directamente al ruleset sigue fuera de scope — y es innecesario para el efecto
+> bloqueante — aunque, si en el futuro se quisiera, el nombre exacto a usar es ese (§3.2/§9.3.9 de
+> `docs/CONTEXT-CICD.md`).
 
 ## MODIFIED Requirements
 
@@ -86,14 +89,18 @@ weeks of real runs:
 - **F1**: `continue-on-error: true` (non-blocking) — the finding is reported, retained as a 14-day artifact and
   left visible in the job log, without blocking merges.
 - **F2**: remove `continue-on-error` and add `sast` to `prebuild-governance-complete.needs`, so a new ERROR
-  finding fails the governance aggregator. The ruleset 21227644 is NOT modified: binding
-  `Governance: SAST (Semgrep)` as a required status check is out of scope for this change.
+  finding fails the governance aggregator — and, because that aggregator is itself a required status check of the
+  ruleset 21227644 (the exact context `Prebuild Governance Complete`, one of its two required contexts), the
+  finding blocks the merge. The ruleset 21227644 is NOT modified: binding `Governance: SAST (Semgrep)` directly as
+  a required status check remains out of scope for this change and is unnecessary for the blocking effect.
 
 F2 SHALL NOT be applied until the graduation criterion recorded in the workflow file is met.
 
 `## Purpose` note: the capability Purpose describes F2 as **blocking in F2 after ruleset binding**. That is not the
 agreed scope: F2 is `continue-on-error` removal plus inclusion in `prebuild-governance-complete.needs`, and the
-ruleset 21227644 is not touched. The correction is owned by the documentation task of this change (task 7.6).
+ruleset 21227644 is not touched — the blocking effect already arrives through that aggregator, which is a required
+status check of the ruleset (`Prebuild Governance Complete`), so no new binding is needed. The correction is owned
+by the documentation task of this change (task 7.6).
 
 #### Scenario: F1 mode — finding does not block merge
 
@@ -106,7 +113,11 @@ ruleset 21227644 is not touched. The correction is owned by the documentation ta
 - **WHEN** the job has `continue-on-error` removed (F2)
 - **AND** `sast` is listed in `prebuild-governance-complete.needs`
 - **AND** the scan finds an ERROR severity issue
-- **THEN** the PR merge is blocked until the finding is resolved
+- **THEN** the `sast` job fails
+- **AND** `prebuild-governance-complete` fails as a result (its gate fails on `contains(needs.*.result, 'failure')`)
+- **AND** that aggregator is itself a required status check of the ruleset 21227644, under the exact required
+  context `Prebuild Governance Complete` — not `Governance: SAST (Semgrep)`
+- **AND** the PR merge is blocked by that ruleset until the finding is resolved
 
 #### Scenario: F2 is not applied ahead of its criterion
 
@@ -135,9 +146,9 @@ does not amount to a direct coupling (`CI Complete` is not a ruleset status chec
 
 #### Scenario: ci-complete does not depend on sast
 
-- **WHEN** `ci-complete` evaluates its `needs:` array while FASE 1 is in force
+- **WHEN** `ci-complete` evaluates its `needs:` array while FASE 1 was in force
 - **THEN** `sast` is NOT in the list (SAST failure does not cause `ci-complete` to fail on its own account)
-- **AND** `sast` is absent from every aggregator `needs:` list
+- **AND** `sast` was absent from every aggregator `needs:` list
 
 #### Scenario: FASE 2 — failure propagates transitively, by design
 
@@ -145,6 +156,11 @@ does not amount to a direct coupling (`CI Complete` is not a ruleset status chec
 - **THEN** `sast` is STILL not listed directly
 - **AND** `ci-complete` nevertheless fails when `sast` fails, because `prebuild-governance-complete` is in its
   `needs:` and that aggregator now includes `sast`
+- **AND** the propagation traverses the aggregator tree as it stands after #147: the four `prebuild-*` substage
+  aggregators feed `build-complete`, which feeds `postbuild-tests-complete` and `postbuild-analysis-complete`, and
+  `ci-complete` consumes all of them (9 entries in its `needs:`)
+- **AND** `sast` remains absent from the three stage aggregators' `needs:` lists (`build-complete`,
+  `postbuild-tests-complete`, `postbuild-analysis-complete`)
 
 ## ADDED Requirements
 
@@ -167,18 +183,20 @@ list. The job SHALL keep its name (`Governance: SAST (Semgrep)`), its `timeout-m
 - **WHEN** the shared script cannot run the scan in CI mode
 - **THEN** the step's non-zero exit code is propagated to the job (fail-closed)
 
-### Requirement: FASE 1 keeps the result as a 14-day artifact
+### Requirement: FASE 1 kept the result as a 14-day artifact
 
-While FASE 1 is in force, the job SHALL retain the scan result as a build artifact with a retention of 14 days, so
-the calibration window accumulates evidence even though the finding does not block. The artifact SHALL be uploaded
-with `if: always()` and an explicit behaviour when no file is produced, and the job SHALL keep
-`continue-on-error: true`.
+While FASE 1 was in force, the job retained the scan result as a build artifact with a retention of 14 days, so
+the calibration window accumulated evidence even though the finding did not block; the artifact was uploaded with
+`if: always()` and an explicit behaviour when no file is produced. FASE 1 has graduated, but the 14-day artifact
+**persists in FASE 2**: the upload step SHALL remain in place (verified in `ci.yml:444-452`) with `if: always()`
+and `if-no-files-found: warn`, so every post-graduation run SHALL keep writing `.tmp/sast-report.json` as triage
+evidence.
 
-#### Scenario: Finding in F1 produces an artifact
+#### Scenario: Finding in F1 produced an artifact
 
-- **WHEN** the scan reports a new ERROR finding during FASE 1
-- **THEN** the PR is not blocked
-- **AND** the scan result is available as an artifact retained for 14 days
+- **WHEN** the scan reported a new ERROR finding during FASE 1
+- **THEN** the PR was not blocked
+- **AND** the scan result was available as an artifact retained for 14 days
 
 #### Scenario: Clean run does not break the upload
 

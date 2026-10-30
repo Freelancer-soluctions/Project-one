@@ -41,8 +41,10 @@ arrastra **drift factual** verificado contra el YAML: afirma `semgrep ci --basel
 - **Job `sast` del CI delega en el script** (`SAST_MODE=ci node scripts/sast-diff.mjs`) y se gradúa en dos fases
   **dentro de este mismo change** (D4): FASE 1 ahora (conserva `continue-on-error: true` + retiene el resultado
   como artifact de 14 días + criterio de graduación escrito en el YAML) y FASE 2 diferida (quitar
-  `continue-on-error` y añadir `sast` a `prebuild-governance-complete.needs`). No se toca el ruleset 21227644 ni
-  `ci-complete.needs`.
+  `continue-on-error` y añadir `sast` a `prebuild-governance-complete.needs`). El ruleset 21227644 no se toca y
+  aun así el hallazgo bloquea el merge: el bloqueo llega vía `Prebuild Governance Complete`, required check de ese
+  ruleset (bindear `Governance: SAST (Semgrep)` directamente queda fuera de scope e innecesario para el efecto
+  bloqueante). `ci-complete.needs` tampoco se toca.
 - **Limpieza**: se eliminan `scripts/security/semgrep-staged.ps1` y el npm script `sast:semgrep`.
   `scripts/security/semgrep.ps1` (`sast:semgrep:full`) se **conserva como excepción deliberada**: mantiene su lista
   `r/...` para el escaneo completo on-demand, deduplicada, y pasa de `latest` a la versión pineada.
@@ -81,7 +83,8 @@ arrastra **drift factual** verificado contra el YAML: afirma `semgrep ci --basel
   deduplicación).
 - **CI**: `.github/workflows/ci.yml` job `sast` (comando + artifact FASE 1 + comentario de graduación; FASE 2:
   quitar `continue-on-error` y añadirlo a `needs` de `prebuild-governance-complete`). `ci-complete.needs` y el
-  ruleset 21227644 quedan intactos.
+  ruleset 21227644 quedan intactos: el ruleset sigue sin bindear el check `Governance: SAST (Semgrep)`, pero el
+  bloqueo del merge llega por `Prebuild Governance Complete` (required).
 - **Docs**: `docs/security/segremp-rules.md` (renombrado a `semgrep-rules.md`), `docs/learning/quality-gates.md`,
   `docs/CONTEXT-CICD.md`, `.markdownlintignore` y las guías que citan `sast:semgrep`.
 - **Dependencias**: ninguna nueva. Semgrep sigue consumiéndose como imagen Docker; el script usa solo Node y

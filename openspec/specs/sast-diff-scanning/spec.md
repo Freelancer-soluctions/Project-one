@@ -1,4 +1,4 @@
-# Spec Delta
+# sast-diff-scanning Specification
 
 ## Purpose
 
@@ -6,7 +6,7 @@ Diff-scoped SAST shared by the local `pre-push` hook and the CI `sast` job throu
 agree on Semgrep version, rule set, diff base, severity filter and exclusions while keeping deliberately different
 failure policies (fail-open locally, fail-closed in CI).
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Single shared diff-scoped SAST entry point
 
@@ -28,10 +28,9 @@ that file and SHALL NOT embed Semgrep command lines of their own.
 
 ### Requirement: Local and CI execution modes
 
-The script SHALL support exactly two modes selected by the `SAST_MODE` environment variable, `local` and `ci`, and
-Both
+The script SHALL support exactly two modes selected by the `SAST_MODE` environment variable, `local` and `ci`. Both
 modes SHALL build the same Semgrep command — same pinned version, same rule set (custom rules plus packs), same
-severity filter, same exclusions, and the same `--baseline-commit` flag — and SHALL differ in exactly two respects:
+severity filter, same exclusions, and the same `--baseline-commit` flag — and SHALL differ in these respects:
 
 1. **Failure policy:** fail-open in `local` (a broken tool warns and lets the push through) versus fail-closed in
    `ci` (a broken tool fails the job).
@@ -39,9 +38,12 @@ severity filter, same exclusions, and the same `--baseline-commit` flag — and 
    (`git merge-base origin/main HEAD`); `ci` SHALL pass it with the pull-request base commit
    (`github.event.pull_request.base.sha`). The flag is passed in **both** modes; only its value differs, because the
    two sides compare genuinely different diffs.
-
-The local-only skips (dirty working tree, language scope) SHALL NOT be applied in `ci` mode: CI always has a clean
-checkout and always has a diff worth analysing.
+3. **Local-only skips:** the dirty-working-tree skip and the language-scope skip apply only in `local` mode: CI
+   always has a clean checkout and always has a diff worth analysing, so neither skip is applied in `ci`.
+4. **Timeout constant:** `local` uses `LOCAL_TIMEOUT_MS` (a 300 s safety net, not the under-60-second objective)
+   while `ci` uses `CI_TIMEOUT_MS` (13 minutes); `SAST_TIMEOUT_MS` overrides both (used by the tests).
+5. **Scan report:** the machine-readable report `.tmp/sast-report.json` (the artifact input) is written only in
+   `ci` mode; `local` mode writes no report.
 
 #### Scenario: Mode defaults to local
 
@@ -198,8 +200,11 @@ SHALL be reported without blocking.
 
 ### Requirement: Scan timeout
 
-The script SHALL apply a timeout to the Semgrep invocation, with an objective of under 60 seconds in local mode.
-When the timeout expires the run SHALL be treated as a broken tool and resolved by the applicable failure policy.
+The script SHALL apply a timeout to the Semgrep invocation. The under-60-seconds objective applies to the ubuntu CI
+runner (`ubuntu-latest`, measured at 22.7 s); it is **not** reached on Windows with Docker Desktop (measured 135 s
+on a clean clone, 149 s in a linked worktree, 207 s under machine load), where `LOCAL_TIMEOUT_MS = 300 s` is a
+safety net, not the objective. When the timeout expires the run SHALL be treated as a broken tool and resolved by
+the applicable failure policy.
 
 #### Scenario: Hanging scan is cut
 
@@ -207,10 +212,10 @@ When the timeout expires the run SHALL be treated as a broken tool and resolved 
 - **THEN** the process is terminated
 - **AND** the outcome follows the mode's failure policy (fail-open locally, fail-closed in CI)
 
-#### Scenario: Budget respected on a representative push
+#### Scenario: Budget respected on a representative run on ubuntu
 
-- **WHEN** the hook runs on a representative push touching a few source files
-- **THEN** the scan completes within the documented budget
+- **WHEN** the scan runs on a representative diff touching a few source files on `ubuntu-latest`
+- **THEN** the scan completes within the documented under-60-second budget (measured: 22.7 s)
 
 ### Requirement: Exit-code contract
 
