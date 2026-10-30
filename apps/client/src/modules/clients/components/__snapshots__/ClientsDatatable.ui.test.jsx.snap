@@ -222,294 +222,338 @@ exports[`ClientsDatatable - UI snapshot > renders each column header with its fi
 </th>
 `;
 
-exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 with cells 1`] = `
-<tr
-  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-  data-state="false"
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 1 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      ALICE ANDERS
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      ALICE@EXAMPLE.COM
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      +57 300 111 2233
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      CALLE 10 # 20-30
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 5th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 6th, 2026
-    </div>
-  </td>
-</tr>
+    ALICE ANDERS
+  </div>
+</td>
 `;
 
-exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 with cells 1`] = `
-<tr
-  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-  data-state="false"
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 2 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      BOB BRIGHT
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      BOB@EXAMPLE.COM
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      +57 300 444 5566
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      AVENIDA 5 # 6-70
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 6th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    />
-  </td>
-</tr>
+    ALICE@EXAMPLE.COM
+  </div>
+</td>
 `;
 
-exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 with cells 1`] = `
-<tr
-  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-  data-state="false"
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 3 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      CARA CHEN
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      CARA@EXAMPLE.COM
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      +57 300 777 8899
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      CARRERA 3 # 4-50
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 7th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 8th, 2026
-    </div>
-  </td>
-</tr>
+    +57 300 111 2233
+  </div>
+</td>
 `;
 
-exports[`ClientsDatatable - UI snapshot > renders the pagination controls > pagination buttons and page size select 1`] = `
-<div
-  class="flex flex-wrap items-center gap-2"
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 4 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
-  <button
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
-    disabled=""
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    &lt;&lt;
-  </button>
-  <button
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
-    disabled=""
+    CALLE 10 # 20-30
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 5 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    &lt;
-  </button>
-  <button
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
-    disabled=""
+    January 5th, 2026
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 6 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    &gt;
-  </button>
-  <button
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
-    disabled=""
+    January 6th, 2026
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 1 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    &gt;&gt;
-  </button>
-  <span
-    class="flex items-center gap-1"
+    BOB BRIGHT
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 2 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    <div>
-      Page
-    </div>
-    <strong>
-      1
-       of
-       
-      1
-    </strong>
-  </span>
-  <span
-    class="flex items-center gap-1"
+    BOB@EXAMPLE.COM
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 3 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    | Go to page:
-    <input
-      class="border p-1 rounded w-16"
-      max="1"
-      min="1"
-      type="number"
-      value="1"
-    />
-  </span>
-  <select>
-    <option
-      value="10"
-    >
-      Show 
-      10
-    </option>
-    <option
-      value="20"
-    >
-      Show 
-      20
-    </option>
-    <option
-      value="30"
-    >
-      Show 
-      30
-    </option>
-    <option
-      value="40"
-    >
-      Show 
-      40
-    </option>
-    <option
-      value="50"
-    >
-      Show 
-      50
-    </option>
-  </select>
-</div>
+    +57 300 444 5566
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 4 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    AVENIDA 5 # 6-70
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 5 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 6th, 2026
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 6 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 1 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    CARA CHEN
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 2 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    CARA@EXAMPLE.COM
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 3 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    +57 300 777 8899
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 4 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    CARRERA 3 # 4-50
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 5 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 7th, 2026
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 6 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 8th, 2026
+  </div>
+</td>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders the pagination controls > pagination control 1 1`] = `
+<button
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+  disabled=""
+>
+  &lt;&lt;
+</button>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders the pagination controls > pagination control 2 1`] = `
+<button
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+  disabled=""
+>
+  &lt;
+</button>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders the pagination controls > pagination control 3 1`] = `
+<button
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+  disabled=""
+>
+  &gt;
+</button>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders the pagination controls > pagination control 4 1`] = `
+<button
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+  disabled=""
+>
+  &gt;&gt;
+</button>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders the pagination controls > pagination control 5 1`] = `
+<span
+  class="flex items-center gap-1"
+>
+  <div>
+    Page
+  </div>
+  <strong>
+    1
+     of
+     
+    1
+  </strong>
+</span>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders the pagination controls > pagination control 6 1`] = `
+<span
+  class="flex items-center gap-1"
+>
+  | Go to page:
+  <input
+    class="border p-1 rounded w-16"
+    max="1"
+    min="1"
+    type="number"
+    value="1"
+  />
+</span>
+`;
+
+exports[`ClientsDatatable - UI snapshot > renders the pagination controls > pagination control 7 1`] = `
+<select>
+  <option
+    value="10"
+  >
+    Show 
+    10
+  </option>
+  <option
+    value="20"
+  >
+    Show 
+    20
+  </option>
+  <option
+    value="30"
+  >
+    Show 
+    30
+  </option>
+  <option
+    value="40"
+  >
+    Show 
+    40
+  </option>
+  <option
+    value="50"
+  >
+    Show 
+    50
+  </option>
+</select>
 `;
 
 exports[`ClientsDatatable - UI snapshot > renders the pagination controls > pagination showing row count 1`] = `

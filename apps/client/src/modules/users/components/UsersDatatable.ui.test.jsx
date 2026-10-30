@@ -77,7 +77,7 @@ const renderDatatable = () =>
   );
 
 describe('UsersDatatable - UI snapshot', () => {
-  // Segmentación (D7 + tasks 3.5): una entrada por cabecera y por fila. Con
+  // Segmentación (D7 + tasks 3.5): una entrada por cabecera, por celda de fila y por control de paginación. Con
   // 12 columnas esta es la tabla más ancha del repo; por eso cada cabecera
   // y cada fila se captura por separado.
   it('renders each column header with its filter', () => {
@@ -91,16 +91,21 @@ describe('UsersDatatable - UI snapshot', () => {
 
   it('renders each frozen fixture row', () => {
     const { container } = renderDatatable();
-    container.querySelectorAll('tbody tr').forEach((row, index) => {
-      expect(row).toMatchSnapshot(`fixture row ${index + 1} with cells`);
+    container.querySelectorAll('tbody tr').forEach((row, rowIndex) => {
+      Array.from(row.children).forEach((cell, cellIndex) => {
+        expect(cell).toMatchSnapshot(
+          `fixture row ${rowIndex + 1} cell ${cellIndex + 1}`
+        );
+      });
     });
   });
 
   it('renders the pagination controls', () => {
     const { container } = renderDatatable();
-    expect(
-      container.querySelector('.flex.flex-wrap.items-center.gap-2')
-    ).toMatchSnapshot('pagination buttons and page size select');
+    const pager = container.querySelector('.flex.flex-wrap.items-center.gap-2');
+    Array.from(pager.children).forEach((control, index) => {
+      expect(control).toMatchSnapshot(`pagination control ${index + 1}`);
+    });
 
     expect(container.firstChild.lastElementChild).toMatchSnapshot(
       'pagination showing row count'

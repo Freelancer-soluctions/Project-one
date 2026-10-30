@@ -85,9 +85,10 @@ afterAll(() => {
 describe('AttendeeList - UI snapshot', () => {
   it('renders the table head and the three fixed rows', () => {
     const { container } = render(<AttendeeList eventId={7} />);
-    // D5 segmentation: the whole table serializes to ~235 lines, so head and
-    // rows are snapshotted separately — scope stays table-only, never the
-    // page tree (no filter row, pagination or alert dialog).
+    // D5/G4 segmentation: the whole table serializes to ~235 lines and each
+    // row to ~66, so the head and every row group are snapshotted separately —
+    // scope stays table-only, never the page tree (no filter row, pagination
+    // or alert dialog).
     const table = container.querySelector('table');
     expect(table.querySelector('thead')).toMatchInlineSnapshot(
       `
@@ -126,35 +127,49 @@ describe('AttendeeList - UI snapshot', () => {
       'attendee list table head with translated columns'
     );
     const [firstRow, secondRow, thirdRow] = table.querySelectorAll('tbody tr');
-    expect(firstRow).toMatchInlineSnapshot(
+    const firstCells = Array.from(firstRow.children);
+    const secondCells = Array.from(secondRow.children);
+    const thirdCells = Array.from(thirdRow.children);
+
+    expect(firstCells.slice(0, 2)).toMatchInlineSnapshot(
       `
-      <tr
-        class="border-b hover:bg-gray-50"
-      >
+      [
         <td
           class="py-2 px-3"
         >
           Ana Ruiz
-        </td>
+        </td>,
         <td
           class="py-2 px-3"
         >
           ana@example.com
-        </td>
-        <td
-          class="py-2 px-3"
+        </td>,
+      ]
+    `,
+      'first row name and email'
+    );
+    expect(firstCells[2]).toMatchInlineSnapshot(
+      `
+      <td
+        class="py-2 px-3"
+      >
+        <span
+          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
         >
-          <span
-            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-          >
-            confirmed
-          </span>
-        </td>
+          confirmed
+        </span>
+      </td>
+    `,
+      'first row confirmed badge'
+    );
+    expect(firstCells.slice(3)).toMatchInlineSnapshot(
+      `
+      [
         <td
           class="py-2 px-3"
         >
           10/01/2026
-        </td>
+        </td>,
         <td
           class="py-2 px-3"
         >
@@ -191,40 +206,51 @@ describe('AttendeeList - UI snapshot', () => {
               />
             </svg>
           </button>
-        </td>
-      </tr>
+        </td>,
+      ]
     `,
-      'attendee list first row ana ruiz confirmed'
+      'first row registration date and status select'
     );
-    expect(secondRow).toMatchInlineSnapshot(
+
+    expect(secondCells.slice(0, 2)).toMatchInlineSnapshot(
       `
-      <tr
-        class="border-b hover:bg-gray-50"
-      >
+      [
         <td
           class="py-2 px-3"
         >
           Bruno Diaz
-        </td>
+        </td>,
         <td
           class="py-2 px-3"
         >
           bruno@example.com
-        </td>
-        <td
-          class="py-2 px-3"
+        </td>,
+      ]
+    `,
+      'second row name and email'
+    );
+    expect(secondCells[2]).toMatchInlineSnapshot(
+      `
+      <td
+        class="py-2 px-3"
+      >
+        <span
+          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
         >
-          <span
-            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
-          >
-            waitlist
-          </span>
-        </td>
+          waitlist
+        </span>
+      </td>
+    `,
+      'second row waitlist badge'
+    );
+    expect(secondCells.slice(3)).toMatchInlineSnapshot(
+      `
+      [
         <td
           class="py-2 px-3"
         >
           20/02/2026
-        </td>
+        </td>,
         <td
           class="py-2 px-3"
         >
@@ -261,40 +287,51 @@ describe('AttendeeList - UI snapshot', () => {
               />
             </svg>
           </button>
-        </td>
-      </tr>
+        </td>,
+      ]
     `,
-      'attendee list second row bruno diaz waitlist'
+      'second row registration date and status select'
     );
-    expect(thirdRow).toMatchInlineSnapshot(
+
+    expect(thirdCells.slice(0, 2)).toMatchInlineSnapshot(
       `
-      <tr
-        class="border-b hover:bg-gray-50"
-      >
+      [
         <td
           class="py-2 px-3"
         >
           Carla Gil
-        </td>
+        </td>,
         <td
           class="py-2 px-3"
         >
           carla@example.com
-        </td>
-        <td
-          class="py-2 px-3"
+        </td>,
+      ]
+    `,
+      'third row name and email'
+    );
+    expect(thirdCells[2]).toMatchInlineSnapshot(
+      `
+      <td
+        class="py-2 px-3"
+      >
+        <span
+          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
         >
-          <span
-            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
-          >
-            cancelled
-          </span>
-        </td>
+          cancelled
+        </span>
+      </td>
+    `,
+      'third row cancelled badge'
+    );
+    expect(thirdCells.slice(3)).toMatchInlineSnapshot(
+      `
+      [
         <td
           class="py-2 px-3"
         >
           30/03/2026
-        </td>
+        </td>,
         <td
           class="py-2 px-3"
         >
@@ -331,10 +368,10 @@ describe('AttendeeList - UI snapshot', () => {
               />
             </svg>
           </button>
-        </td>
-      </tr>
+        </td>,
+      ]
     `,
-      'attendee list third row carla gil cancelled'
+      'third row registration date and status select'
     );
   });
 });

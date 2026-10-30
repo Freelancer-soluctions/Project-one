@@ -69,7 +69,7 @@ const renderDatatable = () =>
   );
 
 describe('VacationDatatable - UI snapshot', () => {
-  // Segmentación (D7 + tasks 3.5): una entrada por cabecera y por fila.
+  // Segmentación (D7 + tasks 3.5): una entrada por cabecera, por celda de fila y por control de paginación.
   it('renders each column header with its filter', () => {
     const { container } = renderDatatable();
     container.querySelectorAll('thead th').forEach((th, index) => {
@@ -81,16 +81,21 @@ describe('VacationDatatable - UI snapshot', () => {
 
   it('renders each frozen fixture row', () => {
     const { container } = renderDatatable();
-    container.querySelectorAll('tbody tr').forEach((row, index) => {
-      expect(row).toMatchSnapshot(`fixture row ${index + 1} with cells`);
+    container.querySelectorAll('tbody tr').forEach((row, rowIndex) => {
+      Array.from(row.children).forEach((cell, cellIndex) => {
+        expect(cell).toMatchSnapshot(
+          `fixture row ${rowIndex + 1} cell ${cellIndex + 1}`
+        );
+      });
     });
   });
 
   it('renders the pagination controls', () => {
     const { container } = renderDatatable();
-    expect(
-      container.querySelector('.flex.flex-wrap.items-center.gap-2')
-    ).toMatchSnapshot('pagination buttons and page size select');
+    const pager = container.querySelector('.flex.flex-wrap.items-center.gap-2');
+    Array.from(pager.children).forEach((control, index) => {
+      expect(control).toMatchSnapshot(`pagination control ${index + 1}`);
+    });
 
     expect(container.firstChild.lastElementChild).toMatchSnapshot(
       'pagination showing row count'
