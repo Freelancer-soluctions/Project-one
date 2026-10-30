@@ -103,10 +103,11 @@ export default mergeConfig(
       ],
       setupFiles: ['./tests/setup/setupTest.js'],
       // Presupuesto de salida por snapshot: un snapshot gigante es un snapshot
-      // que nadie revisa. Verificado empíricamente (tasks.md 1.1): con 10000
-      // los Datatables de ~9 columnas se colapsaban (marcador `…`), así que se
-      // subió a 100000 y se re-verificó limpio antes de que entrara F2.
-      snapshotFormat: { maxOutputLength: 100000 },
+      // que nadie revisa. Con la segmentación de `snapshot-gates` (tasks.md
+      // 4.5: entradas por celda/control, todas < 50 líneas) baja de 100000 a
+      // 25000 y se re-verifica con la suite completa (tasks.md 4.6): cero
+      // marcadores de truncamiento (`…`) en los snapshots generados.
+      snapshotFormat: { maxOutputLength: 25000 },
       update: process.env.CI ? 'none' : 'new',
       testTimeout: 30000,
       hookTimeout: 15000,
