@@ -457,18 +457,21 @@ jobs:
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, client-coverage, server-coverage, property-tests
   # (jobs de testing tier-1; test-integration/test-smoke son STAGE 4 POST-BUILD, no miembros de este substage)
-  # FASE 1 advisory (continue-on-error: reporta sin bloquear) → FASE 2 blocking al
-  # cerrar la ventana de calibración (2-4 semanas; docs/learning/quality-gates.md en lockstep).
+  # FASE 2 BLOCKING activo desde 2026-10-29 (task 3.1 del change `ci-testing-gate-promotion`):
+  # los 5 jobs ya NO llevan `continue-on-error`, así que un rojo propaga a
+  # `prebuild-tests-complete` y, transitivamente, a `ci-complete`
+  # (docs/learning/quality-gates.md en lockstep).
   # Coverage: client-coverage/server-coverage se scopean por propagación de skip de su
   # test job (needs), NO vía repo-discovery — ci-runtime-config-hygiene prohíbe needs
   # sin consumo de outputs.
   # ═══════════════════════════════════════════════════════════════
   # --- TESTING (pre-build): unit tests, source-level, no artifact needed ---
   test-unit-client:
-    # FASE 1 advisory: continue-on-error reporta (log + JUnit + artifacts) sin bloquear
-    # el agregador (actions/toolkit#581). FASE 2: quitar el flag tras la calibración.
+    # BLOCKING desde 2026-10-29 (task 3.1 del change `ci-testing-gate-promotion`): sin
+    # `continue-on-error`, un fallo propaga a `prebuild-tests-complete`. Con el COE de
+    # FASE 1 el veredicto se absorbía a nivel job — `needs.*.result` reportaba
+    # `success` aunque el job fallara (actions/toolkit#581).
     if: (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
-    continue-on-error: true
     name: 'Tests: Unit - Client'
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -761,10 +764,12 @@ jobs:
           reporter: java-junit
 
   test-unit-server:
-    # FASE 1 advisory; suite unit-scoped (*.unit.test.js, sin PostgreSQL) con junit
-    # para dorny/test-reporter. FASE 2: quitar continue-on-error tras la calibración.
+    # BLOCKING desde 2026-10-29 (task 3.1 del change `ci-testing-gate-promotion`); suite
+    # unit-scoped (*.unit.test.js, sin PostgreSQL) con junit para dorny/test-reporter.
+    # Sin `continue-on-error`, un fallo propaga a `prebuild-tests-complete` (con el COE
+    # de FASE 1, `needs.*.result` reportaba `success` aunque el job fallara,
+    # actions/toolkit#581).
     if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
-    continue-on-error: true
     name: 'Tests: Unit - Server'
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -1038,8 +1043,9 @@ jobs:
     # contexto needs de jobs DECLARADOS en needs (actionlint: property not defined) y el
     # job se saltaría siempre. La propagación cubre el mismo conjunto: corre ⇔ corrió su test job.
     # ACTIVADO (change `coverage-tripwire-stage-2d`): retirado `if: false`.
-    # O job corre ⇔ test-unit-client correu (propagación de skip). FASE 1 advisory
-    # (`continue-on-error: true`): reporta sen bloquear. FASE 2: retirar `continue-on-error`.
+    # O job corre ⇔ test-unit-client correu (propagación de skip). BLOCKING desde
+    # 2026-10-29 (task 3.1 del change `ci-testing-gate-promotion`): sin
+    # `continue-on-error`, un fallo propaga a `prebuild-tests-complete`.
     #
     # PUENTE DEL COVERAGE MERGE GATE — change `coverage-merge-gate` (D1/D2). Este job ES el
     # puente de NOMBRE FIJO que fusiona la cobertura de TODAS las shards y evalúa los
@@ -1053,7 +1059,6 @@ jobs:
     #   presencia emitiría un `::error::` falso por artifacts legítimamente ausentes.
     #   El carril PR queda cubierto por propagación: `test-unit-client` sólo corre en PRs.
     if: ${{ !cancelled() && needs.test-unit-client.result != 'skipped' }}
-    continue-on-error: true
     name: 'Quality: Client Coverage'
     needs: [test-unit-client]
     runs-on: ubuntu-latest
@@ -1123,9 +1128,10 @@ jobs:
       # parcial que oculta shards rojas no es aceptable. Va DESPUÉS del D18 para que la
       # evaluación de cobertura siga siendo visible en el log cuando una shard falla;
       # el `exit 0` del carril diff-scoped vive dentro del step previo, así que no
-      # interfiere. HOY ES UN NO-OP: `test-unit-client` tiene `continue-on-error: true`
-      # (FASE 1, `quality-gates`) y `needs.*.result` reporta `success` aunque falle
-      # (`actions/toolkit#581`) — se activa SOLO al retirar el COE en FASE 2, sin retoque.
+      # interfiere. ACTIVO desde 2026-10-29: `test-unit-client` ya NO tiene
+      # `continue-on-error` (task 3.1 del change `ci-testing-gate-promotion`), así que
+      # `needs.*.result` reporta `failure` real cuando una shard roja y este step
+      # propaga el fallo al agregador.
       - name: Propagate shard failure
         if: ${{ contains(needs.test-unit-client.result, 'failure') }}
         run: |
@@ -1136,8 +1142,9 @@ jobs:
     # FASE 1 advisory. Scoping por propagación (misma corrección D17 que client-coverage);
     # el guard recibe el reportsDirectory real del server como 3.er argumento.
     # ACTIVADO (change `coverage-tripwire-stage-2d`): retirado `if: false`.
-    # O job corre ⇔ test-unit-server correu (propagación de skip). FASE 1 advisory
-    # (`continue-on-error: true`): reporta sen bloquear. FASE 2: retirar `continue-on-error`.
+    # O job corre ⇔ test-unit-server correu (propagación de skip). BLOCKING desde
+    # 2026-10-29 (task 3.1 del change `ci-testing-gate-promotion`): sin
+    # `continue-on-error`, un fallo propaga a `prebuild-tests-complete`.
     #
     # PUENTE DEL COVERAGE MERGE GATE — change `coverage-merge-gate` (D1/D2), espejo del
     # client. Fusiona la cobertura de todas las shards y evalúa los thresholds UNA SOLA
@@ -1146,7 +1153,6 @@ jobs:
     # `result != 'skipped'`: hereda el skip del upstream sin ejecutar (y sin emitir un
     # `::error::` falso por artifacts ausentes legítimos).
     if: ${{ !cancelled() && needs.test-unit-server.result != 'skipped' }}
-    continue-on-error: true
     name: 'Quality: Server Coverage'
     needs: [test-unit-server]
     runs-on: ubuntu-latest
@@ -1202,9 +1208,10 @@ jobs:
           fi
           node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
       # Propagación de fallo de shards — change `coverage-merge-gate` (D7), tras el D18
-      # para no esconder la evaluación de cobertura. No-op mientras `test-unit-server`
-      # mantenga el `continue-on-error` de FASE 1 (`actions/toolkit#581`): se activa al
-      # retirarlo en FASE 2.
+      # para no esconder la evaluación de cobertura. ACTIVO desde 2026-10-29:
+      # `test-unit-server` ya NO tiene `continue-on-error` (task 3.1 del change
+      # `ci-testing-gate-promotion`), así que `needs.*.result` reporta `failure` real
+      # cuando una shard roja y este step propaga el fallo al agregador.
       - name: Propagate shard failure
         if: ${{ contains(needs.test-unit-server.result, 'failure') }}
         run: |
@@ -1212,12 +1219,13 @@ jobs:
           exit 1
 
   property-tests:
+    # BLOCKING desde 2026-10-29 (task 3.1 del change `ci-testing-gate-promotion`): sin
+    # `continue-on-error`, un fallo propaga a `prebuild-tests-complete`.
     if: (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
     name: 'Tests: Property Tests'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v5
         with:
@@ -2553,11 +2561,11 @@ jobs:
       - test-unit-server
       - client-coverage
       - server-coverage
-      # ALL 5 tier-1 members (`test-unit-client`, `test-unit-server`, `client-coverage`,
-      # `server-coverage`, `property-tests`) carry `continue-on-error: true` (FASE 1 advisory), so
-      # each individual failure is absorbed at job level and this aggregator stays green regardless:
-      # it carries NO blocking force. Only the governance / quality / security verdicts block.
-      # Promotion to blocking belongs to the `ci-testing-gate-promotion` change.
+      # The 5 tier-1 members (`test-unit-client`, `test-unit-server`, `client-coverage`,
+      # `server-coverage`, `property-tests`) are BLOCKING since 2026-10-29 (task 3.1 of
+      # `ci-testing-gate-promotion`): no job-level `continue-on-error`, so a red member fails this
+      # aggregator and, transitively, `ci-complete`. Rollback = restore the flag PER JOB with the
+      # cause registered (design D9).
       - property-tests
     steps:
       - name: Check for failures
