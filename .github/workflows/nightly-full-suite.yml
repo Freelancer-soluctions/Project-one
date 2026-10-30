@@ -209,3 +209,37 @@ jobs:
           name: Nightly Server Unit Tests
           path: apps/server/reports/junit.xml
           reporter: java-junit
+
+  # G6 del change `snapshot-gates` — drift probe de snapshots (design D6).
+  # Corre la suite client con update DELIBERADO (`test:snapshot:refresh`,
+  # script allowlistado de G2) en este checkout desechable y falla si el diff
+  # resultante muestra cambios en artefactos de snapshot: un `.snap` distinto
+  # tras un refresh limpio es drift real (serialización no determinista o
+  # snapshot stale commiteado). Job propio (no step de `nightly-client`): su
+  # veredicto es aislado y jamás entra en `needs` de ci.yml (schedule-only).
+  nightly-snapshot-drift:
+    name: Nightly - Snapshot Drift Probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+
+      - name: Refresh snapshots (deliberate update in disposable checkout)
+        run: npm run test:snapshot:refresh --workspace=apps/client
+        shell: bash
+
+      - name: Detect snapshot drift
+        run: |
+          CHANGED=$(git diff --name-only -- '*.snap' 'apps/client/src/**/*.ui.test.jsx' || true)
+          UNTRACKED=$(git status --porcelain -- '*.snap' 'apps/client/src/**/*.ui.test.jsx' || true)
+          if [ -n "${CHANGED}" ] || [ -n "${UNTRACKED}" ]; then
+            echo "::error::Snapshot drift detected — refreshed snapshots differ from committed ones:"
+            if [ -n "${CHANGED}" ]; then echo "CHANGED:"; echo "${CHANGED}"; fi
+            if [ -n "${UNTRACKED}" ]; then echo "UNTRACKED:"; echo "${UNTRACKED}"; fi
+            exit 1
+          fi
+          echo "✅ No snapshot drift — refreshed snapshots match the committed ones"
+        shell: bash
