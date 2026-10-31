@@ -114,7 +114,7 @@
     // },
     "orchestrator": {
       "mode": "primary",
-      "model": "opencode/beam-free",
+      "model": "opencode-go/beam-free",
       "description": "Main orchestrator that delegates tasks to specialized agents",
       "prompt": "{file:docs/opencode/prompts/orchestrator.md}",
       "steps": 45,
@@ -137,7 +137,7 @@
     "spec-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/qwen3.8-flash",
+      "model": "opencode-go/beam-free",
       "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
       "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
       "steps": 30,
@@ -150,7 +150,7 @@
     "git-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/qwen3.8-flash",
+      "model": "opencode-go/beam-free",
       "description": "SCM and Conventional Commit specialist",
       "prompt": "{file:docs/opencode/prompts/git-manager.md}",
       "steps": 20,
@@ -163,7 +163,7 @@
     "planner": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/claude-haiku-5.5",
+      "model": "opencode-go/claude-haiku-5-5",
       "description": "Planning specialist",
       "prompt": "{file:docs/opencode/prompts/planner.md}",
       "steps": 20,
@@ -178,7 +178,7 @@
     "developer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/gpt-6-luna",
+      "model": "opencode-go/gpt-6-luna",
       "description": "Implementation agent",
       "prompt": "{file:docs/opencode/prompts/developer.md}",
       "steps": 35,
@@ -196,7 +196,7 @@
     "reviewer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/claude-haiku-5.5",
+      "model": "opencode-go/gpt-6-luna",
       "description": "Code reviewer",
       "prompt": "{file:docs/opencode/prompts/reviewer.md}",
       "steps": 15,
@@ -209,7 +209,7 @@
     "researcher": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/beam-free",
+      "model": "opencode-go/beam-free",
       "description": "Research agent",
       "prompt": "{file:docs/opencode/prompts/researcher.md}",
       "steps": 20,
