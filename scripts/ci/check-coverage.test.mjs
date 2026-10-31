@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { evaluateCriticalPathCoverage } from './coverage-critical-paths.mjs';
 
 // Test unitario de `check-coverage.mjs` (task 2.0): fixtures temporales de
 // `coverage-summary.json` ejecutadas contra el script real via spawnSync.
@@ -19,6 +20,17 @@ const CONFIG_JS = `export default { test: { coverage: { thresholds: {
 const GLOB_CONFIG_JS = `export default { test: { coverage: { thresholds: {
   statements: 40, branches: 40, functions: 40, lines: 40,
   'src/missing/**': { statements: 90, branches: 90, functions: 90, lines: 90 }
+} } } };\n`;
+const MATCHING_GLOB_CONFIG_JS = `export default { test: { coverage: { thresholds: {
+  statements: 40, branches: 40, functions: 40, lines: 40,
+  'src/**': { statements: 40, branches: 40, functions: 40, lines: 40 }
+} } } };\n`;
+const PER_FILE_CONFIG_JS = `export default { test: { coverage: { thresholds: {
+  statements: 40, branches: 40, functions: 40, lines: 40,
+  perFile: { statements: 80, branches: 80, functions: 80, lines: 80 }
+} } } };\n`;
+const NEGATIVE_CONFIG_JS = `export default { test: { coverage: { thresholds: {
+  statements: -2, branches: -2, functions: -2, lines: -2
 } } } };\n`;
 
 function metric(total, covered) {
@@ -74,6 +86,17 @@ describe('check-coverage.mjs --advisory contract (task 2.0)', () => {
     expect(runResult.status).toBe(1);
   });
 
+  it('prints contributing file paths when a global floor is breached', () => {
+    const { ws, covDir } = makeWs(summaryWith(50));
+    const runResult = run(ws, covDir);
+
+    expect(runResult.status).toBe(1);
+    expect(runResult.stdout + runResult.stderr).toContain(
+      'Global statements floor contributors:'
+    );
+    expect(runResult.stdout + runResult.stderr).toContain('src/a.js');
+  });
+
   it('summary vacio (0 ficheros) sin flag -> exit 1 (nunca verde vacuo)', () => {
     const { ws, covDir } = makeWs({
       total: Object.fromEntries(
@@ -104,6 +127,68 @@ describe('check-coverage.mjs --advisory contract (task 2.0)', () => {
     expect(runResult.stdout + runResult.stderr).toContain('[advisory]');
   });
 
+  it('passes a configured glob when its workspace-relative pattern matches', () => {
+    const { ws, covDir } = makeWs(summaryWith(50), MATCHING_GLOB_CONFIG_JS);
+    const summaryPath = path.join(covDir, 'coverage-summary.json');
+    fs.writeFileSync(
+      summaryPath,
+      JSON.stringify({
+        ...JSON.parse(fs.readFileSync(summaryPath, 'utf8')),
+        [`${ws}/src/a.js`]: Object.fromEntries(
+          ['statements', 'branches', 'functions', 'lines'].map((m) => [
+            m,
+            metric(100, 50),
+          ])
+        ),
+      })
+    );
+
+    const runResult = run(ws, covDir);
+
+    expect(runResult.status).toBe(0);
+    expect(runResult.stdout).toContain('Glob `src/**` (1 file(s))');
+  });
+
+  it('fails when a file breaches its per-file threshold despite passing global totals', () => {
+    const { ws, covDir } = makeWs(summaryWith(50), PER_FILE_CONFIG_JS);
+    const runResult = run(ws, covDir);
+
+    expect(runResult.status).toBe(1);
+    expect(runResult.stdout).toContain('per-file breach(es)');
+  });
+
+  it('interprets negative thresholds as maximum uncovered item counts', () => {
+    const { ws, covDir } = makeWs(summaryWith(97), NEGATIVE_CONFIG_JS);
+    const runResult = run(ws, covDir);
+
+    expect(runResult.status).toBe(1);
+    expect(runResult.stdout).toContain('3 uncovered (max 2)');
+  });
+
+  it('normalizes absolute Windows coverage paths before matching globs', () => {
+    const { ws, covDir } = makeWs(summaryWith(50), MATCHING_GLOB_CONFIG_JS);
+    const summaryPath = path.join(covDir, 'coverage-summary.json');
+    const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+    const fileMetrics = Object.fromEntries(
+      ['statements', 'branches', 'functions', 'lines'].map((m) => [
+        m,
+        metric(100, 50),
+      ])
+    );
+    fs.writeFileSync(
+      summaryPath,
+      JSON.stringify({
+        total: summary.total,
+        [path.join(ws, 'src', 'a.js')]: fileMetrics,
+      })
+    );
+
+    const runResult = run(ws, covDir);
+
+    expect(runResult.status).toBe(0);
+    expect(runResult.stdout).toContain('Glob `src/**` (1 file(s))');
+  });
+
   it('summary vacio (0 ficheros) con --advisory -> exit 0 + aviso', () => {
     const { ws, covDir } = makeWs({
       total: Object.fromEntries(
@@ -118,5 +203,53 @@ describe('check-coverage.mjs --advisory contract (task 2.0)', () => {
     const out = runResult.stdout + runResult.stderr;
     expect(out).toContain('[advisory]');
     expect(out).toMatch(/empty coverage report|notice/i);
+  });
+});
+
+describe('critical-path coverage evaluation', () => {
+  it('reports a critical-path file below its floor even when other metrics pass', () => {
+    const files = [
+      {
+        rel: 'src/modules/auth/service.ts',
+        metrics: {
+          statements: metric(100, 50),
+          branches: metric(100, 100),
+          functions: metric(100, 100),
+          lines: metric(100, 100),
+        },
+      },
+    ];
+    const thresholds = {
+      'src/modules/auth/service.ts': {
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80,
+      },
+    };
+
+    const breaches = evaluateCriticalPathCoverage({
+      policy: {
+        paths: [
+          {
+            workspace: 'server',
+            path: 'src/modules/auth/service.ts',
+            status: 'enforced',
+          },
+        ],
+      },
+      workspace: 'server',
+      files,
+      thresholds,
+    });
+
+    expect(breaches).toEqual([
+      expect.objectContaining({
+        path: 'src/modules/auth/service.ts',
+        metric: 'statements',
+        measured: 50,
+        threshold: 80,
+      }),
+    ]);
   });
 });

@@ -44,6 +44,8 @@
     "coverage:check": "node scripts/ci/coverage-check.mjs",
     "coverage:ratchet": "node scripts/ci/coverage-ratchet.mjs",
     "coverage:guard": "node scripts/ci/check-coverage.mjs",
+    "coverage:baseline:check": "node scripts/ci/coverage-baseline.mjs",
+    "coverage:docs:verify": "node scripts/ci/coverage-docs-verify.mjs",
     "test:smoke": "npm run test:smoke --workspace=server-express",
     "test:smoke:ci": "npm run test:smoke:ci --workspace=server-express",
     "test:regression": "npm run test:regression --workspace=server-express",

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Local mirror of the CI coverage jobs (`client-coverage` / `server-coverage`).
+ * Local mirror of the blocking CI full-suite gate (`coverage-full-gate`).
  *
- * Runs the coverage suite used by each workspace's CI coverage gate and then
- * applies the exact same guard CI uses (`check-coverage.mjs`), so the local
- * verdict and CI verdict use the same test scope and thresholds.
+ * Runs the same complete test scope as the CI full-suite gate and then applies
+ * the exact same guard (`check-coverage.mjs`), so local and CI use the same
+ * report inputs, thresholds, and blocking verdict.
  *
  * Client runs its full suite; server runs unit tests only, matching the server
  * coverage job's unit-only artifact. Neither run is diff-scoped: a partial TIA
@@ -131,6 +131,6 @@ if (failed.length) {
 
 console.log('\n✅ Both workspaces meet their coverage thresholds.');
 console.log(
-  '   This is the same verdict the CI coverage jobs produce for this state.'
+  '   This is the same verdict the CI full-suite coverage gate produces.'
 );
 process.exit(0);

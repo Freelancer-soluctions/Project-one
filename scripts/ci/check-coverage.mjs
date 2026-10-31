@@ -67,10 +67,28 @@ if (typeof globalThis.URL === 'undefined') {
 }
 import { join, resolve, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import {
+  evaluateCriticalPathCoverage,
+  validateCriticalPaths,
+} from './coverage-critical-paths.mjs';
 
 const argv = process.argv.slice(2);
 const advisory = argv.includes('--advisory');
-const positional = argv.filter((a) => a !== '--advisory');
+let criticalPathsFile;
+const positional = [];
+for (let i = 0; i < argv.length; i++) {
+  const arg = argv[i];
+  if (arg === '--advisory') continue;
+  if (arg === '--critical-paths') {
+    criticalPathsFile = argv[++i];
+    continue;
+  }
+  if (arg.startsWith('--critical-paths=')) {
+    criticalPathsFile = arg.slice('--critical-paths='.length);
+    continue;
+  }
+  positional.push(arg);
+}
 const workspace = positional[0];
 
 // Resolve the workspace path from the repo root (where this script lives),
@@ -168,6 +186,42 @@ try {
 const thresholds = config?.test?.coverage?.thresholds;
 if (!thresholds) {
   console.error(`❌ No coverage.thresholds found in ${configFile}`);
+  process.exit(advisory ? 0 : 1);
+}
+
+const workspaceId =
+  workspace === 'client' || workspace === 'server'
+    ? workspace
+    : wsRoot.split(/[\\/]/).filter(Boolean).at(-1);
+const policyPath = criticalPathsFile
+  ? resolve(criticalPathsFile)
+  : join(ROOT, '.coverage-critical-paths.json');
+let criticalPathPolicy = { version: 1, paths: [] };
+try {
+  criticalPathPolicy = JSON.parse(readFileSync(policyPath, 'utf8'));
+} catch (err) {
+  console.error(
+    `❌ Failed to load critical-path policy ${policyPath}: ${err.message}`
+  );
+  process.exit(advisory ? 0 : 1);
+}
+const policyErrors = validateCriticalPaths(
+  {
+    ...criticalPathPolicy,
+    paths: criticalPathPolicy.paths?.filter(
+      (entry) => entry.workspace === workspaceId
+    ),
+    criticalRoots: criticalPathPolicy.criticalRoots?.filter(
+      (entry) => entry.workspace === workspaceId
+    ),
+  },
+  {
+    workspaceConfigs: { [workspaceId]: config },
+    workspaceRoots: { [workspaceId]: wsRoot },
+  }
+);
+if (policyErrors.length) {
+  for (const error of policyErrors) console.error(`❌ ${error}`);
   process.exit(advisory ? 0 : 1);
 }
 
@@ -273,7 +327,25 @@ for (const [metric, threshold] of Object.entries(numericThresholds)) {
     uncovered(files, metric)
   );
   console.log(`  ${r.ok ? '✅' : '❌'} ${r.detail}`);
-  if (!r.ok) failed = true;
+  if (!r.ok) {
+    failed = true;
+    const contributors = files
+      .map((file) => ({
+        path: file.rel,
+        uncovered: file.metrics[metric].total - file.metrics[metric].covered,
+      }))
+      .filter((file) => file.uncovered > 0)
+      .sort((a, b) => b.uncovered - a.uncovered || a.path.localeCompare(b.path))
+      .slice(0, 5);
+    console.error(`  Global ${metric} floor contributors:`);
+    if (!contributors.length) {
+      console.error('    (no per-file uncovered items found in the report)');
+    } else {
+      for (const file of contributors) {
+        console.error(`    - ${file.path}: ${file.uncovered} uncovered`);
+      }
+    }
+  }
 }
 
 // Top-level `perFile`: every file must clear the per-file minimums.
@@ -375,6 +447,46 @@ for (const [glob, spec] of globThresholds) {
         `  ✅ all ${matched.length} file(s) meet the glob's per-file minimums`
       );
     }
+  }
+}
+
+// ---- Critical business paths -------------------------------------------
+const enforcedCriticalPaths = criticalPathPolicy.paths.filter(
+  (entry) => entry.workspace === workspaceId && entry.status === 'enforced'
+);
+const exemptCriticalPaths = criticalPathPolicy.paths.filter(
+  (entry) => entry.workspace === workspaceId && entry.status === 'exempt'
+);
+if (enforcedCriticalPaths.length || exemptCriticalPaths.length) {
+  console.log(
+    `\nCritical paths (${enforcedCriticalPaths.length} enforced, ${exemptCriticalPaths.length} exempt):`
+  );
+  const exemptionGroups = new Map();
+  for (const entry of exemptCriticalPaths) {
+    const group = entry.path.split('/').slice(0, 3).join('/');
+    const existing = exemptionGroups.get(group);
+    if (existing) existing.count++;
+    else exemptionGroups.set(group, { entry, count: 1 });
+  }
+  for (const [group, { entry, count }] of exemptionGroups) {
+    console.log(
+      `  ⚠️  ${group}/: ${count} source path(s) exempt until ${entry.expiresAt} (${entry.owner}) — ${entry.reason}`
+    );
+  }
+  const breaches = evaluateCriticalPathCoverage({
+    policy: criticalPathPolicy,
+    workspace: workspaceId,
+    files,
+    thresholds,
+  });
+  for (const breach of breaches) {
+    console.error(
+      `  ❌ ${breach.path} ${breach.metric}: ${breach.reason} (measured ${breach.measured}, floor ${breach.threshold})`
+    );
+    failed = true;
+  }
+  if (!breaches.length && enforcedCriticalPaths.length) {
+    console.log('  ✅ all enforced critical-path floors pass');
   }
 }
 

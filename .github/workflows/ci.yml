@@ -1236,6 +1236,44 @@ jobs:
         env:
           CI: true
 
+  # Baseline ratchet and canonical-doc validation are independent of test
+  # selection. Every PR rejects unaudited floor decreases and documentation
+  # drift; existing continue-on-error policy is unchanged.
+  coverage-floor-guard:
+    name: 'Quality: Coverage Floor Guard'
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-monorepo
+      - name: Validate versioned coverage baseline
+        run: npm run coverage:baseline:check
+      - name: Verify canonical coverage documentation
+        run: npm run coverage:docs:verify
+
+  # Full-suite coverage is evaluated independently of TIA, so partial reports
+  # remain advisory under D18 while every PR gets one blocking full-suite
+  # verdict from the same guard used by `npm run coverage:check`.
+  coverage-full-gate:
+    name: 'Quality: Coverage Full Gate'
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Run Client full suite with coverage
+        run: npm run test:coverage:ci --workspace=apps/client
+      - name: Run Server full unit suite with coverage
+        run: npm run test:coverage:unit:ci --workspace=apps/server
+      - name: Enforce Client full-suite coverage floors
+        run: node scripts/ci/check-coverage.mjs apps/client apps/client/coverage
+      - name: Enforce Server full-suite coverage floors
+        run: node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
+
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog
   # (bloqueantes en needs del agregador: dependency-review, secrets, scancode-license-pr-diff · advisory FASE 1: el resto)
@@ -2615,6 +2653,10 @@ jobs:
       # SIN `continue-on-error`, así que un gate rojo también falla este agregador. El job
       # advisory de tamaño/huérfanos (`client-snapshot-size`) NO es miembro a propósito.
       - snapshot-update-gate
+      # Coverage baseline integrity and full-suite floors are independent blocking
+      # members; neither changes the existing TIA/advisory coverage lane.
+      - coverage-floor-guard
+      - coverage-full-gate
     steps:
       - name: Check for failures
         run: |
