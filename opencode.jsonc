@@ -4,7 +4,8 @@
   "plugin": [
     "@warp-dot-dev/opencode-warp",
     // "./.opencode/plugins/output-contracts.ts",
-    "./.opencode/plugins/neurosymbolic-guardrails.ts"
+    "./.opencode/plugins/neurosymbolic-guardrails.ts",
+    "@slkiser/opencode-quota"
   ],
   "provider": {
     "ollama-local": {
@@ -36,46 +37,13 @@
             "output": 65536
           }
         },
-        "felo/felo": {
-          "name": "Felo (via OmniRoute)",
-          "limit": {
-            "context": 32000,
-            "output": 4096
-          }
-        },
-        "tllm/deepseek_v4": {
-          "name": "DeepSeek V4 (via TheOldLLM)",
-          "limit": {
-            "context": 128000,
-            "output": 4096
-          }
-        },
-        "tllm/gemini_3_flash": {
-          "name": "Gemini 3 Flash (via TheOldLLM)",
-          "limit": {
-            "context": 128000,
-            "output": 4096
-          }
-        },
-        "tllm/claude_sonnet_4": {
-          "name": "Claude Sonnet 4 (via TheOldLLM)",
-          "limit": {
-            "context": 200000,
-            "output": 4096
-          }
-        },
-        "ddgw/claude-haiku-4-5": {
-          "name": "Claude Haiku 4.5 (via DuckDuckGo)",
-          "limit": {
-            "context": 200000,
-            "output": 4096
-          }
-        },
-        "unc/qwen3.6:27b": {
-          "name": "Qwen 3.6 27B (via UncloseAI)",
-          "limit": {
-            "context": 32000,
-            "output": 4096
+        "auto/best-coding": {
+          "name": "Best Coding (OmniRoute)",
+          "contextWindow": 400000,
+          "maxTokens": 8192,
+          "capabilities": {
+            "vision": true,
+            "tool_calling": true
           }
         }
       }
@@ -146,7 +114,7 @@
     // },
     "orchestrator": {
       "mode": "primary",
-      "model": "opencode/mimo-v2.5-free",
+      "model": "opencode-go/beam-free",
       "description": "Main orchestrator that delegates tasks to specialized agents",
       "prompt": "{file:docs/opencode/prompts/orchestrator.md}",
       "steps": 45,
@@ -169,7 +137,7 @@
     "spec-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/deepseek-v4.1-flash-free",
+      "model": "opencode-go/beam-free",
       "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
       "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
       "steps": 30,
@@ -182,7 +150,7 @@
     "git-manager": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/deepseek-v4.1-flash-free",
+      "model": "opencode-go/beam-free",
       "description": "SCM and Conventional Commit specialist",
       "prompt": "{file:docs/opencode/prompts/git-manager.md}",
       "steps": 20,
@@ -195,7 +163,7 @@
     "planner": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/deepseek-v4.1-flash-free",
+      "model": "opencode-go/claude-haiku-5-5",
       "description": "Planning specialist",
       "prompt": "{file:docs/opencode/prompts/planner.md}",
       "steps": 20,
@@ -210,7 +178,7 @@
     "developer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/mimo-v2.6-flash-free",
+      "model": "opencode-go/gpt-6-luna",
       "description": "Implementation agent",
       "prompt": "{file:docs/opencode/prompts/developer.md}",
       "steps": 35,
@@ -228,7 +196,7 @@
     "reviewer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/deepseek-v4.1-flash-free",
+      "model": "opencode-go/gpt-6-luna",
       "description": "Code reviewer",
       "prompt": "{file:docs/opencode/prompts/reviewer.md}",
       "steps": 15,
@@ -241,7 +209,7 @@
     "researcher": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode/deepseek-v4.1-flash-free",
+      "model": "opencode-go/beam-free",
       "description": "Research agent",
       "prompt": "{file:docs/opencode/prompts/researcher.md}",
       "steps": 20,

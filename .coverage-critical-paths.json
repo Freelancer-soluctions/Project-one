@@ -1,0 +1,473 @@
+{
+  "version": 1,
+  "criticalRoots": [
+    { "workspace": "server", "path": "src/modules/auth" },
+    { "workspace": "server", "path": "src/modules/permission" },
+    { "workspace": "server", "path": "src/modules/users" },
+    { "workspace": "server", "path": "src/modules/payroll" },
+    { "workspace": "server", "path": "src/modules/sales" },
+    { "workspace": "server", "path": "src/modules/inventoryMovement" },
+    { "workspace": "server", "path": "src/modules/stock" },
+    { "workspace": "server", "path": "src/modules/warehouse" },
+    { "workspace": "server", "path": "src/modules/expenses" },
+    { "workspace": "server", "path": "src/common/crypto" }
+  ],
+  "paths": [
+    {
+      "workspace": "server",
+      "path": "src/modules/auth/controller.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/auth/dao.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/auth/routes.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/auth/schemas/auth.joi.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/auth/service.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/auth/types.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/permission/controller.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/permission/dao.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/permission/routes.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/permission/schemas/permission.joi.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/permission/service.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/permission/types.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/users/constants/users.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/users/controller.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/users/dao.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/users/routes.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/users/schemas/users.joi.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/users/service.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/users/types.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/payroll/controller.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/payroll/dao.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/payroll/routes.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/payroll/schemas/payroll.joi.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/payroll/service.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/payroll/types.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/sales/controller.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/sales/dao.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/sales/routes.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/sales/schemas/sales.joi.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/sales/service.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/sales/types.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/inventoryMovement/controller.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/inventoryMovement/dao.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/inventoryMovement/routes.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/inventoryMovement/schemas/inventoryMovement.joi.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/inventoryMovement/service.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/inventoryMovement/types.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/stock/controller.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/stock/dao.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/stock/routes.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/stock/schemas/stock.joi.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/stock/service.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/stock/types.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/warehouse/controller.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/warehouse/dao.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/warehouse/routes.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/warehouse/schemas/warehouse.joi.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/warehouse/service.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/warehouse/types.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/expenses/controller.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/expenses/dao.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/expenses/routes.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/expenses/schemas/expenses.joi.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/expenses/service.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/modules/expenses/types.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing module tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/common/crypto/hashValue.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing crypto tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    },
+    {
+      "workspace": "server",
+      "path": "src/common/crypto/index.ts",
+      "status": "exempt",
+      "reason": "No direct unit-test coverage exists at the 2026-10-30 baseline; writing crypto tests is outside this change.",
+      "owner": "@Freelancer-soluctions/backend-team",
+      "expiresAt": "2027-01-30"
+    }
+  ]
+}

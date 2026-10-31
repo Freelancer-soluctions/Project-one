@@ -481,498 +481,605 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 </th>
 `;
 
-exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 with cells 1`] = `
-<tr
-  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-  data-state="false"
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 1 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 5th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      WIDGET ALPHA
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      $ 20
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      120
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      $ 2.399
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      MAIN WAREHOUSE
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      UNIT
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      LOT-A1
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      June 30th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      FRESH
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      OLIVER OPS
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      OLIVER OPS
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 6th, 2026
-    </div>
-  </td>
-</tr>
+    January 5th, 2026
+  </div>
+</td>
 `;
 
-exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 with cells 1`] = `
-<tr
-  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-  data-state="false"
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 2 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 6th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      WIDGET BETA
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      $ 25
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      15
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      $ 368
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      OVERFLOW WAREHOUSE
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      BOX
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      LOT-B2
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    />
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      NO EXPIRY
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      IVY INSPECTOR
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    />
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    />
-  </td>
-</tr>
+    WIDGET ALPHA
+  </div>
+</td>
 `;
 
-exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 with cells 1`] = `
-<tr
-  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-  data-state="false"
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 3 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 7th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      GADGET GAMMA
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      $ 42
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      60
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      $ 2.520
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      MAIN WAREHOUSE
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      PALLET
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    />
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      March 15th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      EXPIRING
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      OLIVER OPS
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      IVY INSPECTOR
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 8th, 2026
-    </div>
-  </td>
-</tr>
+    $ 20
+  </div>
+</td>
 `;
 
-exports[`StockDatatable - UI snapshot > renders the pagination controls > pagination buttons and page size select 1`] = `
-<div
-  class="flex flex-wrap items-center gap-2"
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 4 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
-  <button
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
-    disabled=""
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    &lt;&lt;
-  </button>
-  <button
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
-    disabled=""
+    120
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 5 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    &lt;
-  </button>
-  <button
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
-    disabled=""
+    $ 2.399
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 6 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    &gt;
-  </button>
-  <button
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
-    disabled=""
+    MAIN WAREHOUSE
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 7 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    &gt;&gt;
-  </button>
-  <span
-    class="flex items-center gap-1"
+    UNIT
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 8 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    <div>
-      Page
-    </div>
-    <strong>
-      1
-       of
-       
-      1
-    </strong>
-  </span>
-  <span
-    class="flex items-center gap-1"
+    LOT-A1
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 9 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    | Go to page:
-    <input
-      class="border p-1 rounded w-16"
-      max="1"
-      min="1"
-      type="number"
-      value="1"
-    />
-  </span>
-  <select>
-    <option
-      value="10"
-    >
-      Show 
-      10
-    </option>
-    <option
-      value="20"
-    >
-      Show 
-      20
-    </option>
-    <option
-      value="30"
-    >
-      Show 
-      30
-    </option>
-    <option
-      value="40"
-    >
-      Show 
-      40
-    </option>
-    <option
-      value="50"
-    >
-      Show 
-      50
-    </option>
-  </select>
-</div>
+    June 30th, 2026
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 10 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    FRESH
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 11 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    OLIVER OPS
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 12 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    OLIVER OPS
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 13 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 6th, 2026
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 1 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 6th, 2026
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 2 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    WIDGET BETA
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 3 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    $ 25
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 4 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    15
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 5 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    $ 368
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 6 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    OVERFLOW WAREHOUSE
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 7 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    BOX
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 8 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    LOT-B2
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 9 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 10 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    NO EXPIRY
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 11 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    IVY INSPECTOR
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 12 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 13 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 1 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 7th, 2026
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 2 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    GADGET GAMMA
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 3 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    $ 42
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 4 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    60
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 5 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    $ 2.520
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 6 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    MAIN WAREHOUSE
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 7 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    PALLET
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 8 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 9 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    March 15th, 2026
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 10 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    EXPIRING
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 11 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    OLIVER OPS
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 12 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    IVY INSPECTOR
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 13 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 8th, 2026
+  </div>
+</td>
+`;
+
+exports[`StockDatatable - UI snapshot > renders the pagination controls > pagination control 1 1`] = `
+<button
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+  disabled=""
+>
+  &lt;&lt;
+</button>
+`;
+
+exports[`StockDatatable - UI snapshot > renders the pagination controls > pagination control 2 1`] = `
+<button
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+  disabled=""
+>
+  &lt;
+</button>
+`;
+
+exports[`StockDatatable - UI snapshot > renders the pagination controls > pagination control 3 1`] = `
+<button
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+  disabled=""
+>
+  &gt;
+</button>
+`;
+
+exports[`StockDatatable - UI snapshot > renders the pagination controls > pagination control 4 1`] = `
+<button
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+  disabled=""
+>
+  &gt;&gt;
+</button>
+`;
+
+exports[`StockDatatable - UI snapshot > renders the pagination controls > pagination control 5 1`] = `
+<span
+  class="flex items-center gap-1"
+>
+  <div>
+    Page
+  </div>
+  <strong>
+    1
+     of
+     
+    1
+  </strong>
+</span>
+`;
+
+exports[`StockDatatable - UI snapshot > renders the pagination controls > pagination control 6 1`] = `
+<span
+  class="flex items-center gap-1"
+>
+  | Go to page:
+  <input
+    class="border p-1 rounded w-16"
+    max="1"
+    min="1"
+    type="number"
+    value="1"
+  />
+</span>
+`;
+
+exports[`StockDatatable - UI snapshot > renders the pagination controls > pagination control 7 1`] = `
+<select>
+  <option
+    value="10"
+  >
+    Show 
+    10
+  </option>
+  <option
+    value="20"
+  >
+    Show 
+    20
+  </option>
+  <option
+    value="30"
+  >
+    Show 
+    30
+  </option>
+  <option
+    value="40"
+  >
+    Show 
+    40
+  </option>
+  <option
+    value="50"
+  >
+    Show 
+    50
+  </option>
+</select>
 `;
 
 exports[`StockDatatable - UI snapshot > renders the pagination controls > pagination showing row count 1`] = `

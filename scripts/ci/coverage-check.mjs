@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Local mirror of the CI coverage jobs (`client-coverage` / `server-coverage`).
+ * Local mirror of the blocking CI full-suite gate (`coverage-full-gate`).
  *
- * Runs the FULL unit suite with coverage in both workspaces and then applies the
- * exact same guard CI uses (`check-coverage.mjs`), so the local verdict and the CI
- * verdict are produced by the same code against the same thresholds.
+ * Runs the same complete test scope as the CI full-suite gate and then applies
+ * the exact same guard (`check-coverage.mjs`), so local and CI use the same
+ * report inputs, thresholds, and blocking verdict.
  *
- * FULL suite, not diff-scoped: a partial (TIA) report is not comparable to global
- * thresholds — that is decision D18, and applying it here is what makes this
- * command trustworthy rather than a false green.
+ * Client runs its full suite; server runs unit tests only, matching the server
+ * coverage job's unit-only artifact. Neither run is diff-scoped: a partial TIA
+ * report is not comparable to global thresholds (decision D18).
  *
  * Usage:
  *   npm run coverage:check              # both workspaces
@@ -34,12 +34,15 @@ const WORKSPACES = [
     dir: join(ROOT, 'apps', 'client'),
     // apps/client/vitest.config.js has no reportsDirectory -> Vitest default.
     coverageDir: join(ROOT, 'apps', 'client', 'coverage'),
+    coverageScript: 'test:coverage',
   },
   {
     id: 'server',
     dir: join(ROOT, 'apps', 'server'),
     // apps/server/vitest.config.js sets reportsDirectory: './tests/coverage'.
+    // CI's coverage job consumes unit-only coverage artifacts.
     coverageDir: join(ROOT, 'apps', 'server', 'tests', 'coverage'),
+    coverageScript: 'test:coverage:unit',
   },
 ];
 
@@ -60,13 +63,13 @@ const results = [];
 
 for (const ws of targets) {
   console.log(
-    `\n${'='.repeat(64)}\n▶ ${ws.id}: full suite with coverage\n${'='.repeat(64)}`
+    `\n${'='.repeat(64)}\n▶ ${ws.id}: ${ws.coverageScript} with coverage\n${'='.repeat(64)}`
   );
 
   const started = Date.now();
   const run = spawnSync(
     'npm',
-    ['run', 'test:coverage', `--workspace=apps/${ws.id}`],
+    ['run', ws.coverageScript, `--workspace=apps/${ws.id}`],
     { cwd: ROOT, stdio: 'inherit', shell: process.platform === 'win32' }
   );
   const seconds = ((Date.now() - started) / 1000).toFixed(1);
@@ -128,6 +131,6 @@ if (failed.length) {
 
 console.log('\n✅ Both workspaces meet their coverage thresholds.');
 console.log(
-  '   This is the same verdict the CI coverage jobs produce for this state.'
+  '   This is the same verdict the CI full-suite coverage gate produces.'
 );
 process.exit(0);

@@ -37,4 +37,5 @@ Closes #
 <!-- Sign-off is verified by the DCO check, the PR title by Governance: PR Title Lint, and the tests by CI. Do not restate them in this body. -->
 
 - [ ] Documentation updated (if applicable)
+- [ ] Snapshots reviewed and explained (if applicable)
 - [ ] No breaking changes (or documented in Summary)
