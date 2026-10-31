@@ -80,3 +80,11 @@ test-results/
 output-contract.json
 report.json
 *.tsbuildinfo
+
+# Generated artifacts (coverage/vitest/perch/audit)
+.perch/
+.vitest-reports/
+apps/client/.vitest-reports/
+apps/server/.vitest-reports/
+reports-inline-audit.json
+_edit_design.mjs
