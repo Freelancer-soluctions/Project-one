@@ -121,7 +121,23 @@
       "permission": {
         "question": "allow",
         "edit": "ask", // workaround: prevents bug #26758 from hiding subagent tools
-        "bash": "ask",
+        "bash": {
+          "git push": "deny",
+          "git push *": "deny",
+          "git commit --amend": "deny",
+          "git commit --amend *": "deny",
+          "git rebase": "deny",
+          "git rebase *": "deny",
+          "git * --no-verify*": "deny",
+          "openspec *": "allow",
+          "git status": "allow",
+          "git diff --stat": "allow",
+          "git add *": "allow",
+          "git commit *": "allow",
+          "gh *": "allow",
+          "git *": "deny",
+          "*": "ask"
+        },
         "task": {
           "*": "deny",
           "spec-manager": "allow",
