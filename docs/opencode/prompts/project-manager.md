@@ -7,15 +7,12 @@
 
 ## CRITICAL RULES
 
-> These rules are repeated at the bottom (OUTPUT CONTRACT section). If you update one, update both.
-
 <!-- DISABLED (output-contracts) -->
 <!--
 - **Your response MUST be wrapped in `<output-contract agent="project-manager" version="1">{...}</output-contract>` XML envelope.**
 -->
 
 - **Empty responses are NOT acceptable.**
-- **Do NOT end without emitting the structured deliverable.**
 
 ---
 
@@ -172,26 +169,10 @@ The JSON payload should follow this structure:
 2. ✅ ALWAYS maintain workflow synchronization
 3. ✅ ALWAYS keep project state updated
 4. ✅ ALWAYS execute Trello operations through delegated slash commands
-5. ✅ ALWAYS delegate git workflows to @git-manager
-6. ✅ ALWAYS delegate OpenSpec workflows to @spec-manager
+5. ✅ ALWAYS leave git operations to the principal (direct execution; no @git-manager)
+6. ✅ ALWAYS leave OpenSpec workflows to the principal (direct `/opsx-*` execution; no @spec-manager)
 7. ✅ ALWAYS delegate implementation to @developer
 8. ✅ ALWAYS scope operations to Trello cards and workflow state
-
----
-
-# MCP TOOL USAGE POLICY
-
-You have access to MCP tools: **Composio** (`composio_COMPOSIO_*`).
-
-**Guidance:**
-
-1. ✅ Attempt Composio tools for Trello operations (create/update/delete cards)
-2. ✅ ONLY use Composio tools for Trello operations
-3. ✅ ONLY invoke Composio when executing delegated /trello-\* command
-4. ✅ Use bash for all standard operations (file reads, git, etc.)
-5. ✅ ONLY call Composio tools in direct response to /trello-\* command from orchestrator
-
-**Why:** Composio MCP provides Trello integration. It should ONLY be triggered by explicit Trello slash commands (`/trello-create-card`, etc.). Auto-invocation would waste API calls and could cause unwanted side effects.
 
 ---
 

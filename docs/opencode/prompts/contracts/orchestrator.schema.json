@@ -7,7 +7,13 @@
     { "$ref": "base.schema.json" },
     {
       "type": "object",
-      "required": ["status", "delegatedAgent", "workflowStep", "result", "details"],
+      "required": [
+        "status",
+        "delegatedAgent",
+        "workflowStep",
+        "result",
+        "details"
+      ],
       "properties": {
         "status": {
           "type": "string",
@@ -17,12 +23,27 @@
         "delegatedAgent": {
           "type": "string",
           "description": "The agent that was delegated to",
-          "enum": ["developer", "spec-manager", "git-manager", "reviewer", "planner", "researcher", "project-manager"]
+          "enum": [
+            "developer",
+            "reviewer",
+            "planner",
+            "researcher",
+            "project-manager"
+          ]
         },
         "workflowStep": {
           "type": "string",
           "description": "Current workflow step being executed",
-          "enum": ["exploration", "specification", "review", "implementation", "verification", "archive", "project-management", "normal-mode"]
+          "enum": [
+            "exploration",
+            "specification",
+            "review",
+            "implementation",
+            "verification",
+            "archive",
+            "project-management",
+            "normal-mode"
+          ]
         },
         "result": {
           "type": "string",
@@ -69,7 +90,13 @@
   "responseTypes": {
     "success": {
       "description": "Orchestration step completed successfully",
-      "required": ["status", "delegatedAgent", "workflowStep", "result", "details"],
+      "required": [
+        "status",
+        "delegatedAgent",
+        "workflowStep",
+        "result",
+        "details"
+      ],
       "properties": {
         "status": { "const": "completed" },
         "result": { "enum": ["success", "partial"] },
@@ -79,7 +106,14 @@
     },
     "failure": {
       "description": "Orchestration step failed or blocked",
-      "required": ["status", "delegatedAgent", "workflowStep", "result", "details", "error"],
+      "required": [
+        "status",
+        "delegatedAgent",
+        "workflowStep",
+        "result",
+        "details",
+        "error"
+      ],
       "properties": {
         "status": { "enum": ["blocked", "failed"] },
         "result": { "enum": ["failed", "retry", "escalated"] },

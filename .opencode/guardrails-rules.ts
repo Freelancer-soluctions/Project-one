@@ -65,11 +65,11 @@ export interface Rule {
  * @returns The string value if found, undefined otherwise
  */
 function getString(args: unknown, fields: string[]): string | undefined {
-  if (!args || typeof args !== "object") return undefined;
+  if (!args || typeof args !== 'object') return undefined;
   const obj = args as Record<string, unknown>;
   for (const field of fields) {
     const value = obj[field];
-    if (typeof value === "string") return value;
+    if (typeof value === 'string') return value;
   }
   return undefined;
 }
@@ -86,7 +86,7 @@ function deepScanStringFields(obj: unknown): string {
 
   function walk(value: unknown): void {
     if (value === null || value === undefined) return;
-    if (typeof value === "string") {
+    if (typeof value === 'string') {
       strings.push(value);
       return;
     }
@@ -94,7 +94,7 @@ function deepScanStringFields(obj: unknown): string {
       for (const item of value) walk(item);
       return;
     }
-    if (typeof value === "object") {
+    if (typeof value === 'object') {
       for (const key of Object.keys(value as Record<string, unknown>)) {
         walk((value as Record<string, unknown>)[key]);
       }
@@ -103,7 +103,7 @@ function deepScanStringFields(obj: unknown): string {
   }
 
   walk(obj);
-  return strings.join(" ");
+  return strings.join(' ');
 }
 
 /**
@@ -116,7 +116,7 @@ function deepScanStringFields(obj: unknown): string {
  */
 function isAllowlistedPath(command: string, allowlist: string[]): boolean {
   // Reject commands with path traversal (`..`) as a safety measure
-  if (command.includes("..")) return false;
+  if (command.includes('..')) return false;
 
   const lowerCommand = command.toLowerCase();
   for (const allowed of allowlist) {
@@ -132,8 +132,11 @@ function isAllowlistedPath(command: string, allowlist: string[]): boolean {
  * Blocks git push with --force or -f flags (including --force-with-lease).
  * Severity: CRITICAL
  */
-function validateNoGitForcePush(args: unknown, _context: RuleContext): ValidationResult {
-  const command = getString(args, ["command"]);
+function validateNoGitForcePush(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
+  const command = getString(args, ['command']);
   if (!command) return { allowed: true };
 
   // Matches: git push --force, git push -f, git push --force-with-lease
@@ -142,7 +145,7 @@ function validateNoGitForcePush(args: unknown, _context: RuleContext): Validatio
     return {
       allowed: false,
       message:
-        "BLOCKED: git push --force destruye el historial compartido. Usa git push sin --force o coordina con el equipo via PR.",
+        'BLOCKED: git push --force destruye el historial compartido. Usa git push sin --force o coordina con el equipo via PR.',
     };
   }
   return { allowed: true };
@@ -153,16 +156,21 @@ function validateNoGitForcePush(args: unknown, _context: RuleContext): Validatio
  * Blocks git commands that rewrite history (rebase, reset --hard, commit --amend, filter-branch, reflog delete).
  * Severity: CRITICAL
  */
-function validateNoGitRewriteHistory(args: unknown, _context: RuleContext): ValidationResult {
-  const command = getString(args, ["command"]);
+function validateNoGitRewriteHistory(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
+  const command = getString(args, ['command']);
   if (!command) return { allowed: true };
 
   // Matches: git rebase, git reset --hard, git commit --amend, git filter-branch, git reflog delete
-  const regex = /\bgit\b.*(\brebase\b|\breset\b.*--hard|\bcommit\b.*--amend|\bfilter-branch\b|\breflog\b.*\bdelete\b)/i;
+  const regex =
+    /\bgit\b.*(\brebase\b|\breset\b.*--hard|\bcommit\b.*--amend|\bfilter-branch\b|\breflog\b.*\bdelete\b)/i;
   if (regex.test(command)) {
     return {
       allowed: false,
-      message: "BLOCKED: Reescritura de historial de git detectada. Usa git revert para deshacer cambios.",
+      message:
+        'BLOCKED: Reescritura de historial de git detectada. Usa git revert para deshacer cambios.',
     };
   }
   return { allowed: true };
@@ -174,18 +182,22 @@ function validateNoGitRewriteHistory(args: unknown, _context: RuleContext): Vali
  * Does NOT match -n short flag (false positive with commit messages like "fix: n/a").
  * Severity: CRITICAL
  */
-function validateNoGitNoVerify(args: unknown, _context: RuleContext): ValidationResult {
-  const command = getString(args, ["command"]);
+function validateNoGitNoVerify(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
+  const command = getString(args, ['command']);
   if (!command) return { allowed: true };
 
   // Matches: git commit --no-verify, git push --no-verify
   // Does NOT match -n (short flag) to avoid false positives
-  const regex = /\bgit\b.*\bcommit\b.*--no-verify|\bgit\b.*\bpush\b.*--no-verify/i;
+  const regex =
+    /\bgit\b.*\bcommit\b.*--no-verify|\bgit\b.*\bpush\b.*--no-verify/i;
   if (regex.test(command)) {
     return {
       allowed: false,
       message:
-        "BLOCKED: --no-verify salta los hooks de pre-commit (lint, format, Semgrep, Gitleaks). Los hooks son obligatorios.",
+        'BLOCKED: --no-verify salta los hooks de pre-commit (lint, format, Semgrep, Gitleaks). Los hooks son obligatorios.',
     };
   }
   return { allowed: true };
@@ -196,8 +208,11 @@ function validateNoGitNoVerify(args: unknown, _context: RuleContext): Validation
  * Blocks destructive Prisma database operations.
  * Severity: HIGH
  */
-function validateNoPrismaDbPushForceReset(args: unknown, _context: RuleContext): ValidationResult {
-  const command = getString(args, ["command"]);
+function validateNoPrismaDbPushForceReset(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
+  const command = getString(args, ['command']);
   if (!command) return { allowed: true };
 
   // Matches: prisma db push --force-reset, prisma migrate reset, prisma db push --accept-data-loss
@@ -220,12 +235,15 @@ function validateNoPrismaDbPushForceReset(args: unknown, _context: RuleContext):
  * Rejects commands with `..` path traversal.
  * Severity: HIGH
  */
-function validateNoDestructiveRm(args: unknown, _context: RuleContext): ValidationResult {
-  const command = getString(args, ["command"]);
+function validateNoDestructiveRm(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
+  const command = getString(args, ['command']);
   if (!command) return { allowed: true };
 
   // Allowlist check first — if path is allowlisted, permit regardless of regex
-  const allowlist = ["/tmp/", "node_modules/.cache/"];
+  const allowlist = ['/tmp/', 'node_modules/.cache/'];
   if (isAllowlistedPath(command, allowlist)) {
     return { allowed: true };
   }
@@ -236,7 +254,7 @@ function validateNoDestructiveRm(args: unknown, _context: RuleContext): Validati
     return {
       allowed: false,
       message:
-        "BLOCKED: rm -rf destruye rutas críticas del proyecto (.git, node_modules, dist, build, prisma/). Usa eliminación selectiva de archivos.",
+        'BLOCKED: rm -rf destruye rutas críticas del proyecto (.git, node_modules, dist, build, prisma/). Usa eliminación selectiva de archivos.',
     };
   }
   return { allowed: true };
@@ -247,8 +265,11 @@ function validateNoDestructiveRm(args: unknown, _context: RuleContext): Validati
  * Blocks rm/del/rmdir commands targeting .env files.
  * Severity: CRITICAL
  */
-function validateNoDeleteEnv(args: unknown, _context: RuleContext): ValidationResult {
-  const command = getString(args, ["command"]);
+function validateNoDeleteEnv(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
+  const command = getString(args, ['command']);
   if (!command) return { allowed: true };
 
   // Matches: rm .env, rm .env.production, del .env.local, rmdir .env
@@ -256,7 +277,7 @@ function validateNoDeleteEnv(args: unknown, _context: RuleContext): ValidationRe
   if (regex.test(command)) {
     return {
       allowed: false,
-      message: "BLOCKED: Archivos .env contienen credenciales. No eliminar.",
+      message: 'BLOCKED: Archivos .env contienen credenciales. No eliminar.',
     };
   }
   return { allowed: true };
@@ -268,26 +289,29 @@ function validateNoDeleteEnv(args: unknown, _context: RuleContext): ValidationRe
  * Allowlist exclusions for common project commands.
  * Severity: HIGH
  */
-function validateNoDevBashNonstandard(args: unknown, _context: RuleContext): ValidationResult {
-  const command = getString(args, ["command"]);
+function validateNoDevBashNonstandard(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
+  const command = getString(args, ['command']);
   if (!command) return { allowed: true };
 
   // Allowlist — if command contains any of these, ALLOW
   const allowlist = [
-    "node_modules/.bin/",
-    "scripts/",
-    "npx jest",
-    "npx vitest",
-    "npm run",
-    "npx prisma",
-    "git",
-    "npx playwright",
-    "npx turbo",
-    "npx storybook",
-    "npx nx",
-    "npx tsx",
-    "npx eslint",
-    "npx prettier",
+    'node_modules/.bin/',
+    'scripts/',
+    'npx jest',
+    'npx vitest',
+    'npm run',
+    'npx prisma',
+    'git',
+    'npx playwright',
+    'npx turbo',
+    'npx storybook',
+    'npx nx',
+    'npx tsx',
+    'npx eslint',
+    'npx prettier',
   ];
 
   const lowerCommand = command.toLowerCase();
@@ -304,7 +328,7 @@ function validateNoDevBashNonstandard(args: unknown, _context: RuleContext): Val
     return {
       allowed: false,
       message:
-        "BLOCKED: Ejecución no convencional detectada. Usa scripts npm estándar o comandos del proyecto.",
+        'BLOCKED: Ejecución no convencional detectada. Usa scripts npm estándar o comandos del proyecto.',
     };
   }
   return { allowed: true };
@@ -315,8 +339,11 @@ function validateNoDevBashNonstandard(args: unknown, _context: RuleContext): Val
  * Blocks direct HTTP calls to Trello/Slack APIs via curl/wget.
  * Severity: CRITICAL
  */
-function validateNoDirectTrello(args: unknown, _context: RuleContext): ValidationResult {
-  const command = getString(args, ["command"]);
+function validateNoDirectTrello(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
+  const command = getString(args, ['command']);
   if (!command) return { allowed: true };
 
   // Matches: api.trello.com, api.slack.com, trello.com/1/
@@ -324,7 +351,8 @@ function validateNoDirectTrello(args: unknown, _context: RuleContext): Validatio
   if (regex.test(command)) {
     return {
       allowed: false,
-      message: "BLOCKED: Ningún agente llama Trello/Slack directamente. Debe delegar a @project-manager.",
+      message:
+        'BLOCKED: Ningún agente llama Trello/Slack directamente. Debe delegar a @project-manager.',
     };
   }
   return { allowed: true };
@@ -335,8 +363,11 @@ function validateNoDirectTrello(args: unknown, _context: RuleContext): Validatio
  * Blocks write tool targeting .env files (except .env.example).
  * Severity: HIGH
  */
-function validateNoWriteEnvFiles(args: unknown, _context: RuleContext): ValidationResult {
-  const filePath = getString(args, ["filePath"]);
+function validateNoWriteEnvFiles(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
+  const filePath = getString(args, ['filePath']);
   if (!filePath) return { allowed: true };
 
   // Match .env, .env.*, .ENV, .Env etc. but exclude .env.example
@@ -346,7 +377,8 @@ function validateNoWriteEnvFiles(args: unknown, _context: RuleContext): Validati
   if (isEnvFile && !isExample) {
     return {
       allowed: false,
-      message: "BLOCKED: No modificar .env directamente. Las variables se configuran via .env.example.",
+      message:
+        'BLOCKED: No modificar .env directamente. Las variables se configuran via .env.example.',
     };
   }
   return { allowed: true };
@@ -357,15 +389,19 @@ function validateNoWriteEnvFiles(args: unknown, _context: RuleContext): Validati
  * Blocks write tool targeting paths containing openspec/ or specs/.
  * Severity: HIGH
  */
-function validateNoPlannerWriteSpecs(args: unknown, _context: RuleContext): ValidationResult {
-  const filePath = getString(args, ["filePath"]);
+function validateNoPlannerWriteSpecs(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
+  const filePath = getString(args, ['filePath']);
   if (!filePath) return { allowed: true };
 
   // Case-insensitive match for /openspec/ or /specs/ in path
   if (/\/openspec\//i.test(filePath) || /\/specs\//i.test(filePath)) {
     return {
       allowed: false,
-      message: "BLOCKED: Los archivos de specs se crean via OpenSpec CLI (/opsx-new, /opsx-propose). No escribir manualmente.",
+      message:
+        'BLOCKED: Los archivos de specs se crean via OpenSpec CLI (/opsx-new, /opsx-propose). No escribir manualmente.',
     };
   }
   return { allowed: true };
@@ -377,18 +413,27 @@ function validateNoPlannerWriteSpecs(args: unknown, _context: RuleContext): Vali
  * Checks if oldString contains sensitive patterns and newString removes them.
  * Severity: MEDIUM
  */
-function validateNoEditGitignoreSecurity(args: unknown, _context: RuleContext): ValidationResult {
-  const filePath = getString(args, ["filePath"]);
-  const oldString = getString(args, ["oldString"]);
-  const newString = getString(args, ["newString"]);
+function validateNoEditGitignoreSecurity(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
+  const filePath = getString(args, ['filePath']);
+  const oldString = getString(args, ['oldString']);
+  const newString = getString(args, ['newString']);
 
-  if (!filePath || !oldString || newString === undefined) return { allowed: true };
+  if (!filePath || !oldString || newString === undefined)
+    return { allowed: true };
 
   // Only apply to .gitignore files
-  if (!filePath.endsWith(".gitignore")) return { allowed: true };
+  if (!filePath.endsWith('.gitignore')) return { allowed: true };
 
   // Patterns that should never be removed from .gitignore
-  const securityPatterns = [/\.env/, /\.log/, /credentials/, /\.opencode\/logs\//];
+  const securityPatterns = [
+    /\.env/,
+    /\.log/,
+    /credentials/,
+    /\.opencode\/logs\//,
+  ];
   const matchedPatterns: string[] = [];
 
   for (const pattern of securityPatterns) {
@@ -415,17 +460,21 @@ function validateNoEditGitignoreSecurity(args: unknown, _context: RuleContext): 
  * Deep scans all string fields in args for git command patterns.
  * Severity: CRITICAL
  */
-function validateNoComposioGitOps(args: unknown, _context: RuleContext): ValidationResult {
+function validateNoComposioGitOps(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
   // Deep scan all string values in the args object
   const allStrings = deepScanStringFields(args);
 
   // Matches: git push, git pull, git commit, git reset, git rebase, git merge, git branch, git clone, git fetch, git stash
-  const regex = /\bgit\b.*\b(push|pull|commit|reset|rebase|merge|branch|clone|fetch|stash)\b/i;
+  const regex =
+    /\bgit\b.*\b(push|pull|commit|reset|rebase|merge|branch|clone|fetch|stash)\b/i;
   if (regex.test(allStrings)) {
     return {
       allowed: false,
       message:
-        "BLOCKED: Operaciones git vía Composio prohibidas. Git se maneja exclusivamente via git-manager con comandos git nativos.",
+        'BLOCKED: Operaciones git vía Composio prohibidas. Git se maneja exclusivamente con comandos git nativos (principal).',
     };
   }
   return { allowed: true };
@@ -437,24 +486,29 @@ function validateNoComposioGitOps(args: unknown, _context: RuleContext): Validat
  * The marker "DELEGATION SUFFIX (INJECTED BY ORCHESTRATOR)" must be present in the prompt.
  * Severity: CRITICAL
  */
-function validateOrchestratorDelegationSuffixRequired(args: unknown, _context: RuleContext): ValidationResult {
+function validateOrchestratorDelegationSuffixRequired(
+  args: unknown,
+  _context: RuleContext
+): ValidationResult {
   // The task tool args should have a `prompt` field containing the delegation message
   // Per spec: first verify that args.prompt is extractable — if unextractable, fail open
-  const prompt = getString(args, ["prompt"]);
+  const prompt = getString(args, ['prompt']);
   if (prompt === undefined) {
     // Fail open: unextractable prompt (missing or non-string) — do not block
-    console.warn("[guardrails] WARN: orchestrator-delegation-suffix-required: prompt field unextractable from task args — failing open");
+    console.warn(
+      '[guardrails] WARN: orchestrator-delegation-suffix-required: prompt field unextractable from task args — failing open'
+    );
     return { allowed: true };
   }
 
-  const suffixMarker = "DELEGATION SUFFIX (INJECTED BY ORCHESTRATOR)";
+  const suffixMarker = 'DELEGATION SUFFIX (INJECTED BY ORCHESTRATOR)';
   if (!prompt.includes(suffixMarker)) {
     return {
       allowed: false,
       message:
-        "GUARDRAIL_BLOCKED: Delegation prompt missing required DELEGATION SUFFIX block. " +
-        "Retry hint: Append the DELEGATION SUFFIX template as the final block of your delegation message. " +
-        "See orchestrator.md DELEGATION SUFFIX TEMPLATE section.",
+        'GUARDRAIL_BLOCKED: Delegation prompt missing required DELEGATION SUFFIX block. ' +
+        'Retry hint: Append the DELEGATION SUFFIX template as the final block of your delegation message. ' +
+        'See orchestrator.md DELEGATION SUFFIX TEMPLATE section.',
     };
   }
   return { allowed: true };
@@ -474,7 +528,7 @@ function validateOrchestratorDelegationSuffixRequired(args: unknown, _context: R
 export function validateRules(
   rules: Rule[],
   args: unknown,
-  context: RuleContext,
+  context: RuleContext
 ): { allowed: boolean; violations: string[] } {
   const violations: string[] = [];
 
@@ -521,51 +575,57 @@ export function validateRules(
 // operations (echo >, sed -i, etc.).
 const BASH_RULES: Rule[] = [
   {
-    name: "no_git_force_push",
-    description: "Blocks git push with --force or -f flags including --force-with-lease",
-    tool: "bash",
+    name: 'no_git_force_push',
+    description:
+      'Blocks git push with --force or -f flags including --force-with-lease',
+    tool: 'bash',
     validate: validateNoGitForcePush,
   },
   {
-    name: "no_git_rewrite_history",
-    description: "Blocks git history rewriting commands (rebase, reset --hard, commit --amend, filter-branch, reflog delete)",
-    tool: "bash",
+    name: 'no_git_rewrite_history',
+    description:
+      'Blocks git history rewriting commands (rebase, reset --hard, commit --amend, filter-branch, reflog delete)',
+    tool: 'bash',
     validate: validateNoGitRewriteHistory,
   },
   {
-    name: "no_git_no_verify",
-    description: "Blocks git commit/push with --no-verify flag (does not match -n short flag)",
-    tool: "bash",
+    name: 'no_git_no_verify',
+    description:
+      'Blocks git commit/push with --no-verify flag (does not match -n short flag)',
+    tool: 'bash',
     validate: validateNoGitNoVerify,
   },
   {
-    name: "no_prisma_db_push_force_reset",
-    description: "Blocks destructive Prisma database operations (db push --force-reset, migrate reset, --accept-data-loss)",
-    tool: "bash",
+    name: 'no_prisma_db_push_force_reset',
+    description:
+      'Blocks destructive Prisma database operations (db push --force-reset, migrate reset, --accept-data-loss)',
+    tool: 'bash',
     validate: validateNoPrismaDbPushForceReset,
   },
   {
-    name: "no_destructive_rm",
-    description: "Blocks rm -rf/-fr on critical paths (.git, node_modules, dist, build, prisma/) with allowlist for /tmp/ and node_modules/.cache/",
-    tool: "bash",
+    name: 'no_destructive_rm',
+    description:
+      'Blocks rm -rf/-fr on critical paths (.git, node_modules, dist, build, prisma/) with allowlist for /tmp/ and node_modules/.cache/',
+    tool: 'bash',
     validate: validateNoDestructiveRm,
   },
   {
-    name: "no_delete_env",
-    description: "Blocks rm/del/rmdir commands targeting .env files",
-    tool: "bash",
+    name: 'no_delete_env',
+    description: 'Blocks rm/del/rmdir commands targeting .env files',
+    tool: 'bash',
     validate: validateNoDeleteEnv,
   },
   {
-    name: "no_dev_bash_nonstandard",
-    description: "Blocks non-standard execution patterns (python -c, perl -e, npm exec, curl | sh, etc.) with project command allowlist",
-    tool: "bash",
+    name: 'no_dev_bash_nonstandard',
+    description:
+      'Blocks non-standard execution patterns (python -c, perl -e, npm exec, curl | sh, etc.) with project command allowlist',
+    tool: 'bash',
     validate: validateNoDevBashNonstandard,
   },
   {
-    name: "no_direct_trello",
-    description: "Blocks direct HTTP calls to Trello/Slack APIs",
-    tool: "bash",
+    name: 'no_direct_trello',
+    description: 'Blocks direct HTTP calls to Trello/Slack APIs',
+    tool: 'bash',
     validate: validateNoDirectTrello,
   },
 ];
@@ -576,32 +636,34 @@ export const TOOL_RULES: Record<string, Rule[]> = {
   task: [
     ...BASH_RULES,
     {
-      name: "orchestrator-delegation-suffix-required",
-      description: "Blocks task tool calls whose delegation prompt lacks the DELEGATION SUFFIX marker",
-      tool: "task",
+      name: 'orchestrator-delegation-suffix-required',
+      description:
+        'Blocks task tool calls whose delegation prompt lacks the DELEGATION SUFFIX marker',
+      tool: 'task',
       validate: validateOrchestratorDelegationSuffixRequired,
     },
   ],
   bash: BASH_RULES,
   write: [
     {
-      name: "no_write_env_files",
-      description: "Blocks writing to .env files (allows .env.example)",
-      tool: "write",
+      name: 'no_write_env_files',
+      description: 'Blocks writing to .env files (allows .env.example)',
+      tool: 'write',
       validate: validateNoWriteEnvFiles,
     },
     {
-      name: "no_planner_write_specs",
-      description: "Blocks writing to openspec/ or specs/ directories",
-      tool: "write",
+      name: 'no_planner_write_specs',
+      description: 'Blocks writing to openspec/ or specs/ directories',
+      tool: 'write',
       validate: validateNoPlannerWriteSpecs,
     },
   ],
   edit: [
     {
-      name: "no_edit_gitignore_security",
-      description: "Blocks removing security patterns (.env, *.log, credentials, .opencode/logs/) from .gitignore",
-      tool: "edit",
+      name: 'no_edit_gitignore_security',
+      description:
+        'Blocks removing security patterns (.env, *.log, credentials, .opencode/logs/) from .gitignore',
+      tool: 'edit',
       validate: validateNoEditGitignoreSecurity,
     },
   ],
@@ -609,9 +671,10 @@ export const TOOL_RULES: Record<string, Rule[]> = {
   // The hook will match this key via prefix matching
   composio_COMPOSIO_: [
     {
-      name: "no_composio_git_ops",
-      description: "Blocks Composio tools from executing git operations (push, pull, commit, reset, rebase, merge, branch, clone, fetch, stash)",
-      tool: "composio_COMPOSIO_*",
+      name: 'no_composio_git_ops',
+      description:
+        'Blocks Composio tools from executing git operations (push, pull, commit, reset, rebase, merge, branch, clone, fetch, stash)',
+      tool: 'composio_COMPOSIO_*',
       validate: validateNoComposioGitOps,
     },
   ],
@@ -634,9 +697,9 @@ export class GuardrailBlockedError extends Error {
    * @param violations - Array of violation messages from failed rules
    */
   constructor(violations: string[]) {
-    const message = `GUARDRAIL_BLOCKED: ${violations.join("; ")}`;
+    const message = `GUARDRAIL_BLOCKED: ${violations.join('; ')}`;
     super(message);
-    this.name = "GuardrailBlockedError";
+    this.name = 'GuardrailBlockedError';
     this.violations = violations;
 
     // Maintain proper prototype chain for instanceof checks

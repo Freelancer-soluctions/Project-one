@@ -4,6 +4,8 @@ description: Group changes into Conventional Commits
 
 Group all current changes into meaningful Conventional Commits.
 
+> **Executed by the principal.** Run this command directly — there is no `@git-manager` delegation step. Signing (`-S`) and DCO sign-off (`-s`) rules below still apply unchanged.
+
 Optional context for commit messages: `$ARGUMENTS`
 
 Rules:

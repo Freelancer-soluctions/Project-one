@@ -62,18 +62,18 @@ La estrategia se basa en el artículo _"AI Agent Guardrails: Rules That LLMs Can
 
 Las siguientes operaciones NO tienen restricción mientras Layer 4 no esté implementado:
 
-| #   | Vulnerabilidad                               | Agentes afectados                                     | Layer 5 ya cubre?                                    |
-| --- | -------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------- |
-| 1   | `git push --force`                           | @developer, @git-manager (ambos tienen `bash: allow`) | ❌ No — Layer 5 no diferencia flags                  |
-| 2   | `prisma db push --force-reset`               | @developer (`bash: allow`)                            | ❌ No                                                |
-| 3   | `git commit --no-verify`                     | @git-manager (`bash: allow`)                          | ❌ No                                                |
-| 4   | `rm -rf .git`                                | @developer, @git-manager                              | ❌ No                                                |
-| 5   | Escritura directa a `.env`                   | @developer (`write: allow`)                           | ❌ No                                                |
-| 6   | `git rebase`, `git reset --hard`             | @git-manager (`bash: allow`)                          | ❌ No                                                |
-| 7   | `curl ... \| sh` (ejecución no convencional) | @developer (`bash: allow`)                            | ❌ No                                                |
-| 8   | Git via Composio (si se activa)              | @project-manager                                      | ⚠️ Parcialmente (composio tiene `bash: deny` global) |
-| 9   | `python -c "..."` via bash                   | @developer (`bash: allow`)                            | ❌ No                                                |
-| 10  | Llamados directos a Trello API via curl      | @orchestrator (`bash: deny` global)                   | ✅ Sí — orchestrator tiene `bash: deny` global       |
+| #   | Vulnerabilidad                               | Agentes afectados                               | Layer 5 ya cubre?                                    |
+| --- | -------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------- |
+| 1   | `git push --force`                           | @developer, principal (ambos con `bash: allow`) | ❌ No — Layer 5 no diferencia flags                  |
+| 2   | `prisma db push --force-reset`               | @developer (`bash: allow`)                      | ❌ No                                                |
+| 3   | `git commit --no-verify`                     | principal (`bash: allow`)                       | ❌ No                                                |
+| 4   | `rm -rf .git`                                | @developer, principal                           | ❌ No                                                |
+| 5   | Escritura directa a `.env`                   | @developer (`write: allow`)                     | ❌ No                                                |
+| 6   | `git rebase`, `git reset --hard`             | principal (`bash: allow`)                       | ❌ No                                                |
+| 7   | `curl ... \| sh` (ejecución no convencional) | @developer (`bash: allow`)                      | ❌ No                                                |
+| 8   | Git via Composio (si se activa)              | @project-manager                                | ⚠️ Parcialmente (composio tiene `bash: deny` global) |
+| 9   | `python -c "..."` via bash                   | @developer (`bash: allow`)                      | ❌ No                                                |
+| 10  | Llamados directos a Trello API via curl      | @orchestrator (`bash: deny` global)             | ✅ Sí — orchestrator tiene `bash: deny` global       |
 
 > **Nota**: Layer 5 (opencode.jsonc permissions) cubre las restricciones más gruesas. Layer 4 añade validación semántica fina. Ambos son necesarios para defense in depth.
 
@@ -185,7 +185,7 @@ Paso 3: EJECUCIÓN o BLOQUEO
 
 ```
 1. Agente decide ejecutar bash "git push --force origin main"
-2. Layer 5: opencode.jsonc tiene bash:allow para git-manager → PASA
+2. Layer 5: opencode.jsonc tiene bash:allow para el principal → PASA
 3. Layer 4: neurosymbolic-guardrails recibe tool.execute.before
    → inspecta args {command: "git push --force origin main"}
    → evalúa regla no_git_force_push
@@ -233,7 +233,7 @@ git push --force-with-lease origin feature-branch
 
 **¿Por qué es CRITICAL?**: Un `git push --force` sobreescribe el historial remoto. Si otros desarrolladores tienen branches basadas en el historial anterior, sus cambios se destruyen. Es irreversible.
 
-**Fuente en proyecto**: `docs/opencode/prompts/git-manager.md` — "🔒 SAFETY: NEVER force push"
+**Fuente en proyecto**: `.opencode/skills/git-workflow/SKILL.md` (heredado del retirado `git-manager.md`) — "NEVER force push or rewrite history"
 
 ---
 
@@ -258,7 +258,7 @@ git filter-branch --tree-filter 'rm file.txt'
 git reflog delete --hard
 ```
 
-**Fuente en proyecto**: `docs/opencode/prompts/git-manager.md` — "🔒 SAFETY: NEVER rewrite repository history"
+**Fuente en proyecto**: `.opencode/skills/git-workflow/SKILL.md` (heredado del retirado `git-manager.md`) — "NEVER rewrite history"
 
 ---
 
@@ -279,7 +279,7 @@ git commit --no-verify -m "wip: fix fast"
 git push origin main --no-verify
 ```
 
-**Fuente en proyecto**: `docs/opencode/prompts/git-manager.md` — "🔒 SAFETY: NEVER use --no-verify"
+**Fuente en proyecto**: `.opencode/skills/git-workflow/SKILL.md` (heredado del retirado `git-manager.md`) — "NEVER use `--no-verify`"
 
 ---
 
@@ -415,13 +415,13 @@ edit({
 
 #### `no_composio_git_ops` — CRITICAL
 
-| Atributo        | Valor                                                                                                                      |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------- | ---- | ------ | ----- | ------ | ----- | ------ | ----- | ----- | --------- |
-| **Herramienta** | `composio_COMPOSIO_*` (cualquier tool de Composio MCP)                                                                     |
-| **Severidad**   | CRITICAL                                                                                                                   |
-| **Trigger**     | Cualquier argumento de tool Composio que contenga comandos git                                                             |
-| **Regex**       | `/\bgit\b.\*\b(push                                                                                                        | pull | commit | reset | rebase | merge | branch | clone | fetch | stash)/i` |
-| **Mensaje**     | "BLOCKED: Operaciones git vía Composio prohibidas. Git se maneja exclusivamente via git-manager con comandos git nativos." |
+| Atributo        | Valor                                                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------- | ---- | ------ | ----- | ------ | ----- | ------ | ----- | ----- | --------- |
+| **Herramienta** | `composio_COMPOSIO_*` (cualquier tool de Composio MCP)                                                                 |
+| **Severidad**   | CRITICAL                                                                                                               |
+| **Trigger**     | Cualquier argumento de tool Composio que contenga comandos git                                                         |
+| **Regex**       | `/\bgit\b.\*\b(push                                                                                                    | pull | commit | reset | rebase | merge | branch | clone | fetch | stash)/i` |
+| **Mensaje**     | "BLOCKED: Operaciones git vía Composio prohibidas. Git se maneja exclusivamente con comandos git nativos (principal)." |
 
 **¿Por qué existe?**: Los permisos de `opencode.jsonc` tienen `bash: deny` global y `composio_COMPOSIO_*: allow` solo para project-manager. Si Composio expone tools que ejecutan git internamente (a través de su propia CLI), podrían bypasear las reglas de `bash`. Esta regla cierra ese vector.
 
@@ -524,7 +524,6 @@ Estas reglas NO requieren guardrails porque `opencode.jsonc` ya las deniega a ni
 
 | Regla                                                   | Permiso que la cubre                           | Archivos fuente               |
 | ------------------------------------------------------- | ---------------------------------------------- | ----------------------------- |
-| `@spec-manager` no puede usar `write` ni `edit`         | `spec-manager`: `write: deny`, `edit: deny`    | opencode.jsonc líneas 140-144 |
 | `@planner` no puede usar `edit`                         | `planner`: `edit: deny`                        | opencode.jsonc línea 159      |
 | `@project-manager` no puede usar `write` ni `edit`      | `project-manager`: `edit: deny`, `write: deny` | opencode.jsonc líneas 215-218 |
 | `@orchestrator` no puede ejecutar `bash` globalmente    | `orchestrator`: global `bash: deny`            | opencode.jsonc línea 73       |
@@ -540,16 +539,16 @@ Estas reglas NO requieren guardrails porque `opencode.jsonc` ya las deniega a ni
 
 Estas reglas NO pueden implementarse como guardrails porque requieren juicio contextual, no validación de argumentos.
 
-| Regla                                                  | Agente       | Por qué no es guardrail                                | Dónde se enforcing                 |
-| ------------------------------------------------------ | ------------ | ------------------------------------------------------ | ---------------------------------- |
-| "Preguntar una cosa a la vez"                          | Todos        | Requiere inspeccionar el texto de la respuesta del LLM | Prompts de cada agente             |
-| "Delegar primero a @spec-manager antes de implementar" | orchestrator | Decisión de enrutamiento, no tool call                 | `orchestrator.md`                  |
-| "Usar SDD 6-phase workflow"                            | Todos        | Regla de proceso, no de ejecución                      | `AGENTS.md`, `CONTEXT.md`          |
-| "No emoji en output JSON"                              | Todos        | Formato de texto generado                              | Prompts + output-contracts.ts      |
-| "Esquivar newlines sin escapar en JSON"                | Todos        | Formato de output                                      | Prompts + output-contracts.ts      |
-| "Validar output-contract antes de retornar"            | Todos        | Ocurre después de generar                              | Layer 2 (output-contracts.ts)      |
-| "Conventional Commits obligatorios"                    | Todos        | Es formato de commit, no un tool call                  | Prompts + husky (cuando se active) |
-| "Solo @developer modifica código"                      | Todos        | Responsabilidad compartida, no bloqueo técnico         | Prompts + Layer 5                  |
+| Regla                                       | Agente       | Por qué no es guardrail                                | Dónde se enforcing                 |
+| ------------------------------------------- | ------------ | ------------------------------------------------------ | ---------------------------------- |
+| "Preguntar una cosa a la vez"               | Todos        | Requiere inspeccionar el texto de la respuesta del LLM | Prompts de cada agente             |
+| "Ejecutar `/opsx-*` antes de implementar"   | orchestrator | Decisión de enrutamiento, no tool call                 | `orchestrator.md`                  |
+| "Usar SDD 6-phase workflow"                 | Todos        | Regla de proceso, no de ejecución                      | `AGENTS.md`, `CONTEXT.md`          |
+| "No emoji en output JSON"                   | Todos        | Formato de texto generado                              | Prompts + output-contracts.ts      |
+| "Esquivar newlines sin escapar en JSON"     | Todos        | Formato de output                                      | Prompts + output-contracts.ts      |
+| "Validar output-contract antes de retornar" | Todos        | Ocurre después de generar                              | Layer 2 (output-contracts.ts)      |
+| "Conventional Commits obligatorios"         | Todos        | Es formato de commit, no un tool call                  | Prompts + husky (cuando se active) |
+| "Solo @developer modifica código"           | Todos        | Responsabilidad compartida, no bloqueo técnico         | Prompts + Layer 5                  |
 
 ---
 

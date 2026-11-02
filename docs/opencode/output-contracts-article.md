@@ -1,6 +1,6 @@
 # Output Contracts en Multi-Agente Orchestration: Diseño, Implementación y Análisis
 
-**Estado**: Implementado y verificado (2026-07-09)
+**Estado**: Implementado y verificado (2026-07-09). Nota (2026-11-02): `spec-manager` y `git-manager` fueron retirados y sus prompts/schemas eliminados; las menciones a ambos en este artículo son registro histórico.
 **Change**: `output-contracts-hardening` — OpenSpec archive `2026-07-08`
 **Líneas de código**: 330 (`contractValidator.js`), 430 tests, 8 agent prompts hardening
 

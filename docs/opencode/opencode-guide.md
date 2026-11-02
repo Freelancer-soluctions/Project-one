@@ -132,7 +132,7 @@ Model ID format: `provider/model-name` (e.g., `anthropic/claude-sonnet-4-6`, `op
       "skill": "allow | deny | ask",
       "task": {                // Subagent invocation control
         "*": "deny",           // Deny all by default
-        "spec-manager": "allow",
+        "planner": "allow",
         "developer": "ask"     // Ask user before delegating
       }
     }
@@ -189,7 +189,7 @@ Model ID format: `provider/model-name` (e.g., `anthropic/claude-sonnet-4-6`, `op
     "steps": 45,
     "permission": {
       "question": "allow",
-      "task": { "*": "deny", "spec-manager": "allow", "planner": "allow", "developer": "allow", "reviewer": "allow", "researcher": "allow", "git-manager": "allow", "project-manager": "allow" }
+      "task": { "*": "deny", "planner": "allow", "developer": "allow", "reviewer": "allow", "researcher": "allow", "project-manager": "allow" }
     }
   },
   "developer": {
@@ -201,23 +201,6 @@ Model ID format: `provider/model-name` (e.g., `anthropic/claude-sonnet-4-6`, `op
       "write": "allow", "edit": "allow", "bash": "allow",
       "webfetch": "allow", "websearch": "allow", "question": "allow", "lsp": "allow"
     }
-  },
-  "git-manager": {
-    "mode": "subagent",
-    "model": "nvidia/minimaxai/minimax-m2.7",
-    "prompt": "{file:docs/opencode/prompts/git-manager.md}",
-    "steps": 20,
-    "permission": {
-      "bash": { "git *": "allow", "*": "deny" },
-      "todowrite": "deny"
-    }
-  },
-  "spec-manager": {
-    "mode": "subagent",
-    "model": "nvidia/minimaxai/minimax-m2.7",
-    "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
-    "steps": 15,
-    "permission": { "bash": "allow" }
   },
   "planner": {
     "mode": "subagent",
@@ -493,7 +476,7 @@ Any → Auto (session has auto-approval)
 
 ## 11. GitHub CLI (gh)
 
-GitHub CLI (`gh`) provides GitHub API access from the terminal. Used by `@git-manager` for gists, issues, PRs, and repo operations.
+GitHub CLI (`gh`) provides GitHub API access from the terminal. Run directly by the principal for gists, issues, PRs, and repo operations.
 
 ### 11.1 Installation
 
@@ -537,7 +520,7 @@ gh repo view
 
 ### 11.6 Agent Usage
 
-`@git-manager` uses `gh` via bash. `~/bin/gh` wrapper makes it available in non-interactive bash shells.
+The principal runs `gh` via bash. `~/bin/gh` wrapper makes it available in non-interactive bash shells.
 
 > **Reference:** [github.com/anomalyco/opencode](https://github.com/anomalyco/opencode) — Official docs, agents.mdx, config.mdx, commands.mdx, skills.mdx  
 > **Generated:** May 18, 2026 — from project-one codebase analysis + Context7 documentation queries

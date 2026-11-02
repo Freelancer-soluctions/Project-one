@@ -140,46 +140,18 @@
         },
         "task": {
           "*": "deny",
-          "spec-manager": "allow",
           "planner": "allow",
           "developer": "allow",
           "reviewer": "allow",
           "researcher": "allow",
-          "git-manager": "allow",
           "project-manager": "allow"
         }
-      }
-    },
-    "spec-manager": {
-      "mode": "subagent",
-      "hidden": false,
-      "model": "opencode-go/beam-free",
-      "description": "Executes OpenSpec CLI - explore, propose, verify, archive",
-      "prompt": "{file:docs/opencode/prompts/spec-manager.md}",
-      "steps": 30,
-      "temperature": 0,
-      "permission": {
-        "bash": "allow",
-        "edit": "deny"
-      }
-    },
-    "git-manager": {
-      "mode": "subagent",
-      "hidden": false,
-      "model": "opencode-go/beam-free",
-      "description": "SCM and Conventional Commit specialist",
-      "prompt": "{file:docs/opencode/prompts/git-manager.md}",
-      "steps": 20,
-      "permission": {
-        "bash": "allow",
-        "todowrite": "deny",
-        "edit": "deny"
       }
     },
     "planner": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode-go/claude-haiku-5-5",
+      "model": "opencode-go/beam-free",
       "description": "Planning specialist",
       "prompt": "{file:docs/opencode/prompts/planner.md}",
       "steps": 20,
