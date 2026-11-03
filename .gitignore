@@ -88,3 +88,8 @@ apps/client/.vitest-reports/
 apps/server/.vitest-reports/
 reports-inline-audit.json
 _edit_design.mjs
+
+# OpenCode eval baseline: raw run evidence stays local.
+# Scored summaries (baseline/) and token logs (tokens/) are committed on purpose.
+docs/opencode/eval/runs/*
+!docs/opencode/eval/runs/.gitkeep
