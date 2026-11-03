@@ -123,13 +123,11 @@ coverage: {
 
 > **Razón:** Si `autoUpdate` corre sobre una corrida TIA (subset de tests), bajaría el piso incorrectamente. Ver §4.
 
-### 3.3 Thresholds por glob y perFile — IMPLEMENTADO
+### 3.3 Thresholds por glob, perFile y critical path — IMPLEMENTADO
 
-Ya no es un patrón futuro: los dos workspaces declaran un **piso global** más **globs con su propio umbral**, y el
-guard local y los jobs de CI evalúan los tres niveles.
-
-La idea (floor bajo global + granularidad alta) es la de §6.1. Sin ella, el total de `apps/server` (~9% en functions)
-oculta que sus 22 schemas están al 100%.
+Los workspaces declaran un **piso global** más pisos por glob y rutas de negocio críticas; el guard local y los
+enforcement points de CI evalúan los mismos niveles. Los valores versionados se muestran abajo y son verificados por
+`npm run coverage:docs:verify` contra las configuraciones Vitest y la política crítica.
 
 **Semántica (Vitest 4)** — a leer antes de escribir un glob nuevo:
 
@@ -142,34 +140,29 @@ oculta que sus 22 schemas están al 100%.
 | Los ficheros de un glob **también cuentan** para el global                  | (a diferencia de Jest)         |
 | Un umbral **negativo** significa "como mucho N elementos sin cubrir"        | no un porcentaje               |
 
-Config real (`apps/client/vitest.config.js`, extracto):
+El bloque es deliberadamente generado de forma determinista por el verificador; los thresholds numéricos siguen
+teniendo como fuente de verdad `apps/*/vitest.config.*` y las rutas exentas viven en `.coverage-critical-paths.json`.
 
-```js
-thresholds: {
-  // PISO GLOBAL — agregado del workspace (29 ficheros)
-  statements: 87.02,
-  branches: 62.16,
-  functions: 69.14,
-  lines: 87.7,
+<!-- coverage-floor-ratchet:start -->
 
-  // GRANULARIDAD ALTA — cada área con su barra
-  'src/lib/**': {
-    statements: 100, branches: 100, functions: 100, lines: 100, perFile: true,
-  },
-  'src/hooks/**': {
-    statements: 100, branches: 92.68, functions: 100, lines: 100, perFile: true,
-  },
-  // Heterogénea (table.jsx functions 62.5, button.jsx branches 66.66): solo agregado
-  'src/components/ui/**': {
-    statements: 96.7, branches: 83.33, functions: 85, lines: 96.7,
-  },
-},
-```
+| Workspace | Global floor (statements / branches / functions / lines) | Glob floors                                                                                                                                                                                                                                                                                                             | Critical paths         | Exclusions |
+| --------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ---------: |
+| client    | 64.44 / 42.11 / 52.22 / 64.82                            | `src/lib/**` (statements 100, branches 100, functions 100, lines 100); `src/config/**` (statements 100, branches 100, functions 100, lines 100); `src/hooks/**` (statements 39.1, branches 44.31, functions 40.35, lines 36.07); `src/components/ui/**` (statements 86.65, branches 44.3, functions 67.96, lines 87.08) | 0 enforced / 0 exempt  |          3 |
+| server    | 60.8 / 64.48 / 64.81 / 61.49                             | `src/modules/**/schemas/**` (statements 100, branches 100, functions 100, lines 100); `src/utils/constants/**` (statements 100, branches 100, functions 100, lines 100); `src/utils/pagination/**` (statements 100, branches 100, functions 100, lines 100)                                                             | 0 enforced / 57 exempt |          0 |
 
-En `apps/server/vitest.config.js` el piso global está en 42.28/21.75/8.98/42.76 y hay cinco globs, siendo
-`'src/modules/**/schemas/**'` el que más aporta (22 ficheros, todos con `perFile: true`).
+<!-- coverage-floor-ratchet:end -->
 
-> **Los valores no se escriben a mano.** Los fija `npm run coverage:ratchet` a la cobertura medida (ver §5.7).
+Los 55 archivos de los nueve módulos de negocio y los dos archivos de crypto están exentos con responsable y
+vencimiento explícitos; no representan un piso de 0% ni una aprobación silenciosa. Los floors medidos se aplican
+cuando una ruta se declara `enforced`.
+
+La lista `criticalRoots` de `.coverage-critical-paths.json` delimita los directorios críticos: cada archivo fuente nuevo
+bajo uno de ellos debe añadirse a `paths` como `enforced` (con sus cuatro floors numéricos en Vitest) o como `exempt`
+(con motivo, responsable y vencimiento futuro). El validador falla si queda un archivo sin declarar o un floor exacto
+sin entrada de política.
+
+> **Los valores no se escriben a mano.** Los fija `npm run coverage:ratchet` a la cobertura medida (ver §5.7);
+> el baseline detecta bajadas manuales.
 > Si quieres endurecer un área, primero añade los tests y luego ratchetea.
 >
 > **El guard tiene que ver lo que Vitest ve.** `scripts/ci/check-coverage.mjs` replica estas reglas porque, si solo
@@ -199,23 +192,22 @@ En `apps/server/vitest.config.js` el piso global está en 42.28/21.75/8.98/42.76
 
 **TIA y el coverage gate viven en jobs separados, con propósitos distintos:**
 
-| Job                                   | Propósito                        | Corre coverage?             | Tripwire evalúa?               |
-| ------------------------------------- | -------------------------------- | --------------------------- | ------------------------------ |
-| `test-unit-*` (TIA)                   | Feedback rápido: ¿rompiste algo? | Sí (artifact)               | **NO** — difiere el umbral     |
-| `client-coverage` / `server-coverage` | Gate de merge: ¿cumple el piso?  | Sí (mergeado si hay shards) | **SÍ** — solo sobre full suite |
+| Job                                   | Propósito                                 | Corre coverage?                  | Tripwire evalúa?                            |
+| ------------------------------------- | ----------------------------------------- | -------------------------------- | ------------------------------------------- |
+| `test-unit-*` (TIA)                   | Feedback rápido: ¿rompiste algo?          | Sí (artifact; puede ser parcial) | **NO** — difiere el umbral en modo advisory |
+| `client-coverage` / `server-coverage` | Merge de artifacts del lane TIA           | Consume coverage de los tests    | Solo si scope=full; D18 advisory si parcial |
+| `coverage-full-gate`                  | Veredicto bloqueante de suite completa PR | Ejecuta ambas suites completas   | **SÍ** — aplica floors y critical paths     |
+| `coverage-floor-guard`                | Integridad del ratchet versionado         | No                               | **SÍ** — rechaza bajadas sin excepción      |
 
-### 4.3 Implementación en CI — FASE 1 advisory ACTIVADO
+### 4.3 Implementación en CI — lane TIA separado del gate full-suite
 
-> **Estado real (change `coverage-tripwire-stage-2d`, 2026-10-01):** los 4 jobs de testing por cobertura corren
-> **FASE 1 advisory** — tienen `if:` activo + `continue-on-error: true` (job-COE). **Ya no son `if: false`.**
-> Refs en `ci.yml`: `test-unit-client` L744 (`if:`) / L748 (COE) · `test-unit-server` L843 / L847 ·
-> `client-coverage` L1514 / L1524 · `server-coverage` L1603 / L1610. El agregador
-> `prebuild-tests-complete` tiene `needs` = los **5** jobs tier-1 (4→6 al activarse la cobertura; 5 desde
-> `ci-stage-aggregator-topology`, que sacó integration/smoke y añadió `property-tests`).
->
-> **Consecuencia del job-COE:** por `actions/toolkit#581`, si un job tiene `continue-on-error: true` y falla,
-> `needs.<job>.result` reporta `success` — el agregador **no bloquea**. Por eso la FASE 1 es tal: informa pero no
-> frena el merge. **FASE 2** = quitar el COE tras 2-4 semanas de runs limpios.
+> **Estado actual (2026-10-30):** el lane TIA (`test-unit-client`/`test-unit-server` +
+> `client-coverage`/`server-coverage`) mantiene D18: si el scope es diff-scoped, el guard se invoca con
+> `--advisory` y difiere floors; un scope completo evalúa floors normalmente. El nuevo `coverage-full-gate`
+> ejecuta la suite completa de client y server en cada PR y evalúa el guard en modo estricto, sin depender
+> del scope ni de los artifacts TIA. `coverage-floor-guard` valida por separado que los thresholds versionados
+> no bajen sin excepción auditable. Los dos jobs nuevos son miembros bloqueantes de
+> `prebuild-tests-complete`; no se modifican los `continue-on-error` existentes.
 
 ```yaml
 # .github/workflows/ci.yml — test-unit-server (TIA, diff-scoped) — FASE 1 advisory
@@ -232,8 +224,8 @@ En `apps/server/vitest.config.js` el piso global está en 42.28/21.75/8.98/42.76
 
 > El tripwire de thresholds SOLO evalúa cobertura de suite completa; la corrida TIA no lo alimenta.
 
-**Red de seguridad:** Si TIA corre sobre un subset y el coverage job difiere, los PRs `shared` y
-el nocturno (`nightly-full-suite.yml`) cubren la suite completa y actualizan el tripwire real.
+**Enforcement:** `coverage-full-gate` evalúa una corrida completa en cada PR. El workflow nocturno
+(`nightly-full-suite.yml`) también aplica el mismo guard en modo estricto; un floor roto deja el run rojo.
 
 ---
 
@@ -314,37 +306,31 @@ const summaryPath = resolve(
 // exit(1) si algún métrico baja del piso
 ```
 
-### 5.4 Paso 4: Job de CI — FASE 1 advisory (ya implementado)
+### 5.4 Paso 4: Jobs de CI — baseline + suite completa bloqueantes
 
 ```yaml
-# .github/workflows/ci.yml — client-coverage (FASE 1 advisory, change coverage-tripwire-stage-2d)
-client-coverage:
-  needs: test-unit-client
-  if: github.event_name == 'pull_request'
-  continue-on-error: true # FASE 1 advisory; FASE 2 lo quita tras la calibración
-  runs-on: ubuntu-latest
-  # ...
+# .github/workflows/ci.yml — independientes del scope TIA; ambos bloquean vía el agregador
+coverage-floor-guard:
   steps:
-    - uses: actions/checkout@v4
-      with: { fetch-depth: 0 }
-    - uses: actions/setup-node@v4
-      with: { node-version: 20, cache: npm }
-    - run: npm ci
-    - run: npm run test:coverage --workspace=apps/client
-    - name: Check Coverage Floor
-      run: node scripts/ci/check-coverage.mjs client
+    - run: npm run coverage:baseline:check
+
+coverage-full-gate:
+  steps:
+    - run: npm run test:coverage:ci --workspace=apps/client
+    - run: npm run test:coverage:unit:ci --workspace=apps/server
+    - run: node scripts/ci/check-coverage.mjs apps/client apps/client/coverage
+    - run: node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
 ```
 
-> **Por qué `needs` es exactamente `[test-unit-client]` (no `client-build`):** los `*-build` siguen `if: false`, y un
-> `needs` de un job que nunca se evalúa dejaría el coverage en `skipped`. Además, un `if:` que consultara
-> `needs.repo-discovery.outputs` **sin declarar ese need** no es viable: GHA solo expone el contexto `needs` de los jobs
-> declarados, y actionlint lo rechaza. Por eso el scoping es por **propagación de skip** del upstream.
+Los dos jobs nuevos no dependen de los jobs TIA: corren en cada PR y están añadidos directamente a
+`prebuild-tests-complete.needs`. Así un skip o un reporte parcial del lane TIA no puede convertirse en la única
+fuente del veredicto completo.
 
 ### 5.5 Implementación LOCAL — el tripwire en el tier del developer
 
-El tripwire no vivía solo en CI: `.husky/pre-push` corre `test:changed` **sin** `--coverage` y `pre-commit` no
-menciona coverage. Es decir, no había forma de ejecutar el gate antes de subir, y la regresión se descubría en un job
-FASE 1 advisory que, por definición, no para nada.
+El tripwire no vive solo en CI: `.husky/pre-push` corre `test:changed` **sin** `--coverage` y `pre-commit` no
+menciona coverage. Para evaluar los floors antes de subir existe el comando local explícito `coverage:check`, espejo
+del nuevo gate bloqueante de suite completa en CI.
 
 Ahora hay dos comandos en la raíz del repo:
 
@@ -371,15 +357,16 @@ suite completa pasa.
 
 ### 5.6 Paridad local ↔ CI
 
-| Qué                               | Job de CI                                                        | Equivalente local                                 | Paridad                                     |
-| --------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------- |
-| Suite completa + coverage         | `test-unit-client` / `test-unit-server` (via `test:coverage:ci`) | `npm run coverage:check`                          | ✅ mismo comando de suite, mismos reporters |
-| Veredicto de umbrales             | `client-coverage` / `server-coverage` → `check-coverage.mjs`     | dentro de `coverage:check`                        | ✅ **mismo script, mismo exit code**        |
-| Umbrales (fuente única)           | `apps/*/vitest.config.js`                                        | los mismos ficheros                               | ✅ sin duplicar números                     |
-| Artefacto + `dorny/test-reporter` | artefacto de la corrida                                          | ✗ no hay equivalente                              | ❌ solo CI                                  |
-| TIA diff-scoped                   | `test-unit-client` / `test-unit-server` con `--changed`          | `npm run test:changed` (lo que corre `pre-push`)  | ⚠️ **no** evalúa umbrales (D18)             |
-| `autoUpdate` (ratchet)            | **prohibido** en CI                                              | `npm run coverage:ratchet`                        | ❌ deliberadamente distinto                 |
-| Reporte HTML / texto              | artefacto                                                        | `apps/*/coverage/`, `apps/server/tests/coverage/` | ✅ se generan en local                      |
+| Qué                               | Job de CI                                                  | Equivalente local                                 | Paridad                               |
+| --------------------------------- | ---------------------------------------------------------- | ------------------------------------------------- | ------------------------------------- |
+| Suite completa + coverage         | `coverage-full-gate` (client full + server unit full)      | `npm run coverage:check`                          | ✅ mismos scripts y rutas de report   |
+| Veredicto de umbrales             | `coverage-full-gate` → `check-coverage.mjs` estricto       | dentro de `coverage:check`                        | ✅ mismo guard, floors y exit code    |
+| Integridad del ratchet            | `coverage-floor-guard` → `coverage:baseline:check`         | `npm run coverage:baseline:check`                 | ✅ mismo script y baseline versionado |
+| Umbrales (fuente única)           | `apps/*/vitest.config.*` + `.coverage-critical-paths.json` | mismos ficheros                                   | ✅ sin duplicar números               |
+| Artefacto + `dorny/test-reporter` | artifacts de la corrida                                    | ✗ no hay equivalente                              | ❌ solo CI                            |
+| TIA diff-scoped                   | `test-unit-*` + lane coverage con `--advisory`             | `npm run test:changed` (pre-push)                 | ⚠️ no evalúa pisos globales (D18)     |
+| `autoUpdate` (ratchet)            | prohibido en CI                                            | `npm run coverage:ratchet`                        | ❌ deliberadamente distinto           |
+| Reporte HTML / texto              | artifacts / logs                                           | `apps/*/coverage/`, `apps/server/tests/coverage/` | ✅ se generan localmente              |
 
 **Lo que un developer NO puede reproducir localmente:** el artefacto de JUnit, `dorny/test-reporter`, y la ejecución
 en el runner de GitHub. Todo lo demás tiene equivalente.
@@ -473,7 +460,7 @@ coverage-merge-gate:
 
 ### 7.1 Recomendación del proyecto
 
-- ✅ **Tripwire en CI:** Vitest `coverage.thresholds` + `check-coverage.mjs` (jobs FASE 1 advisory)
+- ✅ **Tripwire en CI:** `coverage-full-gate` aplica floors en suite completa; el lane TIA conserva D18
 - ✅ **Tripwire local:** `npm run coverage:check`, mismo guard y mismos umbrales (§5.5)
 - ✅ **Ratchet local:** `npm run coverage:ratchet`, solo sube (§5.7)
 - ⏳ **Quality gate autoritativo:** SonarQube new-code ≥80% en STAGE 4 (inactivo, pendiente token)
@@ -483,29 +470,29 @@ coverage-merge-gate:
 
 ## 8. Checklist de Implementación
 
-| #   | Task                                      | Estado | Archivo                                              |
-| --- | ----------------------------------------- | ------ | ---------------------------------------------------- |
-| 1   | Instalar `@vitest/coverage-v8`            | ✅     | `package.json`                                       |
-| 2   | Configurar `coverage.provider: 'v8'`      | ✅     | `vitest.shared.js`                                   |
-| 3   | Configurar `coverage.thresholds` (floor)  | ✅     | `apps/*/vitest.config.js`                            |
-| 4   | Configurar `coverage.include` explícito   | ✅     | `vitest.config.js` (Vitest 4 eliminó `coverage.all`) |
-| 5   | `autoUpdate: false` en CI                 | ✅     | thresholds config                                    |
-| 6   | Guard ejecutable `check-coverage.mjs`     | ✅     | `scripts/ci/check-coverage.mjs`                      |
-| 7   | Job CI coverage (FASE 1 advisory)         | ✅     | `ci.yml` L1514/L1524, L1603/L1610                    |
-| 8   | TIA y coverage en jobs separados          | ✅     | `ci.yml`                                             |
-| 9   | Upload coverage artifact (`if: always()`) | ✅     | `ci.yml`                                             |
-| 10  | Nightly full suite (red de seguridad)     | ✅     | `nightly-full-suite.yml`                             |
-| 11  | `perFile` + glob thresholds               | ✅     | `apps/*/vitest.config.js` + guard (§3.3)             |
-| 12  | Tier local `coverage:check` (paridad CI)  | ✅     | `scripts/ci/coverage-check.mjs`                      |
-| 13  | Ratchet local `coverage:ratchet`          | ✅     | `scripts/ci/coverage-ratchet.mjs`                    |
-| 14  | Config en forma reescribible por magicast | ✅     | `mergeConfig(shared, defineConfig({...}))` (§5.7)    |
-| 15  | SonarQube quality gate (new-code ≥80%)    | ❌     | `if: false`, sin `SONAR_TOKEN`                       |
-| 16  | Coverage merge gate (sharding)            | ❌     | N/A (sin sharding; suites de 6-14s)                  |
-| 17  | Codecov/coveralls integration             | ❌     | N/A                                                  |
+| #   | Task                                      | Estado | Archivo                                                 |
+| --- | ----------------------------------------- | ------ | ------------------------------------------------------- |
+| 1   | Instalar `@vitest/coverage-v8`            | ✅     | `package.json`                                          |
+| 2   | Configurar `coverage.provider: 'v8'`      | ✅     | `vitest.shared.js`                                      |
+| 3   | Configurar `coverage.thresholds` (floor)  | ✅     | `apps/*/vitest.config.js`                               |
+| 4   | Configurar `coverage.include` explícito   | ✅     | `vitest.config.js` (Vitest 4 eliminó `coverage.all`)    |
+| 5   | `autoUpdate: false` en CI                 | ✅     | thresholds config                                       |
+| 6   | Guard ejecutable `check-coverage.mjs`     | ✅     | `scripts/ci/check-coverage.mjs`                         |
+| 7   | Gate CI de suite completa + baseline      | ✅     | `ci.yml` (`coverage-full-gate`, `coverage-floor-guard`) |
+| 8   | TIA y coverage en jobs separados          | ✅     | `ci.yml`                                                |
+| 9   | Upload coverage artifact (`if: always()`) | ✅     | `ci.yml`                                                |
+| 10  | Nightly full suite (red de seguridad)     | ✅     | `nightly-full-suite.yml`                                |
+| 11  | `perFile` + glob thresholds               | ✅     | `apps/*/vitest.config.js` + guard (§3.3)                |
+| 12  | Tier local `coverage:check` (paridad CI)  | ✅     | `scripts/ci/coverage-check.mjs`                         |
+| 13  | Ratchet local `coverage:ratchet`          | ✅     | `scripts/ci/coverage-ratchet.mjs`                       |
+| 14  | Config en forma reescribible por magicast | ✅     | `mergeConfig(shared, defineConfig({...}))` (§5.7)       |
+| 15  | SonarQube quality gate (new-code ≥80%)    | ❌     | `if: false`, sin `SONAR_TOKEN`                          |
+| 16  | Coverage merge gate (sharding)            | ❌     | N/A (sin sharding; suites de 6-14s)                     |
+| 17  | Codecov/coveralls integration             | ❌     | N/A                                                     |
 
-> **Nota de estado (change `coverage-tripwire-stage-2d`, 2026-10-01):** los items 7 y 8 están **ACTIVADOS en FASE 1
-> advisory** (`if:` activo + `continue-on-error: true`), no `if: false`. Fallan de forma visible pero **no bloquean** el
-> merge. Pendiente de FASE 2: quitar el COE tras 2-4 semanas de runs limpios y promover a gate bloqueante.
+> **Nota de estado:** el lane TIA mantiene su veredicto advisory para reportes parciales; el gate independiente de suite
+> completa y el baseline ratchet son bloqueantes mediante `prebuild-tests-complete`. No se alteró ningún
+> `continue-on-error` preexistente.
 
 ---
 

@@ -1,5 +1,7 @@
 # Output Contracts System
 
+> **Status (2026-11-02):** `spec-manager` and `git-manager` were retired and their schemas removed; references to them below are historical. The live contracts are `base.schema.json` plus the schemas for developer, orchestrator, planner, project-manager, researcher and reviewer.
+
 ## Overview
 
 The Output Contract system provides **structured response formatting** for agent-to-orchestrator communication in the multi-agent orchestration layer. Every agent response is wrapped in an XML envelope containing a JSON payload that conforms to a defined JSON Schema.

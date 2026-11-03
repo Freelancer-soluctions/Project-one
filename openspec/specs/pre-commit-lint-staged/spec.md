@@ -8,13 +8,16 @@ Reactivates lint-staged in the pre-commit hook so ESLint and Prettier run automa
 
 ### Requirement: lint-staged runs in pre-commit
 
-The `.husky/pre-commit` hook SHALL execute `npm exec lint-staged` at the start, before the parallel SAST/secrets checks.
+The `.husky/pre-commit` hook SHALL execute `npm exec lint-staged` at the start, before the staged secret scan (SAST
+no longer runs in this hook — it moved to `pre-push`). `lint-staged` remains the first blocking stage of the
+hook.
 
 #### Scenario: Pre-commit invokes lint-staged
 
 - **WHEN** a commit is created
 - **THEN** `.husky/pre-commit` runs `npm exec lint-staged` first
-- **AND** ESLint + Prettier autofix is applied to staged files before the SAST/secrets checks run
+- **AND** ESLint + Prettier autofix is applied to staged files before the staged secret scan runs
+- **AND** no Semgrep process is started by this hook
 
 #### Scenario: lint-staged failure blocks commit
 

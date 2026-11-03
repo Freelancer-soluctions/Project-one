@@ -331,7 +331,7 @@ Controller (handleCatchErrorAsync) → Service (lógica de negocio) → DAO (acc
 
 **Multi-agent orchestration:**
 
-- `opencode.jsonc` con 8 agentes (orchestrator, spec-manager, developer, reviewer, planner, researcher, git-manager, project-manager).
+- `opencode.jsonc` con 8 agentes (orchestrator, spec-manager, developer, reviewer, planner, researcher, git-manager, project-manager). _(Snapshot pre-retiro; la topología actual es `main`/`reviewer`/`researcher`/`project-manager` — ver `retire-command-wrapper-agents` + `single-main-agent`.)_
 - Skills system (caveman, grill-me, openspec-\*, nodejs-backend-patterns, etc.).
 - Output contracts con JSON schemas.
 - Guardrails neurosymbolic.

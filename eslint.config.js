@@ -322,6 +322,37 @@ export default defineConfig([
   },
 
   // ---------------------------------------------------------------------------
+  // (4b) Snapshots serializados (G4 del change `snapshot-gates`).
+  // ---------------------------------------------------------------------------
+  // Regla `vitest/no-large-snapshots` scoped SOLO a los `.snap` serializados de
+  // apps/client. FASE 1 advisory (job `client-snapshot-size` con
+  // `continue-on-error: true`); la extensión a los bloques inline
+  // (`*.ui.test.jsx`) y la promoción a blocking son el PR atómico final del
+  // change (design D4/D8). NO tocar el bloque client de arriba: su glob
+  // `**/*.{js,jsx}` no matchea `.snap`, así que `client-lint` no cambia.
+  {
+    files: ['apps/client/**/__snapshots__/*.snap'],
+
+    plugins: {
+      vitest,
+    },
+
+    rules: {
+      // Regla G4 (advisory FASE 1): límite de tamaño de snapshots serializados.
+      'vitest/no-large-snapshots': ['warn', { maxSize: 50, inlineMaxSize: 50 }],
+      // Los `.snap` son artefactos serializados por Vitest ( CommonJS `exports[...]`),
+      // no código fuente: silencian las reglas base que no aplican a artefactos.
+      'no-undef': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'unused-imports/no-unused-vars': 'off',
+      // Los snapshots serializados contienen whitespace irregular legítimo
+      // (el contenido renderizado del UI se serializa tal cual).
+      'no-irregular-whitespace': 'off',
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // (5) Storybook (dentro de client).
   // ---------------------------------------------------------------------------
   // Las stories son un dialecto propio (CSF) con default-export obligatorio

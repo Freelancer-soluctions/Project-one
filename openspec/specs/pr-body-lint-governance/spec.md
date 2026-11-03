@@ -11,9 +11,9 @@ state.
 
 ### Requirement: Normalization runs before any rule is evaluated
 
-The body check SHALL evaluate a normalized form of the body. Section structure is resolved **first**, on the raw
-body: the document is split on its `##` headings, and each section's content is then normalized independently by
-applying these transformations in order:
+The body check SHALL evaluate a stripped form of the body, never the raw text. Section structure
+SHALL be resolved **first**, on the raw body, because the strip deletes the heading lines that
+define it. The strip SHALL apply these transformations in order:
 
 1. strip HTML comments
 2. drop unchecked task-list lines
@@ -22,118 +22,31 @@ applying these transformations in order:
 5. unwrap checked checkbox markers
 6. collapse whitespace
 
-Splitting before normalizing is normative, not incidental: step 3 removes heading lines, so a pipeline that
-normalized the whole body first would erase the structure it is supposed to measure. R2 is per section, which makes
-this ordering load-bearing rather than cosmetic.
+The strip answers one question — "is anything left?" — and SHALL NOT be used to measure how much
+was written: no rule SHALL derive a verdict from the length of the stripped text, and no minimum
+length SHALL exist anywhere in the policy.
 
-Two rules are explicit exceptions to "every rule reads the normalized text", and both are named because the pipeline
-would otherwise destroy their input:
-
-- R3 reads the **comment-stripped** body only. Step 4 deletes exactly the placeholder R3 exists to detect, so
-  evaluating R3 on fully normalized text would make it a rule that can never fail.
-- Checkbox presence (R2c and R4) is read as a **count carried out of normalization** — reported as
-  `metrics.checkedCheckboxes` — because step 5 unwraps the markers and no marker survives for a rule to observe.
+One rule is an explicit exception to "every rule reads the stripped text", named because the
+pipeline would otherwise destroy its input: R3 reads the **comment-stripped** body only, since step
+4 deletes exactly the placeholder R3 exists to detect. Checked-box presence is the mirror case: R2c
+reads the **raw** section text, because step 5 unwraps the markers and no marker survives the strip.
 
 #### Scenario: Template heading text does not count as content
 
 - **WHEN** a body consists only of the template's headings and guidance comments
-- **THEN** the normalized text collapses to nothing
-- **AND** the meaningful-content rule measures zero characters
+- **THEN** the stripped text collapses to nothing
+- **AND** the `EMPTY_BODY` diagnostic sees nothing to judge
 
 #### Scenario: Checked checkbox adds no marker noise
 
 - **WHEN** a body contains `- [x] Unit tests (vitest)`
-- **THEN** the normalized form contains the item label without the checkbox marker
-- **AND** the literal `[x]` sequence does not contribute to length measurement
+- **THEN** the stripped form contains the item label without the checkbox marker
+- **AND** the literal `[x]` does not survive the strip
 
 #### Scenario: Unchecked task lines are dropped
 
 - **WHEN** a body contains `- [ ] E2E tests (Playwright)` and nothing is checked
-- **THEN** that line is absent from the normalized text
-
-### Requirement: Policy rules R1 to R5 with explicit severities
-
-The body check SHALL evaluate five rules and SHALL classify each as failure-severity or warning-severity:
-
-| Rule | Condition                                                                                                                                    | Severity |
-| ---- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| R1   | normalized meaningful content is at least 40 characters                                                                                      | fail     |
-| R2a  | the `Summary` section carries at least 20 meaningful characters                                                                              | fail     |
-| R2b  | the `Related Issue` section carries at least 1 meaningful character **and** either matches `#\d+` or reaches 20 characters                   | fail     |
-| R2c  | the `How Has This Been Tested?` section carries at least 1 meaningful character **or** at least one checked checkbox **within that section** | fail     |
-| R3   | `Closes #` never appears without a number                                                                                                    | fail     |
-| R4   | at least one checkbox in the body is checked                                                                                                 | warning  |
-| R5   | the body references at least one issue as `#` followed by digits                                                                             | warning  |
-
-Warning-severity rules SHALL be reported but SHALL NOT cause the job to fail. The split is deliberate: R4 and R5
-measure habits that vary legitimately between PR kinds (a docs-only PR may need no test checkbox; a refactor may
-legitimately reference no issue), so treating them as failures would block correct work. R1, R2a, R2b, R2c and R3
-measure completeness of the stated contract and are therefore failures.
-
-R2 is per-section, not a single scalar threshold, because a scalar floor of 20 meaningful characters contradicts the
-repository's own pull request template. The template instructs authors to write `Closes #<number>` in `Related Issue`,
-which normalizes to 11 characters, and offers checkbox answers such as `Integration tests` (17) and `Manual testing`
-(14) for the test section. A scalar 20-character floor would therefore fail every pull request that follows the
-template exactly as written — blocking correct work rather than hollow work, which is the opposite of this capability's
-purpose.
-
-#### Scenario: Empty body fails R1
-
-- **WHEN** a pull request is opened with an empty body
-- **THEN** R1 fails
-- **AND** the body job fails
-
-#### Scenario: Untouched template fails R1
-
-- **WHEN** a pull request is opened with the template body and nothing filled in
-- **THEN** normalization reduces the body to zero meaningful characters
-- **AND** R1 fails and the body job fails
-
-#### Scenario: Hollow Summary fails R2a
-
-- **WHEN** the `Summary` section exists but carries fewer than 20 meaningful characters
-- **THEN** R2a fails for that section
-- **AND** the body job fails
-
-#### Scenario: Related Issue filled as the template instructs passes R2b
-
-- **WHEN** the `Related Issue` section contains only `Closes #123`
-- **THEN** it normalizes to 11 meaningful characters, below the `Summary` floor
-- **AND** R2b passes, because the section carries an issue reference
-- **AND** the body job is not failed by R2b
-
-#### Scenario: A single checked test box satisfies R2c
-
-- **WHEN** the `How Has This Been Tested?` section contains only a checked `[x] Integration tests` item from the
-  template's list
-- **THEN** R2c passes, because a checked box is an authored answer
-- **AND** the body job is not failed by R2c
-
-#### Scenario: Bare placeholder in Related Issue still fails
-
-- **WHEN** the `Related Issue` section's only visible content is `Closes #` with no digits
-- **THEN** R2b fails, because there is neither an issue reference nor 20 meaningful characters
-- **AND** R3 fails as well
-
-#### Scenario: Complete body passes every failure rule
-
-- **WHEN** the body has more than 40 meaningful characters, `Summary` carries at least 20, `Related Issue` carries
-  either an issue reference or 20 meaningful characters, `How Has This Been Tested?` carries authored content or a
-  checked box, and no `Closes #` appears without a number
-- **THEN** R1, R2a, R2b, R2c and R3 pass
-- **AND** the body job succeeds regardless of R4 and R5
-
-#### Scenario: Missing checked checkbox does not fail the job
-
-- **WHEN** R1, R2a, R2b, R2c and R3 pass and no checkbox is checked
-- **THEN** R4 is reported as a warning
-- **AND** the body job still succeeds
-
-#### Scenario: Missing issue reference does not fail the job
-
-- **WHEN** R1, R2a, R2b, R2c and R3 pass and the body contains no `#` followed by digits
-- **THEN** R5 is reported as a warning
-- **AND** the body job still succeeds
+- **THEN** that line is absent from the stripped text
 
 ### Requirement: Rule R3 is evaluated on comment-stripped text
 
@@ -160,63 +73,6 @@ of the guidance text.
 
 - **WHEN** the body contains `Closes #123`
 - **THEN** R3 passes
-
-### Requirement: Core sections are located by canonicalized heading
-
-The check SHALL require the three core sections `Summary`, `Related Issue` and `How Has This Been Tested?`, and SHALL
-locate them by comparing canonicalized heading text — case-insensitive, with surrounding whitespace removed and
-trailing punctuation ignored — so that a heading written `## summary` or `## Summary:` is recognized as the same
-section.
-
-The sections SHALL be matched against the document's heading structure: a section's content is the text between its
-heading and the next heading of any level. A section with no content is treated as present but empty, which fails R2a
-rather than being reported as missing.
-
-Heading lines inside a fenced code block are content, never structure: every line a backtick or tilde fence spans —
-`## ` and `### ` lines included — belongs to the surrounding section and never splits the document, as long as the
-fence has a matching closer (an unterminated fence is not treated as suppressing structure, so a stray backtick cannot
-swallow the headings that follow it).
-
-When a canonical section heading appears more than once, the first occurrence is the section and later duplicates are
-ignored — their content is not merged into the first occurrence — and the ignored duplicate headings are reported in
-`metrics.duplicateSections`.
-
-#### Scenario: Heading case and punctuation do not matter
-
-- **WHEN** a body uses `## SUMMARY` or `## Summary:` instead of `## Summary`
-- **THEN** the section is recognized as the canonical `Summary` section
-- **AND** its content is measured normally
-
-#### Scenario: Heading lines inside a fenced code block are content
-
-- **WHEN** the `Summary` section contains a fenced code block whose lines include `## Not a heading`
-- **THEN** those fenced heading lines are measured as part of `Summary` and do not create a section of their own
-- **AND** the next real heading after the closed fence still locates its own section
-
-#### Scenario: The first occurrence of a duplicated section heading wins
-
-- **WHEN** a body contains two headings that canonicalize to `Summary`, the first carrying short content and the
-  second long content
-- **THEN** R2a measures the first occurrence, because duplicates are never merged into it
-- **AND** the ignored duplicate heading is reported in `metrics.duplicateSections`
-
-#### Scenario: Present but empty section
-
-- **WHEN** a body contains the `Related Issue` heading followed immediately by another heading
-- **THEN** the section is detected
-- **AND** R2a fails for that section because it carries fewer than 20 meaningful characters
-
-#### Scenario: Absent section
-
-- **WHEN** a body contains no heading canonicalizing to `How Has This Been Tested?`
-- **THEN** R2a, R2b or R2c fails for that section, according to which section is absent
-- **AND** the report identifies the section as missing rather than empty
-
-#### Scenario: Content of one section does not leak into another
-
-- **WHEN** the `Summary` section is long and the `Related Issue` section is empty
-- **THEN** R2a, R2b and R2c evaluate each section against its own content
-- **AND** the empty section still fails
 
 ### Requirement: Bot-authored pull requests are skipped by author, never by actor
 
@@ -250,75 +106,38 @@ would make the exemption flicker between runs for the same PR.
 
 ### Requirement: The verdict is a job failure, not a comment
 
-The body job SHALL report a failing verdict by failing the job itself, so the required status check reports failure
-and the merge is blocked. The check SHALL NOT rely on a pull request comment, a label, or any other artifact as its
-enforcement mechanism.
+The body job SHALL report a failing verdict by failing the job itself, so the required status check
+`Governance: PR Body Lint` reports failure and the merge is blocked. The check SHALL NOT rely on a
+pull request comment, a label, or any other artifact as its enforcement mechanism.
 
-A comment is advisory by nature — it can be ignored, deleted, or never read — and a label can be removed by whoever
-wants to merge. The only mechanism the ruleset observes is the check conclusion.
+A comment is advisory by nature — it can be ignored, deleted, or never read — and a label can be
+removed by whoever wants to merge. The only mechanism the ruleset observes is the check conclusion.
+
+No warning-severity rule survives this change: R4 and R5 are removed with the length floors, so the
+`warnings` array is always empty and nothing SHALL soften a passing verdict. A body that clears the
+`EMPTY_BODY` diagnostic, R2a, R2b, R2c and R3 SHALL pass with no warnings recorded. The third
+scenario below keeps its name from the previous policy — so the archive reads as a modification of a
+governance requirement rather than its deletion — while its body states the post-change fact.
 
 #### Scenario: Failing policy blocks the merge
 
-- **WHEN** the body violates R1, R2a, R2b, R2c or R3
+- **WHEN** the body violates `EMPTY_BODY`, R2a, R2b, R2c or R3
 - **THEN** the job concludes with failure
 - **AND** the required status check `Governance: PR Body Lint` reports failure
 - **AND** the pull request cannot be merged
 
 #### Scenario: Passing policy allows the merge
 
-- **WHEN** the body satisfies R1, R2a, R2b, R2c and R3
+- **WHEN** the body satisfies `EMPTY_BODY`, R2a, R2b, R2c and R3
 - **THEN** the job concludes with success
 - **AND** the required check is satisfied
 
 #### Scenario: Warnings accompany a passing verdict
 
-- **WHEN** the body satisfies the failure rules but violates R4 or R5
-- **THEN** the job concludes with success and the warnings are recorded in the report and the job summary
-- **AND** the merge is not blocked by the warnings
-
-### Requirement: Evaluation is deterministic and machine-readable
-
-The policy SHALL produce a machine-readable report with `schemaVersion: 1` containing the pull request identity
-(`number`, `author`, `draft`, `headSha`, `baseSha`), the applied `policy`, measured `metrics`, `failures`,
-`warnings`, and the `verdict`.
-
-The report SHALL be attached to the workflow run as an artifact named `pr-body-lint-report` with
-`retention-days: 14`, published with `if: always()` so a failing run still uploads it, with
-`include-hidden-files: true`, and with `if-no-files-found: warn`. The verdict SHALL also be written to the job
-summary.
-
-A report is required because a check conclusion is binary and carries no explanation: without the recorded metrics, a
-contributor facing a red check cannot tell whether the failure came from length, from a section, or from the
-`Closes #` rule, and an operator reviewing an anomalous block has no evidence to inspect. `if: always()` is what
-makes it evidence rather than a success-path convenience.
-
-If the report cannot be written or the policy throws, the job SHALL fail closed with a message that identifies the
-failure as a tooling error rather than a policy violation, so an operator can distinguish a broken gate from an
-invalid body. A gate that passes when it cannot run is indistinguishable from a gate that ran and approved.
-
-#### Scenario: Failing run still publishes the report
-
-- **WHEN** the body job fails
-- **THEN** the report artifact is uploaded because the upload step runs with `if: always()`
-- **AND** the report's `verdict` is `fail` and `failures` names the violated rules
-
-#### Scenario: Report write failure fails closed
-
-- **WHEN** writing `.tmp/pr-body-lint/report.json` throws
-- **THEN** the job fails with a message that names the tooling error, not a policy rule
-- **AND** the failure is distinguishable from a body that violates R1, R2 or R3
-
-#### Scenario: Report identifies the measured values
-
-- **WHEN** the report is read
-- **THEN** it contains the measured metrics that produced the verdict alongside the failing rule identifiers
-- **AND** the job summary shows the verdict and the failures without needing the artifact downloaded
-
-#### Scenario: Evaluation is free of external state
-
-- **WHEN** the same body is evaluated twice with the same policy
-- **THEN** the verdict and metrics are identical
-- **AND** no rule depends on network access, time of day, or previous runs
+- **WHEN** a body satisfies every failure rule
+- **THEN** the verdict is `pass`
+- **AND** the `warnings` array is present but always empty, because no warning-severity rule remains —
+  nothing accompanies the verdict and nothing can soften it
 
 ### Requirement: Policy and template are updated in lockstep
 
@@ -431,3 +250,215 @@ as it stands.
 - **WHEN** a draft pull request has an empty body
 - **THEN** the body job runs and reports failure
 - **AND** the pull request cannot be marked ready for review and merged without fixing the body
+
+### Requirement: Empty body fails on emptiness, not on length
+
+The body check SHALL fail a pull request whose body is empty once HTML comments, unchecked task-list
+lines and heading lines have been stripped, and SHALL express that failure as its own named
+diagnostic, `EMPTY_BODY`. The condition SHALL be emptiness — "the author wrote nothing at all" — and
+SHALL NOT be a minimum character count: a body carrying a single character of authored text clears it.
+
+`EMPTY_BODY` is a diagnostic, not a verdict of its own. R2a, R2b and R2c already require their
+sections to carry stripped content, so a body that passes them is necessarily non-empty and
+`EMPTY_BODY` can never fire alone. Its job is to name the real cause: an empty body or an untouched
+template would otherwise surface as three separate "missing section" failures, which tells the author
+nothing about the one thing they have to do. It therefore does not inherit the removed R1's reach — it
+replaces R1's diagnostic value, not its gate.
+
+This replaces the removed 40-character body floor and the removed 20-character `Summary` floor. Both
+measured a proxy rather than quality: `aaaaaaaaaaaaaaaaaaaa` satisfied them, while they turned a
+threshold into something authors learned to pad. Emptiness is the one whole-body signal those floors
+carried that is still worth keeping, and it is the only one kept. It replaces a proxy; it does not
+reintroduce one.
+
+The diagnostic SHALL also fire on the unfilled template, which strips to nothing, so "PR opened with
+the template untouched" stays a non-mergeable state.
+
+#### Scenario: Empty body fails with `EMPTY_BODY`
+
+- **WHEN** a pull request is opened with an empty body
+- **THEN** the `EMPTY_BODY` diagnostic fails
+- **AND** the body job fails
+
+#### Scenario: Untouched template fails the emptiness diagnostic
+
+- **WHEN** a pull request is opened with the template body and nothing filled in
+- **THEN** stripping reduces the body to nothing
+- **AND** `EMPTY_BODY` fires and the body job fails
+
+#### Scenario: One character of authored text clears the emptiness diagnostic
+
+- **WHEN** the `Summary` carries `n/a` and the other sections carry content
+- **THEN** `EMPTY_BODY` does not fire
+- **AND** no length rule exists that could fail the body for being short
+
+### Requirement: Section rules: Summary, issue reference and tested section
+
+The body check SHALL evaluate three section rules, all of them failure-severity, none of them a
+length floor:
+
+| Rule | Condition                                                                                                                                       | Severity |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| R2a  | `Summary` is present and its stripped content is non-empty                                                                                      | fail     |
+| R2b  | `Related Issue` is present and its stripped content is non-empty                                                                                | fail     |
+| R2c  | `How Has This Been Tested?` is present and either its stripped content is non-empty **or** at least one checkbox within that section is checked | fail     |
+
+A section whose heading is present but whose content is empty SHALL be reported as present and
+empty; a section whose heading is absent SHALL be reported as missing. The two SHALL NOT be
+conflated.
+
+R2b SHALL NOT require a particular shape of reference: whether a pull request with no linked issue
+fails is design decision D3 and is not decided by this requirement. The
+reference-or-twenty-characters disjunction it used to carry is removed because half of it was a
+length rule.
+
+The check SHALL NOT evaluate any warning-severity rule. R4 ("at least one checkbox in the body is
+checked") and R5 ("the body references an issue as `#` followed by digits") are removed: R5
+duplicated R2b, and R4 measured a habit the template no longer asks authors to attest once its
+redundant pre-merge boxes are gone. A body that clears `EMPTY_BODY`, R2a, R2b, R2c and R3 SHALL
+therefore pass with no warnings recorded.
+
+#### Scenario: Hollow Summary fails R2a without any character floor
+
+- **WHEN** the `Summary` heading exists and carries only a guidance comment
+- **THEN** R2a fails for that section
+- **AND** the body job fails
+
+#### Scenario: Related Issue filled as the template instructs passes R2b
+
+- **WHEN** the `Related Issue` section contains only `Closes #123`
+- **THEN** R2b passes, because the section carries authored content
+- **AND** the body job is not failed by R2b
+
+#### Scenario: Bare placeholder in Related Issue still fails
+
+- **WHEN** the `Related Issue` section's only visible content is `Closes #` with no digits
+- **THEN** the strip removes that placeholder, leaving the section empty
+- **AND** R2b fails
+- **AND** R3 fails as well
+
+#### Scenario: A single checked test box satisfies R2c
+
+- **WHEN** the `How Has This Been Tested?` section contains only a checked `[x] Integration tests`
+  item from the template's list
+- **THEN** R2c passes, because a checked box is an authored answer
+- **AND** the body job is not failed by R2c
+
+#### Scenario: An unchecked test box does not satisfy R2c
+
+- **WHEN** the `How Has This Been Tested?` section contains only unchecked boxes
+- **THEN** R2c fails for that section
+
+#### Scenario: A checked box in another section does not satisfy R2c
+
+- **WHEN** a box is checked under `Type / Scope` and the `How Has This Been Tested?` section is empty
+- **THEN** R2c fails, because the box belongs to a different section
+
+#### Scenario: Complete body passes every failure rule
+
+- **WHEN** the body is non-empty, `Summary` carries text, `Related Issue` carries text,
+  `How Has This Been Tested?` carries content or a checked box, and no `Closes #` appears without a
+  number
+- **THEN** `EMPTY_BODY`, R2a, R2b, R2c and R3 all pass
+- **AND** the body job succeeds
+
+#### Scenario: No warning accompanies a passing body
+
+- **WHEN** a body clears `EMPTY_BODY`, R2a, R2b, R2c and R3
+- **THEN** the verdict is `pass`
+- **AND** no warning-severity rule exists that could be recorded alongside it
+
+### Requirement: Core sections are located by a single `##` heading scan
+
+The body check SHALL require the three core sections `Summary`, `Related Issue` and
+`How Has This Been Tested?`, and SHALL locate them by scanning the raw body once with a single
+regular expression over `##` headings. A section's content SHALL be the text between its heading
+and the next heading of any level. Headings SHALL be compared after canonicalization —
+case-insensitive, surrounding whitespace removed, trailing punctuation ignored — so `## summary` and
+`## Summary:` resolve to the same section.
+
+When a canonical heading appears more than once, the first occurrence SHALL be the section and
+later duplicates SHALL be ignored: their content SHALL NOT be merged into the first occurrence, and
+no duplicate-section metric SHALL be produced.
+
+The scan SHALL be fence-blind: a line that starts with `##` splits the document even when a code
+fence surrounds it. That is an accepted regression of the reduced policy, recorded rather than
+hidden — a fenced `## ...` line inside a section ends that section, and the lines after it are no
+longer measured as part of it. The trade is deliberate: fence masking existed for a case real pull
+requests do not produce, and it was the single largest block of code in the policy.
+
+#### Scenario: Heading case and punctuation do not matter
+
+- **WHEN** a body uses `## SUMMARY` or `## Summary:` instead of `## Summary`
+- **THEN** the section is recognized as the canonical `Summary` section
+- **AND** its content is measured normally
+
+#### Scenario: Present but empty section
+
+- **WHEN** a body contains the `Related Issue` heading followed immediately by another heading
+- **THEN** the section is detected
+- **AND** R2b fails for that section because it carries nothing
+
+#### Scenario: Absent section
+
+- **WHEN** a body contains no heading canonicalizing to `How Has This Been Tested?`
+- **THEN** R2c fails for that section
+- **AND** the failure identifies the section as missing rather than empty
+
+#### Scenario: Content of one section does not leak into another
+
+- **WHEN** the `Summary` section is long and the `Related Issue` section is empty
+- **THEN** R2a, R2b and R2c evaluate each section against its own content
+- **AND** the empty section still fails
+
+#### Scenario: A fenced `##` line splits the document
+
+- **WHEN** the `Summary` section contains a fenced code block whose lines include `## Not a heading`
+- **THEN** that line is treated as a section boundary
+- **AND** the lines after it are no longer measured as part of `Summary`
+- **AND** a later real `## Related Issue` heading still locates its own section
+
+#### Scenario: The first occurrence of a duplicated heading wins
+
+- **WHEN** a body contains two headings that canonicalize to `Summary`, the first carrying short
+  content and the second long content
+- **THEN** the first occurrence is the section, because duplicates are never merged into it
+- **AND** no duplicate-section metric is produced
+
+### Requirement: The result is published as the job summary and fails closed on tooling errors
+
+The policy SHALL produce a deterministic result carrying the `verdict`, the `failures` (each naming its
+rule and its section) and the `warnings` array, and it SHALL publish that result to the job summary —
+the only reporting surface (D2). No `report.json` SHALL be written and no artifact SHALL be uploaded,
+so no pull request identity, `policy` block or `metrics` object SHALL be published, and no deleted rule
+identifier (R1, R4, R5) SHALL appear anywhere in the output. The same body evaluated twice with the
+same policy SHALL yield an identical result.
+
+A check conclusion is binary and carries no explanation, which is why the verdict and the failures are
+written to the summary. If the policy or the summary path throws, the job SHALL fail closed with a
+message that identifies a tooling error rather than a policy violation, so an operator can distinguish
+a broken gate from an invalid body: a gate that passes when it cannot run is indistinguishable from a
+gate that ran and approved.
+
+#### Scenario: Failing run still publishes the summary
+
+- **WHEN** the body job fails
+- **THEN** the summary is published with the `fail` verdict and the failures
+- **AND** nothing has to be downloaded to read them
+
+#### Scenario: Summary write failure fails closed
+
+- **WHEN** publishing the job summary throws
+- **THEN** the job fails with a message that names the tooling error, not a policy rule
+- **AND** the failure is distinguishable from a body that violates `EMPTY_BODY`, R2a, R2b, R2c or R3
+
+#### Scenario: Summary names the failing rules
+
+- **WHEN** the summary is read
+- **THEN** the failing rule identifiers travel with it
+- **AND** the verdict and the failures are visible without needing anything downloaded
+
+#### Scenario: Evaluation is free of external state
+
+- **WHEN** the same body is evaluated twice with the same policy
+- **THEN** the verdict and the failures are identical

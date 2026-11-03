@@ -365,8 +365,10 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 
 1. ~~**P0 — Re-activar el pipeline de tests**~~ — **HECHO** (FASE 1 advisory): los 2 test-unit jobs y los 2 coverage jobs
    corren en PR con `continue-on-error: true`; el agregador `prebuild-tests-complete` los sigue incluyendo en
-   `needs` (4 → 6 en su día; 5 entradas desde `ci-stage-aggregator-topology`). **Pendiente**: ventana de calibración de 2-4 semanas y promoción a FASE 2 (quitar el
-   `continue-on-error`) — mientras tanto `ci-complete` refleja el resultado pero no bloquea por fallos de test.
+   `needs` (4 → 6 en su día; 5 entradas desde `ci-stage-aggregator-topology`). **Promoción a FASE 2 completada**
+   (2026-10-29, change `ci-testing-gate-promotion`): los 5 jobs ya no llevan `continue-on-error`, así que un test rojo
+   deja `prebuild-tests-complete` y `ci-complete` en rojo (el merge solo se bloquea cuando el ruleset bindee ese
+   contexto). Queda abierta la ventana de calibración de 2-4 semanas, con rollback por job si la tasa de flakes lo exige.
 2. ~~**P1 — TIA en CI**~~ — **HECHO**: scripts `test:changed:ci` en ambos workspaces + resolución de scope en los jobs
    (diff-scoped si `origin/main` resuelve, full suite si `shared` o si la base no resuelve) + guard de thresholds que
    difiere en corridas diff-scoped (D18) + nocturno `nightly-full-suite.yml` como red de seguridad.

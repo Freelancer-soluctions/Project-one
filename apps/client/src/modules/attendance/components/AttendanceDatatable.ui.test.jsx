@@ -70,8 +70,8 @@ const renderDatatable = () =>
   );
 
 describe('AttendanceDatatable - UI snapshot', () => {
-  // Segmentación (D7 + tasks 3.2): una entrada por cabecera de columna y por
-  // fila fixture, cada una muy por debajo de ~100 líneas.
+  // Segmentación (D7 + tasks 3.2): una entrada por cabecera, por celda de fila y por control
+  // de paginación, cada entrada muy por debajo de 50 líneas.
   it('renders each column header with its filter', () => {
     const { container } = renderDatatable();
     container.querySelectorAll('thead th').forEach((th, index) => {
@@ -83,20 +83,21 @@ describe('AttendanceDatatable - UI snapshot', () => {
 
   it('renders each frozen fixture row', () => {
     const { container } = renderDatatable();
-    container.querySelectorAll('tbody tr').forEach((row, index) => {
-      expect(row).toMatchSnapshot(
-        `fixture row ${index + 1} with formatted cells`
-      );
+    container.querySelectorAll('tbody tr').forEach((row, rowIndex) => {
+      Array.from(row.children).forEach((cell, cellIndex) => {
+        expect(cell).toMatchSnapshot(
+          `fixture row ${rowIndex + 1} cell ${cellIndex + 1}`
+        );
+      });
     });
   });
 
   it('renders the pagination controls', () => {
     const { container } = renderDatatable();
-    expect(
-      container.querySelector('.flex.flex-wrap.items-center.gap-2')
-    ).toMatchSnapshot(
-      'pagination buttons, page indicator and page size select'
-    );
+    const pager = container.querySelector('.flex.flex-wrap.items-center.gap-2');
+    Array.from(pager.children).forEach((control, index) => {
+      expect(control).toMatchSnapshot(`pagination control ${index + 1}`);
+    });
 
     expect(container.firstChild.lastElementChild).toMatchSnapshot(
       'pagination showing row count'

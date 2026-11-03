@@ -481,6 +481,10 @@ client-format-check:
 | test-smoke              | L1717                | ✅ Activo — `if:` sobre repo-discovery, **sin** COE (bloqueante real)                 |
 | prebuild-tests-complete | L1946                | ✅ Agregador activo; `needs` = 5 jobs tier-1 (test-unit-\*, coverage, property-tests) |
 
+> **Actualización 2026-10-29 (change `ci-testing-gate-promotion`):** los 4 jobs `test-unit-*` / `*-coverage` y
+> `property-tests` ya **no** llevan `continue-on-error` → son **blocking**. Las filas de esta tabla describen el
+> estado del 2026-10-01 y quedan como histórico (las líneas citadas también están desfasadas).
+
 > **⚠️ CRÍTICO:** Estos nodos **NO están rotos**. Son diseño incremental de CI_MINIMAL=true (§3.1 de CONTEXT-CICD). Activarlos requiere un change OpenSpec que justifique el costo.
 >
 > > **Excepción (2026-09-14, change `ci-prebuild-quality-lint`):** `client-lint`, `server-lint` y `actionlint` YA salieron de esta lista — reactivados path-scoped standalone (ver §1.4).

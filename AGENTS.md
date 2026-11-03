@@ -81,9 +81,9 @@ These skills modify agent communication and workflow orchestration:
 | `grill-me` | Interview the user relentlessly about a plan until reaching shared understanding. Walk each branch of the decision tree | [SKILL.md](.agents/skills/grill-me/SKILL.md) |
 | `caveman`  | Ultra-compressed communication mode. Cuts token usage ~75% by dropping filler, articles, and pleasantries               | [SKILL.md](.agents/skills/caveman/SKILL.md)  |
 
-### OpenSpec Workflow (Spec-Manager)
+### OpenSpec Workflow
 
-Skills for the specification-driven development lifecycle, owned by @spec-manager:
+Skills for the specification-driven development lifecycle, run directly by the principal:
 
 | Skill                   | Description                                                                      | URL                                                                |
 | ----------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
@@ -141,7 +141,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Auditing code for security vulnerabilities before merge  | `owasp-security-check`        |
 | Building a new API endpoint, middleware, or auth flow    | `nodejs-backend-patterns`     |
 | Changing Prisma schema, running migrations               | `prisma-postgres`             |
-| Committing changes                                       | `commit-all`                  |
+| Committing changes                                       | `/commit-all` (command)       |
 | Creating a new OpenSpec change (step by step)            | `openspec-new`                |
 | Creating a new OpenSpec change (all artifacts at once)   | `openspec-propose`            |
 | Creating or updating shadcn/ui components                | `shadcn`                      |

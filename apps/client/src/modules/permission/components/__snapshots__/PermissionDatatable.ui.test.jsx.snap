@@ -370,417 +370,497 @@ exports[`PermissionDatatable - UI snapshot > renders each column header with its
 </th>
 `;
 
-exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 with cells 1`] = `
-<tr
-  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-  data-state="false"
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 1 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      ALICE ANDERS
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      permission_type.Vacation
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      February 2nd, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      February 6th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      Family trip
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      <div
-        class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80"
-      >
-        status.Approved
-         
-      </div>
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    />
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 5th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    />
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 6th, 2026
-    </div>
-  </td>
-</tr>
+    ALICE ANDERS
+  </div>
+</td>
 `;
 
-exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 with cells 1`] = `
-<tr
-  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-  data-state="false"
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 2 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      BOB BRIGHT
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      permission_type.Medical
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      February 10th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      February 11th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      Doctor appointment
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      <div
-        class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80"
-      >
-        status.Pending
-         
-      </div>
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    />
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 6th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    />
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    />
-  </td>
-</tr>
+    permission_type.Vacation
+  </div>
+</td>
 `;
 
-exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 with cells 1`] = `
-<tr
-  class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-  data-state="false"
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 3 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      CARA CHEN
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      permission_type.Personal
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      March 1st, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      March 2nd, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      Personal errand
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      <div
-        class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80"
-      >
-        status.Rejected
-         
-      </div>
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    />
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 7th, 2026
-    </div>
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    />
-  </td>
-  <td
-    class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
-  >
-    <div
-      class="truncate"
-      data-state="closed"
-    >
-      January 8th, 2026
-    </div>
-  </td>
-</tr>
+    February 2nd, 2026
+  </div>
+</td>
 `;
 
-exports[`PermissionDatatable - UI snapshot > renders the pagination controls > pagination buttons and page size select 1`] = `
-<div
-  class="flex flex-wrap items-center gap-2"
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 4 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
-  <button
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
-    disabled=""
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    &lt;&lt;
-  </button>
-  <button
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
-    disabled=""
+    February 6th, 2026
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 5 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    &lt;
-  </button>
-  <button
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
-    disabled=""
+    Family trip
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 6 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    &gt;
-  </button>
-  <button
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
-    disabled=""
-  >
-    &gt;&gt;
-  </button>
-  <span
-    class="flex items-center gap-1"
-  >
-    <div>
-      Page
-    </div>
-    <strong>
-      1
-       of
+    <div
+      class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80"
+    >
+      status.Approved
        
-      1
-    </strong>
-  </span>
-  <span
-    class="flex items-center gap-1"
+    </div>
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 7 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 8 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
   >
-    | Go to page:
-    <input
-      class="border p-1 rounded w-16"
-      max="1"
-      min="1"
-      type="number"
-      value="1"
-    />
-  </span>
-  <select>
-    <option
-      value="10"
+    January 5th, 2026
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 9 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 10 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 6th, 2026
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 1 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    BOB BRIGHT
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 2 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    permission_type.Medical
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 3 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    February 10th, 2026
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 4 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    February 11th, 2026
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 5 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    Doctor appointment
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 6 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    <div
+      class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80"
     >
-      Show 
-      10
-    </option>
-    <option
-      value="20"
+      status.Pending
+       
+    </div>
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 7 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 8 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 6th, 2026
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 9 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 10 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 1 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    CARA CHEN
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 2 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    permission_type.Personal
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 3 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    March 1st, 2026
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 4 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    March 2nd, 2026
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 5 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    Personal errand
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 6 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    <div
+      class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80"
     >
-      Show 
-      20
-    </option>
-    <option
-      value="30"
-    >
-      Show 
-      30
-    </option>
-    <option
-      value="40"
-    >
-      Show 
-      40
-    </option>
-    <option
-      value="50"
-    >
-      Show 
-      50
-    </option>
-  </select>
-</div>
+      status.Rejected
+       
+    </div>
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 7 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 8 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 7th, 2026
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 9 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 10 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 8th, 2026
+  </div>
+</td>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders the pagination controls > pagination control 1 1`] = `
+<button
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+  disabled=""
+>
+  &lt;&lt;
+</button>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders the pagination controls > pagination control 2 1`] = `
+<button
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+  disabled=""
+>
+  &lt;
+</button>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders the pagination controls > pagination control 3 1`] = `
+<button
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+  disabled=""
+>
+  &gt;
+</button>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders the pagination controls > pagination control 4 1`] = `
+<button
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
+  disabled=""
+>
+  &gt;&gt;
+</button>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders the pagination controls > pagination control 5 1`] = `
+<span
+  class="flex items-center gap-1"
+>
+  <div>
+    Page
+  </div>
+  <strong>
+    1
+     of
+     
+    1
+  </strong>
+</span>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders the pagination controls > pagination control 6 1`] = `
+<span
+  class="flex items-center gap-1"
+>
+  | Go to page:
+  <input
+    class="border p-1 rounded w-16"
+    max="1"
+    min="1"
+    type="number"
+    value="1"
+  />
+</span>
+`;
+
+exports[`PermissionDatatable - UI snapshot > renders the pagination controls > pagination control 7 1`] = `
+<select>
+  <option
+    value="10"
+  >
+    Show 
+    10
+  </option>
+  <option
+    value="20"
+  >
+    Show 
+    20
+  </option>
+  <option
+    value="30"
+  >
+    Show 
+    30
+  </option>
+  <option
+    value="40"
+  >
+    Show 
+    40
+  </option>
+  <option
+    value="50"
+  >
+    Show 
+    50
+  </option>
+</select>
 `;
 
 exports[`PermissionDatatable - UI snapshot > renders the pagination controls > pagination showing row count 1`] = `

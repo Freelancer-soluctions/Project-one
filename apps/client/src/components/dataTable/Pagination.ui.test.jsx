@@ -21,31 +21,43 @@ const FIXTURE_TABLE = {
 describe('Pagination - UI snapshot', () => {
   it('renders the pager controls fixed on page 2 of 5', () => {
     const { container } = render(<Pagination table={FIXTURE_TABLE} />);
-    expect(container.querySelector('div.flex.flex-wrap')).toMatchInlineSnapshot(
+    const pager = container.querySelector('div.flex.flex-wrap');
+
+    // G4 segmentación: el pager completo serializa ~82 líneas, así que se
+    // captura por subárbol (botones, indicadores y select) y cada entrada
+    // queda muy por debajo de 50 líneas.
+    expect(Array.from(pager.querySelectorAll('button'))).toMatchInlineSnapshot(
       `
-      <div
-        class="flex flex-wrap items-center gap-2"
-      >
+      [
         <button
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
         >
           &lt;&lt;
-        </button>
+        </button>,
         <button
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
         >
           &lt;
-        </button>
+        </button>,
         <button
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
         >
           &gt;
-        </button>
+        </button>,
         <button
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 p-1 border rounded"
         >
           &gt;&gt;
-        </button>
+        </button>,
+      ]
+    `,
+      'pager navigation buttons for page 2 of 5'
+    );
+    expect(
+      Array.from(pager.children).filter((child) => child.tagName === 'SPAN')
+    ).toMatchInlineSnapshot(
+      `
+      [
         <span
           class="flex items-center gap-1"
         >
@@ -58,7 +70,7 @@ describe('Pagination - UI snapshot', () => {
              
             5
           </strong>
-        </span>
+        </span>,
         <span
           class="flex items-center gap-1"
         >
@@ -70,42 +82,47 @@ describe('Pagination - UI snapshot', () => {
             type="number"
             value="2"
           />
-        </span>
-        <select>
-          <option
-            value="10"
-          >
-            Show 
-            10
-          </option>
-          <option
-            value="20"
-          >
-            Show 
-            20
-          </option>
-          <option
-            value="30"
-          >
-            Show 
-            30
-          </option>
-          <option
-            value="40"
-          >
-            Show 
-            40
-          </option>
-          <option
-            value="50"
-          >
-            Show 
-            50
-          </option>
-        </select>
-      </div>
+        </span>,
+      ]
     `,
-      'pager controls fixed on page 2 of 5 with the page-size select'
+      'page indicator and go-to-page field'
+    );
+    expect(pager.querySelector('select')).toMatchInlineSnapshot(
+      `
+      <select>
+        <option
+          value="10"
+        >
+          Show 
+          10
+        </option>
+        <option
+          value="20"
+        >
+          Show 
+          20
+        </option>
+        <option
+          value="30"
+        >
+          Show 
+          30
+        </option>
+        <option
+          value="40"
+        >
+          Show 
+          40
+        </option>
+        <option
+          value="50"
+        >
+          Show 
+          50
+        </option>
+      </select>
+    `,
+      'page size select with its five options'
     );
   });
 });

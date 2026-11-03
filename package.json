@@ -44,6 +44,8 @@
     "coverage:check": "node scripts/ci/coverage-check.mjs",
     "coverage:ratchet": "node scripts/ci/coverage-ratchet.mjs",
     "coverage:guard": "node scripts/ci/check-coverage.mjs",
+    "coverage:baseline:check": "node scripts/ci/coverage-baseline.mjs",
+    "coverage:docs:verify": "node scripts/ci/coverage-docs-verify.mjs",
     "test:smoke": "npm run test:smoke --workspace=server-express",
     "test:smoke:ci": "npm run test:smoke:ci --workspace=server-express",
     "test:regression": "npm run test:regression --workspace=server-express",
@@ -80,7 +82,11 @@
     "docs:lint": "markdownlint \"docs/**/*.md\" \"docs/*.md\"",
     "docs:vale": "vale --config .vale.ini --minAlertLevel=error docs/",
     "test:tia": "npm run test:tia --workspace=apps/client && npm run test:tia --workspace=apps/server",
-    "test:tia:audit": "npm run test:tia:audit --workspace=apps/client && npm run test:tia:audit --workspace=apps/server"
+    "test:tia:audit": "npm run test:tia:audit --workspace=apps/client && npm run test:tia:audit --workspace=apps/server",
+    "test:tia:reset": "node -e \"const fs=require('fs'),p=require('path');for(const ws of ['apps/client','apps/server']){for(const d of [p.join(ws,'node_modules','.cache','tia'),p.join(ws,'reports')]){for(const f of ['tia-history.json','tia-selection.json','coverage-map.json']){const fp=p.join(d,f);if(fs.existsSync(fp)){fs.rmSync(fp);console.log('removed',fp)}}}}\"",
+    "snapshot:update-gate": "node scripts/ci/snapshot-update-gate.mjs",
+    "snapshot:orphan-check": "node scripts/ci/snapshot-orphan-check.mjs",
+    "snapshot:size-check": "eslint \"apps/client/src/**/__snapshots__/*.snap\" --max-warnings 0"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^1.0.1",
@@ -121,5 +127,8 @@
   "directories": {
     "doc": "docs"
   },
-  "keywords": []
+  "keywords": [],
+  "dependencies": {
+    "playwright": "1.64.1"
+  }
 }

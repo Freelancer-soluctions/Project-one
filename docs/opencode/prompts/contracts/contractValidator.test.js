@@ -1,14 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   ContractParseError,
-  ContractValidationError,
   parseContractEnvelope,
   validateContract,
   withRetry,
   createEscalationReport,
   isDegraded,
   DEGRADED_AGENTS,
-  clearDegraded
 } from './contractValidator.js';
 
 // ─── parseContractEnvelope (task 4.3) ────────────────────────────────
@@ -39,14 +37,19 @@ describe('parseContractEnvelope', () => {
     const response = 'No envelope here, just plain text';
 
     expect(() => parseContractEnvelope(response)).toThrow(ContractParseError);
-    expect(() => parseContractEnvelope(response)).toThrow('Invalid or missing output-contract envelope');
+    expect(() => parseContractEnvelope(response)).toThrow(
+      'Invalid or missing output-contract envelope'
+    );
   });
 
   it('throws ContractParseError when JSON inside envelope is malformed', () => {
-    const response = '<output-contract agent="developer" version="1">{not valid json}</output-contract>';
+    const response =
+      '<output-contract agent="developer" version="1">{not valid json}</output-contract>';
 
     expect(() => parseContractEnvelope(response)).toThrow(ContractParseError);
-    expect(() => parseContractEnvelope(response)).toThrow('Failed to parse JSON payload');
+    expect(() => parseContractEnvelope(response)).toThrow(
+      'Failed to parse JSON payload'
+    );
   });
 });
 
@@ -160,7 +163,9 @@ describe('validateContract', () => {
 
     const result = validateContract(response, 'reviewer');
     expect(result.valid).toBe(false);
-    expect(result.errors.some(e => e.message.includes('Agent mismatch'))).toBe(true);
+    expect(
+      result.errors.some((e) => e.message.includes('Agent mismatch'))
+    ).toBe(true);
   });
 });
 
@@ -237,7 +242,12 @@ describe('responseType dispatch (Ajv sub-schema validation)', () => {
 </output-contract>`;
     const result = validateContract(response, 'developer');
     expect(result.valid).toBe(false);
-    expect(result.errors.some(e => e.field === 'status' || e.field === 'action' || e.field === 'details')).toBe(true);
+    expect(
+      result.errors.some(
+        (e) =>
+          e.field === 'status' || e.field === 'action' || e.field === 'details'
+      )
+    ).toBe(true);
   });
 
   it('rejects when responseType=failure but error fields missing', () => {
@@ -248,7 +258,11 @@ describe('responseType dispatch (Ajv sub-schema validation)', () => {
     expect(result.valid).toBe(false);
     // Sub-schema validation for missing required property returns field='error'
     // with message about missing 'error' property
-    expect(result.errors.some(e => e.field === 'error' && e.message.includes('error'))).toBe(true);
+    expect(
+      result.errors.some(
+        (e) => e.field === 'error' && e.message.includes('error')
+      )
+    ).toBe(true);
   });
 
   it('rejects invalid responseType value', () => {
@@ -280,7 +294,10 @@ describe('Task 3.1: withRetry reissue semantics', () => {
   it('reissue callback is invoked when validation fails', async () => {
     let calls = 0;
     const result = await withRetry('developer', 'no envelope', {
-      reissue: () => { calls++; return 'still no envelope'; },
+      reissue: () => {
+        calls++;
+        return 'still no envelope';
+      },
     });
     expect(calls).toBeGreaterThan(0);
     expect(result.exhausted).toBe(true);
@@ -289,10 +306,16 @@ describe('Task 3.1: withRetry reissue semantics', () => {
 
 describe('Task 3.2: createEscalationReport includes reissueRequired', () => {
   it('emits reissueRequired hint in report', () => {
-    const report = createEscalationReport('developer', 'bad', [{ field: 'x', message: 'y' }], 1, {
-      reissueRequired: true,
-      reissue: () => 'fresh',
-    });
+    const report = createEscalationReport(
+      'developer',
+      'bad',
+      [{ field: 'x', message: 'y' }],
+      1,
+      {
+        reissueRequired: true,
+        reissue: () => 'fresh',
+      }
+    );
     expect(report.reissueRequired).toBe(true);
     expect(report.reissuePossible).toBe(true);
     expect(report.agentName).toBe('developer');
@@ -306,66 +329,14 @@ describe('Task 5.2: Prompt example parity', () => {
   // base schema plus a representative subset of the agent-specific fields.
   const cases = [
     {
-      agent: 'orchestrator',
+      agent: 'main',
       payload: {
-        agent: 'orchestrator',
+        agent: 'main',
         timestamp: '2025-01-15T10:30:00Z',
         responseType: 'success',
         version: 1,
         status: 'completed',
-        delegatedAgent: 'developer',
-        workflowStep: 'implementation',
-        result: 'success',
-        details: 'orchestration step done',
-      },
-    },
-    {
-      agent: 'developer',
-      payload: {
-        agent: 'developer',
-        timestamp: '2025-01-15T10:30:00Z',
-        responseType: 'success',
-        version: 1,
-        status: 'completed',
-        action: 'implement-task',
-        details: 'implemented',
-        taskId: '1.1',
-      },
-    },
-    {
-      agent: 'spec-manager',
-      payload: {
-        agent: 'spec-manager',
-        timestamp: '2025-01-15T10:30:00Z',
-        responseType: 'success',
-        version: 1,
-        status: 'completed',
-        command: '/opsx-propose',
-        details: 'spec done',
-      },
-    },
-    {
-      agent: 'git-manager',
-      payload: {
-        agent: 'git-manager',
-        timestamp: '2025-01-15T10:30:00Z',
-        responseType: 'success',
-        version: 1,
-        status: 'completed',
-        operation: 'commit-all',
-        details: 'committed',
-      },
-    },
-    {
-      agent: 'planner',
-      payload: {
-        agent: 'planner',
-        timestamp: '2025-01-15T10:30:00Z',
-        responseType: 'success',
-        version: 1,
-        status: 'completed',
-        verdict: 'APPROVED',
-        details: 'looks good',
+        details: 'main agent step done',
       },
     },
     {
@@ -417,12 +388,14 @@ describe('Task 5.2: Prompt example parity', () => {
       // The test confirms the response parses, the envelope matches, and either
       // {valid:true} or a {valid:false} for missing required agent-specific fields
       // — BOTH are acceptable as long as the envelope + base fields are honored.
-      expect(['orchestrator', 'developer', 'spec-manager', 'git-manager', 'planner', 'reviewer', 'researcher', 'project-manager']).toContain(result.agent || agent);
+      expect(['main', 'reviewer', 'researcher', 'project-manager']).toContain(
+        result.agent || agent
+      );
       // If validation failed, errors should not include base field errors.
       if (!result.valid) {
         const baseFields = ['agent', 'timestamp', 'responseType', 'version'];
         for (const bf of baseFields) {
-          expect(result.errors.some(e => e.field === bf)).toBe(false);
+          expect(result.errors.some((e) => e.field === bf)).toBe(false);
         }
       }
     });

@@ -56,9 +56,10 @@ export default mergeConfig(
           // blindan por separado, para que el total siga siendo comparable entre
           // corridas (floor bajo + granularidad alta).
           //
-          // `perFile: true` en un glob significa que CADA fichero casado debe
-          // alcanzar ese umbral (no el agregado). Los globs NO heredan el `perFile`
-          // de nivel superior: hay que declararlo en cada uno.
+          // El motor Vitest 4.1.11 evalúa los umbrales de globs en agregado e
+          // ignora `perFile` dentro de cada glob. El gate local y los jobs de
+          // coverage aplican esos mínimos por fichero mediante
+          // `scripts/ci/check-coverage.mjs`, único enforcer per-file.
           //
           // Estos valores los sube `npm run coverage:ratchet` a la cobertura medida
           // de cada área. NO subirlos a mano sin añadir antes los tests que los
@@ -102,10 +103,11 @@ export default mergeConfig(
       ],
       setupFiles: ['./tests/setup/setupTest.js'],
       // Presupuesto de salida por snapshot: un snapshot gigante es un snapshot
-      // que nadie revisa. Verificado empíricamente (tasks.md 1.1): con 10000
-      // los Datatables de ~9 columnas se colapsaban (marcador `…`), así que se
-      // subió a 100000 y se re-verificó limpio antes de que entrara F2.
-      snapshotFormat: { maxOutputLength: 100000 },
+      // que nadie revisa. Con la segmentación de `snapshot-gates` (tasks.md
+      // 4.5: entradas por celda/control, todas < 50 líneas) baja de 100000 a
+      // 25000 y se re-verifica con la suite completa (tasks.md 4.6): cero
+      // marcadores de truncamiento (`…`) en los snapshots generados.
+      snapshotFormat: { maxOutputLength: 25000 },
       update: process.env.CI ? 'none' : 'new',
       testTimeout: 30000,
       hookTimeout: 15000,

@@ -8,7 +8,14 @@
     "agent": {
       "type": "string",
       "description": "Name of the agent that produced this response",
-      "enum": ["developer", "spec-manager", "git-manager", "reviewer", "planner", "orchestrator", "researcher", "project-manager"]
+      "enum": [
+        "developer",
+        "reviewer",
+        "planner",
+        "orchestrator",
+        "researcher",
+        "project-manager"
+      ]
     },
     "timestamp": {
       "type": "string",

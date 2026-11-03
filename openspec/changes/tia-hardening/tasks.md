@@ -134,7 +134,7 @@ scripts/ci/check-coverage.mjs apps/client --advisory` → exit 0 + prefijo `[adv
       salida de `openspec validate tia-hardening --strict`.
       **Estado 2026-10-15 (post-fix):** [x] — `openspec validate tia-hardening --strict` →
       **valid SIN el `INFO: Archive would refuse this delta: ci-test-impact-analysis MODIFIED
-    failed for header`** (cabecera del delta spec corregida en este batch y re-validada; la
+  failed for header`** (cabecera del delta spec corregida en este batch y re-validada; la
       nota de archivado al final de este fichero queda resuelta). El paso de "mostrar el spec ya
       archivado" sigue siendo post-archivado, por definición.
 
@@ -248,7 +248,7 @@ scripts/ci/check-coverage.mjs apps/client --advisory` → exit 0 + prefijo `[adv
       tests (`scripts/ci/vitest-sequencer.test.mjs`, runner `npm run test:scripts`):
       `orderSpecs › no history and no degradation → deterministic path ascending` (L135 = orden
       estable sin historial) y `HistorySequencer.sort › TIA_SEQUENCER=stable delegates to
-    BaseSequencer` (L312 = opt-out). **pending-CI:** el log del nocturno confirmando el
+  BaseSequencer` (L312 = opt-out). **pending-CI:** el log del nocturno confirmando el
       orden estable en runtime.
 - [x] 5.2 Verificar con un fallo sembrado que el fichero históricamente rojo aparece primero en
       el log y que la selección no cambia respecto del task 1.1 — verificación: salida de
@@ -256,7 +256,7 @@ scripts/ci/check-coverage.mjs apps/client --advisory` → exit 0 + prefijo `[adv
       ficheros ejecutados con y sin sequencer.
       **Estado 2026-10-15 (post-fix):** [x] — cubierto por el test unitario
       `HistorySequencer.sort › orders historically failing files first via
-    node_modules/.cache/tia/tia-history.json` (`scripts/ci/vitest-sequencer.test.mjs`
+  node_modules/.cache/tia/tia-history.json` (`scripts/ci/vitest-sequencer.test.mjs`
       L294-310; runner **`npm run test:scripts`**, no `node --test`), más
       `corrupt history → deterministic path order, no throw` (L341). La comparación de la
       SELECCIÓN con/sin historial queda evidenciada por `reports/tia-selection.json` en 10.2:
@@ -306,7 +306,7 @@ scripts/ci/check-coverage.mjs apps/client --advisory` → exit 0 + prefijo `[adv
       **Auditoría 2026-10-11 — FALSO-DONE:** `scripts/ci/tia-map.mjs` NO existe en el filesystem ni en git, aunque `ci.yml` ya lo invoca (`Build coverage-map (best-effort)`) → el step falla con MODULE_NOT_FOUND (el `upload-artifact` solo emite warn por `if-no-files-found: warn`). Pendiente de implementar (alcance inmediato).
       **Estado 2026-10-15 (post-fix):** [x] — `scripts/ci/tia-map.mjs` existe
       (+ `tia-map.test.mjs`) y `ci.yml` lo invoca en ambos jobs (`Build coverage-map
-    (best-effort)`, `if: always()`). Verificación literal ejecutada hoy:
+  (best-effort)`, `if: always()`). Verificación literal ejecutada hoy:
       `node scripts/ci/tia-map.mjs apps/server --build` → `wrote 24 test file(s), 5 source(s)`,
       exit 0, y el resultado `JSON.parse` OK con claves
       `generatedAt/workspace/baseSha/testFiles/sources/coverageSummary` y
@@ -431,7 +431,7 @@ scripts/ci/check-coverage.mjs apps/client --advisory` → exit 0 + prefijo `[adv
       **Estado 2026-10-15 (post-fix):** [x] — `test:tia` existe en raíz (ambos workspaces) y en
       ambos workspaces como `node ../../scripts/ci/tia-select.mjs <ws> -- vitest run ...`
       `--coverage --coverage.changed=origin/main --changed origin/main --config
-    vitest.scoped.config.js`. Ejecutado hoy: server → **exit 0** (20 ficheros / 175 tests) y
+  vitest.scoped.config.js`. Ejecutado hoy: server → **exit 0** (20 ficheros / 175 tests) y
       client → **exit 0** (114 ficheros / 198 tests). Salvedad sobre "⊆ diff": con el árbol
       actual el diff de client solo toca rutas `shared` (`package.json`,
       `webpack.depcruise.config.cjs`) → la selección es la suite completa del workspace y
@@ -477,8 +477,8 @@ node_modules/.cache/tia/tia-history.json` → exit 0, ignorado). `test:tia --wor
       `node scripts/ci/tia-history.mjs apps/server --inject` y
       `npm run test:tia --workspace=apps/server` emiten
       `::warning:: tia-history: history ... is unreadable — injecting nothing (diff-derived
-    selection only, never an empty run). Delete the file or run the full suite: npm run test /
-    npm run test:coverage` → **exit 0** y la selección diff se ejecuta de verdad (20 ficheros /
+  selection only, never an empty run). Delete the file or run the full suite: npm run test /
+  npm run test:coverage` → **exit 0** y la selección diff se ejecuta de verdad (20 ficheros /
       175 tests pasados — nunca verde vacío). Limpieza posterior realizada: seed corrupto +
       `tia-selection.json` de prueba borrados.
 
@@ -514,6 +514,11 @@ node_modules/.cache/tia/tia-history.json` → exit 0, ignorado). `test:tia --wor
       `package.json` (grep 0) — la propia sección (L441) da la alternativa "borra
       `node_modules/.cache/tia/` manualmente"; o se añade el script o se deja solo como acción
       manual documentada.
+      **Estado 2026-10-28 (resuelto):** [x] — salvedad cerrada: `test:tia:reset` añadido al
+      `package.json` raíz (borra `tia-history.json`, `tia-selection.json` y `coverage-map.json`
+      de `node_modules/.cache/tia/` y `reports/` de ambos workspaces, solo si existen).
+      Verificado: `npm run test:tia:reset` → exit 0 (eliminó `apps\server\reports\tia-selection.json`
+      residual) y `npm run test:tia --workspace=apps/server` posterior → exit 0.
 
 ## 12. Verificación final del change
 
@@ -530,7 +535,7 @@ tia-hardening --json` con los 4 artefactos `done` — verificación: salida lite
       idéntico a `main`, `.husky/pre-push` sin diff, el nocturno sigue corriendo suite completa
       (sus `run:` de test intactos, sin `--changed`) y con el opt-out del sequencer TIA de la task
       5.1 — verificación: **DONE**. - `grep -c continue-on-error .github/workflows/ci.yml` = **33** (sin cambios). - `git diff main -- .husky/pre-push` = vacío (sin diff). - `TIA_SEQUENCER=stable` añadido a `nightly-full-suite.yml` (env del job nightly-client). - Nocturno: sus `run:` de test intactos (`npm run test:coverage:ci` / `npm run
-  test:coverage:unit:ci`, sin `--changed`).
+test:coverage:unit:ci`, sin `--changed`).
       **pending-CI:** verificar que el nightly corre con `TIA_SEQUENCER=stable`.
 - [x] 12.4 Confirmar la coordinación: anotar en el change `ci-testing-gate-promotion` (nota en su
       `proposal.md` o en `quality-gates.md`) que la evidencia TIA de este change alimenta su grupo
@@ -615,11 +620,11 @@ scripts/ci/*.test.mjs`: los `*.test.mjs` son specs de Vitest (importan de `vites
   `tia-map --build` JSON válido con `baseSha == HEAD` · 2.1 import de ambos
   `vitest.scoped.config.js` (4 globales) · 4.1 `--inject` sin historial → vacío exit 0 · 2.3
   `--advisory` bajo `SCOPE != full` en ambos jobs.
-- **Salvedades abiertas:** `test:tia:reset` documentado en `docs/testing-architecture.md`
-  §7.5.4 (L424/L431) pero sin script en ningún `package.json` (11.3); `nightly-full-suite.yml`
-  sin step `Build coverage-map` → `map=hit` inalcanzable hasta completar 7.2; el recuento de
-  `continue-on-error` del árbol (38) difiere de `main` (36) por otras changes concurrentes —
-  ninguna línea tocada por este change.
+- **Salvedades abiertas:** `nightly-full-suite.yml` sin step `Build coverage-map` → `map=hit`
+  inalcanzable hasta completar 7.2; el recuento de `continue-on-error` del árbol (38) difiere de
+  `main` (36) por otras changes concurrentes — ninguna línea tocada por este change.
+  **Resuelta 2026-10-28:** `test:tia:reset` añadido al `package.json` raíz (salvedad de 11.3
+  cerrada; ver estado de esa task).
 - **Marcadas `[x]` en este batch (con evidencia arriba):** 1.1, 1.2, 1.4, 2.0, 2.1, 2.2, 2.3,
   2.4, 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.2, 7.1, 7.3, 9.1, 9.2, 10.1, 10.2, 10.3, 10.4, 11.3,
   12.4.

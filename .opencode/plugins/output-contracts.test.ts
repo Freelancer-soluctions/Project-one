@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -15,18 +16,23 @@ vi.mock('node:fs', () => ({
 // Mock import.meta.url for path resolution
 const mockImportMetaUrl = 'file:///test/.opencode/plugins/output-contracts.ts';
 
+// Scoping (openspec/changes/opencode-review-skills, decision D4): the hook only
+// validates and audits reviewer and researcher. Cases that used to run with
+// developer / spec-manager / planner now either use a scoped agent or assert
+// the skip behavior.
+
 // We need to test the internal functions, so we'll import the module and test via the plugin hook
 // Since the functions are not exported, we'll test the plugin's behavior by invoking the hook
 
 describe('output-contracts plugin - silent_exit_candidate logging', () => {
-  let plugin: any;
-  let consoleWarnSpy: any;
-  let consoleErrorSpy: any;
-  let consoleLogSpy: any;
+  let plugin;
+  let consoleWarnSpy;
+  let consoleErrorSpy;
+  let consoleLogSpy;
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     // Setup fs mocks
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(fs.mkdirSync).mockImplementation(() => undefined);
@@ -50,7 +56,7 @@ describe('output-contracts plugin - silent_exit_candidate logging', () => {
   });
 
   // Helper to invoke the plugin's tool.execute.after hook
-  async function invokeHook(input: any, output: any) {
+  async function invokeHook(input, output) {
     const pluginInstance = await plugin();
     if (pluginInstance['tool.execute.after']) {
       await pluginInstance['tool.execute.after'](input, output);
@@ -63,7 +69,7 @@ describe('output-contracts plugin - silent_exit_candidate logging', () => {
         tool: 'task',
         sessionID: 'sess_test123',
         callID: 'call_test456',
-        args: { subagent_type: 'developer' },
+        args: { subagent_type: 'reviewer' },
       };
       const output = {
         title: 'Implement JWT middleware',
@@ -75,22 +81,25 @@ describe('output-contracts plugin - silent_exit_candidate logging', () => {
 
       // Assert console.warn was called (existing behavior)
       expect(consoleWarnSpy).toHaveBeenCalled();
-      const warnCall = consoleWarnSpy.mock.calls.find((c: any[]) => 
+      const warnCall = consoleWarnSpy.mock.calls.find((c) =>
         c[0].includes('Could not extract <task_result>')
       );
       expect(warnCall).toBeDefined();
 
       // Assert silent_exit_candidate entry was written
       expect(fs.appendFileSync).toHaveBeenCalled();
-      const writeCall = vi.mocked(fs.appendFileSync).mock.calls.find((c: any[]) => 
-        typeof c[1] === 'string' && c[1].includes('silent_exit_candidate')
-      );
+      const writeCall = vi
+        .mocked(fs.appendFileSync)
+        .mock.calls.find(
+          (c) =>
+            typeof c[1] === 'string' && c[1].includes('silent_exit_candidate')
+        );
       expect(writeCall).toBeDefined();
 
       // Parse the written entry and verify fields
-      const writtenJson = JSON.parse((writeCall![1] as string).trim());
+      const writtenJson = JSON.parse(writeCall[1].trim());
       expect(writtenJson.eventType).toBe('silent_exit_candidate');
-      expect(writtenJson.agent).toBe('developer');
+      expect(writtenJson.agent).toBe('reviewer');
       expect(writtenJson.sessionId).toBe('sess_test123');
       expect(writtenJson.task).toBe('Implement JWT middleware');
       expect(writtenJson.retryCount).toBe(0);
@@ -102,7 +111,7 @@ describe('output-contracts plugin - silent_exit_candidate logging', () => {
         tool: 'task',
         sessionID: 'sess_abc789',
         callID: 'call_def012',
-        args: { subagent_type: 'spec-manager' },
+        args: { subagent_type: 'researcher' },
       };
       const output = {
         title: 'Create proposal',
@@ -114,14 +123,17 @@ describe('output-contracts plugin - silent_exit_candidate logging', () => {
 
       // Assert silent_exit_candidate entry was written
       expect(fs.appendFileSync).toHaveBeenCalled();
-      const writeCall = vi.mocked(fs.appendFileSync).mock.calls.find((c: any[]) => 
-        typeof c[1] === 'string' && c[1].includes('silent_exit_candidate')
-      );
+      const writeCall = vi
+        .mocked(fs.appendFileSync)
+        .mock.calls.find(
+          (c) =>
+            typeof c[1] === 'string' && c[1].includes('silent_exit_candidate')
+        );
       expect(writeCall).toBeDefined();
 
-      const writtenJson = JSON.parse((writeCall![1] as string).trim());
+      const writtenJson = JSON.parse(writeCall[1].trim());
       expect(writtenJson.eventType).toBe('silent_exit_candidate');
-      expect(writtenJson.agent).toBe('spec-manager');
+      expect(writtenJson.agent).toBe('researcher');
       expect(writtenJson.sessionId).toBe('sess_abc789');
       expect(writtenJson.task).toBe('Create proposal');
       expect(writtenJson.retryCount).toBe(0);
@@ -151,7 +163,7 @@ describe('output-contracts plugin - silent_exit_candidate logging', () => {
       // console.error should be called for the audit write failure (after retries exhausted)
       // The error is logged by writeAuditEntry with "Failed to write audit log after retries:"
       expect(consoleErrorSpy).toHaveBeenCalled();
-      const errorCall = consoleErrorSpy.mock.calls.find((c: any[]) => 
+      const errorCall = consoleErrorSpy.mock.calls.find((c) =>
         c[0].includes('Failed to write audit log after retries')
       );
       expect(errorCall).toBeDefined();
@@ -165,13 +177,13 @@ describe('output-contracts plugin - silent_exit_candidate logging', () => {
         tool: 'task',
         sessionID: 'sess_valid',
         callID: 'call_valid',
-        args: { subagent_type: 'planner' },
+        args: { subagent_type: 'reviewer' },
       };
       const output = {
         title: 'Review plan',
         output: `<task_result>
-<output-contract agent="planner" version="1">
-{"agent":"planner","timestamp":"2025-01-15T10:30:00Z","responseType":"success","version":1,"verdict":"APPROVED","details":"Plan looks good"}
+<output-contract agent="reviewer" version="1">
+{"agent":"reviewer","timestamp":"2025-01-15T10:30:00Z","responseType":"success","version":1,"verdict":"APPROVED","details":"Plan looks good"}
 </output-contract>
 </task_result>`,
         metadata: {},
@@ -180,20 +192,20 @@ describe('output-contracts plugin - silent_exit_candidate logging', () => {
       await invokeHook(input, output);
 
       // Should NOT write silent_exit_candidate
-      const silentExitCalls = vi.mocked(fs.appendFileSync).mock.calls.filter((c: any[]) => 
-        c[1].includes('silent_exit_candidate')
-      );
+      const silentExitCalls = vi
+        .mocked(fs.appendFileSync)
+        .mock.calls.filter((c) => c[1].includes('silent_exit_candidate'));
       expect(silentExitCalls).toHaveLength(0);
 
       // Should NOT call console.warn about missing task_result
-      const warnCalls = consoleWarnSpy.mock.calls.filter((c: any[]) => 
+      const warnCalls = consoleWarnSpy.mock.calls.filter((c) =>
         c[0].includes('Could not extract <task_result>')
       );
       expect(warnCalls).toHaveLength(0);
     });
 
     it('Test 5: envelope-less response (text without output-contract) does NOT write silent_exit_candidate', async () => {
-      // This tests the classification boundary: envelope-less responses produce 
+      // This tests the classification boundary: envelope-less responses produce
       // "contract-validation" entries, not "silent_exit_candidate"
       const input = {
         tool: 'task',
@@ -212,14 +224,38 @@ This is plain text output without an output-contract envelope.
       await invokeHook(input, output);
 
       // Should NOT write silent_exit_candidate (extractTaskResult succeeds, but validation fails)
-      const silentExitCalls = vi.mocked(fs.appendFileSync).mock.calls.filter((c: any[]) => 
-        c[1].includes('silent_exit_candidate')
-      );
+      const silentExitCalls = vi
+        .mocked(fs.appendFileSync)
+        .mock.calls.filter((c) => c[1].includes('silent_exit_candidate'));
       expect(silentExitCalls).toHaveLength(0);
 
       // Should write a contract-validation entry instead (when validation fails)
       // Note: This depends on the validator being loaded. With our mock setup,
       // the validator may not be available, so we just verify no silent_exit_candidate.
+    });
+
+    it('Test 6: non-scoped agent is skipped entirely (no audit entry, no annotation)', async () => {
+      const input = {
+        tool: 'task',
+        sessionID: 'sess_skip',
+        callID: 'call_skip',
+        args: { subagent_type: 'developer' },
+      };
+      const output = {
+        title: 'Implement JWT middleware',
+        output: '<task_result></task_result>',
+        metadata: {},
+      };
+
+      await invokeHook(input, output);
+
+      // Guard precedes extraction: no silent_exit_candidate, no contract-validation entry
+      expect(fs.appendFileSync).not.toHaveBeenCalled();
+      expect(output.metadata).toEqual({});
+      const warnCalls = consoleWarnSpy.mock.calls.filter((c) =>
+        c[0].includes('Could not extract <task_result>')
+      );
+      expect(warnCalls).toHaveLength(0);
     });
   });
 });

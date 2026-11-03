@@ -4,7 +4,8 @@
 
 > **Project:** project-one  
 > **Date:** May 19, 2026 (v1.5 — global defaults + per-agent override refactor, v1.4: permission model documented, v1.3: steps audit, v1.2: Steps Analysis, v1.1: Phase 0, Token Efficiency, skill discrimination)  
-> **Purpose:** Document and analyze the intelligent agent architecture, its design patterns, associated terminology, and technology stack.
+> **Purpose:** Document and analyze the intelligent agent architecture, its design patterns, associated terminology, and technology stack.  
+> **Status (2026-11-02):** `spec-manager` and `git-manager` were retired by `retire-command-wrapper-agents`. The principal now runs `/opsx-*`, `/commit-all` and `gh` directly. Sections 3.2 and 3.3 and the routing tables below are kept as historical record of the pre-retirement topology.
 
 ---
 
@@ -384,8 +385,8 @@ Each agent only declares the tools that differ from the global defaults:
 "permission": {
   "question": "allow",
   "task": { "*": "deny",
-    "spec-manager": "allow", "planner": "allow", "developer": "allow",
-    "reviewer": "allow", "researcher": "allow", "git-manager": "allow",
+    "planner": "allow", "developer": "allow",
+    "reviewer": "allow", "researcher": "allow",
     "project-manager": "allow" }
 }
 
@@ -534,7 +535,7 @@ All agents now have adequate steps for their workflow demands. The steps exhaust
 1. Load the skill: `/skill grill-me`
 2. Interview the user following the skill instructions — one question at a time
 3. If a question can be answered by exploring the codebase, do so before asking
-4. DO NOT delegate to @spec-manager until the user confirms absolute shared understanding of the plan
+4. DO NOT run `/opsx-new` until the user confirms absolute shared understanding of the plan
 
 **Complementary Skill Loading:**
 - After Phase 0, if the orchestrator will delegate internally, load `/skill caveman` for ultra-compressed communication
@@ -543,18 +544,18 @@ All agents now have adequate steps for their workflow demands. The steps exhaust
 
 | Action | Delegate | Command |
 |--------|----------|---------|
-| Explore existing context | @spec-manager | `/opsx-explore <topic>` |
-| Onboard repository | @spec-manager | `/opsx-onboard` |
+| Explore existing context | principal (direct) | `/opsx-explore <topic>` |
+| Onboard repository | principal (direct) | `/opsx-onboard` |
 | Technical investigation | @researcher | Direct delegation |
 
 #### Phase 2: Specification Creation
 
 | Action | Delegate | Command |
 |--------|----------|---------|
-| New change (step by step) | @spec-manager | `/opsx-new <name>` |
-| Propose change (all-in-one) | @spec-manager | `/opsx-propose <name>` |
-| Fast-forward artifacts | @spec-manager | `/opsx-ff <name>` |
-| Continue change | @spec-manager | `/opsx-continue <name>` |
+| New change (step by step) | principal (direct) | `/opsx-new <name>` |
+| Propose change (all-in-one) | principal (direct) | `/opsx-propose <name>` |
+| Fast-forward artifacts | principal (direct) | `/opsx-ff <name>` |
+| Continue change | principal (direct) | `/opsx-continue <name>` |
 
 #### Phase 3: Specification Review
 
@@ -575,8 +576,8 @@ All agents now have adequate steps for their workflow demands. The steps exhaust
 | Action | Delegate | Command |
 |--------|----------|---------|
 | Implement task | @developer | Direct instruction |
-| Apply changes | @spec-manager | `/opsx-apply <name>` |
-| Continue implementation | @spec-manager | `/opsx-continue <name>` |
+| Apply changes | principal (direct) | `/opsx-apply <name>` |
+| Continue implementation | principal (direct) | `/opsx-continue <name>` |
 
 **Implementation Rules:**
 - Tasks execute **sequentially** (1, 2, 3...)
@@ -587,7 +588,7 @@ All agents now have adequate steps for their workflow demands. The steps exhaust
 
 | Action | Delegate | Command |
 |--------|----------|---------|
-| Verify against specs | @spec-manager | `/opsx-verify <name>` |
+| Verify against specs | principal (direct) | `/opsx-verify <name>` |
 | Validate code quality | @reviewer | Direct instruction |
 
 **Verification Dimensions:**
@@ -599,8 +600,8 @@ All agents now have adequate steps for their workflow demands. The steps exhaust
 
 | Action | Delegate | Command |
 |--------|----------|---------|
-| Archive change | @spec-manager | `/opsx-archive <name>` |
-| Bulk archive | @spec-manager | `/opsx-bulk-archive` |
+| Archive change | principal (direct) | `/opsx-archive <name>` |
+| Bulk archive | principal (direct) | `/opsx-bulk-archive` |
 
 ---
 
@@ -682,7 +683,7 @@ description: <functional description>
 
 ### 7.2 Skills OpenSpec (Workflow Layer)
 
-Skills that handle the change lifecycle. Loaded via `/skill` and correspond 1:1 with slash commands. Exclusively owned by @spec-manager.
+Skills that handle the change lifecycle. Loaded via `/skill` and correspond 1:1 with slash commands. Run directly by the principal.
 
 ### 7.3 Domain Skills (Knowledge Layer)
 
@@ -848,7 +849,7 @@ Since May 19, 2026, Composio MCP tools are restricted via the `permission` syste
 The `composio` MCP server was configured with `"enabled": true`, making all its tools available to every agent at all times. This caused three issues:
 
 1. **Context bloat**: Tool schemas for `composio_COMPOSIO_SEARCH_TOOLS`, `composio_COMPOSIO_MULTI_EXECUTE_TOOL`, etc. were injected into every session, consuming tokens even when no Trello work was needed.
-2. **Accidental invocations**: Non-Trello agents (orchestrator, developer, git-manager) could inadvertently call Composio tools during unrelated tasks, interfering with command execution.
+2. **Accidental invocations**: Non-Trello agents (orchestrator, developer) could inadvertently call Composio tools during unrelated tasks, interfering with command execution.
 3. **Git-manager interference**: Composio tools being available during git operations caused unexpected tool invocations that disrupted commit workflows.
 
 #### Solution
@@ -1303,7 +1304,7 @@ The `output-contracts-standardization` implementation employed a comprehensive s
 
 - **Where used**: Standardized `@<agent>: <action>. focus: <areas>. context: <files>` format.
 - **Evidence**:
-  - Orchestrator examples: `@spec-manager: /opsx-explore authentication`, `@developer: impl task-3 user-status. ref: design.md#api`.
+  - Orchestrator examples: `/opsx-explore authentication` (direct), `@developer: impl task-3 user-status. ref: design.md#api`.
   - Enforced via caveman mode persistence and orchestrator rules.
 - **Effectiveness**: Creates a predictable, parseable interface for the orchestrator; reduces ambiguity in task specification.
 
@@ -1382,7 +1383,7 @@ The combination of these techniques creates a robust prompting ecosystem that ba
 
 ### 15.3 Recommendations
 
-1. **Steps configuration applied**: All agent steps have been adjusted per the v1.2 analysis (see section 4.7). Current: orchestrator=45, spec-manager=15, git-manager=20, planner=15, developer=25, reviewer=10, researcher=12, project-manager=15. Monitor for 1-2 weeks and validate sufficiency under real workloads.
+1. **Steps configuration applied**: All agent steps have been adjusted per the v1.2 analysis (see section 4.7). Current: orchestrator=45, planner=15, developer=25, reviewer=10, researcher=12, project-manager=15. Monitor for 1-2 weeks and validate sufficiency under real workloads.
 2. **Implement steps exhaustion detection**: Add monitoring so the orchestrator is notified when a subagent reaches its step limit, enabling recovery or re-delegation.
 3. **Standardize models**: Evaluate moving all subagents to the same model family for consistency.
 4. **Create testing agent**: Implement `test-engineer` specialized in writing and maintaining tests, offloading this responsibility from `developer`.

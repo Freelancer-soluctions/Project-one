@@ -8,17 +8,16 @@ name: Nightly Full Suite
 #     inexistente en `schedule`: todos los runs nocturnos colisionarían en el
 #     mismo grupo `pr-` y se cancelarían entre sí.
 #   - El `on:` de ci.yml está pensado para PR/merge_group.
-#   - Separar el nocturno simplifica el FASE-gating (advisory aquí, sin tocar
-#     el gate de merge).
+#   - Separar el nocturno evita competir con el gate de merge; ambos aplican
+#     el mismo guard estricto sobre reportes de suite completa.
 #
 # CONTRATO:
 #   - Suite COMPLETA de ambos workspaces, sin importar el diff (nunca TIA).
 #   - NO aplica las exclusiones de `.github/flaky-quarantine.yml` (D9): el
 #     nocturno EJECUTA los tests en cuarentena y su resultado es la evidencia de
 #     restauración que necesita el owner (spec ci-flaky-quarantine).
-#   - Cobertura + `check-coverage.mjs` ADVISORY (D18): el guard informa, no
-#     bloquea. Las salidas que cierran el círculo son los PRs `shared` de ci.yml.
-#   - FASE 1 advisory: los fallos se reportan y se triagean, no rompen el merge.
+#   - Cobertura + `check-coverage.mjs` estricto: un floor roto falla el job
+#     nocturno. El gate de PR equivalente vive en `coverage-full-gate` de ci.yml.
 
 on:
   schedule:
@@ -110,17 +109,16 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
-      # Guard ADVISORY (D18): informa del desvío pero no falla el workflow.
-      # El bloqueo por thresholds vive en el gate de merge de ci.yml.
-      - name: Report coverage thresholds (advisory)
-        if: always()
+      # Strict full-suite floor check. Missing coverage is a failure, not a
+      # successful warning; test failures already keep the job red as well.
+      - name: Enforce coverage thresholds (full suite)
+        if: success()
         run: |
           if [ ! -f apps/client/coverage/coverage-summary.json ]; then
-            echo "::warning::coverage summary missing — nothing to compare"
-            exit 0
+            echo "::error::coverage summary missing — full-suite floor cannot be evaluated"
+            exit 1
           fi
-          node scripts/ci/check-coverage.mjs apps/client || \
-            echo "::warning::coverage below thresholds (ADVISORY nightly — no bloquea el merge)"
+          node scripts/ci/check-coverage.mjs apps/client apps/client/coverage
         shell: bash
 
       - name: Report Client Unit Tests
@@ -191,15 +189,14 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
-      - name: Report coverage thresholds (advisory)
-        if: always()
+      - name: Enforce coverage thresholds (full suite)
+        if: success()
         run: |
           if [ ! -f apps/server/tests/coverage/coverage-summary.json ]; then
-            echo "::warning::coverage summary missing — nothing to compare"
-            exit 0
+            echo "::error::coverage summary missing — full-suite floor cannot be evaluated"
+            exit 1
           fi
-          node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage || \
-            echo "::warning::coverage below thresholds (ADVISORY nightly — no bloquea el merge)"
+          node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
         shell: bash
 
       - name: Report Server Unit Tests
@@ -209,3 +206,37 @@ jobs:
           name: Nightly Server Unit Tests
           path: apps/server/reports/junit.xml
           reporter: java-junit
+
+  # G6 del change `snapshot-gates` — drift probe de snapshots (design D6).
+  # Corre la suite client con update DELIBERADO (`test:snapshot:refresh`,
+  # script allowlistado de G2) en este checkout desechable y falla si el diff
+  # resultante muestra cambios en artefactos de snapshot: un `.snap` distinto
+  # tras un refresh limpio es drift real (serialización no determinista o
+  # snapshot stale commiteado). Job propio (no step de `nightly-client`): su
+  # veredicto es aislado y jamás entra en `needs` de ci.yml (schedule-only).
+  nightly-snapshot-drift:
+    name: Nightly - Snapshot Drift Probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+
+      - name: Refresh snapshots (deliberate update in disposable checkout)
+        run: npm run test:snapshot:refresh --workspace=apps/client
+        shell: bash
+
+      - name: Detect snapshot drift
+        run: |
+          CHANGED=$(git diff --name-only -- '*.snap' 'apps/client/src/**/*.ui.test.jsx' || true)
+          UNTRACKED=$(git status --porcelain -- '*.snap' 'apps/client/src/**/*.ui.test.jsx' || true)
+          if [ -n "${CHANGED}" ] || [ -n "${UNTRACKED}" ]; then
+            echo "::error::Snapshot drift detected — refreshed snapshots differ from committed ones:"
+            if [ -n "${CHANGED}" ]; then echo "CHANGED:"; echo "${CHANGED}"; fi
+            if [ -n "${UNTRACKED}" ]; then echo "UNTRACKED:"; echo "${UNTRACKED}"; fi
+            exit 1
+          fi
+          echo "✅ No snapshot drift — refreshed snapshots match the committed ones"
+        shell: bash

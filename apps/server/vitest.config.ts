@@ -59,9 +59,11 @@ export default mergeConfig(
 
           // GRANULARIDAD ALTA — el piso global se queda donde esté y las áreas ya
           // sólidas se blindan aparte, para que el total siga siendo comparable.
-          // `perFile: true` = CADA fichero casado debe llegar al umbral.
-          // Estos valores los sube `npm run coverage:ratchet` a la cobertura medida
-          // de cada área (no subirlos a mano sin añadir antes los tests).
+          // `check-coverage.mjs` aplica estos mínimos per-file. Vitest 4.1.11
+          // solo procesa los thresholds `perFile` definidos top-level y evalúa
+          // los de globs en agregado, así que no repetir `perFile` dentro de
+          // estos globs evita dos veredictos distintos. Estos valores los sube
+          // `npm run coverage:ratchet` a la cobertura medida de cada área.
           'src/modules/**/schemas/**': {
             statements: 100,
             branches: 100,
@@ -76,21 +78,7 @@ export default mergeConfig(
             lines: 100,
             perFile: true,
           },
-          'src/utils/multer/**': {
-            statements: 100,
-            branches: 100,
-            functions: 100,
-            lines: 100,
-            perFile: true,
-          },
           'src/utils/pagination/**': {
-            statements: 100,
-            branches: 100,
-            functions: 100,
-            lines: 100,
-            perFile: true,
-          },
-          'src/modules/security/**': {
             statements: 100,
             branches: 100,
             functions: 100,

@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "thresholds": {
+    "client": {
+      "statements": 87.02,
+      "branches": 62.16,
+      "functions": 69.14,
+      "lines": 87.7,
+      "src/lib/**": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      },
+      "src/config/**": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      },
+      "src/hooks/**": {
+        "statements": 39.1,
+        "branches": 44.31,
+        "functions": 40.35,
+        "lines": 36.07
+      },
+      "src/components/ui/**": {
+        "statements": 86.65,
+        "branches": 44.3,
+        "functions": 67.96,
+        "lines": 87.08
+      }
+    },
+    "server": {
+      "statements": 60.8,
+      "branches": 64.48,
+      "functions": 64.81,
+      "lines": 61.49,
+      "src/modules/**/schemas/**": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      },
+      "src/utils/constants/**": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      },
+      "src/utils/pagination/**": {
+        "statements": 100,
+        "branches": 100,
+        "functions": 100,
+        "lines": 100
+      }
+    }
+  },
+  "exclusions": {
+    "client": ["node_modules/", "tests/", "**/*.config.js"],
+    "server": []
+  },
+  "exceptions": [
+    {
+      "workspace": "client",
+      "path": "statements",
+      "from": 87.02,
+      "to": 64.44,
+      "reason": "Grandfathered measured recalibration: the earlier floor was based on 262 statements; the current instrumented universe is 2,042 statements after snapshot coverage, so the percentage fell while covered statements increased. Recorded by client-snapshot-testing (2026-10-09).",
+      "owner": "@Freelancer-soluctions/frontend-team",
+      "approvedAt": "2026-10-09"
+    },
+    {
+      "workspace": "client",
+      "path": "branches",
+      "from": 62.16,
+      "to": 42.11,
+      "reason": "Grandfathered measured recalibration: expanded snapshot-test instrumentation changed the measured universe. Recorded by client-snapshot-testing (2026-10-09).",
+      "owner": "@Freelancer-soluctions/frontend-team",
+      "approvedAt": "2026-10-09"
+    },
+    {
+      "workspace": "client",
+      "path": "functions",
+      "from": 69.14,
+      "to": 52.22,
+      "reason": "Grandfathered measured recalibration: expanded snapshot-test instrumentation changed the measured universe. Recorded by client-snapshot-testing (2026-10-09).",
+      "owner": "@Freelancer-soluctions/frontend-team",
+      "approvedAt": "2026-10-09"
+    },
+    {
+      "workspace": "client",
+      "path": "lines",
+      "from": 87.7,
+      "to": 64.82,
+      "reason": "Grandfathered measured recalibration: expanded snapshot-test instrumentation changed the measured universe. Recorded by client-snapshot-testing (2026-10-09).",
+      "owner": "@Freelancer-soluctions/frontend-team",
+      "approvedAt": "2026-10-09"
+    }
+  ]
+}

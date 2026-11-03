@@ -25,3 +25,5 @@ docs/learning/              @Freelancer-soluctions/core-team
 # silencioso. `scripts/ci/pr-body-lint.mjs` se lee desde el base ref del PR y
 # juzga su descripción (D9b): cambiarlo exige la misma revisión que `.github/**`.
 scripts/ci/               @Freelancer-soluctions/devops-team
+apps/*/vitest.config.*    @Freelancer-soluctions/devops-team
+scripts/ci/check-coverage.mjs @Freelancer-soluctions/devops-team
