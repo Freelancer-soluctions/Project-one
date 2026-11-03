@@ -3,7 +3,7 @@
   "autoupdate": true,
   "plugin": [
     "@warp-dot-dev/opencode-warp",
-    // "./.opencode/plugins/output-contracts.ts",
+    "./.opencode/plugins/output-contracts.ts",
     "./.opencode/plugins/neurosymbolic-guardrails.ts",
     "@slkiser/opencode-quota"
   ],
@@ -50,8 +50,8 @@
     }
   },
   //subagents configuration
-  "default_agent": "orchestrator",
-  "instructions": ["AGENTS.md", "CONTEXT.md", "docs/CONTEXT-CICD.md"],
+  "default_agent": "main",
+  "instructions": ["AGENTS.md", "CONTEXT.md"],
   // "env": {
   //   "BASH_ENV": "$HOME/.bash_env"
   // },
@@ -60,8 +60,8 @@
     "paths": [".opencode/skills", ".agents/skills"]
   },
   "tool_output": {
-    "max_lines": 400,
-    "max_bytes": 65536
+    "max_lines": 150,
+    "max_bytes": 16384
   },
   // Formatter disabled by design — formatting is handled by Husky + lint-staged + Prettier
   // in pre-commit hooks. Enabling OpenCode formatter would duplicate this pipeline,
@@ -103,24 +103,31 @@
   },
   "agent": {
     // OpenCode built-in agents — disabled, not used
-    // "build": {
-    //   "disable": true,
-    // },
-    // "plan": {
-    //   "disable": true,
-    // },
-    // "general": {
-    //   "disable": true,
-    // },
-    "orchestrator": {
+    "build": {
+      "disable": true
+    },
+    "plan": {
+      "disable": true
+    },
+    "general": {
+      "disable": true
+    },
+    "main": {
       "mode": "primary",
+      // Model per phase (Decision 3, single-main-agent): beam-free = coordination/exploration/review (phases 0-2, 5-6).
+      // Implementation-heavy phases 3-4 switch to opencode/mimo-v2.6-flash-free via:
+      //   1) manual /models selection (fallback), 2) `model:` frontmatter on .opencode/commands/opsx-apply.md,
+      //   3) the implementation-protocol skill hint (confirm coding model before coding).
       "model": "opencode-go/beam-free",
-      "description": "Main orchestrator that delegates tasks to specialized agents",
-      "prompt": "{file:docs/opencode/prompts/orchestrator.md}",
-      "steps": 45,
+      "description": "Single main agent: runs SDD lifecycle, implementation, and git workflows directly",
+      "prompt": "{file:docs/opencode/prompts/main.md}",
+      "steps": 60,
       "permission": {
-        "question": "allow",
-        "edit": "ask", // workaround: prevents bug #26758 from hiding subagent tools
+        "read": "allow",
+        "write": "allow",
+        "edit": "allow",
+        // 15-pattern bash hardening migrated from agent.orchestrator (git-permissions-hardening, e77bd25e);
+        // single-main-agent retired orchestrator, so the object is re-homed here. First-match-wins order.
         "bash": {
           "git push": "deny",
           "git push *": "deny",
@@ -138,54 +145,25 @@
           "git *": "deny",
           "*": "ask"
         },
+        "skill": "allow",
+        "webfetch": "allow",
+        "websearch": "allow",
+        "lsp": "allow",
+        "question": "allow",
+        "context7_*": "ask",
         "task": {
           "*": "deny",
-          "planner": "allow",
-          "developer": "allow",
           "reviewer": "allow",
           "researcher": "allow",
           "project-manager": "allow"
         }
       }
     },
-    "planner": {
-      "mode": "subagent",
-      "hidden": false,
-      "model": "opencode-go/beam-free",
-      "description": "Planning specialist",
-      "prompt": "{file:docs/opencode/prompts/planner.md}",
-      "steps": 20,
-      "temperature": 0,
-      "permission": {
-        "write": "allow",
-        "question": "allow",
-        "context7_*": "ask",
-        "edit": "deny"
-      }
-    },
-    "developer": {
-      "mode": "subagent",
-      "hidden": false,
-      "model": "opencode-go/gpt-6-luna",
-      "description": "Implementation agent",
-      "prompt": "{file:docs/opencode/prompts/developer.md}",
-      "steps": 35,
-      "permission": {
-        "write": "allow",
-        "edit": "allow",
-        "bash": "allow",
-        "webfetch": "allow",
-        "websearch": "allow",
-        "question": "allow",
-        "lsp": "allow",
-        "context7_*": "ask"
-      }
-    },
     "reviewer": {
       "mode": "subagent",
       "hidden": false,
-      "model": "opencode-go/gpt-6-luna",
-      "description": "Code reviewer",
+      "model": "opencode/mimo-v2.6-flash-free",
+      "description": "Code and spec reviewer",
       "prompt": "{file:docs/opencode/prompts/reviewer.md}",
       "steps": 15,
       "temperature": 0,

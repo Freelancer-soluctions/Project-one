@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import {
-  validateRules,
-  GuardrailBlockedError,
-} from './guardrails-rules.ts';
+import { validateRules, GuardrailBlockedError } from './guardrails-rules.ts';
 
 // ─── Task 6.1: validateRules unit tests ──────────────────────────────
 
@@ -42,7 +39,10 @@ describe('validateRules()', () => {
   });
 
   it('returns allowed=false with all violations when multiple rules fail', () => {
-    const fail2 = { ...alwaysFail, validate: () => ({ allowed: false, message: 'Second failure' }) };
+    const fail2 = {
+      ...alwaysFail,
+      validate: () => ({ allowed: false, message: 'Second failure' }),
+    };
     const result = validateRules([alwaysFail, fail2], {}, dummyContext);
     expect(result.allowed).toBe(false);
     expect(result.violations).toHaveLength(2);
@@ -67,7 +67,9 @@ describe('validateRules()', () => {
       name: 'throws',
       description: 'Throws unexpectedly',
       tool: 'bash',
-      validate: () => { throw new Error('Unexpected!'); },
+      validate: () => {
+        throw new Error('Unexpected!');
+      },
     };
     const result = validateRules([throwingRule, alwaysPass], {}, dummyContext);
     // The throwing rule is skipped, the passing rule should still pass
@@ -172,9 +174,9 @@ describe('buildContext()', () => {
   });
 });
 
-// ─── orchestrator-delegation-suffix-required tests ─────────────────────
+// ─── main-delegation-suffix-required tests ─────────────────────
 
-describe('orchestrator-delegation-suffix-required', () => {
+describe('main-delegation-suffix-required', () => {
   const dummyContext = {
     tool: 'task',
     args: {},
@@ -184,20 +186,28 @@ describe('orchestrator-delegation-suffix-required', () => {
 
   it('suffix present in prompt → passes (allowed=true)', async () => {
     const mod = await import('./guardrails-rules.ts');
-    const result = mod.validateRules(mod.TOOL_RULES.task, {
-      prompt: `Delegation message here
+    const result = mod.validateRules(
+      mod.TOOL_RULES.task,
+      {
+        prompt: `Delegation message here
 --- DELEGATION SUFFIX (INJECTED BY ORCHESTRATOR) ---
 Your final assistant message MUST contain...`,
-    }, dummyContext);
+      },
+      dummyContext
+    );
     expect(result.allowed).toBe(true);
     expect(result.violations).toEqual([]);
   });
 
   it('suffix missing from prompt → blocks with GUARDRAIL_BLOCKED prefix', async () => {
     const mod = await import('./guardrails-rules.ts');
-    const result = mod.validateRules(mod.TOOL_RULES.task, {
-      prompt: 'Delegation message without suffix',
-    }, dummyContext);
+    const result = mod.validateRules(
+      mod.TOOL_RULES.task,
+      {
+        prompt: 'Delegation message without suffix',
+      },
+      dummyContext
+    );
     expect(result.allowed).toBe(false);
     expect(result.violations.length).toBeGreaterThan(0);
     expect(result.violations[0]).toMatch(/^GUARDRAIL_BLOCKED:/);
@@ -205,9 +215,13 @@ Your final assistant message MUST contain...`,
 
   it('retry hint present in violation message', async () => {
     const mod = await import('./guardrails-rules.ts');
-    const result = mod.validateRules(mod.TOOL_RULES.task, {
-      prompt: 'Delegation message without suffix',
-    }, dummyContext);
+    const result = mod.validateRules(
+      mod.TOOL_RULES.task,
+      {
+        prompt: 'Delegation message without suffix',
+      },
+      dummyContext
+    );
     expect(result.allowed).toBe(false);
     expect(result.violations[0]).toContain('Retry hint');
     expect(result.violations[0]).toContain('DELEGATION SUFFIX');
@@ -215,27 +229,39 @@ Your final assistant message MUST contain...`,
 
   it('unextractable prompt (missing prompt field) → fails open with allowed=true, NO GUARDRAIL_BLOCKED', async () => {
     const mod = await import('./guardrails-rules.ts');
-    const result = mod.validateRules(mod.TOOL_RULES.task, {
-      otherField: 'value',
-    }, dummyContext);
+    const result = mod.validateRules(
+      mod.TOOL_RULES.task,
+      {
+        otherField: 'value',
+      },
+      dummyContext
+    );
     expect(result.allowed).toBe(true);
     expect(result.violations).toEqual([]);
   });
 
   it('unextractable prompt (non-string prompt) → fails open with allowed=true, NO GUARDRAIL_BLOCKED', async () => {
     const mod = await import('./guardrails-rules.ts');
-    const result = mod.validateRules(mod.TOOL_RULES.task, {
-      prompt: 123,
-    }, dummyContext);
+    const result = mod.validateRules(
+      mod.TOOL_RULES.task,
+      {
+        prompt: 123,
+      },
+      dummyContext
+    );
     expect(result.allowed).toBe(true);
     expect(result.violations).toEqual([]);
   });
 
   it('unextractable prompt (null prompt) → fails open with allowed=true, NO GUARDRAIL_BLOCKED', async () => {
     const mod = await import('./guardrails-rules.ts');
-    const result = mod.validateRules(mod.TOOL_RULES.task, {
-      prompt: null,
-    }, dummyContext);
+    const result = mod.validateRules(
+      mod.TOOL_RULES.task,
+      {
+        prompt: null,
+      },
+      dummyContext
+    );
     expect(result.allowed).toBe(true);
     expect(result.violations).toEqual([]);
   });

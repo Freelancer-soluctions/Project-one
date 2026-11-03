@@ -2,10 +2,10 @@
 
 ## Agent Architecture
 
-- **Orchestrator**: Primary agent that coordinates and delegates to specialized subagents. Never executes domain tasks directly.
+- **Main agent**: Primary agent that coordinates AND implements directly. Runs ops, edits code, delegates only when a specialized subagent is clearly better.
 - **Subagent**: Secondary agent with a single, bounded responsibility domain.
 - **Primary Agent**: Main agent that receives all user requests and redirects them.
-- **Subagent Mode**: State of an agent that can only be invoked by the orchestrator.
+- **Subagent Mode**: State of an agent that can only be invoked by the main agent.
 - **Steps**: Interaction limit for token savings.
 - **Tool/Task Permissions**: Granular permissions for tools (write/edit/bash) and invocation.
 
@@ -36,7 +36,7 @@
 - **gh-wrapper**: Shell script at `~/bin/gh` that forwards `gh` commands to `gh.exe`. Required because MSYS2/bash doesn't inherit Windows PATH.
 - **Gist Creation Workflow**: `gh gist create <files> --desc "..."` run directly by the principal via bash. Creates secret gist by default; add `--public` for public.
 - **Subagent Silent Exit**: Subagent completes tool calls but emits no final assistant text message. Cause: prompt lacks explicit output-anchor at end of turn. Mitigation: append `ABSOLUTE REQUIREMENT: Your final message MUST contain <X>` as LAST prompt instruction. Empty responses NOT acceptable.
-- **Delegation Suffix Template**: Bloque de texto que el orchestrator inyecta como ÚLTIMA instrucción al delegar a un subagente. Contiene anchor de cierre, guard anti-vacío y referencia al schema del output contract. Previene Subagent Silent Exit al asegurar que las instrucciones de output estén al final del contexto (recency bias).
+- **Delegation Suffix Template**: Bloque de texto que el main agent inyecta como ÚLTIMA instrucción al delegar a un subagente. Contiene anchor de cierre, guard anti-vacío y referencia al schema del output contract. Previene Subagent Silent Exit al asegurar que las instrucciones de output estén al final del contexto (recency bias).
 
 ## GitHub CLI & Opencode Integration
 

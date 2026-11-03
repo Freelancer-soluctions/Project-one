@@ -385,11 +385,11 @@ function validateNoWriteEnvFiles(
 }
 
 /**
- * Rule: no_planner_write_specs
+ * Rule: no_write_specs
  * Blocks write tool targeting paths containing openspec/ or specs/.
  * Severity: HIGH
  */
-function validateNoPlannerWriteSpecs(
+function validateNoWriteSpecs(
   args: unknown,
   _context: RuleContext
 ): ValidationResult {
@@ -481,12 +481,12 @@ function validateNoComposioGitOps(
 }
 
 /**
- * Rule: orchestrator-delegation-suffix-required
+ * Rule: main-delegation-suffix-required
  * Blocks task tool calls whose delegation prompt lacks the DELEGATION SUFFIX marker.
  * The marker "DELEGATION SUFFIX (INJECTED BY ORCHESTRATOR)" must be present in the prompt.
  * Severity: CRITICAL
  */
-function validateOrchestratorDelegationSuffixRequired(
+function validateMainDelegationSuffixRequired(
   args: unknown,
   _context: RuleContext
 ): ValidationResult {
@@ -496,7 +496,7 @@ function validateOrchestratorDelegationSuffixRequired(
   if (prompt === undefined) {
     // Fail open: unextractable prompt (missing or non-string) — do not block
     console.warn(
-      '[guardrails] WARN: orchestrator-delegation-suffix-required: prompt field unextractable from task args — failing open'
+      '[guardrails] WARN: main-delegation-suffix-required: prompt field unextractable from task args — failing open'
     );
     return { allowed: true };
   }
@@ -508,7 +508,7 @@ function validateOrchestratorDelegationSuffixRequired(
       message:
         'GUARDRAIL_BLOCKED: Delegation prompt missing required DELEGATION SUFFIX block. ' +
         'Retry hint: Append the DELEGATION SUFFIX template as the final block of your delegation message. ' +
-        'See orchestrator.md DELEGATION SUFFIX TEMPLATE section.',
+        'See main.md DELEGATION SUFFIX TEMPLATE section.',
     };
   }
   return { allowed: true };
@@ -569,7 +569,7 @@ export function validateRules(
 //   Direct `bash` tool calls (orchestrator level) also fire the hook.
 //   Therefore bash rules register on BOTH `bash` (direct use) AND `task` (subagent path).
 //
-// Write/edit rules (no_write_env_files, no_planner_write_specs, no_edit_gitignore_security)
+// Write/edit rules (no_write_env_files, no_write_specs, no_edit_gitignore_security)
 // remain on `write`/`edit` only — they check `filePath`/`oldString`/`newString` fields not
 // present in task args. Future enhancement: add command-pattern checks for bash-equivalent
 // operations (echo >, sed -i, etc.).
@@ -636,11 +636,11 @@ export const TOOL_RULES: Record<string, Rule[]> = {
   task: [
     ...BASH_RULES,
     {
-      name: 'orchestrator-delegation-suffix-required',
+      name: 'main-delegation-suffix-required',
       description:
         'Blocks task tool calls whose delegation prompt lacks the DELEGATION SUFFIX marker',
       tool: 'task',
-      validate: validateOrchestratorDelegationSuffixRequired,
+      validate: validateMainDelegationSuffixRequired,
     },
   ],
   bash: BASH_RULES,
@@ -652,10 +652,10 @@ export const TOOL_RULES: Record<string, Rule[]> = {
       validate: validateNoWriteEnvFiles,
     },
     {
-      name: 'no_planner_write_specs',
+      name: 'no_write_specs',
       description: 'Blocks writing to openspec/ or specs/ directories',
       tool: 'write',
-      validate: validateNoPlannerWriteSpecs,
+      validate: validateNoWriteSpecs,
     },
   ],
   edit: [
