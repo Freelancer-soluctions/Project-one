@@ -10,7 +10,7 @@ I'll create an ADR that:
 - lives outside the change folder so it persists after the change is archived
 - stays in `Proposed` status until @reviewer accepts it during `/opsx-verify`
 
-This command does not decide whether an ADR is needed — that decision is made by @orchestrator or @planner before this command is delegated. `/opsx-adr` only executes the creation.
+This command does not decide whether an ADR is needed — that decision is made by @orchestrator or @reviewer before this command is delegated. `/opsx-adr` only executes the creation.
 
 ---
 

@@ -329,42 +329,14 @@ describe('Task 5.2: Prompt example parity', () => {
   // base schema plus a representative subset of the agent-specific fields.
   const cases = [
     {
-      agent: 'orchestrator',
+      agent: 'main',
       payload: {
-        agent: 'orchestrator',
+        agent: 'main',
         timestamp: '2025-01-15T10:30:00Z',
         responseType: 'success',
         version: 1,
         status: 'completed',
-        delegatedAgent: 'developer',
-        workflowStep: 'implementation',
-        result: 'success',
-        details: 'orchestration step done',
-      },
-    },
-    {
-      agent: 'developer',
-      payload: {
-        agent: 'developer',
-        timestamp: '2025-01-15T10:30:00Z',
-        responseType: 'success',
-        version: 1,
-        status: 'completed',
-        action: 'implement-task',
-        details: 'implemented',
-        taskId: '1.1',
-      },
-    },
-    {
-      agent: 'planner',
-      payload: {
-        agent: 'planner',
-        timestamp: '2025-01-15T10:30:00Z',
-        responseType: 'success',
-        version: 1,
-        status: 'completed',
-        verdict: 'APPROVED',
-        details: 'looks good',
+        details: 'main agent step done',
       },
     },
     {
@@ -416,14 +388,9 @@ describe('Task 5.2: Prompt example parity', () => {
       // The test confirms the response parses, the envelope matches, and either
       // {valid:true} or a {valid:false} for missing required agent-specific fields
       // — BOTH are acceptable as long as the envelope + base fields are honored.
-      expect([
-        'orchestrator',
-        'developer',
-        'planner',
-        'reviewer',
-        'researcher',
-        'project-manager',
-      ]).toContain(result.agent || agent);
+      expect(['main', 'reviewer', 'researcher', 'project-manager']).toContain(
+        result.agent || agent
+      );
       // If validation failed, errors should not include base field errors.
       if (!result.valid) {
         const baseFields = ['agent', 'timestamp', 'responseType', 'version'];

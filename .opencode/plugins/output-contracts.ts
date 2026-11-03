@@ -290,6 +290,14 @@ async function loadValidator(): Promise<ValidatorModule | null> {
  * Per Design Decision 4: agent identification via input.args.subagent_type
  * (no session-lookup hack required).
  */
+// ── Scoped Agents ────────────────────────────────────────────────
+// Contract validation and silent-exit logging only pay for themselves on the
+// agents whose output is consumed programmatically: reviewer and researcher.
+// Every other subagent self-validates via Layer 1, so the hook returns before
+// extraction and writes no audit entries for them (see D4 of
+// openspec/changes/opencode-review-skills/design.md).
+const SCOPED_AGENTS = new Set(['reviewer', 'researcher']);
+
 async function handleToolExecuteAfter(
   input: { tool: string; sessionID: string; callID: string; args: any },
   output: { title?: string; output?: string; metadata?: any }
@@ -309,6 +317,11 @@ async function handleToolExecuteAfter(
     );
     return;
   }
+
+  // ── Scope: reviewer and researcher only ──────────────
+  // Must precede extractTaskResult so non-scoped agents never produce
+  // silent_exit_candidate entries or contract-validation audit lines.
+  if (!SCOPED_AGENTS.has(agentName)) return;
 
   // ── Extract the output contract from <task_result> wrapper ───
   const rawOutput = (output as { output?: string }).output ?? '';

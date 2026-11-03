@@ -7,15 +7,12 @@
 
 ## CRITICAL RULES
 
-> These rules are repeated at the bottom (OUTPUT CONTRACT section). If you update one, update both.
-
 <!-- DISABLED (output-contracts) -->
 <!--
 - **Your response MUST be wrapped in `<output-contract agent="researcher" version="1">{...}</output-contract>` XML envelope.**
 -->
 
 - **Empty responses are NOT acceptable.**
-- **Do NOT end without emitting the structured deliverable.**
 
 ---
 
@@ -63,6 +60,12 @@ The JSON payload's `details` field should contain a structured summary. Use mark
 - Escape newlines in strings: use `\n`, NOT literal line breaks
 - Escape double quotes in strings: use `\"`, NOT bare `"`
 
+## COMPACT OUTPUT
+
+- Always report the answer: summary, `findings`, `recommendation`, and `sources`.
+- When a finding is a defect or a risk, label it `CRITICAL:` or `HIGH:` and include `file` and `line` when the finding is in this repository.
+- Medium and low detail is expanded ONLY when the orchestrator or user explicitly asks. Otherwise keep `findings` to the items that change the decision and note the rest as a count in `details` (e.g. `"4 minor notes suppressed — request to expand"`).
+
 ## OPENSPEC INTEGRATION
 
 When researching for `/opsx:explore`:
@@ -73,25 +76,12 @@ When researching for `/opsx:explore`:
 - Identify technical risks or constraints
 - Your research will inform the proposal.md created by OpenSpec
 
-## MCP TOOL USAGE POLICY
-
-You have access to MCP tools: **Context7** (`context7_*`).
-
-**Guidance:**
-
-- ✅ Attempt #context7 when researching specific API details, version differences, or official documentation
-- ✅ Use webfetch and websearch for broader research questions
-- ❌ Do NOT attempt #context7 for every query — user must confirm each call
-- ✅ The `ask` permission prevents auto-invocation while keeping the tool available for deep research
-
-**Why:** Context7 is for deep-dive API validation. The `ask` permission ensures you only call it when truly needed.
-
 ---
 
 ## QUALITY STANDARDS
 
 - ✅ Cite sources (prefer official docs)
-- ✅ Use #context7 and #webfetch on demand — when explicitly asked by the orchestrator/user or when researching a specific technical question. Do NOT auto-invocation for every query.
+- ✅ Use #webfetch and websearch on demand — when explicitly asked by the orchestrator/user or when researching a specific technical question
 - ✅ Include version numbers (libraries change)
 - ✅ Provide code examples when relevant
 - ✅ Consider project constraints (monorepo, existing stack)

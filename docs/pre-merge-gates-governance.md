@@ -262,7 +262,7 @@ Signed-off-by: Ana García <ana.garcia@example.com>
 
 **Bot policy:** los commits firmados por bots _well-known_ (como Dependabot) no fallan el check — de lo contrario, cada update automático de dependencias rompería el pipeline. Los seres humanos sí deben firmar.
 
-**Defensa local del trailer:** el hook `pre-push` **no** valida DCO — solo corre el fetch + guard y los tests scoped (ver §4.8). La defensa local se apoya en el hook `.husky/prepare-commit-msg` — que añade el trailer automáticamente en cada commit nuevo — y en la regla de flujo asistido (git-manager exige `git commit -S -s`); el gate local único de validación es `commit-msg`. El enforcement real del trailer es el check bloqueante de CI (L3).
+**Defensa local del trailer:** el hook `pre-push` **no** valida DCO — solo corre el fetch + guard y los tests scoped (ver §4.8). La defensa local se apoya en el hook `.husky/prepare-commit-msg` — que añade el trailer automáticamente en cada commit nuevo — y en la regla de flujo asistido (git-manager exige `git commit -S -s`; hoy en `.opencode/command/commit-all.md`, agente git-manager retirado); el gate local único de validación es `commit-msg`. El enforcement real del trailer es el check bloqueante de CI (L3).
 
 > **Nota de auditoría:** CONTEXT-CICD §11.1 afirmaba un re-check de DCO en pre-push que el código no implementa (misma clase de discrepancia docs-código que el job SAST del §4.6). Este artículo refleja el código real.
 
@@ -278,7 +278,7 @@ Es el gate que **más fricción cultural** generó al inicio (la gente olvidaba 
 
 #### Dónde está implementada
 
-- L1/L2: hook `prepare-commit-msg` (auto-signoff) + hook `commit-msg` (valida DCO antes de commitlint; único gate local) + regla git-manager `-S -s`.
+- L1/L2: hook `prepare-commit-msg` (auto-signoff) + hook `commit-msg` (valida DCO antes de commitlint; único gate local) + regla `-S -s` (originada en git-manager, hoy en `.opencode/command/commit-all.md` — agente retirado).
 - L3: job `dco` en `ci.yml` (name exacto: **DCO**), BLOQUEANTE.
 
 ---

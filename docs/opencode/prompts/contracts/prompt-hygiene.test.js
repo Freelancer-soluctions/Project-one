@@ -19,14 +19,12 @@ function getPromptFiles() {
 const promptFiles = getPromptFiles();
 
 describe('Prompt Hygiene - CRITICAL RULES section', () => {
-  // Verify we have all 6 expected prompts (spec-manager and git-manager retired)
-  it('should have exactly 6 agent prompt files', () => {
-    expect(promptFiles).toHaveLength(6);
+  // Verify we have all 4 expected prompts (spec-manager, git-manager, planner, orchestrator, developer retired)
+  it('should have exactly 4 agent prompt files', () => {
+    expect(promptFiles).toHaveLength(4);
     const names = promptFiles.map((f) => path.basename(f, '.md')).sort();
     expect(names).toEqual([
-      'developer',
-      'orchestrator',
-      'planner',
+      'main',
       'project-manager',
       'researcher',
       'reviewer',

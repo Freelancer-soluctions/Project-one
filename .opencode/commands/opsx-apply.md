@@ -1,5 +1,6 @@
 ---
 description: 'Implement tasks from an OpenSpec change (Experimental)'
+model: opencode/mimo-v2.6-flash-free
 ---
 
 Implement tasks from an OpenSpec change.

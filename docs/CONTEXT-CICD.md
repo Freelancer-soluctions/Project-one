@@ -1338,6 +1338,8 @@ required + blocking). `pre-push` **no participa** en DCO. Doc canónico: `docs/l
 
 ### 10.4 Ajuste DCO de `/commit-all` (git-manager prompt + slash command)
 
+> **[HISTÓRICO 2026-11-03]** El agente `git-manager` fue **retirado** (change `retire-command-wrapper-agents`); su prompt (`docs/opencode/prompts/git-manager.md`) fue borrado. La regla `-S -s` hoy se materializa en `.opencode/command/commit-all.md` (regla de seguridad) + el prompt `main.md` + el hook `prepare-commit-msg`. El contenido siguiente se conserva como registro del diseño original.
+
 El comando `/commit-all` exige DCO en **dos puntos de materialización** (defense-in-depth, ambos aplicados):
 
 1. **System prompt del agente git-manager** (`docs/opencode/prompts/git-manager.md`) — vía regla de comportamiento nº
