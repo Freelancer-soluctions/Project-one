@@ -198,23 +198,24 @@ una entrada (o fichero) que ya no corresponde a ningún test recolectado — pas
 | Límite de tamaño                                  | Preferir **inline** para < ~50 líneas; rechazar en review `.snap` > ~100 líneas por snapshot (`eslint-plugin-jest` `no-large-snapshots` como referencia) |
 
 **Enforcement (change `snapshot-gates`, PRD G2–G6):** la invariante de la primera fila ya no es
-solo documental — el job `Quality: Snapshot Update Gate` de `ci.yml` (script
+solo documental — el job `Prebuild: Snapshot Update Gate` de `ci.yml` (script
 `scripts/ci/snapshot-update-gate.mjs`, testeado en `snapshot-update-gate.test.mjs`) falla si
 `-u`/`--update`/`updateSnapshots` aparece en scripts npm de raíz o `apps/<workspace>` o en steps
 `run:` de `.github/workflows/*.yml`. La única exención es la allowlist versionada del script
 (`test:snapshot` / `test:snapshot:refresh`, uso local), revisable solo en PR. El resto de gates:
 
-| Gate                        | Enforcement                                                                                                                         | Fase                     |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| G2 — sin update flags en CI | Job blocking `snapshot-update-gate` (en `prebuild-tests-complete.needs`)                                                            | Blocking (nivel job)     |
-| G3 — checklist de PR        | Casilla «Snapshots reviewed and explained (if applicable)» en `.github/PULL_REQUEST_TEMPLATE.md`                                    | Humano                   |
-| G4 — límite de tamaño       | `vitest/no-large-snapshots` (maxSize 50) en `eslint.config.js` scoped a `__snapshots__/*.snap`; job advisory `client-snapshot-size` | Advisory FASE 1          |
-| G5 — huérfanos              | `scripts/ci/snapshot-orphan-check.mjs` (`.snap` sin dueño hermano con matcher → exit 1); step del job advisory                      | Advisory FASE 1          |
-| G6 — drift probe            | Job nocturno `nightly-snapshot-drift` (`nightly-full-suite.yml`): refresh en checkout desechable + `git diff` sobre `.snap`         | Advisory (schedule-only) |
+| Gate                        | Enforcement                                                                                                                                                                                                  | Fase                     |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
+| G2 — sin update flags en CI | Job blocking `snapshot-update-gate` (en `prebuild-tests-complete.needs`)                                                                                                                                     | Blocking (nivel job)     |
+| G3 — checklist de PR        | Casilla «Snapshots reviewed and explained (if applicable)» en `.github/PULL_REQUEST_TEMPLATE.md`                                                                                                             | Humano                   |
+| G4 — límite de tamaño       | `vitest/no-large-snapshots` (maxSize 50) en `eslint.config.js` scoped a `__snapshots__/*.snap` + inline `*.ui.test.jsx` en `error`; job blocking `client-snapshot-size` (en `prebuild-tests-complete.needs`) | Blocking                 |
+| G5 — huérfanos              | `scripts/ci/snapshot-orphan-check.mjs` (`.snap` sin dueño hermano con matcher → exit 1); step del job blocking `client-snapshot-size`                                                                        | Blocking                 |
+| G6 — drift probe            | Job nocturno `nightly-snapshot-drift` (`nightly-full-suite.yml`): refresh en checkout desechable + `git diff` sobre `.snap`                                                                                  | Advisory (schedule-only) |
 
-La promoción de G4/G5 a blocking es un PR atómico posterior (design D8 del change) tras ≥2 semanas
-de advisory limpio. La regla inline (`*.ui.test.jsx`) se activa solo en esa promoción: hoy un
-`warn` inline rompería `client-lint` (`--max-warnings 0`).
+Promoción de G4/G5 a blocking ejecutada (definitiva, sin ventana advisory): `client-snapshot-size`
+sin `continue-on-error` y en `prebuild-tests-complete.needs`; la regla inline (`*.ui.test.jsx`) está
+activa en `error` vía `client-lint`. La regla `.snap` sigue en `warn` con `--max-warnings 0` en
+`snapshot:size-check`, equivalente a blocking.
 
 **Dependencia residual de G1 (decisión registrada, sin cambios de config):** el `update: 'none'` de
 `apps/client/vitest.config.js` confía en `CI=true`, que GitHub Actions define implícitamente en

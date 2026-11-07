@@ -205,6 +205,8 @@ panorama, apaga `bail` y deja que la matriz corra (`fail-fast: false`).
 | Regla 21 (`ci-cd-pipeline-empresarial.md` §23.3, línea 859) | Documentada como **pendiente** (tabla de optimizaciones ~línea 3412: "Smart Test Ordering — NO")                                                                                                                                                                |
 | Gap 6 de [`test-impact-analysis.md`][tia]                   | "Sin smart ordering / fail-first basado en histórico" — P3, acción: `BaseSequencer` + tasa de fallo histórica                                                                                                                                                   |
 
+> **Estado actualizado (2026-11-05):** regla 21 y gap 6 ya implementados (change `smart-test-ordering`). Ver §4.6.
+
 ### 4.2 Receta 1 — `vitest.sequencer.js` (propiedad de `tia-hardening` task 5.1)
 
 > **⚠️ Coordinación:** esta receta **no debe implementarse en paralelo**. El sequencer con

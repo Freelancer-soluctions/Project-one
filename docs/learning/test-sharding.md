@@ -446,3 +446,17 @@ Notas de la receta:
 [tiah-design]: ../../openspec/changes/tia-hardening/design.md
 [ci]: ../../.github/workflows/ci.yml
 [nightly]: ../../.github/workflows/nightly-full-suite.yml
+
+## Reproducibilidad local (RI-9)
+
+Comandos para ejecutar un shard concreto en local, idéntico a CI:
+
+```bash
+# Playwright (E2E)
+npx playwright test --shard=2/4
+
+# Vitest (unit/integración)
+npx vitest run --shard=2/4
+```
+
+Fijar el mismo seed/variables de CI para reproducir exactamente el mismo conjunto de tests.
