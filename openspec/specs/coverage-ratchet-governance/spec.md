@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Makes the "floor only rises" ratchet invariant a mechanically verified property backed by a versioned baseline with auditable exceptions, and keeps the canonical documentation synchronized with the real configuration.
+Makes the "floor only rises" ratchet invariant a mechanically verified property backed by a versioned baseline with auditable exceptions, keeps the canonical documentation synchronized with the real configuration, and tracks the coverage exclusions that could otherwise lower the floor silently.
 
 ## Requirements
 
@@ -51,11 +51,16 @@ The canonical coverage documentation SHALL not cite threshold values that differ
 
 ### Requirement: Exclusion budget is tracked
 
-The project SHALL track the set of coverage exclusions and fail when the exclusion set grows beyond a versioned baseline without an auditable exception.
+The project SHALL track, per workspace against a versioned baseline, both the entries in `coverage.exclude` and the count of coverage ignore markers (`istanbul`, `c8` and equivalent). Growth beyond the baseline SHALL fail once the budget is blocking. The budget SHALL support an advisory mode that reports growth without failing, and exceptions SHALL record a reason, an owner and a date.
 
 #### Scenario: Grown exclusion set fails
 
 - **WHEN** the exclusion set exceeds the baseline without an exception
+- **THEN** validation fails
+
+#### Scenario: Grown ignore-marker count fails
+
+- **WHEN** the number of coverage ignore markers exceeds the baseline without an exception
 - **THEN** validation fails
 
 #### Scenario: Stable exclusion set passes
@@ -63,16 +68,48 @@ The project SHALL track the set of coverage exclusions and fail when the exclusi
 - **WHEN** the exclusion set is unchanged
 - **THEN** validation passes
 
-### Deferred capability: Scheduled ratchet (Change B)
+#### Scenario: Advisory phase reports without failing
 
-Scheduled floor-raising proposals are pending separate Change B work. They are not implemented or required by this change; thresholds remain manually reviewed and are never modified inside a blocking job.
+- **WHEN** the exclusion budget is in advisory mode
+- **THEN** growth is reported
+- **AND** the run does not fail solely for growth
 
-#### Planned scenario: Scheduled run proposes raise (pending Change B)
+#### Scenario: Auditable exception accepts growth
 
-- **WHEN** a future Change B scheduled process measures coverage above a floor
+- **WHEN** growth is covered by an exception with reason, owner and date
+- **THEN** validation passes
+
+#### Scenario: Exception missing fields rejected
+
+- **WHEN** an exclusion-budget exception lacks reason, owner or date
+- **THEN** validation fails
+
+#### Scenario: Planned scenario: Scheduled run proposes raise (pending Change B)
+
+- **WHEN** a scheduled run measures coverage above a floor
 - **THEN** a pull request is proposed with the before and after values
 
-#### Planned scenario: No change proposes nothing (pending Change B)
+#### Scenario: Planned scenario: No change proposes nothing (pending Change B)
 
-- **WHEN** a future Change B run finds no floor to raise
+- **WHEN** no floor can be raised
 - **THEN** no pull request is opened
+
+### Requirement: Scheduled ratchet proposes floor raises
+
+The project SHALL provide a scheduled process (monthly cron) that proposes raising floors to measured values via a pull request. The process SHALL NOT enable Vitest autoUpdate and SHALL NOT rewrite threshold configuration in any job. When no floor can be raised, no pull request is opened.
+
+#### Scenario: Scheduled run proposes raise
+
+- **WHEN** a scheduled run measures coverage above a floor
+- **THEN** a pull request is proposed with the before and after values
+
+#### Scenario: No change proposes nothing
+
+- **WHEN** no floor can be raised
+- **THEN** no pull request is opened
+
+#### Scenario: Auto-update stays disabled
+
+- **WHEN** the scheduled process runs
+- **THEN** Vitest autoUpdate is not enabled
+- **AND** no job rewrites threshold configuration

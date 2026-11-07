@@ -115,24 +115,21 @@ for mock-heavy CRUD) SHALL be rejected in review.
 - **THEN** the error propagates to the runner (no catch-all wrapper) so the shrinker
   converges on the minimal counterexample
 
-### Requirement: Advisory CI job within the prebuild budget
+### Requirement: Blocking CI job within the prebuild budget
 
-CI SHALL run the PBT suites as an advisory job in STAGE 2 PRE-Build, defined inside the
-unit-testing substage block (SUBSTAGE 2D) with `continue-on-error: true` (FASE 1 pattern),
-the display name `Tests: Property Tests` required by the block-naming convention, a fixed
-seed, and a total wall-time budget under 1-2 minutes. The job SHALL NOT be listed in any
-job's `needs`, preserving `prebuild-unit-tests-complete`'s contract of exactly the 6
-declared needs (`test-unit-client`, `test-unit-server`, `test-integration`, `test-smoke`,
-`client-coverage`, `server-coverage`), and SHALL NOT alter any existing job's
-`continue-on-error`, TIA selection, ordering, or sharding behavior (owned by
-`ci-testing-gate-promotion`, `ci-test-impact-analysis`, `smart-test-ordering`,
-`test-sharding`).
+CI SHALL run the PBT suites as a BLOCKING job in STAGE 2 PRE-Build, defined inside the
+unit-testing substage block (SUBSTAGE 2D) WITHOUT `continue-on-error` (FASE 2 blocking,
+promoted 2026-10-29), the display name `Tests: Property Tests`, a fixed seed, and a total
+wall-time budget under 1-2 minutes. The job SHALL be listed in `prebuild-tests-complete.needs`
+as an additional member, and SHALL NOT alter any existing job's TIA selection, ordering, or
+sharding behavior (owned by `ci-testing-gate-promotion`, `ci-test-impact-analysis`,
+`smart-test-ordering`, `test-sharding`).
 
-#### Scenario: PBT job is advisory
+#### Scenario: PBT job is blocking
 
 - **WHEN** a property fails on a pull request
-- **THEN** the job reports the full counterexample log (seed/path, untruncated) but does
-  not block `prebuild-unit-tests-complete` or `ci-complete`
+- **THEN** the job reports the full counterexample log (seed/path, untruncated) and fails
+  `prebuild-tests-complete` and `ci-complete`
 
 #### Scenario: aggregator contract preserved
 

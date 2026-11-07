@@ -101,18 +101,13 @@ move).
 POST-BUILD, so listing them here gave a prebuild verdict two post-build members. They belong to
 `postbuild-tests-complete` exclusively.
 
-`property-tests` SHALL be listed even though it declares `continue-on-error: true`. Its inclusion is **record-only**:
-it closes a taxonomy gap — a tier-1 test that was absent from the tier-1 verdict — and SHALL NOT be read as making
-that job blocking. The `continue-on-error` flag SHALL NOT be removed, so a property-test failure remains absorbed at
-job level and cannot fail this aggregator.
+`property-tests` SHALL be listed as a **blocking** member: its `continue-on-error` was removed on 2026-10-29
+(change `ci-testing-gate-promotion`, task 3.1), so a property-test failure now fails this aggregator. Its inclusion
+closes the taxonomy gap and makes the tier-1 verdict truthful.
 
-Not only `property-tests`: **all five members of this aggregator carry `continue-on-error: true`** — `test-unit-client`
-(`ci.yml:471`), `test-unit-server` (`ci.yml:767`), `client-coverage` (`ci.yml:1056`), `server-coverage`
-(`ci.yml:1149`) and `property-tests` (`ci.yml:1220`). That is the repo's FASE 1 advisory posture, so this aggregator
-currently reports **success regardless of the individual failures of any of its members**, and its verdict carries no
-blocking force today. Only the governance, quality and security verdicts block anything. The tier-1 rung is therefore
-structurally present but **vacuous in effect** until the `ci-testing-gate-promotion` change removes
-`continue-on-error`; this requirement is what makes that state explicit instead of implied.
+As of 2026-10-29 (`ci-testing-gate-promotion`, task 3.1), the 5 tier-1 members — `test-unit-client`, `test-unit-server`,
+`client-coverage`, `server-coverage` and `property-tests` — all have `continue-on-error` removed and are **blocking**.
+A failure in any of them fails this aggregator and propagates to `ci-complete`.
 
 The jobs `test-e2e` and `coverage` do NOT exist as job names in ci.yml, and `e2e` stays excluded (`if: false`,
 explicitly out of scope).
@@ -123,12 +118,11 @@ explicitly out of scope).
 - **THEN** its `needs` array contains exactly those 5 jobs — no more, no less
 - **AND** `test-integration` and `test-smoke` are absent from it
 
-#### Scenario: property-tests is recorded but not made blocking
+#### Scenario: property-tests is blocking
 
-- **WHEN** `property-tests` finalizes with `failure` while retaining `continue-on-error: true`
-- **THEN** the job-level flag absorbs the failure and the job reports as successful or neutral to its dependents
-- **AND** `prebuild-tests-complete` does not fail because of it
-- **AND** the job is listed in the aggregator's `needs` regardless, so the tier-1 inventory is complete on paper
+- **WHEN** `property-tests` finalizes with `failure`
+- **THEN** the job reports failure and `prebuild-tests-complete` fails because of it
+- **AND** the job is listed in the aggregator's `needs` as a blocking member
 
 #### Scenario: Post-build jobs are not aggregated by a prebuild verdict
 
