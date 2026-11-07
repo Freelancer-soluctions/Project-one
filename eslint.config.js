@@ -324,11 +324,11 @@ export default defineConfig([
   // ---------------------------------------------------------------------------
   // (4b) Snapshots serializados (G4 del change `snapshot-gates`).
   // ---------------------------------------------------------------------------
-  // Regla `vitest/no-large-snapshots` scoped SOLO a los `.snap` serializados de
-  // apps/client. FASE 1 advisory (job `client-snapshot-size` con
-  // `continue-on-error: true`); la extensión a los bloques inline
-  // (`*.ui.test.jsx`) y la promoción a blocking son el PR atómico final del
-  // change (design D4/D8). NO tocar el bloque client de arriba: su glob
+  // Regla `vitest/no-large-snapshots` scoped a los `.snap` serializados de
+  // apps/client. Promovida a blocking: job `client-snapshot-size` sin
+  // `continue-on-error` y en `prebuild-tests-complete.needs`. La extensión
+  // inline (`*.ui.test.jsx`) vive en el bloque 4c como `error`. NO tocar el
+  // bloque client de arriba: su glob
   // `**/*.{js,jsx}` no matchea `.snap`, así que `client-lint` no cambia.
   {
     files: ['apps/client/**/__snapshots__/*.snap'],
@@ -338,7 +338,7 @@ export default defineConfig([
     },
 
     rules: {
-      // Regla G4 (advisory FASE 1): límite de tamaño de snapshots serializados.
+      // Regla G4 (blocking via snapshot:size-check --max-warnings 0): límite de tamaño de snapshots serializados.
       'vitest/no-large-snapshots': ['warn', { maxSize: 50, inlineMaxSize: 50 }],
       // Los `.snap` son artefactos serializados por Vitest ( CommonJS `exports[...]`),
       // no código fuente: silencian las reglas base que no aplican a artefactos.
@@ -349,6 +349,29 @@ export default defineConfig([
       // Los snapshots serializados contienen whitespace irregular legítimo
       // (el contenido renderizado del UI se serializa tal cual).
       'no-irregular-whitespace': 'off',
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // (4c) Snapshots inline en tests de cliente (G4 promovido, blocking).
+  // ---------------------------------------------------------------------------
+  // Extensión de `vitest/no-large-snapshots` a los bloques inline
+  // (`toMatchInlineSnapshot`) de `*.ui.test.jsx`. Promovido a `error`
+  // (definitivo): `client-lint` (`--max-warnings 0`) lo hace bloqueante.
+  // El tamaño de los `.snap` serializados sigue gobernado por el bloque (4b)
+  // y el job `client-snapshot-size`.
+  {
+    files: ['apps/client/src/**/*.ui.test.jsx'],
+
+    plugins: {
+      vitest,
+    },
+
+    rules: {
+      'vitest/no-large-snapshots': [
+        'error',
+        { maxSize: 50, inlineMaxSize: 50 },
+      ],
     },
   },
 

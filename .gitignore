@@ -81,7 +81,8 @@ output-contract.json
 report.json
 *.tsbuildinfo
 
-# Generated artifacts (coverage/vitest/perch/audit)
+# Generated artifacts (coverage/vitest/perch/mutation/audit)
+.stryker-tmp/
 .perch/
 .vitest-reports/
 apps/client/.vitest-reports/
