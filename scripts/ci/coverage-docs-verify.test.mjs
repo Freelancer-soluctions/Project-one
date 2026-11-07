@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { verifyCoverageDoc } from './coverage-docs-verify.mjs';
+import {
+  replaceCoverageFigures,
+  verifyCoverageDoc,
+} from './coverage-docs-verify.mjs';
 
 describe('coverage documentation verifier', () => {
   it('accepts a block matching the current figures', () => {
@@ -45,6 +48,25 @@ describe('coverage documentation verifier', () => {
     ).toContain(
       'managed coverage figures do not match the current configuration'
     );
+  });
+
+  it('replaces the managed block and round-trips through verification', () => {
+    const document = [
+      'before',
+      '<!-- coverage-floor-ratchet:start -->',
+      'old figures',
+      '<!-- coverage-floor-ratchet:end -->',
+      'after',
+    ].join('\n');
+    const figures =
+      '| Workspace | Global floor |\n| --- | --- |\n| server | 61 |';
+
+    const updated = replaceCoverageFigures(document, figures);
+
+    expect(verifyCoverageDoc(updated, figures)).toEqual([]);
+    expect(updated).toContain('before\n');
+    expect(updated).toContain('after');
+    expect(updated).not.toContain('old figures');
   });
 
   it('rejects stale or missing managed figures', () => {

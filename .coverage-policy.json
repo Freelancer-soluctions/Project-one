@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "objectives": {
+    "client": {
+      "statements": 80,
+      "branches": 70,
+      "functions": 75,
+      "lines": 80
+    },
+    "server": {
+      "statements": 75,
+      "branches": 75,
+      "functions": 75,
+      "lines": 75
+    }
+  },
+  "thresholds": {
+    "client": {},
+    "server": {}
+  }
+}

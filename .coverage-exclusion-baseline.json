@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "workspaces": {
+    "client": {
+      "exclusions": ["**/*.config.js", "node_modules/", "tests/"],
+      "ignoreMarkers": 0
+    },
+    "server": {
+      "exclusions": [],
+      "ignoreMarkers": 0
+    }
+  },
+  "exceptions": []
+}
