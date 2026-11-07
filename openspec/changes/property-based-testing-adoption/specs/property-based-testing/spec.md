@@ -3,8 +3,8 @@
 ## Purpose
 
 Adopt property-based testing (fast-check) en el monorepo: dependencias instaladas en los
-workspaces, properties deterministas con presupuesto de tiempo acotado, wiring CI advisory
-en STAGE 2 PRE-Build y corrección lockstep de la documentación que hoy afirma un estado
+workspaces, properties deterministas con presupuesto de tiempo acotado, wiring CI blocking
+en STAGE 2 PRE-Build (promovido 2026-10-29; ver change `pbt-hardening`) y corrección lockstep de la documentación que hoy afirma un estado
 desactualizado de la instalación.
 
 ## ADDED Requirements
@@ -134,10 +134,10 @@ sharding behavior (owned by `ci-testing-gate-promotion`, `ci-test-impact-analysi
 #### Scenario: aggregator contract preserved
 
 - **WHEN** the change is applied and CI runs
-- **THEN** `prebuild-unit-tests-complete.needs` still contains exactly the 6 original job
-  ids
-- **AND** `property-tests` appears in no job's `needs` — its result reaches the PR as its
-  own advisory check, never as a seventh aggregator input
+- **THEN** `prebuild-tests-complete.needs` lists `property-tests` next to the other tier-1
+  testing jobs (`test-unit-client`, `test-unit-server`, `client-coverage`, `server-coverage`)
+- **AND** no other job's `needs` gains a new entry because of it, and the aggregator's
+  failure-propagation logic is unchanged (any member in `failure`/`cancelled` fails it)
 
 #### Scenario: budget respected
 

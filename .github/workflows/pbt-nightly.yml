@@ -1,0 +1,120 @@
+name: PBT Nightly Exploration
+
+# Exploración nocturna de propiedades — change `pbt-hardening`, tarea 6.6
+# (gap G7 del PRD de PBT, diseño D10).
+#
+# POR QUÉ EXISTE: en CI la semilla de fast-check es FIJA (42) para que un rojo
+# sea reproducible. Eso es lo correcto para el gate, pero significa que los PRs
+# exploran siempre los mismos casos. Este workflow corre la misma suite con una
+# semilla ALEATORIA y un presupuesto mucho mayor (`PBT_NUMRUNS`), que es donde
+# aparecen los counterexamples raros.
+#
+# CONTRATO:
+#   - ADVISORY por diseño (PRD): no es required status check, no está en
+#     `ci-complete` ni bloquea merges. Su salida útil es el issue.
+#   - Semilla aleatoria por corrida; se publica en el step summary y en el issue
+#     para poder reproducir con `PBT_SEED=<seed>`.
+#   - `PBT_NUMRUNS` dentro del rango 1000-10000 (aquí 5000) y time-box del job:
+#     la exploración no puede quedarse colgada gastando runner.
+#   - Al fallar, crea (o reutiliza) un issue con semilla, resumen y enlace.
+
+on:
+  schedule:
+    # Martes 04:50 UTC: fuera de las ventanas ya ocupadas
+    # (nightly-full-suite 02:40, scheduled-security 03:00, flaky-weekly lunes 04:20).
+    - cron: '50 4 * * 2'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # `issues: write` es el único scope extra: el valor del workflow es el issue
+  # de seguimiento cuando la exploración encuentra un contraejemplo.
+  issues: write
+
+concurrency:
+  group: pbt-nightly-exploration
+  cancel-in-progress: false
+
+jobs:
+  explore:
+    name: PBT Random-Seed Exploration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-monorepo
+
+      - name: Pick a random seed
+        id: seed
+        run: |
+          set -euo pipefail
+          SEED=$(( (RANDOM * 32768 + RANDOM) % 2000000000 ))
+          echo "seed=${SEED}" >> "$GITHUB_OUTPUT"
+          echo "Semilla de esta corrida: \`${SEED}\`" >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
+      # Time-box explícito para que una propiedad patológica no consuma el job
+      # completo: si se agota, el fallo es visible y el issue se abre igual.
+      - name: Run property tests with a random seed
+        id: pbt
+        timeout-minutes: 12
+        run: npm run test:pbt
+        env:
+          CI: 'true'
+          PBT_SEED: ${{ steps.seed.outputs.seed }}
+          # Dentro del rango 1000-10000 que fija la tarea 6.6.
+          PBT_NUMRUNS: '5000'
+
+      - name: Publish property failures to job summary
+        if: failure()
+        run: node scripts/ci/pbt-failure-summary.mjs apps/client/reports/vitest-results.json apps/server/reports/vitest-results.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload exploration reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pbt-nightly-reports
+          path: |
+            apps/client/reports/vitest-results.json
+            apps/server/reports/vitest-results.json
+          retention-days: 30
+          if-no-files-found: warn
+
+      # El issue es el entregable: sin él, un fallo nocturno se pierde en el
+      # historial de Actions. Se reutiliza un issue abierto para no inundar el
+      # tracker con uno por noche.
+      - name: Open or update the tracking issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SEED: ${{ steps.seed.outputs.seed }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          TITLE="PBT nightly exploration found a counterexample"
+
+          EXISTING=$(gh issue list --state open --search "${TITLE} in:title" --json number --jq '.[0].number // empty')
+
+          BODY=$(cat <<EOF
+          La exploración nocturna de propiedades falló con semilla aleatoria.
+
+          - **Semilla:** \`${SEED}\`
+          - **Corrida:** ${RUN_URL}
+          - **Reproducir:** \`PBT_SEED=${SEED} npm run test:pbt\` (o pasa \`{ seed: ${SEED} }\` al \`fc.assert\`)
+
+          El contraejemplo concreto está en el job summary de la corrida
+          (seed / path / counterexample) y en el artifact \`pbt-nightly-reports\`.
+          EOF
+          )
+
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+            echo "Comentado en el issue #${EXISTING}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            gh issue create --title "$TITLE" --body "$BODY"
+            echo "Issue abierto para la semilla ${SEED}" >> "$GITHUB_STEP_SUMMARY"
+          fi
+        shell: bash

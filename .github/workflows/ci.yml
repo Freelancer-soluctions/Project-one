@@ -1351,6 +1351,14 @@ jobs:
         run: npm run test:pbt
         env:
           CI: true
+      # G2 (change `pbt-hardening`, tarea 6.1): un fallo de fast-check es
+      # reproducible sólo si ves seed + path + contraejemplo. El reporter json
+      # los lleva en `failureMessages`; este step los publica en el summary del
+      # run para no depender de leer el log completo. Sale 0 siempre: el veredicto
+      # del job ya lo fijó el step anterior.
+      - name: Publish property failures to job summary
+        if: failure()
+        run: node scripts/ci/pbt-failure-summary.mjs apps/client/reports/vitest-results.json apps/server/reports/vitest-results.json >> "$GITHUB_STEP_SUMMARY"
       - name: Upload property test results
         if: failure()
         uses: actions/upload-artifact@v7

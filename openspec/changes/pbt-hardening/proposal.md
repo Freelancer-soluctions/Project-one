@@ -17,6 +17,7 @@ El change `property-based-testing-adoption` está implementado y el gate es bloc
 - Añadir propiedades negativas (valores inválidos → rechazados).
 - Añadir upload-artifact en fallo + reporter junit/json al job property-tests.
 - Sincronizar specs a la postura blocking real.
+- Cerrar gaps de CI del PRD PBT (G2 resumen del job, G4 lint de pureza, G5 tope de descartes, G6 regresion fijada, G7 exploracion nocturna).
 - Archivar el change original `property-based-testing-adoption`.
 
 ## Capabilities
@@ -34,4 +35,7 @@ _(ninguna)_
 - `apps/server/tests/unit/properties/*.properties.unit.test.ts`
 - `apps/client/src/properties/*.properties.unit.test.js`
 - `.github/workflows/ci.yml` (job property-tests)
+- `eslint.config.js` (pureza lint)
+- `.github/PULL_REQUEST_TEMPLATE.md` (casilla G6)
+- `apps/server/tests/setupTest.ts`, `apps/client/tests/setup/setupTest.js`
 - `openspec/specs/property-based-testing/`, `openspec/specs/ci-prebuild-substage-structure/`
