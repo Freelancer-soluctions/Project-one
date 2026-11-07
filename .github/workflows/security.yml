@@ -60,6 +60,12 @@ jobs:
           output: trivy-results.sarif
           exit-code: '1'
           ignore-unfixed: 'true'
+          # Árboles de tooling/documentación versionados: NO se instalan ni se
+          # despliegan (incluyen sus propios package-lock.json, y en
+          # docs/opencode llega a haber node_modules commiteado). Escanearlos
+          # generaba 41 de las 64 alertas de Code Scanning, todas atribuidas a
+          # cualquier PR que tocara un manifiesto (triage 2026-11-06).
+          skip-dirs: .opencode,docs/opencode
 
       - name: Upload Trivy SARIF artifact (retention 90d)
         if: always()
