@@ -36,7 +36,18 @@ describe('logic properties', () => {
           expect(skip).toBeGreaterThanOrEqual(0);
           expect(Number.isInteger(skip)).toBe(true);
         }
-      )
+      ),
+      // Regresiones fijadas (change `pbt-hardening`, tarea 6.5): `limit: 0`
+      // cae al DEFAULT_QUERY_LIMIT (nunca `take: 0`, que devolvería listas
+      // vacías sin error) y `limit` desbordado se recorta a MAX.
+      {
+        examples: [
+          [1, 0],
+          [1, 100_000],
+          [-5, -1],
+          [null, null],
+        ],
+      }
     );
   });
 

@@ -513,6 +513,60 @@ export default defineConfig([
   },
 
   // ---------------------------------------------------------------------------
+  // (6c) PUREZA de las pruebas de propiedades (change `pbt-hardening`, tarea 6.2 / G4).
+  // ---------------------------------------------------------------------------
+  // Una propiedad debe ser determinista: sólo pueden entrar inputs que vengan
+  // del generador de fast-check. `Math.random` rompe la semilla reproducible del
+  // fallo (no se puede re-correr el mismo caso), `Date.now` introduce el reloj
+  // real en el SUT y las llamadas de red vuelven el test dependiente del entorno.
+  // El caso legítimo de fecha ("un instante concreto") se escribe con
+  // `new Date(valor)`, que esta regla NO prohíbe.
+  {
+    files: ['**/*.properties.unit.test.{js,jsx,ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "MemberExpression[object.name='Math'][property.name='random']",
+          message:
+            'Propiedades: genera las entradas con fast-check, no con Math.random (el fallo deja de ser reproducible desde la semilla).',
+        },
+        {
+          selector: "MemberExpression[object.name='Date'][property.name='now']",
+          message:
+            'Propiedades: no leas el reloj real con Date.now; deriva la fecha del input generado.',
+        },
+      ],
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'fetch',
+          message:
+            'Propiedades: sin red. Prueba la lógica pura o inyecta el cliente como dependencia.',
+        },
+        {
+          name: 'XMLHttpRequest',
+          message:
+            'Propiedades: sin red. Prueba la lógica pura o inyecta el cliente como dependencia.',
+        },
+      ],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'axios',
+              message:
+                'Propiedades: sin red. Prueba la lógica pura o inyecta el cliente como dependencia.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // (7) E2E (Playwright) — workspace e2e.
   // ---------------------------------------------------------------------------
   // Sin este bloque, los ficheros de e2e caerían fuera de todo `files`
