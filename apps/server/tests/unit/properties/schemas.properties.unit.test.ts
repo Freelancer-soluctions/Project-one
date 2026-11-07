@@ -115,3 +115,38 @@ describe('Joi schema properties', () => {
     );
   });
 });
+
+describe('Joi schema negative properties', () => {
+  it('stockCreateSchema rejects negative quantity', () => {
+    fc.assert(
+      fc.property(fc.integer({ max: -1 }), (q) => {
+        const { error } = stockCreateSchema.validate(
+          {
+            quantity: q,
+            minimum: 0,
+            unitMeasure: 'PIECES',
+            productId: 1,
+            warehouseId: 1,
+          },
+          { convert: true, stripUnknown: true }
+        );
+        expect(error).toBeDefined();
+      })
+    );
+  });
+
+  it('attendanceCreateSchema rejects invalid type', () => {
+    fc.assert(
+      fc.property(
+        fc.string().filter((s) => !['CHECK_IN', 'CHECK_OUT'].includes(s)),
+        (t) => {
+          const { error } = attendanceCreateSchema.validate(
+            { type: t, employeeId: 1 },
+            { convert: true, stripUnknown: true }
+          );
+          expect(error).toBeDefined();
+        }
+      )
+    );
+  });
+});

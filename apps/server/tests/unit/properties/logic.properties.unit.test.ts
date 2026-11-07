@@ -1,5 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
+import { getSafePagination } from '../../../src/utils/pagination/pagination.js';
 
 describe('logic properties', () => {
   it('array sort is idempotent', () => {
@@ -23,21 +24,28 @@ describe('logic properties', () => {
     );
   });
 
-  it('pagination: union equals input without overlap issues conceptually', () => {
+  it('getSafePagination: take <= MAX (100) and skip >= 0', () => {
     fc.assert(
       fc.property(
-        fc.array(fc.integer()),
-        fc.integer({ min: 1, max: 50 }),
-        (xs, size) => {
-          const pages = [];
-          for (let i = 0; i < xs.length; i += size) {
-            pages.push(xs.slice(i, i + size));
-          }
-          const flat = pages.flat();
-          expect(flat).toEqual(xs);
-          expect(pages.every((p) => p.length <= size)).toBe(true);
+        fc.option(fc.integer()),
+        fc.option(fc.integer()),
+        (page, limit) => {
+          const { take, skip } = getSafePagination({ page, limit });
+          expect(take).toBeGreaterThan(0);
+          expect(take).toBeLessThanOrEqual(100);
+          expect(skip).toBeGreaterThanOrEqual(0);
+          expect(Number.isInteger(skip)).toBe(true);
         }
       )
+    );
+  });
+
+  it('getSafePagination: page 1 skip is 0', () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 1, max: 100 }), (limit) => {
+        const { skip } = getSafePagination({ page: 1, limit });
+        expect(skip).toBe(0);
+      })
     );
   });
 });
