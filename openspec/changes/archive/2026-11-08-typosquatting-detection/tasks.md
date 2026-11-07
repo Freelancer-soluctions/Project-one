@@ -5,8 +5,10 @@
 > wheels Windows** → instala sin compilar en ubuntu-latest; Windows exige Docker — confirma la
 > degradación advisory del L1); run real del wrapper en Windows = **fallo rápido y seguro** (exit
 > 1, error claro de version check, SARIF vacío, sin colgar); 12 categorías SARIF únicas; 50 jobs
-> en ci.yml / 8 en scheduled-security.yml; acciónlint 9/9 workflows exit 0. Pendiente: commit de
-> prueba real (sesión sin commits) y FASE 2 (diferida).
+> en ci.yml / 8 en scheduled-security.yml; acciónlint 9/9 workflows exit 0. Wrapper fija
+> GUARDDOG_PYTHON=3.13 (fix 9e70c1c5, 2026-11-06) para evitar fallo por wheels cp314. Nota
+> "commit de prueba real pendiente" obsoleta (commits posteriores ya ejercitaron el hook) —
+> cerrada 2026-11-09. FASE 2 sigue diferida.
 
 > **Base:** `docs/learning/typosquatting-detection.md` (referencias verificadas 2026-09-28:
 > GuardDog v3.2.0 SARIF solo en `verify`; sin `DataDog/guarddog-action`; Socket requiere
