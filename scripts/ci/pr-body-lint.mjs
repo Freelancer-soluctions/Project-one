@@ -56,8 +56,15 @@ export const canonicalizeHeading = (heading) =>
 
 /** Step 1 of the strip (also used standalone by R3, whose input must survive
  *  step 4 untouched). */
-export const stripHtmlComments = (text) =>
-  String(text ?? '').replace(/<!--[\s\S]*?-->/g, '');
+export const stripHtmlComments = (text) => {
+  let result = String(text ?? '');
+  let previous;
+  do {
+    previous = result;
+    result = result.replace(/<!--[\s\S]*?-->/g, '');
+  } while (result !== previous);
+  return result;
+};
 
 /**
  * Six-step strip, in the normative order (spec: "Normalization runs before any
