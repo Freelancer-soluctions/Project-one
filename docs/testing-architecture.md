@@ -459,18 +459,39 @@ FASE 2: antes de volverlo bloqueante hay que decidir qué hacer con PRs de ese t
 
 En GitHub Actions, por pull request. Los tres tiers forman **una estrategia coherente**, no tres capas aisladas:
 
-| Tier              | Ámbito de ejecución        | Cuándo corre                                        | Si el developer hace `--no-verify`      |
-| ----------------- | -------------------------- | --------------------------------------------------- | --------------------------------------- |
-| Pre-commit        | staged files (lint/format) | en cada commit                                      | no aplica                               |
-| Pre-push          | diff-scoped local          | en cada push                                        | **se salta** → lo cubre CI              |
-| **CI (PR)**       | **diff-scoped (TIA)**      | por PR; suite completa si cambian rutas compartidas | **no se puede saltar** — es el fallback |
-| **CI (nocturno)** | **suite completa**         | diario, sin importar el diff                        | n/a                                     |
+| Tier                 | Ámbito de ejecución        | Cuándo corre                                        | Si el developer hace `--no-verify`          |
+| -------------------- | -------------------------- | --------------------------------------------------- | ------------------------------------------- |
+| Pre-commit           | staged files (lint/format) | en cada commit                                      | no aplica                                   |
+| Pre-push             | diff-scoped local          | en cada push                                        | **se salta** → lo cubre CI                  |
+| **CI (PR)**          | **diff-scoped (TIA)**      | por PR; suite completa si cambian rutas compartidas | **no se puede saltar** — es el fallback     |
+| **CI (merge queue)** | **suite completa**         | al encolar el PR; sin diff de PR                    | n/a — el evento no tiene working tree local |
+| **CI (nocturno)**    | **suite completa**         | diario, sin importar el diff                        | n/a                                         |
 
 En el tier de CI:
 
 - Los jobs `test-unit-client` / `test-unit-server` ejecutan solo los tests afectados por el diff contra `origin/main`
   (`test:changed:ci`), y **caen a suite completa** cuando cambian rutas compartidas (root `package.json`, lockfile,
-  `.github/workflows/**`) o cuando la base no es resoluble — nunca "0 tests afectados" en silencio.
+  `.github/workflows/**`, `scripts/**`, `tsconfig.json`, `vitest.shared.js`, `vitest.sequencer.js`, configs de
+  `vite`/`vitest` de cada workspace, `apps/server/tsconfig.json`, `apps/server/prisma/**` —schema y migraciones— y los
+  `setup*` de los workspaces) o cuando la base no es resoluble — nunca "0 tests afectados" en silencio.
+- `test-integration` usa el MISMO selector: `test:integration:changed` delega en `scripts/ci/tia-select.mjs`, que une el
+  diff con los ficheros que fallaron en la última corrida (`tia-history --inject` sobre el artefacto `tia-history-server`
+  del nightly) y registra su propia historia al terminar (`tia-history --record`, artefacto
+  `tia-history-server-integration`). Así un fallo de integración no desaparece con el runner.
+- **Override manual** (`ci:full-suite`): la etiqueta en el PR o `workflow_dispatch` con `full_suite=true` fuerza
+  `scope=full` en los tres steps `Resolve TIA scope` (client, server, integration). Es la válvula de escape cuando el
+  revisor sospecha que la selección se queda corta.
+- **Merge queue**: `test-unit-client`, `test-unit-server`, `property-tests`, `test-integration`, `test-smoke` y
+  `coverage-full-gate` corren también en `merge_group`. Ese evento no tiene diff de PR (`repo-discovery` resuelve todos
+  los ámbitos como `shared=true`), así que la suite completa se ejecuta antes de integrar. El label no aplica ahí — no
+  existe `github.event.pull_request` — y por eso `merge_group` fuerza `scope=full` incondicionalmente.
+  **Prerequisite externo — cumplido (2026-11-06)**: la merge queue
+  está habilitada en el repositorio: regla `merge_queue` en el
+  ruleset de `main`, squash/`ALLGREEN`, con los required checks
+  `Governance: PR Body Lint` y `Prebuild Governance Complete`, que
+  ambos reportan en `merge_group`. Falta una corrida real para
+  cerrar la verificación: el primer PR encolado es la evidencia de
+  que estos 6 jobs se ejecutan ahí.
 - El **nightly** (`nightly-full-suite.yml`) corre las suites completas a diario: es la red que detecta lo que el
   diff-scoped dejó fuera (orden, cache, deriva de dependencias).
 - El **tripwire de cobertura** solo evaluye corridas de suite completa; en diff-scoped verifica la presencia del
@@ -478,8 +499,9 @@ En el tier de CI:
 - Los tests intermitentes en cuarentena (`.github/flaky-quarantine.yml`) se excluyen en los runs bloqueantes de PR, pero
   **el nocturno los ejecuta** — su resultado es la evidencia de restauración.
 
-Estado de FASE: los 6 jobs de unit/coverage corren en **FASE 1 advisory** (`continue-on-error: true`); la promoción a
-blocking ocurre tras la ventana de calibración. Integration, smoke y E2E siguen declarados pero inactivos (`if: false`).
+Estado de FASE: los jobs tier-1 (`test-unit-client`, `test-unit-server`, `client-coverage`, `server-coverage`,
+`property-tests`) son **blocking** desde 2026-10-29 (change `ci-testing-gate-promotion`, sin `continue-on-error`).
+Integration y smoke corren en PRs y en la merge queue; solo E2E sigue declarado e inactivo (`if: false`).
 
 ### 7.5.5 TIA local (Test Impact Analysis paridad CI↔local) — change `tia-hardening`
 
@@ -499,9 +521,11 @@ ingestión de historial, cobertura limitada al diff) por lo que local y CI no pu
 
 1. Ejecuta `npm run test:tia:audit` y confirma que los ficheros listados son los que modificaste (o sus dependientes).
 2. Ejecuta `npm run test:tia` y revisa que pasa con la cobertura limitada al diff.
-3. Si tocaste `package.json`, `package-lock.json`, `.github/workflows/**` o `.dependency-cruiser.cjs` (cualquier ruta
+3. Si tocaste `package.json`, `package-lock.json`, `.github/workflows/**`, `.dependency-cruiser.cjs`, `tsconfig.json`,
+   `vitest.shared.js`, `vitest.sequencer.js`, configs de `vite`/`vitest` o `apps/server/prisma/**` (cualquier ruta
    `shared`), o si borraste la cache (`test:tia:reset`), corre el full suite localmente (`npm run test:coverage`) antes de
-   push — CI lo hará también, pero con timeout mayor.
+   push — CI lo hará también, pero con timeout mayor. Si dudas de la selección en el PR, pide la etiqueta
+   `ci:full-suite`: fuerza la suite completa sin tocar el código.
 4. Revisa el step summary del PR cuando CI corra: el step **Resolve TIA shadow metric** muestra `N/T = %` y `scope=changed`
    o `scope=full` — si es `full`, el diff tocó una ruta compartida; si `%` es bajo y `K ficheros` es el diff esperado, la
    selección funciona como previsto.
@@ -520,6 +544,7 @@ CI cachea vía `setup-monorepo`). Está fuera de git (`.gitignore` ya lo cubre).
 | Filtro unit | Idéntico al workspace (server: `.unit.test.js`; client: `src/**/*.unit.test.{js,jsx}` + integr. de componente) | Idéntico                                                                                               |
 | cobertura   | `--coverage.changed=origin/main` + `vitest.scoped.config.js` (thresholds a 0)                                  | `--coverage.changed=origin/main` + `vitest.scoped.config.js`                                           |
 | Inyección   | Si existe `node_modules/.cache/tia/tia-history.json` local (semado por un `test:tia` previo con fallos)        | Si existe artefacto `tia-history-*` del nightly (descargado en step `Inject previously-failing tests`) |
+| Integración | `npm run test:integration:changed` (workspace; requiere PostgreSQL)                                            | `test:integration:changed` → `tia-select.mjs` + `tia-history` del nightly (misma inyección que unit)   |
 | Thresholds  | Anulados en scoped (D18) — solo full suite los evalúa                                                          | Anulados en scoped — `client-coverage`/`server-coverage` evalúan solo si `scope=full`                  |
 
 > **Nota**: `test:tia` NO está cableado al hook `.husky/pre-push` — el hook sigue ejecutando solo `test:changed` según el
