@@ -1,0 +1,55 @@
+name: Coverage Mutation Nightly
+
+# Mutation testing is expensive (one test run per mutant), so it runs nightly
+# and never per PR. Blocking is by regression against the versioned
+# `stryker-baseline.json`, not by an absolute score on the first run.
+#
+# The workflow never commits to main: the baseline can only advance through a
+# reviewed PR (required_signatures + CODEOWNERS). The proposed baseline is
+# uploaded as an artifact instead.
+
+on:
+  schedule:
+    # Daily 03:15 UTC. Offset from nightly-full-suite (02:40) so the two
+    # nightly suites do not compete for runners.
+    - cron: '15 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coverage-mutation-nightly
+  cancel-in-progress: false
+
+jobs:
+  mutation-critical-paths:
+    name: Nightly - Mutation (critical paths)
+    runs-on: ubuntu-latest
+    # 57 critical files / ~1.6k mutants with the full unit suite per mutant.
+    # The ceiling is generous on purpose; a timeout is a visible failure.
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+
+      # `continue-on-error` so the baseline step classifies the outcome:
+      # a missing report is reported as "tool did not produce results", which
+      # is distinct from a mutation-score regression (task 6.2).
+      - name: Run Stryker on critical paths
+        continue-on-error: true
+        run: npm run mutation:test
+
+      - name: Evaluate mutation baseline
+        if: always()
+        run: npm run mutation:baseline
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: mutation-report
+          path: reports/mutation/
+          retention-days: 14
+          if-no-files-found: warn
