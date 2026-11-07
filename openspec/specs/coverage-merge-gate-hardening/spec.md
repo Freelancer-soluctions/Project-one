@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change coverage-merge-gate-hardening. Update Purpose after archive.
+Endurece el veredicto del gate de cobertura fusionada: `ci-complete` SHALL fallar ante jobs cancelados y distinguir el skip esperado (PR docs-only) del inesperado, de modo que un run incompleto nunca se lea como verde. Antes de fusionar, el job de cobertura verifica que existan exactamente las M particiones esperadas y nombra las que faltan en lugar de reportar una cobertura parcial como global; el informe fusionado se conserva como artifact con retención de 14 días y los ficheros de política y baseline quedan bajo CODEOWNERS explícito para que ningún umbral se relaje sin revisión de sus dueños.
 
 ## Requirements
 

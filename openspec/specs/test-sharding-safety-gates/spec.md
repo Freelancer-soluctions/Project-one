@@ -2,7 +2,7 @@
 
 ## Purpose
 
-TBD - created by archiving change test-sharding-safety-gates. Update Purpose after archive.
+Protege la integridad de la suite cuando se reparte en shards: en CI, un `.only` olvidado SHALL hacer fallar la corrida (Playwright y Vitest) para que no reduzca la suite en silencio, mientras que en local sigue permitido como herramienta de depuración. Además fija y documenta el comando con el que un desarrollador reproduce localmente un shard concreto con el mismo subconjunto de tests que ejecuta CI, de modo que un fallo aislado por shard sea diagnosticable fuera del pipeline.
 
 ## Requirements
 
