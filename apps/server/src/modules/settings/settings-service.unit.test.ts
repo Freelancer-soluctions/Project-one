@@ -76,7 +76,7 @@ describe('settings service – delegadores (unit)', () => {
     await createOrUpdateSettingsLanguage({ id: 5, language: 'en' }, 7);
 
     expect(mockedLangDao).toHaveBeenCalledOnce();
-    const [rowId, payload, user] = mockedLangDao.mock.calls[0];
+    const [rowId, payload, user] = mockedLangDao.mock.calls[0]!;
 
     expect(rowId).toBe(5);
     expect(user).toBe(7);
@@ -91,7 +91,7 @@ describe('settings service – delegadores (unit)', () => {
     await createOrUpdateSettingsLanguage({ language: 'es' }, 7);
 
     expect(mockedLangDao).toHaveBeenCalledOnce();
-    const [rowId, payload, user] = mockedLangDao.mock.calls[0];
+    const [rowId, payload, user] = mockedLangDao.mock.calls[0]!;
 
     // `Number(undefined)` es NaN: el dao recibe el id normalizado, no undefined.
     expect(Number.isNaN(rowId)).toBe(true);
@@ -110,7 +110,7 @@ describe('settings service – delegadores (unit)', () => {
     );
 
     expect(mockedDisplayDao).toHaveBeenCalledOnce();
-    const [rowId, payload, user] = mockedDisplayDao.mock.calls[0];
+    const [rowId, payload, user] = mockedDisplayDao.mock.calls[0]!;
 
     expect(rowId).toBe(9);
     expect(user).toBe(3);
@@ -131,7 +131,7 @@ describe('settings service – delegadores (unit)', () => {
     );
 
     expect(mockedDisplayDao).toHaveBeenCalledOnce();
-    const [rowId, payload] = mockedDisplayDao.mock.calls[0];
+    const [rowId, payload] = mockedDisplayDao.mock.calls[0]!;
 
     expect(Number.isNaN(rowId)).toBe(true);
     expect(payload).toEqual({
@@ -145,7 +145,7 @@ describe('settings service – delegadores (unit)', () => {
     await updateProductCategoryById(12, { description: 'Bebidas' });
 
     expect(mockedUpdateCategoryDao).toHaveBeenCalledOnce();
-    const [updateData, where] = mockedUpdateCategoryDao.mock.calls[0];
+    const [updateData, where] = mockedUpdateCategoryDao.mock.calls[0]!;
 
     expect(updateData).toEqual({
       description: 'Bebidas',

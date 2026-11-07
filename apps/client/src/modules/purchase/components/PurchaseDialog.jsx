@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { pickDirty } from '@/utils/pickDirty';
+import { sumLineItems } from '@/utils/money';
 import {
   Dialog,
   DialogContent,
@@ -54,14 +55,6 @@ const CLEAR_FORM_VALUES = {
   userPurchaseCreated: '',
   userPurchaseUpdated: '',
 };
-
-/** Sums price × quantity across the detail rows. */
-const sumDetailsTotal = (details) =>
-  details.reduce((sum, detail) => {
-    const price = Number(detail.price) || 0;
-    const quantity = Number(detail.quantity) || 0;
-    return sum + price * quantity;
-  }, 0);
 
 /** Clears the form and closes the dialog. */
 const makeCloseHandler =
@@ -646,7 +639,7 @@ function usePurchaseDialogForm({
 
   const calculateTotal = useCallback(() => {
     if (details?.length > 0) {
-      form.setValue('total', sumDetailsTotal(details).toFixed(2).toString());
+      form.setValue('total', sumLineItems(details).toFixed(2).toString());
     }
   }, [details, form]);
 

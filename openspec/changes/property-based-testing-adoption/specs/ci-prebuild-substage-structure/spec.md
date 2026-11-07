@@ -22,6 +22,12 @@ The CI workflow file SHALL contain commented YAML headers that visually delimit 
   - `# SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog`
   - `# SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke, property-tests`
 
+#### Scenario: Metadata job is not advertised in the 2A header
+
+- **When** a developer reads the `# SUBSTAGE 2A: GOVERNANCE` header
+- **Then** `pr-title-lint` is not listed, because no such job is defined in `ci.yml`
+- **And** the reader looking for the metadata checks is pointed to `.github/workflows/pr-metadata.yml`
+
 #### Scenario: Reading substage 2C header
 
 - **When** a developer reads the `# SUBSTAGE 2C: SECURITY` header

@@ -3,8 +3,8 @@
 ## Purpose
 
 Adopt property-based testing (fast-check) en el monorepo: dependencias instaladas en los
-workspaces, properties deterministas con presupuesto de tiempo acotado, wiring CI advisory
-en STAGE 2 PRE-Build y corrección lockstep de la documentación que hoy afirma un estado
+workspaces, properties deterministas con presupuesto de tiempo acotado, wiring CI blocking
+en STAGE 2 PRE-Build (promovido 2026-10-29; ver change `pbt-hardening`) y corrección lockstep de la documentación que hoy afirma un estado
 desactualizado de la instalación.
 
 ## ADDED Requirements
@@ -115,32 +115,29 @@ for mock-heavy CRUD) SHALL be rejected in review.
 - **THEN** the error propagates to the runner (no catch-all wrapper) so the shrinker
   converges on the minimal counterexample
 
-### Requirement: Advisory CI job within the prebuild budget
+### Requirement: Blocking CI job within the prebuild budget
 
-CI SHALL run the PBT suites as an advisory job in STAGE 2 PRE-Build, defined inside the
-unit-testing substage block (SUBSTAGE 2D) with `continue-on-error: true` (FASE 1 pattern),
-the display name `Tests: Property Tests` required by the block-naming convention, a fixed
-seed, and a total wall-time budget under 1-2 minutes. The job SHALL NOT be listed in any
-job's `needs`, preserving `prebuild-unit-tests-complete`'s contract of exactly the 6
-declared needs (`test-unit-client`, `test-unit-server`, `test-integration`, `test-smoke`,
-`client-coverage`, `server-coverage`), and SHALL NOT alter any existing job's
-`continue-on-error`, TIA selection, ordering, or sharding behavior (owned by
-`ci-testing-gate-promotion`, `ci-test-impact-analysis`, `smart-test-ordering`,
-`test-sharding`).
+CI SHALL run the PBT suites as a BLOCKING job in STAGE 2 PRE-Build, defined inside the
+unit-testing substage block (SUBSTAGE 2D) WITHOUT `continue-on-error` (FASE 2 blocking,
+promoted 2026-10-29), the display name `Tests: Property Tests`, a fixed seed, and a total
+wall-time budget under 1-2 minutes. The job SHALL be listed in `prebuild-tests-complete.needs`
+as an additional member, and SHALL NOT alter any existing job's TIA selection, ordering, or
+sharding behavior (owned by `ci-testing-gate-promotion`, `ci-test-impact-analysis`,
+`smart-test-ordering`, `test-sharding`).
 
-#### Scenario: PBT job is advisory
+#### Scenario: PBT job is blocking
 
 - **WHEN** a property fails on a pull request
-- **THEN** the job reports the full counterexample log (seed/path, untruncated) but does
-  not block `prebuild-unit-tests-complete` or `ci-complete`
+- **THEN** the job reports the full counterexample log (seed/path, untruncated) and fails
+  `prebuild-tests-complete` and `ci-complete`
 
 #### Scenario: aggregator contract preserved
 
 - **WHEN** the change is applied and CI runs
-- **THEN** `prebuild-unit-tests-complete.needs` still contains exactly the 6 original job
-  ids
-- **AND** `property-tests` appears in no job's `needs` — its result reaches the PR as its
-  own advisory check, never as a seventh aggregator input
+- **THEN** `prebuild-tests-complete.needs` lists `property-tests` next to the other tier-1
+  testing jobs (`test-unit-client`, `test-unit-server`, `client-coverage`, `server-coverage`)
+- **AND** no other job's `needs` gains a new entry because of it, and the aggregator's
+  failure-propagation logic is unchanged (any member in `failure`/`cancelled` fails it)
 
 #### Scenario: budget respected
 

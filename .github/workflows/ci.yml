@@ -8,9 +8,20 @@ on:
     branches:
       - main
   merge_group: {}
+  # Override manual de TIA — task 2.1 del change `tia-enterprise-gaps`.
+  # Una corrida manual NO tiene diff de PR: `repo-discovery` resuelve todos los
+  # ámbitos a `true`, así que el pipeline corre la suite completa (nunca un
+  # verde vacío por falta de diff). `full_suite` es la señal explícita del
+  # contrato de override y la leen los steps `Resolve TIA scope`.
+  workflow_dispatch:
+    inputs:
+      full_suite:
+        description: 'Forzar suite completa (ignora la selección TIA diff-scoped)'
+        type: boolean
+        default: false
 
 concurrency:
-  group: ${{ github.event_name == 'merge_group' && format('merge-group-{0}', github.event.merge_group.head_ref) || format('pr-{0}', github.event.pull_request.number) }}
+  group: ${{ github.event_name == 'merge_group' && format('merge-group-{0}', github.event.merge_group.head_ref) || github.event_name == 'workflow_dispatch' && format('dispatch-{0}', github.run_id) || format('pr-{0}', github.event.pull_request.number) }}
   cancel-in-progress: true
 
 jobs:
@@ -19,18 +30,26 @@ jobs:
   # ═══════════════════════════════════════════════════════════════
   repo-discovery:
     name: Detect Changes
+    # `merge_group` y `workflow_dispatch` también resuelven ámbitos (task 4.2 del
+    # change `tia-enterprise-gaps`): sin esta cláusula el job quedaba saltado en la
+    # merge queue y los jobs de test heredaban el skip.
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
-      client: ${{ steps.filter.outputs.client }}
-      server: ${{ steps.filter.outputs.server }}
-      e2e: ${{ steps.filter.outputs.e2e }}
-      shared: ${{ steps.filter.outputs.shared }}
+      client: ${{ steps.scope.outputs.client }}
+      server: ${{ steps.scope.outputs.server }}
+      e2e: ${{ steps.scope.outputs.e2e }}
+      shared: ${{ steps.scope.outputs.shared }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
       # NOTE: app-token step removed — unused; paths-filter uses default GITHUB_TOKEN
+      # El filtro de rutas SOLO tiene sentido con un diff de PR: en `merge_group`
+      # no hay `pull_request.base.sha` y en `workflow_dispatch` no hay diff alguno.
+      # El step `Resolve change detection` de abajo cubre esos dos eventos.
       - uses: dorny/paths-filter@v4
         id: filter
+        if: github.event_name == 'pull_request'
         with:
           filters: |
             client:
@@ -53,6 +72,50 @@ jobs:
               - '.dependency-cruiser.cjs'
               - 'apps/client/.dependency-cruiser.cjs'
               - 'apps/server/.dependency-cruiser.cjs'
+              # Fallback transversal — task 1.1 del change `tia-enterprise-gaps`.
+              # Un diff MIXTO (p. ej. `src/**` + `prisma/schema.prisma`) no
+              # marcaba `shared`, así que la selección TIA del workspace ignoraba
+              # que el cambio afecta a TODOS los tests (schema/migraciones,
+              # configs globales de Vite/Vitest, setup files y tsconfig raíz).
+              - 'tsconfig.json'
+              - 'vitest.shared.js'
+              - 'vitest.sequencer.js'
+              - 'apps/client/vite*'
+              - 'apps/client/vitest*'
+              - 'apps/server/vitest*'
+              - 'apps/server/tsconfig.json'
+              - 'apps/**/setup*'
+              - 'apps/server/prisma/**'
+      # Resolver del contrato de outputs — task 4.2 del change
+      # `tia-enterprise-gaps`. En `pull_request` propaga el filtro de rutas (el
+      # path-scoping de PRs legítimos no cambia). En `merge_group` y
+      # `workflow_dispatch` no existe diff de PR: TODOS los ámbitos se resuelven
+      # `true` para que la suite completa corra antes de integrar.
+      - name: Resolve change detection
+        id: scope
+        env:
+          FILTER_CLIENT: ${{ steps.filter.outputs.client }}
+          FILTER_SERVER: ${{ steps.filter.outputs.server }}
+          FILTER_E2E: ${{ steps.filter.outputs.e2e }}
+          FILTER_SHARED: ${{ steps.filter.outputs.shared }}
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            {
+              echo "client=true"
+              echo "server=true"
+              echo "e2e=true"
+              echo "shared=true"
+            } >> "$GITHUB_OUTPUT"
+            echo "::notice::event '${{ github.event_name }}' has no PR diff — every workspace is treated as changed (full suite)."
+            exit 0
+          fi
+          {
+            echo "client=${FILTER_CLIENT:-false}"
+            echo "server=${FILTER_SERVER:-false}"
+            echo "e2e=${FILTER_E2E:-false}"
+            echo "shared=${FILTER_SHARED:-false}"
+          } >> "$GITHUB_OUTPUT"
+        shell: bash
 
   # ═══════════════════════════════════════════════════════════════
   # STAGE 1: PRE-COMMIT HOOKS (local — skippable via --no-verify) [SL]
@@ -471,7 +534,10 @@ jobs:
     # `continue-on-error`, un fallo propaga a `prebuild-tests-complete`. Con el COE de
     # FASE 1 el veredicto se absorbía a nivel job — `needs.*.result` reportaba
     # `success` aunque el job fallara (actions/toolkit#581).
-    if: (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    # Merge queue y workflow_dispatch también ejecutan — task 4.2 del change
+    # `tia-enterprise-gaps`: la cláusula `pull_request` original permitía integrar
+    # sin tests. El path-scoping legítimo de PRs se conserva (mismos outputs).
+    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
     name: 'Tests: Unit - Client'
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -496,10 +562,23 @@ jobs:
       # (fallback a suite completa: nunca "0 tests afectados" en silencio).
       - name: Resolve TIA scope (diff-scoped vs full suite)
         id: tia
+        # Override manual — task 2.2 del change `tia-enterprise-gaps`: etiqueta
+        # `ci:full-suite` en el PR o input `full_suite` de `workflow_dispatch`.
+        # En `merge_group` no existe `github.event.pull_request`, así que el label
+        # evalúa `false`; ese carril fuerza `scope=full` de forma incondicional.
+        env:
+          FULL_SUITE_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'ci:full-suite') }}
+          FULL_SUITE_INPUT: ${{ inputs.full_suite || false }}
         run: |
-          if [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+          if [ "$FULL_SUITE_LABEL" = "true" ] || [ "$FULL_SUITE_INPUT" = "true" ]; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
-            echo "::notice::shared path changed (root manifest, lockfile or workflows) — running the FULL client suite."
+            echo "::notice::manual override (label ci:full-suite / input full_suite) — running the FULL client suite."
+          elif [ "${{ github.event_name }}" = "merge_group" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::merge queue — running the FULL client suite before integration."
+          elif [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::shared path changed (root manifest, lockfile, workflows or global configs) — running the FULL client suite."
           elif git rev-parse --verify --quiet origin/main > /dev/null; then
             echo "scope=changed" >> "$GITHUB_OUTPUT"
             echo "::notice::origin/main resolved — running the diff-scoped client suite."
@@ -769,7 +848,10 @@ jobs:
     # Sin `continue-on-error`, un fallo propaga a `prebuild-tests-complete` (con el COE
     # de FASE 1, `needs.*.result` reportaba `success` aunque el job fallara,
     # actions/toolkit#581).
-    if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    # Merge queue y workflow_dispatch también ejecutan — task 4.2 del change
+    # `tia-enterprise-gaps`: la cláusula `pull_request` original permitía integrar
+    # sin tests. El path-scoping legítimo de PRs se conserva (mismos outputs).
+    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     name: 'Tests: Unit - Server'
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -793,10 +875,22 @@ jobs:
       # o si la base no es resoluble (fallback ruidoso, nunca "0 tests afectados").
       - name: Resolve TIA scope (diff-scoped vs full suite)
         id: tia
+        # Override manual — task 2.2 del change `tia-enterprise-gaps` (espejo del
+        # job client). En `merge_group` el label evalúa `false`: la rama de merge
+        # queue fuerza `scope=full` abajo.
+        env:
+          FULL_SUITE_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'ci:full-suite') }}
+          FULL_SUITE_INPUT: ${{ inputs.full_suite || false }}
         run: |
-          if [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+          if [ "$FULL_SUITE_LABEL" = "true" ] || [ "$FULL_SUITE_INPUT" = "true" ]; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
-            echo "::notice::shared path changed (root manifest, lockfile or workflows) — running the FULL server suite."
+            echo "::notice::manual override (label ci:full-suite / input full_suite) — running the FULL server suite."
+          elif [ "${{ github.event_name }}" = "merge_group" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::merge queue — running the FULL server suite before integration."
+          elif [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::shared path changed (root manifest, lockfile, workflows or global configs) — running the FULL server suite."
           elif git rev-parse --verify --quiet origin/main > /dev/null; then
             echo "scope=changed" >> "$GITHUB_OUTPUT"
             echo "::notice::origin/main resolved — running the diff-scoped server suite."
@@ -1103,6 +1197,14 @@ jobs:
       - name: Merge shard reports (vitest --merge-reports --coverage)
         working-directory: apps/client
         run: npx vitest --merge-reports --coverage
+      - name: Upload merged coverage (client)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-merged-client
+          path: apps/client/coverage/
+          retention-days: 14
+          if-no-files-found: warn
       # D18: el tripwire de thresholds SOLO evalúa cobertura de suite completa.
       # Una corrida TIA solo carga los tests afectados, así que sus totales no son
       # comparables con los thresholds globales (falso fail al reportar 0% en lo no
@@ -1120,10 +1222,12 @@ jobs:
           fi
           if [ "${SCOPE}" != "full" ]; then
             echo "::notice::diff-scoped run: thresholds deferred to the next full-suite run (D18) — reporting diff-limited coverage as advisory."
-            node scripts/ci/check-coverage.mjs apps/client --advisory
+            node scripts/ci/check-coverage.mjs apps/client --type unit --advisory
             exit 0
           fi
-          node scripts/ci/check-coverage.mjs apps/client
+          node scripts/ci/check-coverage.mjs apps/client --type unit
+      - name: Diff coverage (client)
+        run: node scripts/ci/diff-coverage.mjs 80 apps/client/coverage/coverage-summary.json
       # Propagación de fallo de shards — change `coverage-merge-gate` (D7). Un verde
       # parcial que oculta shards rojas no es aceptable. Va DESPUÉS del D18 para que la
       # evaluación de cobertura siga siendo visible en el log cuando una shard falla;
@@ -1189,6 +1293,14 @@ jobs:
       - name: Merge shard reports (vitest --merge-reports --coverage)
         working-directory: apps/server
         run: npx vitest --merge-reports --coverage
+      - name: Upload merged coverage (server)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-merged-server
+          path: apps/server/coverage/
+          retention-days: 14
+          if-no-files-found: warn
       # D18: el guard de thresholds solo evalúa cobertura de suite completa; en
       # corridas diff-scoped (TIA) se verifica la presencia del artefacto y se
       # difiere el umbral a la próxima full-suite.
@@ -1203,10 +1315,12 @@ jobs:
           fi
           if [ "${SCOPE}" != "full" ]; then
             echo "::notice::diff-scoped run: thresholds deferred to the next full-suite run (D18) — reporting diff-limited coverage as advisory."
-            node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage --advisory
+            node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage --type unit --advisory
             exit 0
           fi
-          node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
+          node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage --type unit
+      - name: Diff coverage (server)
+        run: node scripts/ci/diff-coverage.mjs 80 apps/server/tests/coverage/coverage-summary.json
       # Propagación de fallo de shards — change `coverage-merge-gate` (D7), tras el D18
       # para no esconder la evaluación de cobertura. ACTIVO desde 2026-10-29:
       # `test-unit-server` ya NO tiene `continue-on-error` (task 3.1 del change
@@ -1221,7 +1335,9 @@ jobs:
   property-tests:
     # BLOCKING desde 2026-10-29 (task 3.1 del change `ci-testing-gate-promotion`): sin
     # `continue-on-error`, un fallo propaga a `prebuild-tests-complete`.
-    if: (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    # Merge queue y workflow_dispatch también ejecutan (task 4.2 de
+    # `tia-enterprise-gaps`); el path-scoping de PRs se conserva.
+    if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     name: 'Tests: Property Tests'
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -1235,10 +1351,68 @@ jobs:
         run: npm run test:pbt
         env:
           CI: true
+      # G2 (change `pbt-hardening`, tarea 6.1): un fallo de fast-check es
+      # reproducible sólo si ves seed + path + contraejemplo. El reporter json
+      # los lleva en `failureMessages`; este step los publica en el summary del
+      # run para no depender de leer el log completo. Sale 0 siempre: el veredicto
+      # del job ya lo fijó el step anterior.
+      - name: Publish property failures to job summary
+        if: failure()
+        run: node scripts/ci/pbt-failure-summary.mjs apps/client/reports/vitest-results.json apps/server/reports/vitest-results.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload property test results
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pbt-results
+          path: '**/reports/vitest-results.json'
+          retention-days: 14
+          if-no-files-found: warn
 
   # Baseline ratchet and canonical-doc validation are independent of test
   # selection. Every PR rejects unaudited floor decreases and documentation
   # drift; existing continue-on-error policy is unchanged.
+
+  # ═══════════════════════════════════════════════════════════════
+  # PREBUILD: snapshot hygiene (change `snapshot-gates`)
+  # ═══════════════════════════════════════════════════════════════
+  # G2 — grep gate de update flags. Higiene de REPO: escanea los scripts npm
+  # de todos los workspaces y los steps `run:` de TODOS los workflows, así que
+  # corre sin filtro de cliente. SIN `continue-on-error`: su rojo propaga a
+  # `prebuild-tests-complete`. Sin `setup-monorepo` a propósito: el gate es un
+  # scan de texto local (sin red ni instalación), como exige el requirement
+  # «pure local text scan (no network, no test execution)».
+  snapshot-update-gate:
+    name: 'Prebuild: Snapshot Update Gate'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Reject update flags in CI-consumed scripts and workflow steps
+        run: node scripts/ci/snapshot-update-gate.mjs
+
+  # G4 + G5 — tamaño (`vitest/no-large-snapshots`) y huérfanos, PROMOVIDO a
+  # blocking (definitivo, sin ventana advisory): sin `continue-on-error`; su rojo
+  # propaga a `prebuild-tests-complete`. Path-scoped a PRs de cliente (mismo
+  # `if` que `client-dead-code`). El inline (`*.ui.test.jsx`) se bloquea además
+  # vía `client-lint` (regla en `error`).
+  client-snapshot-size:
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
+    name: 'Prebuild: Client Snapshot Size'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Check snapshot size
+        run: npm run snapshot:size-check
+      - name: Check snapshot orphans
+        if: success() || failure()
+        run: npm run snapshot:orphan-check
+
   coverage-floor-guard:
     name: 'Quality: Coverage Floor Guard'
     if: github.event_name == 'pull_request'
@@ -1251,13 +1425,20 @@ jobs:
         run: npm run coverage:baseline:check
       - name: Verify canonical coverage documentation
         run: npm run coverage:docs:verify
+      # Blocking exclusion budget: growth in `coverage.exclude` or ignore
+      # markers needs an auditable exception in the versioned baseline.
+      - name: Check exclusion budget
+        run: npm run coverage:exclusions:check
 
   # Full-suite coverage is evaluated independently of TIA, so partial reports
   # remain advisory under D18 while every PR gets one blocking full-suite
   # verdict from the same guard used by `npm run coverage:check`.
   coverage-full-gate:
     name: 'Quality: Coverage Full Gate'
-    if: github.event_name == 'pull_request'
+    # La condición original era `pull_request` como ÚNICA cláusula (task 4.2 de
+    # `tia-enterprise-gaps`): se reformula para cubrir también la merge queue, de
+    # modo que el veredicto de floors exista antes de integrar.
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -1270,9 +1451,9 @@ jobs:
       - name: Run Server full unit suite with coverage
         run: npm run test:coverage:unit:ci --workspace=apps/server
       - name: Enforce Client full-suite coverage floors
-        run: node scripts/ci/check-coverage.mjs apps/client apps/client/coverage
+        run: node scripts/ci/check-coverage.mjs apps/client apps/client/coverage --type unit
       - name: Enforce Server full-suite coverage floors
-        run: node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
+        run: node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage --type unit
 
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog
@@ -2144,12 +2325,20 @@ jobs:
   # (contrato "in the workspace CI script" de ci-test-reporting relajado aquí: el `--` de npm
   # los añade a un script existente; moverlos a scripts `*:ci` nuevos duplicaría configuración).
   test-integration:
-    if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    # Merge queue y workflow_dispatch también ejecutan — task 4.2 del change
+    # `tia-enterprise-gaps`: la cláusula `pull_request` original permitía integrar
+    # sin tests. El path-scoping legítimo de PRs se conserva (mismos outputs).
+    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     name: 'Tests: Integration - Server'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
+      # `actions: read` — task 3.1 de `tia-enterprise-gaps`: el job descarga el
+      # artefacto `tia-history-server` de OTRO run (inyección de tests fallidos).
+      # Sin este scope el `gh run download` falla y la inyección sería un no-op
+      # silencioso, justo el gap que este change cierra.
+      actions: read
       contents: read
       checks: write
     services:
@@ -2187,10 +2376,22 @@ jobs:
       # Verificación runtime PENDING-CI: requiere el service container PostgreSQL.
       - name: Resolve TIA scope (diff-scoped vs full suite)
         id: tia
+        # Override manual — task 2.2 del change `tia-enterprise-gaps` (mismo
+        # contrato que los jobs unit). En `merge_group` el label evalúa `false`:
+        # la merge queue fuerza `scope=full` incondicionalmente abajo.
+        env:
+          FULL_SUITE_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'ci:full-suite') }}
+          FULL_SUITE_INPUT: ${{ inputs.full_suite || false }}
         run: |
-          if [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+          if [ "$FULL_SUITE_LABEL" = "true" ] || [ "$FULL_SUITE_INPUT" = "true" ]; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
-            echo "::notice::shared path changed (root manifest, lockfile or workflows) — running the FULL integration suite."
+            echo "::notice::manual override (label ci:full-suite / input full_suite) — running the FULL integration suite."
+          elif [ "${{ github.event_name }}" = "merge_group" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::merge queue — running the FULL integration suite before integration."
+          elif [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+            echo "::notice::shared path changed (root manifest, lockfile, workflows or global configs) — running the FULL integration suite."
           elif ! git rev-parse --verify --quiet origin/main > /dev/null; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
             echo "::warning::origin/main is NOT resolvable in this checkout; falling back to the FULL integration suite (never reporting '0 affected tests')."
@@ -2210,6 +2411,34 @@ jobs:
               echo "::warning::the diff touches no integration test file; running the FULL integration suite (never reporting '0 affected tests')."
             fi
           fi
+        shell: bash
+      # Inyección de tests previamente fallidos — task 3.1 del change
+      # `tia-enterprise-gaps` (paridad con los jobs unit). Descarga el artefacto
+      # `tia-history-server` del nightly más reciente y lo deja en
+      # `apps/server/reports/tia-history.json`, que `tia-select.mjs` lee en su
+      # fase 1b (lo invoca `test:integration:changed`). Best-effort: sin
+      # artefacto o sin `gh` disponible es un no-op con aviso, nunca un fallo.
+      - name: Inject previously-failing tests
+        if: always()
+        id: inject
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p apps/server/reports
+          INJECTED=0
+          if gh api repos/${{ github.repository }}/actions/workflows/nightly-full-suite.yml/runs --jq '.workflow_runs[0].id' > /dev/null 2>&1; then
+            RUN_ID=$(gh api repos/${{ github.repository }}/actions/workflows/nightly-full-suite.yml/runs --jq '.workflow_runs[0].id')
+            if gh run download "$RUN_ID" -n tia-history-server -d /tmp/tia-history-integration --dir > /dev/null 2>&1 && [ -f /tmp/tia-history-integration/tia-history.json ]; then
+              cp /tmp/tia-history-integration/tia-history.json apps/server/reports/tia-history.json
+              INJECTED=$(node scripts/ci/tia-history.mjs apps/server --inject | wc -l | tr -d ' ')
+              echo "::notice::tia-history: injected $INJECTED previously-failing server file(s) from nightly run $RUN_ID."
+            else
+              echo "::notice::tia-history: no matching server history artifact found — integration injection is a no-op."
+            fi
+          else
+            echo "::notice::tia-history: github CLI not available or no nightly runs — integration injection is a no-op."
+          fi
+          echo "injected=$INJECTED" >> "$GITHUB_OUTPUT"
         shell: bash
       # Seeding is handled by vitest globalSetup (tests/setupGlobal.js)
       # which loads .env.test and spawns prisma/seed.js before tests run.
@@ -2242,6 +2471,28 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
           NODE_ENV: test
         shell: bash
+      # Historial de tests fallidos — task 3.1 del change `tia-enterprise-gaps`.
+      # Cierra el bucle de la lane de integración: sus fallos se registran con el
+      # mismo contrato (`reports/vitest-results.json` → tia-history.json) que los
+      # jobs unit, en vez de perderse con el runner.
+      # El artefacto NO reusa el nombre `tia-history-server`: `upload-artifact@v4+`
+      # es inmutable por run y `test-unit-server` ya sube ese nombre (un segundo
+      # upload con el mismo nombre falla el job).
+      - name: Record TIA history
+        if: always()
+        run: |
+          mkdir -p apps/server/reports
+          node scripts/ci/tia-history.mjs apps/server --record --out apps/server/reports/tia-history.json || true
+        shell: bash
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tia-history-server-integration
+          path: apps/server/reports/tia-history.json
+          retention-days: 30
+          if-no-files-found: warn
+
       - name: Report Integration Tests
         if: success() || failure()
         uses: dorny/test-reporter@v3
@@ -2251,7 +2502,10 @@ jobs:
           reporter: java-junit
 
   test-smoke:
-    if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && github.event_name == 'pull_request'
+    # Merge queue y workflow_dispatch también ejecutan — task 4.2 del change
+    # `tia-enterprise-gaps`: la cláusula `pull_request` original permitía integrar
+    # sin tests. El path-scoping legítimo de PRs se conserva (mismos outputs).
+    if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
     name: 'Tests: Smoke - Server'
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -2587,50 +2841,6 @@ jobs:
           fi
           echo "✅ Security substage succeeded or was skipped"
 
-  # ═══════════════════════════════════════════════════════════════
-  # QUALITY: snapshot hygiene (change `snapshot-gates`)
-  # ═══════════════════════════════════════════════════════════════
-  # G2 — grep gate de update flags. Higiene de REPO: escanea los scripts npm
-  # de todos los workspaces y los steps `run:` de TODOS los workflows, así que
-  # corre sin filtro de cliente. SIN `continue-on-error`: su rojo propaga a
-  # `prebuild-tests-complete`. Sin `setup-monorepo` a propósito: el gate es un
-  # scan de texto local (sin red ni instalación), como exige el requirement
-  # «pure local text scan (no network, no test execution)».
-  snapshot-update-gate:
-    name: 'Quality: Snapshot Update Gate'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v5
-      - name: Reject update flags in CI-consumed scripts and workflow steps
-        run: node scripts/ci/snapshot-update-gate.mjs
-
-  # G4 + G5 — tamaño (`vitest/no-large-snapshots`) y huérfanos, advisory FASE 1.
-  # Path-scoped a PRs de cliente (mismo `if` que `client-dead-code`) y
-  # `continue-on-error: true` a NIVEL JOB: reporta findings sin teñir
-  # `prebuild-tests-complete`. FUERA de todos los `needs` (precedente
-  # `docs-validation`/`lockfile-audit`). La promoción es el PR atómico de D8.
-  client-snapshot-size:
-    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client Snapshot Size (advisory, FASE 1)'
-    needs: repo-discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: ./.github/actions/setup-monorepo
-      - name: Check snapshot size (advisory)
-        run: npm run snapshot:size-check
-      - name: Check snapshot orphans (advisory)
-        # `success() || failure()`: el segundo veredicto queda en el log aunque
-        # el size-check falle; el job sigue siendo advisory por su COE.
-        if: success() || failure()
-        run: npm run snapshot:orphan-check
-
   # Renamed by change `ci-stage-aggregator-topology` (D9): the aggregator carries the whole tier-1
   # testing surface, not only unit tests, so the `unit` wording became false and the id now mirrors
   # `postbuild-tests-complete`.
@@ -2650,9 +2860,11 @@ jobs:
       # cause registered (design D9).
       - property-tests
       # `snapshot-update-gate` (change `snapshot-gates`, G2) es el 6.º miembro: higiene de repo,
-      # SIN `continue-on-error`, así que un gate rojo también falla este agregador. El job
-      # advisory de tamaño/huérfanos (`client-snapshot-size`) NO es miembro a propósito.
+      # SIN `continue-on-error`, así que un gate rojo también falla este agregador.
       - snapshot-update-gate
+      # `client-snapshot-size` (G4+G5, promovido a blocking): tamaño/orphan de snapshots
+      # de cliente. Path-scoped (skipped fuera de PRs de cliente, tolerado por el agregador).
+      - client-snapshot-size
       # Coverage baseline integrity and full-suite floors are independent blocking
       # members; neither changes the existing TIA/advisory coverage lane.
       - coverage-floor-guard
@@ -2772,8 +2984,8 @@ jobs:
             exit 1
           fi
           if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "⚠️ One or more upstream jobs were cancelled — skipping ci-complete"
-            exit 0
+            echo "❌ One or more upstream jobs were cancelled"
+            exit 1
           fi
           echo "✅ All upstream jobs succeeded or were skipped"
 

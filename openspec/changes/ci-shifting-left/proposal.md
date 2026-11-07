@@ -41,6 +41,11 @@ El proyecto ya tiene una base sólida de shifting left (Husky pre-commit con Sem
 
 ## Capabilities
 
+> **Contexto adicional:** Property-Based Testing (fast-check) ya se ejecuta como gate blocking en
+> STAGE 2 PRE-BUILD (`property-tests` job, change `property-based-testing-adoption`, promovido
+> 2026-10-29). No es parte del alcance de este change, pero es una validación temprana (shifting
+> left) que se ejecuta antes del build. Ver `docs/CONTEXT-CICD.md` §11.1.
+
 ### New Capabilities
 
 - `workflow-linting`: validación estática de workflows GitHub Actions con actionlint + yamllint en pre-commit y CI (catch de sintaxis inválida, expresiones `${{ }}` malformadas, permisos, shells, antes de que el workflow falle en runtime)

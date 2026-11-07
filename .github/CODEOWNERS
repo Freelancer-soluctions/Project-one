@@ -27,3 +27,5 @@ docs/learning/              @Freelancer-soluctions/core-team
 scripts/ci/               @Freelancer-soluctions/devops-team
 apps/*/vitest.config.*    @Freelancer-soluctions/devops-team
 scripts/ci/check-coverage.mjs @Freelancer-soluctions/devops-team
+.coverage-policy.json @Freelancer-soluctions/devops-team
+.coverage-baseline.json @Freelancer-soluctions/devops-team

@@ -171,6 +171,67 @@ sin entrada de política.
 > workspace con `/`. Sin esa normalización los globs no casarían en Windows y la granularidad sería verde en Linux y
 > vacía en Windows: el peor fallo posible para un gate, porque parece funcionar.
 
+### 3.4 Objetivo aspiracional vs piso enforced
+
+El piso es el único valor que decide el veredicto. El **objetivo** (`.coverage-policy.json`) es la meta
+aspiracional por workspace y métrica: se muestra en la salida del guard, en los summaries de CI y en este documento,
+pero nunca se aplica. Una corrida entre piso y objetivo sigue verde; lo único que falla es un objetivo **por debajo**
+del piso, que es un error de configuración (fail-closed).
+
+Objetivos declarados hoy (el guard valida `objetivo >= piso` en cada métrica):
+
+| Workspace | Objetivo (statements / branches / functions / lines) |
+| --------- | ---------------------------------------------------- |
+| client    | 80 / 70 / 75 / 80                                    |
+| server    | 75 / 75 / 75 / 75                                    |
+
+El objetivo no vive bajo `coverage.thresholds` a propósito: Vitest interpreta cualquier clave no-métrica de ese bloque
+como un glob y la enforcería. La separación física es lo que hace que "display-only" sea verificable en vez de una
+convención. El guard publica una tabla medido/piso/objetivo en el step summary de CI cuando `GITHUB_STEP_SUMMARY`
+está disponible.
+
+### 3.5 Thresholds por tipo (unit vs integration)
+
+El guard acepta `--type unit|integration` y evalúa **un solo** conjunto de pisos:
+
+- `unit` usa el bloque `thresholds.<workspace>.unit` del policy si existe; si no, cae al `coverage.thresholds` plano
+  (compatibilidad hacia atrás).
+- `integration` exige un bloque `thresholds.<workspace>.integration` declarado. Sin él, el guard falla cerrado en vez
+  de comparar una corrida de integración contra pisos de unit.
+
+Cada punto de enforcement declara su tipo: `coverage-full-gate`, los jobs de coverage de `ci.yml`, el nocturno y
+`npm run coverage:check` pasan `--type unit`. El veredicto nombra el tipo evaluado (`Coverage guard: server (unit)`).
+
+### 3.6 Presupuesto de exclusiones
+
+`scripts/ci/coverage-exclusion-budget.mjs` cuenta dos escotillas de escape: las entradas de `coverage.exclude` y los
+marcadores `/* istanbul | c8 | v8 ignore */` del código. Ambos se comparan contra
+`.coverage-exclusion-baseline.json`; crecer sin una excepción auditable (`reason`, `owner`, `date`) falla el job
+`coverage-floor-guard`. `--advisory` reporta el crecimiento sin fallar durante la calibración, y
+`npm run coverage:exclusions:init` vuelve a registrar el baseline real.
+
+### 3.7 Mutation testing (Stryker) — nocturno
+
+La cobertura mide ejecución, no fuerza de las aserciones. Stryker (`@stryker-mutator/core` + runner de Vitest) muta
+los ficheros declarados en `.coverage-critical-paths.json` y corre la suite unitaria del server contra cada mutante.
+
+- **Cadencia:** `coverage-mutation-nightly.yml` (diario 03:15 UTC), nunca por PR por coste.
+- **Bloqueo:** regresión contra `stryker-baseline.json`, no un score absoluto en la primera corrida. Baseline ausente
+  o `unrecorded` → propone baseline y sale 0; baseline corrupto → falla con veredicto distinto; reporte ausente →
+  falla como _tool failure_, nunca como regresión.
+- **Trazabilidad:** los mutantes supervivientes se listan por fichero, ubicación y operador en el step summary y en el
+  artifact `mutation-report`.
+- **Reproducción local:** `npm run mutation:test`; el baseline propuesto se revisa en un PR, nunca se commitea directo
+  a `main` desde el workflow.
+
+### 3.8 Ratchet mensual por PR
+
+`coverage-ratchet-monthly.yml` (día 1, 04:00 UTC) mide la suite completa y propone subidas de los pisos globales por
+métrica y workspace. **No usa `autoUpdate`**: el script reescribe solo las líneas numéricas globales, avanza el
+baseline versionado a los mismos valores y el workflow abre/actualiza un PR firmado con el token de GitHub App
+(`sign-commits`), que sigue pasando `coverage-floor-guard`. Si ningún piso puede subir, no hay diff y no se abre PR.
+Los pisos por glob siguen siendo responsabilidad de `npm run coverage:ratchet` local.
+
 ---
 
 ## 4. Tensión con TIA (Test Impact Analysis): La Regla del Subset
@@ -470,25 +531,29 @@ coverage-merge-gate:
 
 ## 8. Checklist de Implementación
 
-| #   | Task                                      | Estado | Archivo                                                 |
-| --- | ----------------------------------------- | ------ | ------------------------------------------------------- |
-| 1   | Instalar `@vitest/coverage-v8`            | ✅     | `package.json`                                          |
-| 2   | Configurar `coverage.provider: 'v8'`      | ✅     | `vitest.shared.js`                                      |
-| 3   | Configurar `coverage.thresholds` (floor)  | ✅     | `apps/*/vitest.config.js`                               |
-| 4   | Configurar `coverage.include` explícito   | ✅     | `vitest.config.js` (Vitest 4 eliminó `coverage.all`)    |
-| 5   | `autoUpdate: false` en CI                 | ✅     | thresholds config                                       |
-| 6   | Guard ejecutable `check-coverage.mjs`     | ✅     | `scripts/ci/check-coverage.mjs`                         |
-| 7   | Gate CI de suite completa + baseline      | ✅     | `ci.yml` (`coverage-full-gate`, `coverage-floor-guard`) |
-| 8   | TIA y coverage en jobs separados          | ✅     | `ci.yml`                                                |
-| 9   | Upload coverage artifact (`if: always()`) | ✅     | `ci.yml`                                                |
-| 10  | Nightly full suite (red de seguridad)     | ✅     | `nightly-full-suite.yml`                                |
-| 11  | `perFile` + glob thresholds               | ✅     | `apps/*/vitest.config.js` + guard (§3.3)                |
-| 12  | Tier local `coverage:check` (paridad CI)  | ✅     | `scripts/ci/coverage-check.mjs`                         |
-| 13  | Ratchet local `coverage:ratchet`          | ✅     | `scripts/ci/coverage-ratchet.mjs`                       |
-| 14  | Config en forma reescribible por magicast | ✅     | `mergeConfig(shared, defineConfig({...}))` (§5.7)       |
-| 15  | SonarQube quality gate (new-code ≥80%)    | ❌     | `if: false`, sin `SONAR_TOKEN`                          |
-| 16  | Coverage merge gate (sharding)            | ❌     | N/A (sin sharding; suites de 6-14s)                     |
-| 17  | Codecov/coveralls integration             | ❌     | N/A                                                     |
+| #   | Task                                      | Estado | Archivo                                                  |
+| --- | ----------------------------------------- | ------ | -------------------------------------------------------- |
+| 1   | Instalar `@vitest/coverage-v8`            | ✅     | `package.json`                                           |
+| 2   | Configurar `coverage.provider: 'v8'`      | ✅     | `vitest.shared.js`                                       |
+| 3   | Configurar `coverage.thresholds` (floor)  | ✅     | `apps/*/vitest.config.js`                                |
+| 4   | Configurar `coverage.include` explícito   | ✅     | `vitest.config.js` (Vitest 4 eliminó `coverage.all`)     |
+| 5   | `autoUpdate: false` en CI                 | ✅     | thresholds config                                        |
+| 6   | Guard ejecutable `check-coverage.mjs`     | ✅     | `scripts/ci/check-coverage.mjs`                          |
+| 7   | Gate CI de suite completa + baseline      | ✅     | `ci.yml` (`coverage-full-gate`, `coverage-floor-guard`)  |
+| 8   | TIA y coverage en jobs separados          | ✅     | `ci.yml`                                                 |
+| 9   | Upload coverage artifact (`if: always()`) | ✅     | `ci.yml`                                                 |
+| 10  | Nightly full suite (red de seguridad)     | ✅     | `nightly-full-suite.yml`                                 |
+| 11  | `perFile` + glob thresholds               | ✅     | `apps/*/vitest.config.js` + guard (§3.3)                 |
+| 12  | Tier local `coverage:check` (paridad CI)  | ✅     | `scripts/ci/coverage-check.mjs`                          |
+| 13  | Ratchet local `coverage:ratchet`          | ✅     | `scripts/ci/coverage-ratchet.mjs`                        |
+| 14  | Config en forma reescribible por magicast | ✅     | `mergeConfig(shared, defineConfig({...}))` (§5.7)        |
+| 15  | SonarQube quality gate (new-code ≥80%)    | ❌     | `if: false`, sin `SONAR_TOKEN`                           |
+| 16  | Coverage merge gate (sharding)            | ❌     | N/A (sin sharding; suites de 6-14s)                      |
+| 17  | Codecov/coveralls integration             | ❌     | N/A                                                      |
+| 18  | Objetivo display-only + `--type`          | ✅     | `.coverage-policy.json`, `check-coverage.mjs` (§3.4/3.5) |
+| 19  | Presupuesto de exclusiones versionado     | ✅     | `scripts/ci/coverage-exclusion-budget.mjs` (§3.6)        |
+| 20  | Mutation testing nocturno (Stryker)       | ✅     | `stryker.config.mjs`, `coverage-mutation-nightly.yml`    |
+| 21  | Ratchet mensual por PR (sin autoUpdate)   | ✅     | `coverage-ratchet-monthly.yml` (§3.8)                    |
 
 > **Nota de estado:** el lane TIA mantiene su veredicto advisory para reportes parciales; el gate independiente de suite
 > completa y el baseline ratchet son bloqueantes mediante `prebuild-tests-complete`. No se alteró ningún
@@ -538,3 +603,6 @@ coverage-merge-gate:
 | **New-code coverage**          | Métrica de SonarQube sobre código nuevo/modificado; el quality gate autoritativo                |
 | **Blob reporter**              | Formato de reporte que guarda resultados por shard para merge posterior                         |
 | **passWithNoTests**            | Default de Vitest 4: exit 0 aunque no haya tests; **requiere guard** para diferir a full suite  |
+| **Objective**                  | Meta aspiracional display-only; se reporta pero nunca decide el veredicto                       |
+| **Mutation score**             | Porcentaje de mutantes detectados por la suite; mide fuerza de aserciones, no ejecución         |
+| **Exclusion budget**           | Baseline versionado de `coverage.exclude` + marcadores ignore; crecer sin excepción falla       |

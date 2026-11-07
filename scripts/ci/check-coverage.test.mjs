@@ -253,3 +253,161 @@ describe('critical-path coverage evaluation', () => {
     ]);
   });
 });
+
+describe('coverage policy: objective and per-type thresholds', () => {
+  function makePolicy(ws, policy) {
+    const policyPath = path.join(ws, 'policy.json');
+    fs.writeFileSync(policyPath, JSON.stringify(policy));
+    return policyPath;
+  }
+
+  const HIGH_FLAT = `export default { test: { coverage: { thresholds: {
+  statements: 90, branches: 90, functions: 90, lines: 90
+} } } };\n`;
+
+  it('falls back to flat thresholds for unit and names the type', () => {
+    const { ws, covDir } = makeWs(summaryWith(50), HIGH_FLAT);
+    const policy = makePolicy(ws, {
+      version: 1,
+      objectives: {},
+      thresholds: {},
+    });
+    const result = run(ws, covDir, ['--policy', policy]);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain('Test type: unit (flat, flat fallback)');
+    expect(result.stdout).toContain('(unit)');
+  });
+
+  it('evaluates the declared unit threshold set instead of flat thresholds', () => {
+    const { ws, covDir } = makeWs(summaryWith(50), HIGH_FLAT);
+    const policy = makePolicy(ws, {
+      version: 1,
+      objectives: {},
+      thresholds: {
+        [path.basename(ws)]: {
+          unit: { statements: 40, branches: 40, functions: 40, lines: 40 },
+        },
+      },
+    });
+    const result = run(ws, covDir, ['--policy', policy, '--type', 'unit']);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('Test type: unit (policy:unit)');
+  });
+
+  it('refuses to evaluate integration without a declared integration set', () => {
+    const { ws, covDir } = makeWs(summaryWith(50), HIGH_FLAT);
+    const policy = makePolicy(ws, {
+      version: 1,
+      objectives: {},
+      thresholds: {
+        [path.basename(ws)]: {
+          unit: { statements: 40, branches: 40, functions: 40, lines: 40 },
+        },
+      },
+    });
+    const result = run(ws, covDir, [
+      '--policy',
+      policy,
+      '--type',
+      'integration',
+    ]);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('no integration threshold set declared');
+  });
+
+  it('evaluates integration against its own floors, never the unit set', () => {
+    const { ws, covDir } = makeWs(summaryWith(50), HIGH_FLAT);
+    const policy = makePolicy(ws, {
+      version: 1,
+      objectives: {},
+      thresholds: {
+        [path.basename(ws)]: {
+          unit: { statements: 90, branches: 90, functions: 90, lines: 90 },
+          integration: {
+            statements: 60,
+            branches: 60,
+            functions: 60,
+            lines: 60,
+          },
+        },
+      },
+    });
+    const result = run(ws, covDir, [
+      '--policy',
+      policy,
+      '--type',
+      'integration',
+    ]);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain('(integration)');
+    expect(result.stdout).toContain('threshold 60%');
+    expect(result.stdout).not.toContain('threshold 90%');
+  });
+
+  it('fails closed when the objective sits below the enforced floor', () => {
+    const { ws, covDir } = makeWs(summaryWith(50), HIGH_FLAT);
+    const policy = makePolicy(ws, {
+      version: 1,
+      objectives: {
+        [path.basename(ws)]: {
+          statements: 30,
+          branches: 90,
+          functions: 90,
+          lines: 90,
+        },
+      },
+      thresholds: {},
+    });
+    const result = run(ws, covDir, ['--policy', policy]);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      'objective.statements 30 is below the enforced floor 90'
+    );
+  });
+
+  it('reports the objective without enforcing it', () => {
+    const lowFlat = `export default { test: { coverage: { thresholds: {
+  statements: 40, branches: 40, functions: 40, lines: 40
+} } } };\n`;
+    const { ws, covDir } = makeWs(summaryWith(50), lowFlat);
+    const policy = makePolicy(ws, {
+      version: 1,
+      objectives: {
+        [path.basename(ws)]: {
+          statements: 80,
+          branches: 80,
+          functions: 80,
+          lines: 80,
+        },
+      },
+      thresholds: {},
+    });
+    const result = run(ws, covDir, ['--policy', policy]);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('objective 80% (30pp to go; floor 40%)');
+  });
+
+  it('rejects a declared per-type set that omits metrics', () => {
+    const { ws, covDir } = makeWs(summaryWith(50), HIGH_FLAT);
+    const policy = makePolicy(ws, {
+      version: 1,
+      objectives: {},
+      thresholds: {
+        [path.basename(ws)]: {
+          unit: { statements: 40 },
+        },
+      },
+    });
+    const result = run(ws, covDir, ['--policy', policy, '--type', 'unit']);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('.branches is required');
+    expect(result.stderr).toContain('.lines is required');
+  });
+});

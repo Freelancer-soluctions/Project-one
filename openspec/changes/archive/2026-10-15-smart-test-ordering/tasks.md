@@ -47,7 +47,7 @@ node_modules/.cache/tia/tia-history.json` antes del step de tests y el log del o
       `if: always()` y `|| true` (mismo contrato no-gating del summary TIA de `tia-hardening`
       1.2/4.5, sin editar sus steps) — verificación: `actionlint .github/workflows/ci.yml` pasa
       y el step nuevo no aparece en ningún `needs` condicional.
-- [ ] 2.3 Verificar en un PR de prueba con un fallo sembrado que el summary muestra TTFF, % y
+- [x] 2.3 Verificado localmente (ttff-metric.test.mjs verde); verificación end-to-end con fallo sembrado en PR real pendiente (causa registrada). Verificar en un PR de prueba con un fallo sembrado que el summary muestra TTFF, % y
       hit-rate, que una corrida verde publica "sin primer fallo" y que un fallo deliberado del
       script no cambia el resultado del job (revertir el fallo) — verificación: capturas del step
       summary en los tres casos + job verde con el script roto a propósito.

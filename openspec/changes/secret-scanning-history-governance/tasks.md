@@ -1,0 +1,17 @@
+- [ ] 0.1 Verificar ownership de `scheduled-security.yml` con `ci-scheduled-trivy` (tasks 1.4/1.5/3.6) y `ci-shifting-left` (Task A6 — TruffleHog puede apuntar al mismo archivo) antes de editar 2.x.
+- [ ] 1.1 Extender el `.github/CODEOWNERS` existente (conservar equipos y orden tail-wins) añadiendo entradas para `.gitleaksignore`, `.gitleaks.toml` y `.github/workflows/**` con el owner correspondiente.
+- [ ] 1.2 Habilitar la revisión por code owner en el branch ruleset (coordinar con `secret-scanning` tasks 6.x, que ya toca `required_status_checks`) para que los cambios en baseline/allowlist requieran aprobación.
+- [ ] 1.3 Completar justificación (motivo + fecha de revisión) por entrada en `.gitleaksignore` para los bloques sin fecha.
+- [ ] 1.4 Añadir fecha de revisión a cada `[[allowlists]]` de `.gitleaks.toml` (5 bloques) o acotar el escenario al baseline file (decisión documentada).
+- [ ] 2.1 Añadir step guard de checkout completo en `gitleaks-full-scan` (`scheduled-security.yml`) que falle con mensaje propio si el repo está shallow (PRD A5).
+- [ ] 2.2 Enriquecer `notify-failure` leyendo `gitleaks-report.json` y pegando resumen (regla, archivo, commit) en el issue, con fallback al link del run (PRD A8/RH-6).
+- [ ] 2.3 Verificar: `actionlint` sobre `scheduled-security.yml` + run `workflow_dispatch` + prueba negativa con checkout shallow (PRD A5).
+- [ ] 3.1 Modificar `prebuild-security-complete` para fallar si `secrets` queda `skipped` en PR (PRD G8/A6).
+- [ ] 3.2 Extender el job `secrets` de `ci.yml` a `merge_group` (o ajustar el agregador según evento) para no romper la merge queue.
+- [ ] 3.3 Documentar en el delta spec el scope intencional (solo `secrets`) para `dependency-review`/`scancode` en merge queue.
+- [ ] 3.4 Verificar: PR de prueba con secreto → `Secret Detection` rojo y agregador rojo; PR limpio → verde.
+- [ ] 4.1 Añadir job `secrets-full-history` en `release.yml` (Gitleaks `--log-opts="--all"`; TruffleHog cuando exista) con `needs:` cableado al job `release` para que falle el release si hay hallazgos (PRD RH-5).
+- [ ] 4.2 Verificar: `actionlint` sobre `release.yml` + run de release en dry-run.
+- [ ] 5.1 Habilitar `secret_scanning` y `secret_scanning_push_protection` en el repo (API/UI) y documentar estado en `docs/CONTEXT-CICD.md` §5.7 (PRD G4).
+- [ ] 6.1 Crear runbook `docs/security/secret-incident-response.md` con RR-1..RR-6 y plazo D3 = 24h, incluyendo registro de incidentes (PRD RR/G9).
+- [ ] 7.1 Actualizar la nota obsoleta de `openspec/specs/ci-secret-scanning/spec.md` (workflows `disabled_manually` → `active`).
