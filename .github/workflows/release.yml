@@ -49,15 +49,12 @@ jobs:
       # Misma capa de verificación que `security.yml` (change `ci-shifting-left` A6):
       # solo falla con secretos VERIFICADOS (exit 183 con `--fail`).
       - name: TruffleHog verified-secret scan
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           docker run --rm \
-            -e GITHUB_TOKEN \
+            -v "$PWD:/repo" \
             ghcr.io/trufflesecurity/trufflehog:3.99.4 \
-            github \
-            --repo "${{ github.server_url }}/${{ github.repository }}" \
-            --token "$GITHUB_TOKEN" \
+            git \
+            file:///repo \
             --results=verified \
             --fail
         shell: bash

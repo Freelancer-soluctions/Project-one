@@ -102,16 +102,16 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - name: Run TruffleHog (verified results only)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           docker run --rm \
-            -e GITHUB_TOKEN \
+            -v "$PWD:/repo" \
             ghcr.io/trufflesecurity/trufflehog:3.99.4 \
-            github \
-            --repo "${{ github.server_url }}/${{ github.repository }}" \
-            --token "$GITHUB_TOKEN" \
+            git \
+            file:///repo \
             --results=verified \
             --fail
         shell: bash
