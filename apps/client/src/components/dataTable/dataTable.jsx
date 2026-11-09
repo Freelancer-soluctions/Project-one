@@ -31,30 +31,44 @@ import PropTypes from 'prop-types';
  * @param {Object} p.table - Instancia de la tabla (para el filtro).
  * @returns {JSX.Element} Contenido del TableHead.
  */
-const SortableHeaderContent = ({ header, table }) => (
-  <>
-    <div
-      {...{
-        className: header.column.getCanSort()
-          ? 'cursor-pointer select-none text-center'
-          : '',
-        onClick: header.column.getToggleSortingHandler(),
-      }}
-    >
-      {flexRender(header.column.columnDef.header, header.getContext())}
-      {{
-        asc: <MdOutlineArrowDropUp className="inline-block" />,
-        desc: <MdOutlineArrowDropDown className="inline-block" />,
-        false: <CaretSortIcon className="inline-block" />,
-      }[header.column.getIsSorted()] ?? null}
-    </div>
-    {header.column.getCanFilter() ? (
-      <div className="pt-2 ">
-        <Filter column={header.column} table={table} />
+const SortableHeaderContent = ({ header, table }) => {
+  const canSort = header.column.getCanSort();
+  const toggleSorting = header.column.getToggleSortingHandler();
+
+  // a11y (change `ci-shifting-left`, jsx-a11y): el header ordenable era un
+  // `div` con `onClick` — ratón-only. Se añade rol/tabIndex y el handler de
+  // teclado equivalente para que el orden sea operable sin puntero.
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      toggleSorting?.(event);
+    }
+  };
+
+  return (
+    <>
+      <div
+        role={canSort ? 'button' : undefined}
+        tabIndex={canSort ? 0 : undefined}
+        className={canSort ? 'cursor-pointer select-none text-center' : ''}
+        onClick={toggleSorting}
+        onKeyDown={canSort ? handleKeyDown : undefined}
+      >
+        {flexRender(header.column.columnDef.header, header.getContext())}
+        {{
+          asc: <MdOutlineArrowDropUp className="inline-block" />,
+          desc: <MdOutlineArrowDropDown className="inline-block" />,
+          false: <CaretSortIcon className="inline-block" />,
+        }[header.column.getIsSorted()] ?? null}
       </div>
-    ) : null}
-  </>
-);
+      {header.column.getCanFilter() ? (
+        <div className="pt-2 ">
+          <Filter column={header.column} table={table} />
+        </div>
+      ) : null}
+    </>
+  );
+};
 
 SortableHeaderContent.propTypes = {
   header: PropTypes.object.isRequired,

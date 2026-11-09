@@ -46,6 +46,17 @@ import { defineConfig } from 'eslint/config';
 // default-exports, nombres de stories, jerarquía, etc.
 import storybook from 'eslint-plugin-storybook';
 
+// Plugin de seguridad para Node (change `ci-shifting-left`, capability
+// `shift-left-lint-extensions`): SAST básico en el editor/pre-commit
+// (`eval`, regex insegura, path traversal, object injection...). Se aplica SOLO
+// al backend (bloque 3) y hereda su preset `recommended`.
+import security from 'eslint-plugin-security';
+
+// Plugin de accesibilidad para JSX (mismo change): detecta `alt` ausente,
+// inputs sin label, elementos no interactivos con handlers... Se aplica SOLO al
+// frontend (bloque 4) con su preset `recommended`.
+import jsxA11y from 'eslint-plugin-jsx-a11y';
+
 // Exporta la configuración usando Flat Config (formato recomendado por ESLint 9+)
 // envuelta en `defineConfig` para tipado y `extends` acotado por `files`.
 export default defineConfig([
@@ -138,6 +149,8 @@ export default defineConfig([
     // describe/it/expect/vi que requieren sus reglas y sus globals.
     plugins: {
       vitest,
+      // Plugin de seguridad (preset `recommended` en `rules`, abajo).
+      security,
     },
 
     // Define opciones del lenguaje para Node.js moderno.
@@ -169,6 +182,19 @@ export default defineConfig([
     rules: {
       // Hereda las reglas recomendadas de Vitest (no-focused-tests, etc.).
       ...vitest.configs.recommended.rules,
+      // Preset de seguridad de eslint-plugin-security (change `ci-shifting-left`).
+      // Corre bajo el MISMO gate existente (`--max-warnings 0` en lint-staged
+      // y en `server-lint`): no se añade un job nuevo ni se relaja el umbral.
+      ...security.configs.recommended.rules,
+      // Excepción documentada (única regla del preset desactivada):
+      // `detect-object-injection` marca TODO `obj[clave]` sin distinguir un
+      // índice no validado de una clave estática. En este backend los 47
+      // hallazgos son accesos a mapas internos cerrados: campos de Prisma
+      // resueltos por nombre (`prisma-query`), claves de `process.env`
+      // restringidas al union `EnvKey` y mapas de labels/colores. Se mantiene
+      // activo el resto del preset (eval, regex no literal, path traversal,
+      // non-literal-fs, child_process...), que sí tiene FPs despreciables.
+      'security/detect-object-injection': 'off',
       // Permite el uso de console.log en backend,
       // ya que es común para logging en servidores.
       // Decisión consciente: en server el console es el logger por defecto
@@ -254,6 +280,8 @@ export default defineConfig([
       // Plugin de Vitest: también el frontend testea con Vitest + RTL,
       // así que necesita las mismas reglas/globals de test que el backend.
       vitest,
+      // Plugin de accesibilidad (preset `recommended` en `rules`, abajo).
+      'jsx-a11y': jsxA11y,
     },
 
     // Opciones del lenguaje para frontend.
@@ -312,6 +340,10 @@ export default defineConfig([
 
       // Reglas recomendadas de Vitest (igual que en server).
       ...vitest.configs.recommended.rules,
+
+      // Preset de accesibilidad de eslint-plugin-jsx-a11y (change
+      // `ci-shifting-left`): a11y detectada en commit/PR, no en auditoría.
+      ...jsxA11y.configs.recommended.rules,
 
       // Desactiva la regla que exige importar React en JSX.
       // A partir de React 17+, esto ya no es necesario.

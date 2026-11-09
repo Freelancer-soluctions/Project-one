@@ -217,7 +217,9 @@ on:
 > - `security.yml`: `pull_request` + `push` + `workflow_call` — escanea en PR, en merge a main, y como reusable
 > - `preview.yml`: `types: [opened, reopened, synchronize]` — solo en eventos de PR relevantes, no en `closed` o `labeled`
 
-#### C. `workflow_dispatch` — `deploy.yml`, `preview.yml`, `security.yml`, `ci-enterprise.yml`, `scheduled-security.yml`
+#### C. `workflow_dispatch` — `deploy.yml`, `preview.yml`, `security.yml`, `scheduled-security.yml`
+
+> 🗑️ **`ci-enterprise.yml` ya no existe** en el repo (tampoco en el registro de GitHub Actions; ver `docs/CONTEXT-CICD.md` §5.9). Los snippets de esa sección se conservan **como material didáctico** de `workflow_dispatch` + `workflow_call`: no los copies como si el fichero estuviera ahí.
 
 ```yaml
 # Source: ../../../.github/workflows/deploy.yml (líneas 11-14)
@@ -228,7 +230,7 @@ on:
 ```
 
 ```yaml
-# Source: ../../../.github/workflows/ci-enterprise.yml (líneas 3-5)
+# Source (histórico, workflow retirado): ci-enterprise.yml (líneas 3-5)
 on:
   workflow_dispatch:
   workflow_call:
@@ -974,8 +976,10 @@ zombie-workflow-guard:
 
 ### 7.1 `ci-enterprise.yml` — 8 Jobs, `workflow_dispatch` + `workflow_call`
 
+> 🗑️ **Workflow retirado.** El archivo no existe hoy en `.github/workflows/` ni en el registro de GitHub Actions (ver `docs/CONTEXT-CICD.md` §5.9). Este apartado se mantiene porque el YAML es un buen espécimen para leer triggers, `needs` y permisos, y porque documenta los anti-patrones que **no** hay que replicar (paths `frontend/`/`backend/`, versión drift). Léelo como referencia histórica, no como estado del repo.
+
 ```yaml
-# Source: ../../../.github/workflows/ci-enterprise.yml (líneas 1-15, 16-35)
+# Source (histórico, workflow retirado): ci-enterprise.yml (líneas 1-15, 16-35)
 name: 'Fintech PR CI'
 
 on:

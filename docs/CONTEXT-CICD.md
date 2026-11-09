@@ -104,7 +104,7 @@ run`) + workflow `opencode-review.yml` auditado ACTIVE por API (ver §9.3.8); fl
 | `actionlint-advisory` + `zizmor-advisory`/`-weekly`                                                | ✅ Activo                       | FASE 1 advisory; zizmor cubre `unpinned-uses`; política `.github/zizmor.yml` + plantilla `.github/actionlint-sarif.tmpl` versionada (change `pipeline-config-scan`, 28/31)                                                         |
 | `typosquat-guarddog` / `guarddog-weekly` (GuardDog v3.2.0)                                         | ✅ Activo                       | FASE 1 advisory; política única en wrapper `scripts/guarddog-verify.sh`; SARIF `category: guarddog[-weekly]` (change `typosquatting-detection`, complete)                                                                          |
 | Capa IaC evolución (baseline fail-on-new FASE 2)                                                   | 📋 Pendiente                    | Change `iac-scanning` re-escopado (5/14): baseline `.checkov.baseline` + transición blocking gated (Docker/CI-pending)                                                                                                             |
-| GHAS / secret scanning / dependabot security                                                       | 📋 Pendiente                    | DISABLED; si repo → privado, `dependency-review@v5` requiere GHAS                                                                                                                                                                  |
+| GHAS / secret scanning / dependabot security                                                       | ✅ Parcial                      | `secret_scanning` + `secret_scanning_push_protection` ENABLED (2026-11-08, gratis en público); GHAS/CodeQL y dependabot security updates siguen DISABLED. Si repo → privado, `dependency-review@v5` requiere GHAS                  |
 | AWS (environments, ECR, ECS)                                                                       | 📋 Pendiente                    | 0 environments, 0 secrets AWS; provisión futura                                                                                                                                                                                    |
 | "CI Complete" añadido al ruleset                                                                   | 📋 Pendiente                    | Solo tras reportarse ≥1 vez (CI_MINIMAL=false desde 2026-09-17)                                                                                                                                                                    |
 | Dependabot firma commits?                                                                          | 🔴 Dudosa                       | Verificar; si no firma, `verify-signatures` los falla                                                                                                                                                                              |
@@ -345,7 +345,8 @@ allowed in compact mappings`). Todos los nombres con prefijo llevan comillas sim
 > `dependabot-updates`, `opencode-review`, `flaky-weekly`, `nightly-full-suite`, `order-dependence-audit`) y **4
 > `disabled_manually`** (`release`, `preview`, `deploy`, `security-digest`). **+1 activo desde 2026-10-20:
 > `pr-metadata`** (change `pr-metadata-workflow`) → **9 activos / 13 totales** — el snapshot fechado de arriba no se
-> re-auditó vía API tras ese cambio. Un workflow `disabled_manually` es un
+> re-auditó vía API tras ese cambio. **+1 desde 2026-11-07: `pbt-nightly`** (change `pbt-hardening`) → **14 totales**
+> cuando se mergee; todavía no aparece en el registro de GitHub porque el archivo vive sólo en la rama del change. Un workflow `disabled_manually` es un
 > interruptor a nivel de GitHub (Settings/Actions o API) que deshabilita el workflow **completo**: NO corre en ningún
 > trigger (push/PR/cron/workflow_dispatch), aunque el archivo exista y su YAML tenga `on:` válido. Esto es
 > **independiente** de los gates `if:` internos (§3.1). En la siguiente lista, cada pipeline indica su `on:` de fuente
@@ -355,7 +356,7 @@ allowed in compact mappings`). Todos los nombres con prefijo llevan comillas sim
 | -------------------------- | --------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **ci.yml**                 | `pull_request` main + `merge_group`     | ✅ **HABILITADO**                                      | Gate de gobernanza vivo. Emite `Prebuild Governance Complete`, que agrega los 3 checks de gobernanza de `ci.yml` (`Verify Commit Signatures`, `Commit Lint`, `DCO`) y es uno de los 2 required; el otro (`Governance: PR Body Lint`) lo emite `pr-metadata.yml`. + dependency-review + zombie-guard. Ver §3.3/§9.3                                                                                                                                                                                                                                                                                                                            |
 | **opencode-review.yml**    | PR main (`opened/synchronize/reopened`) | ✅ **HABILITADO** (desde 2026-09-14)                   | Review IA advisory (NO required, `continue-on-error: true`). Steps inline (install binario v1.18.31 + `opencode github run`); composite action eliminada por bug rate-limit. Ver §9.3.8                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| **security.yml**           | `workflow_call` + PR main + push main   | ✅ `active` (API 2026-09-25, change `secret-scanning`) | Dependency Scan SCA (Trivy), SAST (CodeQL), SBOM (Anchore). **El job `secrets` (Security: Secret Detection) migró a `ci.yml` substage 2C** (wireado a `prebuild-security-complete.needs`) — R1 operativo a nivel check + ruleset. `dependency-review` también vive en `ci.yml` (inline). Re-habilitado con `gh workflow enable`                                                                                                                                                                                                                                                                                                               |
+| **security.yml**           | `workflow_call` + PR main + push main   | ✅ `active` (API 2026-09-25, change `secret-scanning`) | Dependency Scan SCA (Trivy), SAST (CodeQL), SBOM (Anchore). **El job `secrets` (Security: Secret Detection) migró a `ci.yml` substage 2C** (wireado a `prebuild-security-complete.needs`) — R1 operativo a nivel check (el check corre en PR y falla en rojo); el binding al ruleset (`required_status_checks`) está **pendiente** (task 6.2 declinada por el owner, 2026-11-08) → hoy el gate corre pero no bloquea merges por ruleset. `dependency-review` también vive en `ci.yml` (inline). Re-habilitado con `gh workflow enable`                                                                                                        |
 | **scheduled-security.yml** | cron Mon 03:00 UTC                      | ✅ `active` (API 2026-09-25, change `secret-scanning`) | Gitleaks full-history JSON/SARIF + upload a Security tab (audit mode: hallazgos NO fallan el run, `continue-on-error: true`, pins `v8.30.1`). Job `notify-failure` arreglado: `if: always()` + condición sobre `needs.gitleaks-full-scan.outputs.*-outcome == 'failure'` (el `if: failure()` anterior era dead path porque los steps con `continue-on-error` dejan el job en success) — R2 operativo. Re-habilitado con `gh workflow enable`                                                                                                                                                                                                  |
 | **security-digest.yml**    | cron Mon 03:00 UTC                      | ⛔ `disabled_manually`                                 | SBOM (Anchore) + OSV Scanner + digest; cross-downloads Gitleaks artifact. Contiene job `notify-failure` (crea un GitHub Issue si falla)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | **preview.yml**            | PR main + `workflow_dispatch`           | ⛔ `disabled_manually`                                 | Floci + Postgres emulación backend validation + PR comment (Vercel URL + backend status). NO required status check                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -420,8 +421,9 @@ allowed in compact mappings`). Todos los nombres con prefijo llevan comillas sim
 **Vars (1):** `CI_MINIMAL=false` (flip desde `true` el 2026-09-17 por change `ci-prebuild-quality-lint`, task 8;
 verificado vía `gh api` mismo día — ver §5.5)
 
-**GHAS/secret scanning/dependabot security updates:** DISABLED. dependency-review@v5 funciona hoy (repo público); si
-repo → privado requiere GHAS.
+**GHAS/secret scanning/dependabot security updates:** secret scanning + push protection **ENABLED** (2026-11-08,
+repo público, gratis). GHAS (CodeQL) y dependabot security updates siguen DISABLED. dependency-review@v5 funciona
+hoy; si repo → privado requiere GHAS.
 
 **CODEOWNERS:** core-team default + frontend/backend/devops/qa/architects por path → ruleset
 `require_code_owner_review=true`.
@@ -619,9 +621,10 @@ SHA pinning) · `sha_pinning_required=false`.
 
 > **Inconsistencia de versiones de actions (deuda observada, no bloqueante):** las versiones de GitHub Actions **no
 > son uniformes** entre workflows — `actions/checkout@v6` (release.yml) vs `@v5` (ci.yml, deploy.yml, preview.yml,
-> security.yml); `actions/setup-node@v4` en ci.yml/ci-enterprise.yml vs `@v5` en el resto; `dorny/paths-filter@v4`
-> (ci.yml) vs `@v3` (ci-enterprise.yml); `download-artifact@v5` (security-digest.yml) vs `@v4`/`@v7` en otros. Esto no
-> rompe nada hoy, pero amplía la superficie de supply chain (§5.4) y dificulta un SHA-pinning uniforme. Ver §6 deuda.
+> security.yml); `actions/setup-node@v4` en ci.yml vs `@v5` en el resto; `download-artifact@v5` (security-digest.yml)
+> vs `@v4`/`@v7` en otros. Esto no rompe nada hoy, pero amplía la superficie de supply chain (§5.4) y dificulta un
+> SHA-pinning uniforme. Desde la retirada de `ci-enterprise.yml` (§5.9) ya no hay drift de `paths-filter` ni de
+> `codeql-action` (§13.5). Ver §6 deuda.
 
 ### 5.5 Variable CI_MINIMAL=false (flip 2026-09-17)
 
@@ -657,13 +660,30 @@ justifique costo.
 
 ### 5.7 GHAS / Secret Scanning / Dependabot
 
-DISABLED (nativo de GitHub). Repo público → OK hoy. Repo privado → dependency-review@v5 requiere GHAS (404/403).
-Secret scanning push protection off. Sin dependabot security updates.
+**Estado verificado 2026-11-08 vía API** (`gh api repos/... --jq .security_and_analysis`), repo **público**:
 
-> **Follow-up (change `secret-scanning`, 2026-09-25):** habilitar `secret_scanning` +
-> `secret_scanning_push_protection` en Settings → Code security (gratis en repo público; partner program notifica al
-> proveedor para revocación). Decisión de UI/API de GitHub, fuera del repo — el gate gitleaks de `ci.yml` (job
-> `secrets`, substage 2C) NO depende de esto.
+| Capa                                    | Estado         | Nota                                                                      |
+| --------------------------------------- | -------------- | ------------------------------------------------------------------------- |
+| `secret_scanning`                       | ✅ **enabled** | Gratis en repo público; alerts en Security → Secret scanning              |
+| `secret_scanning_push_protection`       | ✅ **enabled** | Un push con secreto reconocido se bloquea con guía de rotación            |
+| `secret_scanning_validity_checks`       | ❌ disabled    | Solo aporta "verified/unverified" en patrones soportados; opcional        |
+| `secret_scanning_non_provider_patterns` | ❌ disabled    | Patrones custom (GHAS pago); las reglas propias viven en `.gitleaks.toml` |
+| `dependabot_security_updates`           | ❌ disabled    | Deuda separada; no afecta a la detección de secretos                      |
+| GHAS / CodeQL                           | ❌ disabled    | Sin GHAS no hay CodeQL; el SAST propio corre en `ci.yml`                  |
+
+Habilitación (idempotente; gratis en público, **GHAS de pago si el repo pasa a privado**):
+
+```bash
+gh api -X PATCH repos/OWNER/REPO \
+  -f 'security_and_analysis[secret_scanning][status]=enabled' \
+  -f 'security_and_analysis[secret_scanning_push_protection][status]=enabled'
+```
+
+> **Gobernanza (change `secret-scanning-history-governance`):** el baseline (`.gitleaksignore`) y las allowlists
+> (`.gitleaks.toml`) están cubiertos por `.github/CODEOWNERS` (equipo devops) → cualquier excepción exige revisión
+> por code owner (`require_code_owner_review=true` en el ruleset). La respuesta ante un hallazgo se documenta en
+> `docs/security/secret-incident-response.md` (RR-1..RR-6, plazo de rotación D3 = 24 h). El gate Gitleaks de
+> `ci.yml` (job `secrets`) NO depende de esta capa: son capas independientes.
 
 ### 5.8 CODEOWNERS y Dependabot
 
@@ -710,22 +730,24 @@ gh workflow enable  .github/workflows/deploy.yml   # o: gh workflow disable ...
 
 O via UI: repo → Actions → <workflow> → ⋯ → Enable workflow.
 
-**Inventario real — snapshot 2026-10-18, NO normativo (8 activos / 4 `disabled_manually`):**
+**Inventario real — snapshot 2026-10-18 (fila `pbt-nightly.yml` añadida 2026-11-07), NO normativo (8 activos / 4
+`disabled_manually`):**
 
-| Workflow                     | Estado      | Qué esperaría dispararse hoy si NO estuviera deshabilitado                                                                  |
-| ---------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `ci.yml`                     | ✅ active   | PR/push → `Prebuild Governance Complete` (1 de los 2 checks required) + dependency-review + zombie-guard                    |
-| `opencode-review.yml`        | ✅ active   | PR main → comentario informativo de code review IA (check NO-required, GOVERNANCE; steps inline tras fix rate-limit §9.3.8) |
-| `security.yml`               | ✅ active   | PR/push main → SCA/SAST/SBOM (el gate de secretos vive en `ci.yml` job `secrets` substage 2C)                               |
-| `scheduled-security.yml`     | ✅ active   | cron Lun 03:00 → Gitleaks full-history JSON/SARIF (advisory) + notify-failure por step-outcome                              |
-| `flaky-weekly.yml`           | ✅ active   | cron semanal → suite de detección de tests flaky                                                                            |
-| `nightly-full-suite.yml`     | ✅ active   | cron nocturno → suite completa                                                                                              |
-| `order-dependence-audit.yml` | ✅ active   | auditoría de dependencia de orden entre tests                                                                               |
-| (dependabot-updates config)  | ✅ active   | config dinámica de dependabot                                                                                               |
-| `security-digest.yml`        | ⛔ disabled | cron Lun 03:00 → SBOM/OSV/digest                                                                                            |
-| `preview.yml`                | ⛔ disabled | PR main → backend validation + PR comment                                                                                   |
-| `deploy.yml`                 | ⛔ disabled | push main → docker-build (+ Phase 2 si AWS)                                                                                 |
-| `release.yml`                | ⛔ disabled | push main → changesets + verifica firma                                                                                     |
+| Workflow                     | Estado               | Qué esperaría dispararse hoy si NO estuviera deshabilitado                                                                  |
+| ---------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`                     | ✅ active            | PR/push → `Prebuild Governance Complete` (1 de los 2 checks required) + dependency-review + zombie-guard                    |
+| `opencode-review.yml`        | ✅ active            | PR main → comentario informativo de code review IA (check NO-required, GOVERNANCE; steps inline tras fix rate-limit §9.3.8) |
+| `security.yml`               | ✅ active            | PR/push main → SCA/SAST/SBOM (el gate de secretos vive en `ci.yml` job `secrets` substage 2C)                               |
+| `scheduled-security.yml`     | ✅ active            | cron Lun 03:00 → Gitleaks full-history JSON/SARIF (advisory) + notify-failure por step-outcome                              |
+| `flaky-weekly.yml`           | ✅ active            | cron semanal → suite de detección de tests flaky                                                                            |
+| `nightly-full-suite.yml`     | ✅ active            | cron nocturno → suite completa                                                                                              |
+| `pbt-nightly.yml`            | ✅ active al mergear | cron Mar 04:50 → `test:pbt` con semilla aleatoria y `PBT_NUMRUNS=5000` (advisory: abre/comenta issue con la semilla)        |
+| `order-dependence-audit.yml` | ✅ active            | auditoría de dependencia de orden entre tests                                                                               |
+| (dependabot-updates config)  | ✅ active            | config dinámica de dependabot                                                                                               |
+| `security-digest.yml`        | ⛔ disabled          | cron Lun 03:00 → SBOM/OSV/digest                                                                                            |
+| `preview.yml`                | ⛔ disabled          | PR main → backend validation + PR comment                                                                                   |
+| `deploy.yml`                 | ⛔ disabled          | push main → docker-build (+ Phase 2 si AWS)                                                                                 |
+| `release.yml`                | ⛔ disabled          | push main → changesets + verifica firma                                                                                     |
 
 > `ci-enterprise.yml` **ya no aparece en el registro** ni existe en el repo (snapshot 2026-10-18): su entrada previa se
 > retiró como hecho histórico, no como cambio de estado de un workflow vivo.
@@ -742,19 +764,20 @@ O via UI: repo → Actions → <workflow> → ⋯ → Enable workflow.
 > esperado: `/dependabot/alert_rules` (feature enterprise, no aplica). Los siguientes bloques complementan §3.5/§5 con
 > los campos que aquella auditoría no cubría.
 
-**Advanced Security / Secret Scanning (`security_and_analysis`) — TODO DISABLED:**
+**Advanced Security / Secret Scanning (`security_and_analysis`) — snapshot 2026-08-30, filas de secret scanning actualizadas 2026-11-08:**
 
 | Feature                           | Estado      | Implicación                                                                                      |
 | --------------------------------- | ----------- | ------------------------------------------------------------------------------------------------ |
-| `advanced_security`               | ❌ disabled | Sin GHAS: no CodeQL ni secret scanning advanced                                                  |
-| `secret_scanning`                 | ❌ disabled | No escaneo de secretos en el repo                                                                |
-| `secret_scanning_push_protection` | ❌ disabled | No bloqueo de push con secretos                                                                  |
+| `advanced_security`               | ❌ disabled | Sin GHAS: no CodeQL ni patrones custom (non-provider) de secret scanning                         |
+| `secret_scanning`                 | ✅ enabled  | Escaneo nativo activo desde 2026-11-08 (alertas en Security → Secret scanning)                   |
+| `secret_scanning_push_protection` | ✅ enabled  | Push con secreto reconocido bloqueado desde 2026-11-08                                           |
 | `dependabot_security_updates`     | ❌ disabled | Dependabot solo abre version bumps (via config), no fix de seguridad                             |
 | `code_scanning`                   | ❌ disabled | No CodeQL push alerts; el SAST (CodeQL) de `security.yml` está además `disabled_manually` (§3.4) |
 
-> **Relación con §5.7:** el repo es PÚBLICO, así que hoy no falla nada. Pero esto explica por qué
-> `dependency-review@v5` y Gitleaks/CodeQL corren fuera de GHAS. Si el repo pasa a privado, estas features se
-> necesitarán sí o sí.
+> **Relación con §5.7:** el repo es PÚBLICO. `secret_scanning` y `secret_scanning_push_protection` se habilitaron
+> el 2026-11-08 (change `secret-scanning-history-governance`) porque son gratis en público. `advanced_security` y
+> `code_scanning` siguen desactivados: `dependency-review@v5` y Gitleaks/CodeQL corren fuera de GHAS. Si el repo
+> pasa a privado, secret scanning + push protection requieren GHAS de pago.
 
 **Deploy keys:** **0** (`[ ]`) — sin llaves de deploy; el acceso a deploy de GitHub Actions usa
 `APP_SSH_KEY`/`APP_SSH_PUB` (secretos, no deploy keys; y esos 2 NI SIQUIERA se referencian en workflows, §5.6).
@@ -1536,14 +1559,14 @@ local no lo sustituye.
 
 ### 12.2 Calidad y formato
 
-| Herramienta       | Config                                                             | Para qué                                                                                                                                                                                      |
-| ----------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **lint-staged**   | `package.json` (`lint-staged` key)                                 | Aplica prettier + eslint solo a archivos staged en pre-commit                                                                                                                                 |
-| **prettier**      | `.prettierrc.yaml` + `.prettierignore`                             | Formato (printWidth 80, singleQuote, semi, eol lf)                                                                                                                                            |
-| **eslint**        | `eslint.config.js`                                                 | Lint (JS/JSX; `--fix --max-warnings 0`); complejidad max 20 fuente única + backend globals Node+Vitest sin browser (changes 2026-09-23; doc canónica `docs/learning/eslint-configuration.md`) |
-| **commitlint**    | `commitlint.config.js` (extends `@commitlint/config-conventional`) | Valida mensajes de commit (hook commit-msg + CI)                                                                                                                                              |
-| **editorconfig**  | `.editorconfig`                                                    | Normas de edición (utf-8, eol lf, indent 2)                                                                                                                                                   |
-| **gitattributes** | `.gitattributes`                                                   | Normaliza eol=lf en todo el repo; crlf solo para `.bat/.cmd/.ps1`; binarios marcados binary                                                                                                   |
+| Herramienta       | Config                                                             | Para qué                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ----------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **lint-staged**   | `package.json` (`lint-staged` key)                                 | Aplica prettier + eslint solo a archivos staged en pre-commit                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **prettier**      | `.prettierrc.yaml` + `.prettierignore`                             | Formato (printWidth 80, singleQuote, semi, eol lf)                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| **eslint**        | `eslint.config.js`                                                 | Lint (JS/JSX; `--fix --max-warnings 0`); complejidad max 20 fuente única + backend globals Node+Vitest sin browser (changes 2026-09-23; doc canónica `docs/learning/eslint-configuration.md`). Bloque `(6c)` de **pureza de propiedades** (change `pbt-hardening`, 2026-11-07): en `**/*.properties.unit.test.*` falla `Math.random`, `Date.now`, `fetch`/`XMLHttpRequest` y el import de `axios` — sin reloj ni red, un fallo de fast-check sigue siendo reproducible desde la semilla |
+| **commitlint**    | `commitlint.config.js` (extends `@commitlint/config-conventional`) | Valida mensajes de commit (hook commit-msg + CI)                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| **editorconfig**  | `.editorconfig`                                                    | Normas de edición (utf-8, eol lf, indent 2)                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **gitattributes** | `.gitattributes`                                                   | Normaliza eol=lf en todo el repo; crlf solo para `.bat/.cmd/.ps1`; binarios marcados binary                                                                                                                                                                                                                                                                                                                                                                                             |
 
 > **Migración TypeScript de `apps/server` — change activo `server-typescript-migration` (2026-09-23, en curso, no
 > archivado):** su Fase 0 ampliará el tooling de esta sección a `.ts` ANTES de convertir el primer archivo — globs
@@ -1666,17 +1689,22 @@ Versiones EXACTAS de GitHub Actions de terceros y del tooling de test, verificad
 los `package.json` (2026-08-30; ampliado 2026-09-28 con la ola de capas 2026-09-25→28). Útiles para auditoría de supply chain y permiten fijar SHA-pinning de forma uniforme
 (hoy `allowed_actions=all`, §5.4).
 
+> **Nota (2026-11):** con la retirada de `ci-enterprise.yml` (§5.9) el drift de pins se reduce a las filas de
+> `checkout`, `setup-node` y `download-artifact`: `dorny/paths-filter` y `github/codeql-action/*` quedaron en versión
+> única al desaparecer el workflow que arrastraba `@v3`. Esas dos filas se conservan como historial de la
+> consolidación (era el motivo de los Gaps de drift), no como drift vigente.
+
 **Actions oficiales de GitHub (`actions/*`) — versiones inconsistentes entre workflows:**
 
-| Action                            | Versiones usadas                                     | Workflows                                                                                                                       |
-| --------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `actions/checkout`                | **@v6** vs **@v5** vs **@v5.0.0**                    | @v6 → release.yml; @v5 → ci.yml/deploy.yml/preview.yml/security.yml/scheduled-security.yml; @v5.0.0 (pin) → security-digest.yml |
-| `actions/setup-node`              | **@v5** vs **@v4**                                   | @v5 → mayoría; @v4 → ci.yml (L306), ci-enterprise.yml                                                                           |
-| `actions/upload-artifact`         | **@v7**                                              | ci.yml, security.yml, security-digest.yml, scheduled-security.yml                                                               |
-| `actions/download-artifact`       | **@v4** vs **@v5**                                   | @v4 → ci.yml; @v5 → security-digest.yml                                                                                         |
-| `actions/github-script`           | **@v8**                                              | scheduled-security.yml, security-digest.yml                                                                                     |
-| `actions/create-github-app-token` | **@v2**                                              | release.yml                                                                                                                     |
-| `anomalyco/opencode/github`       | **ELIMINADO 2026-09-14** (era `@5d5c35ee…`, SHA-pin) | ~~opencode-review.yml~~ → steps inline: install binario pineado v1.18.31 + `opencode github run` (fix rate-limit, §9.3.8)       |
+| Action                            | Versiones usadas                                     | Workflows                                                                                                                                 |
+| --------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `actions/checkout`                | **@v6** vs **@v5** vs **@v5.0.0**                    | @v6 → release.yml; @v5 → ci.yml/deploy.yml/preview.yml/security.yml/scheduled-security.yml; @v5.0.0 (pin) → security-digest.yml           |
+| `actions/setup-node`              | **@v5** vs **@v4**                                   | @v5 → deploy.yml/preview.yml/release.yml/security.yml/flaky-weekly.yml; @v4 → solo ci.yml (L393, L2213). `ci-enterprise.yml` ya no existe |
+| `actions/upload-artifact`         | **@v7**                                              | ci.yml, security.yml, security-digest.yml, scheduled-security.yml                                                                         |
+| `actions/download-artifact`       | **@v4** vs **@v5**                                   | @v4 → ci.yml; @v5 → security-digest.yml                                                                                                   |
+| `actions/github-script`           | **@v8**                                              | scheduled-security.yml, security-digest.yml                                                                                               |
+| `actions/create-github-app-token` | **@v2**                                              | release.yml                                                                                                                               |
+| `anomalyco/opencode/github`       | **ELIMINADO 2026-09-14** (era `@5d5c35ee…`, SHA-pin) | ~~opencode-review.yml~~ → steps inline: install binario pineado v1.18.31 + `opencode github run` (fix rate-limit, §9.3.8)                 |
 
 **Actions de terceros:**
 
@@ -1685,11 +1713,11 @@ los `package.json` (2026-08-30; ampliado 2026-09-28 con la ola de capas 2026-09-
 | `changesets/action`                     | **@v2.1.2** (pin exacto, 2026-09-22)          | release.yml (versionado de paquetes, modo API) con `@changesets/cli` ^3.0.3. Historial: @v2 roto 08→09/2026 → pin @v1.9.0 → pareja soportada v2↔CLI v3. Regla: action v1.x ↔ CLI v2; action v2.x ↔ CLI v3 (subir ambos en un solo PR) |
 | `amannn/action-semantic-pull-request`   | @v6                                           | pr-metadata.yml (PR Title Lint, antes ci.yml)                                                                                                                                                                                         |
 | `KineticCafe/actions-dco`               | @v3.2.0                                       | ci.yml (DCO)                                                                                                                                                                                                                          |
-| `dorny/paths-filter`                    | **@v4** vs **@v3**                            | @v4 → ci.yml; @v3 → ci-enterprise.yml                                                                                                                                                                                                 |
+| `dorny/paths-filter`                    | **@v4** (uniforme tras la retirada)           | @v4 → ci.yml (único consumidor vivo); el `@v3` vivía solo en `ci-enterprise.yml`, retirado en 2026-11 (§5.9) → drift cerrado                                                                                                          |
 | `dorny/test-reporter`                   | @v3                                           | ci.yml (×5: unit/integration/smoke/e2e)                                                                                                                                                                                               |
 | `rhysd/actionlint` (imagen docker)      | v1.7.12 (pinned)                              | ci.yml (`actionlint-advisory`: `docker run … rhysd/actionlint:1.7.12`, advisory) + pre-commit local. NO existe job bloqueante ni download-script en CI                                                                                |
 | `SonarSource/sonarqube-scan-action`     | @v4                                           | ci.yml (jobs coverity/sonarqube — `if: false`)                                                                                                                                                                                        |
-| `github/codeql-action/*`                | **@v4** vs **@v3**                            | @v4 → security.yml/scheduled-security.yml; @v3 → ci-enterprise.yml                                                                                                                                                                    |
+| `github/codeql-action/*`                | **@v4** (uniforme tras la retirada)           | @v4 → security.yml (`init`/`analyze`; `autobuild` comentado) y scheduled-security.yml; el `@v3` + autobuild duplicado desapareció con `ci-enterprise.yml` (§5.9) → drift y doble definición cerrados                                  |
 | `gitleaks/gitleaks-action`              | @v3                                           | security.yml (licensed)                                                                                                                                                                                                               |
 | `anchore/sbom-action`                   | @v0.24.0                                      | security.yml, security-digest.yml (SBOM)                                                                                                                                                                                              |
 | `google/osv-scanner-action`             | @v2.5.0                                       | security-digest.yml (OSV)                                                                                                                                                                                                             |

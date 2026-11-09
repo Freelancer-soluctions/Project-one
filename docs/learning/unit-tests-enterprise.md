@@ -27,8 +27,9 @@ pero NO advisory** (`if:` sobre repo-discovery, sin `continue-on-error`) y solo 
 Faltan por completo: sharding (`--shard` + blob + `--merge-reports`), smart ordering explícito (solo el
 `BaseSequencer` por defecto de Vitest), TIA en CI (0 referencias a `test:changed` en `ci.yml`), coverage merge gate de
 shards y flaky quarantine. Snapshots: ya cubiertos — 335 (77 inline + 258 `.snap`) en 83 ficheros
-`*.ui.test.jsx`, change `client-snapshot-testing` (§4). Property-based testing tiene `fast-check` instalado
-(3.23.2) con 0 usos.
+`*.ui.test.jsx`, change `client-snapshot-testing` (§4). Property-based testing usa `fast-check`
+(devDeps de ambos workspaces, 0 en root), 5 suites `*.properties.unit.test.*` con 35 propiedades
+en total, job `property-tests` BLOCKING en `prebuild-tests-complete.needs` (promovido 2026-10-29).
 
 ---
 

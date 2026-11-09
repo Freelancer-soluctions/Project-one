@@ -41,5 +41,5 @@
 
 - [x] 7.1 `npm run test:pbt` verde. → client 18 tests / server 17 tests, exit 0.
 - [x] 7.2 `openspec validate pbt-hardening --strict` exit 0.
-- [ ] 7.3 Archivar `property-based-testing-adoption` (si no archivado). → `openspec validate property-based-testing-adoption --strict` ya pasa (se completó el bloque `MODIFIED` de `Visual substage delimitation`, que omitía el escenario `Metadata job is not advertised in the 2A header` y habría bloqueado el archive). El archive en sí queda pendiente de petición explícita.
-- [ ] 7.4 Archivar este change (usar `--skip-specs`: su delta ya está en `openspec/specs/pbt-hardening/`). Pendiente de petición explícita.
+- [x] 7.3 Archivar `property-based-testing-adoption` (si no archivado). → Archivado el 2026-11-07 como `2026-11-07-property-based-testing-adoption` **con sync de specs** (su delta nunca se había sincronizado: creó `openspec/specs/property-based-testing/` y aplicó el `MODIFIED` a `ci-prebuild-substage-structure`). Antes se corrigieron dos cosas que habrían bloqueado el archive: el `MODIFIED` omitía el escenario `Metadata job is not advertised in the 2A header`, y sus headers 2A/2D seguían citando `pr-title-lint` y `test-integration/test-smoke` en vez de los reales de `ci.yml`.
+- [x] 7.4 Archivar este change con `--skip-specs`: su delta ya está en `openspec/specs/pbt-hardening/`, así que dejar que el archive lo re-aplique fallaría con "ADDED … already exists".

@@ -1,12 +1,15 @@
 import { lazy, Suspense } from 'react';
 import Layout from './components/layout';
 import { ProtectedRoutes, ProtectedFormRoute } from './components/guards';
-import Home from './modules/home/pages/Home';
 import NotFound from './components/404/NotFound';
 import { Routes, Route } from 'react-router';
 import { Spinner } from './components/loader/Spinner';
 import { Toaster } from './components/ui/toaster';
 
+// `Home` era el único import estático de una página: arrastraba su grafo
+// (calendario, resúmenes, editor) al bundle de entrada aunque `/` solo monta
+// `Layout`. Ahora entra por la misma vía lazy que el resto de rutas.
+const Home = lazy(() => import('@/modules/home/pages/Home'));
 const SignIn = lazy(() => import('@/modules/auth/pages/SignIn'));
 const SignUp = lazy(() => import('@/modules/auth/pages/SignUp'));
 const Access = lazy(

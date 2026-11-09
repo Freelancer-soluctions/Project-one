@@ -1,0 +1,35 @@
+# Política yamllint del repo (change `ci-shifting-left`, capability workflow-linting).
+#
+# Alcance: TODOS los YAML de `.github/**` (workflows + dependabot + configs).
+# Objetivo: detectar YAML inválido y errores estructurales (indentación, bloques,
+# claves duplicadas, anclas) antes del commit y en CI. NO es un formateador de
+# estilo: las reglas puramente cosméticas que chocan con el estilo ya establecido
+# de los workflows (líneas largas con `run:` de una sola línea, comentarios al
+# final de línea, `on:` como clave) quedan desactivadas o relajadas a propósito.
+#
+# Fuente única: los 3 consumidores (lint-staged, `.husky/pre-commit` wrapper y
+# el job `validate-pipeline` de `ci.yml`) usan SIEMPRE `-c .yamllint.yml`.
+extends: default
+
+rules:
+  # `on:` es una CLAVE de GitHub Actions, no un booleano: sin `check-keys: false`
+  # la regla `truthy` marca todos los workflows (15 falsos positivos).
+  truthy:
+    check-keys: false
+  # Workflows reales tienen `run:` de una línea con comandos largos e `if:`
+  # con expresiones; limitar a 80 columnas obligaría a reescribir todo sin
+  # ganancia de señal (el límite útil lo impone prettier en otros formatos).
+  line-length: disable
+  # Convención del repo: comentarios explicativos alineados con el bloque y a
+  # una sola columna de separación (estilo ya usado en ci.yml/security.yml).
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  # `---` no aporta nada en workflows de GitHub Actions y añadirlo generaría
+  # ruido en cada archivo.
+  document-start: disable
+  # Anidación de secuencias bajo claves (matrices, `steps`, `needs`...) usa el
+  # estilo compacto estándar de GitHub Actions.
+  indentation:
+    spaces: 2
+    indent-sequences: whatever

@@ -2,10 +2,11 @@
 
 ## Purpose
 
-El job advisory `property-tests` se define dentro del bloque SUBSTAGE 2D: su header pasa a
-enumerarlo y el escenario de prefijos `Tests:` lo incluye en la enumeración de 2D. El
-contrato de `needs` del agregador (6 ids), los `name:` de los jobs existentes y la
-composición de los demás substages quedan intactos.
+El job `property-tests` se define dentro del bloque SUBSTAGE 2D: su header pasa a
+enumerarlo y el escenario de prefijos `Tests:` lo incluye en la enumeración de 2D. El job es
+**blocking** desde 2026-10-29 (ver change `pbt-hardening`). El contrato de `needs` del
+agregador, los `name:` de los jobs existentes y la composición de los demás substages quedan
+intactos.
 
 ## MODIFIED Requirements
 
@@ -13,14 +14,18 @@ composición de los demás substages quedan intactos.
 
 The CI workflow file SHALL contain commented YAML headers that visually delimit each substage of STAGE 2.
 
+The SUBSTAGE 2A header SHALL list only the jobs that are physically defined in the governance block of `ci.yml`. It
+SHALL NOT list `pr-title-lint`, because that job is defined in `.github/workflows/pr-metadata.yml`; a header that
+advertises a job the file does not contain misleads exactly the reader it is meant to orient.
+
 #### Scenario: Inspecting ci.yml STAGE 2
 
 - **When** a developer opens `.github/workflows/ci.yml` and navigates to STAGE 2
 - **Then** the following headers are visible as comments before their respective job groups:
-  - `# SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, pr-title-lint, dco, sast`
+  - `# SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, dco, sast diff`
   - `# SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, openspec-validate, docs-validation (advisory)`
   - `# SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog`
-  - `# SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke, property-tests`
+  - `# SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, client-coverage, server-coverage, property-tests`
 
 #### Scenario: Metadata job is not advertised in the 2A header
 

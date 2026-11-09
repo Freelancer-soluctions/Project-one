@@ -203,7 +203,7 @@ router.patch(
  *     tags:
  *       - Purchases
  *     summary: Delete a purchase by ID
-     security:
+ *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path

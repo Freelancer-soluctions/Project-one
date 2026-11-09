@@ -588,14 +588,14 @@ import importPlugin from 'eslint-plugin-import';
 
 Estructura actual en `.github/workflows/ci.yml` (Substage 2B — Code Quality):
 
-| Job                          | Comando                                                | Propósito                                                                                                                   |
-| ---------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| `client-lint`                | `npm run lint --workspace=apps/client`                 | Lint completo frontend, `--max-warnings 0`                                                                                  |
-| `server-lint`                | `npm run lint --workspace=apps/server`                 | Lint completo backend, `--max-warnings 0`                                                                                   |
-| `e2e-lint`                   | `npm run lint --workspace=e2e`                         | Lint del workspace Playwright (specs + config), `--max-warnings 0`                                                          |
-| `client-complexity`          | `npx eslint "src/**/*.{js,jsx}"` (desde `apps/client`) | Quality gate de ciclomaticidad — umbrales por capa heredados de `eslint.config.js` (core 15 / utils 10)                     |
-| `server-complexity`          | `npx eslint "src/**/*.js"` (desde `apps/server`)       | Quality gate de ciclomaticidad — umbrales por capa heredados de `eslint.config.js` (core 15 / utils 10; nunca vía `--rule`) |
-| `ci-enterprise.yml` → `lint` | `npm run lint`                                         | Lint raíz (todos los workspaces)                                                                                            |
+| Job                              | Comando                                                | Propósito                                                                                                                   |
+| -------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `client-lint`                    | `npm run lint --workspace=apps/client`                 | Lint completo frontend, `--max-warnings 0`                                                                                  |
+| `server-lint`                    | `npm run lint --workspace=apps/server`                 | Lint completo backend, `--max-warnings 0`                                                                                   |
+| `e2e-lint`                       | `npm run lint --workspace=e2e`                         | Lint del workspace Playwright (specs + config), `--max-warnings 0`                                                          |
+| `client-complexity`              | `npx eslint "src/**/*.{js,jsx}"` (desde `apps/client`) | Quality gate de ciclomaticidad — umbrales por capa heredados de `eslint.config.js` (core 15 / utils 10)                     |
+| `server-complexity`              | `npx eslint "src/**/*.js"` (desde `apps/server`)       | Quality gate de ciclomaticidad — umbrales por capa heredados de `eslint.config.js` (core 15 / utils 10; nunca vía `--rule`) |
+| ~~`ci-enterprise.yml` → `lint`~~ | —                                                      | Workflow **retirado** (el archivo ya no existe); se conserva como referencia histórica del comando `npm run lint` raíz      |
 
 Recomendaciones:
 

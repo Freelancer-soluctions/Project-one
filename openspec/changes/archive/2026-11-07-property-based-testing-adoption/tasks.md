@@ -197,3 +197,11 @@ true })` (o `fc.configureGlobal({ seed, path })` temporal en un setupFile /
 - [x] 5.5 `openspec validate property-based-testing-adoption --strict` → PASS
       **[LOCAL]** — Verificación: comando exit 0, 0 errores; `openspec status --change
 property-based-testing-adoption` → todos los artifacts `done`.
+
+---
+
+> **Nota (2026-11-07):** Las verificaciones inline de las tasks 3.1/3.3/5.3 documentan el estado
+> al momento del change (advisory FASE 1). El job `property-tests` fue promovido a BLOCKING el
+> 2026-10-29 (change `ci-testing-gate-promotion`, task 3.1): `continue-on-error` retirado y
+> `property-tests` listado en `prebuild-tests-complete.needs`. El texto histórico se conserva
+> como registro del estado en el momento de la implementación original.

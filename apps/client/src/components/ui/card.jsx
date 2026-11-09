@@ -32,17 +32,22 @@ CardHeader.propTypes = {
   className: PropTypes.string,
 };
 
-const CardTitle = React.forwardRef(({ className, ...props }, ref) => (
+// a11y (change `ci-shifting-left`): `children` explícito para que
+// jsx-a11y/heading-has-content pueda verificar el contenido del heading.
+const CardTitle = React.forwardRef(({ className, children, ...props }, ref) => (
   <h3
     ref={ref}
     className={cn('font-semibold leading-none tracking-tight', className)}
     {...props}
-  />
+  >
+    {children}
+  </h3>
 ));
 CardTitle.displayName = 'CardTitle';
 
 CardTitle.propTypes = {
   className: PropTypes.string,
+  children: PropTypes.node,
 };
 
 const CardDescription = React.forwardRef(({ className, ...props }, ref) => (

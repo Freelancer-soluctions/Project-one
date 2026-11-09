@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Entry principal (index)",
+    "path": "dist/assets/index-*.js",
+    "limit": "240 kB",
+    "gzip": true,
+    "disablePlugins": ["@size-limit/esbuild"]
+  },
+  {
+    "name": "Editor de notas (chunk diferido)",
+    "path": "dist/assets/Notes-*.js",
+    "limit": "200 kB",
+    "gzip": true,
+    "disablePlugins": ["@size-limit/esbuild"]
+  },
+  {
+    "name": "JS total del build",
+    "path": "dist/assets/*.js",
+    "limit": "700 kB",
+    "gzip": true,
+    "disablePlugins": ["@size-limit/esbuild"]
+  }
+]

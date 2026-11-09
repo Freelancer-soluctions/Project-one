@@ -266,7 +266,7 @@ advertises a job the file does not contain misleads exactly the reader it is mea
   - `# SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, dco, sast diff`
   - `# SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, openspec-validate, docs-validation (advisory)`
   - `# SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog`
-  - `# SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke, property-tests`
+  - `# SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, client-coverage, server-coverage, property-tests`
 
 #### Scenario: Metadata job is not advertised in the 2A header
 
@@ -351,8 +351,10 @@ The job `id:` SHALL NOT be renamed as part of this convention — ids are the co
 
 #### Scenario: Testing substage names carry the Tests prefix
 
-- **WHEN** the jobs of SUBSTAGE 2D are listed — `test-unit-client`, `test-unit-server`, `test-integration`, `test-smoke`
+- **WHEN** the jobs of SUBSTAGE 2D are listed — `test-unit-client`, `test-unit-server`, `test-integration`, `test-smoke`,
+  `property-tests`
 - **THEN** every one of their `name:` values starts with `Tests:`
+- **AND** the blocking PBT job displays as `Tests: Property Tests` (defined physically inside the 2D block)
 - **AND** a test job defined after the build stage (`e2e`) also carries the `Tests:` prefix, since its block is a
   testing block regardless of when it runs
 

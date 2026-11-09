@@ -1,0 +1,7094 @@
+# GENERADO por scripts/generate-openapi.ts — NO editar a mano.
+# Regenerar: cd apps/server && npm run openapi:generate
+# Lint del contrato: npm run lint:api (Spectral, .spectral.yaml)
+components:
+  schemas:
+    BadRequest:
+      properties:
+        error:
+          example: true
+          type: boolean
+        message:
+          example: Validation failed
+          type: string
+        statusCode:
+          example: 400
+          type: integer
+      type: object
+    BodyAttendanceCreateUpdate:
+      properties:
+        date:
+          example: 2024-08-05T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+        entryTime:
+          example: 09:00
+          maxLength: 5
+          type: string
+        exitTime:
+          example: 17:00
+          maxLength: 5
+          type: string
+        workedHours:
+          example: 8
+          type: number
+      required:
+        - employeeId
+        - date
+        - entryTime
+        - exitTime
+        - workedHours
+      type: object
+    BodyAttendanceUpdatePartial:
+      description: "PATCH: todos los campos son opcionales, pero debe enviarse al
+        menos uno."
+      properties:
+        date:
+          example: 2024-08-05T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+        entryTime:
+          example: 09:00
+          maxLength: 5
+          type: string
+        exitTime:
+          example: 17:00
+          maxLength: 5
+          type: string
+        workedHours:
+          example: 8
+          type: number
+      type: object
+    BodyClientCreateUpdate:
+      properties:
+        address:
+          example: 123 Main St
+          maxLength: 120
+          type: string
+        email:
+          example: john@example.com
+          format: email
+          type: string
+        name:
+          example: John Doe
+          maxLength: 100
+          type: string
+        phone:
+          example: "+1234567890"
+          maxLength: 15
+          type: string
+      required:
+        - name
+        - email
+        - phone
+        - address
+      type: object
+    BodyClientUpdatePartial:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        address:
+          example: 123 Main St
+          maxLength: 120
+          minLength: 1
+          type: string
+        email:
+          example: john@example.com
+          format: email
+          type: string
+        name:
+          example: John Doe
+          maxLength: 100
+          minLength: 1
+          type: string
+        phone:
+          example: "+1234567890"
+          maxLength: 15
+          minLength: 1
+          type: string
+      type: object
+    BodyEmployeeCreate:
+      properties:
+        address:
+          example: Av. Siempre Viva 742
+          maxLength: 120
+          type: string
+        department:
+          example: Operaciones
+          maxLength: 100
+          type: string
+        dni:
+          example: "12345678"
+          maxLength: 10
+          type: string
+        email:
+          example: ana.perez@example.com
+          format: email
+          type: string
+        lastName:
+          example: Pérez
+          maxLength: 100
+          type: string
+        name:
+          example: Ana
+          maxLength: 100
+          type: string
+        phone:
+          example: "+5491122334455"
+          maxLength: 15
+          type: string
+        position:
+          example: Analista
+          maxLength: 100
+          type: string
+        salary:
+          example: 2500.5
+          minimum: 0
+          type: number
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+      required:
+        - name
+        - lastName
+        - dni
+        - email
+        - startDate
+        - position
+        - department
+        - salary
+      type: object
+    BodyEmployeeUpdate:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        address:
+          example: Av. Siempre Viva 742
+          maxLength: 120
+          type: string
+        department:
+          example: Operaciones
+          maxLength: 100
+          minLength: 1
+          type: string
+        dni:
+          example: "12345678"
+          maxLength: 10
+          minLength: 1
+          type: string
+        email:
+          example: ana.perez@example.com
+          format: email
+          type: string
+        lastName:
+          example: Pérez
+          maxLength: 100
+          minLength: 1
+          type: string
+        name:
+          example: Ana
+          maxLength: 100
+          minLength: 1
+          type: string
+        phone:
+          example: "+5491122334455"
+          maxLength: 15
+          type: string
+        position:
+          example: Analista
+          maxLength: 100
+          minLength: 1
+          type: string
+        salary:
+          example: 2500.5
+          minimum: 0
+          type: number
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+      type: object
+    BodyEventCreateUpdate:
+      properties:
+        description:
+          example: An annual conference about emerging technologies.
+          maxLength: 200
+          type: string
+        endTime:
+          example: 17:00
+          maxLength: 5
+          type: string
+        eventDate:
+          description: Expected ISO-8601 DateTime (YYYY-MM-DDTHH:MM:SSZ).
+          example: 2025-06-15T14:30:00Z
+          format: date-time
+          type: string
+        speaker:
+          example: John Doe
+          maxLength: 20
+          nullable: true
+          type: string
+        startTime:
+          example: 09:00
+          maxLength: 5
+          type: string
+        title:
+          example: Tech Conference 2025
+          maxLength: 50
+          type: string
+        type:
+          example: 1
+          format: int32
+          type: integer
+      type: object
+    BodyExpenseCreateUpdate:
+      properties:
+        category:
+          example: Advertising
+          maxLength: 100
+          type: string
+        description:
+          example: New Marketing Campaign
+          maxLength: 255
+          type: string
+        status:
+          enum:
+            - RENTAL
+            - UTILITIES
+            - SALARIES
+            - SUPPLIES
+            - TRANSPORT
+            - MAINTENANCE
+            - MARKETING
+            - SOFTWARE
+            - PROFESSIONAL_SERVICES
+            - TAXES
+            - BANK_FEES
+            - TRAVEL
+            - TRAINING
+            - OTHER
+          example: MARKETING
+          type: string
+        total:
+          example: 500.75
+          format: float
+          minimum: 0.01
+          type: number
+      required:
+        - description
+        - total
+        - category
+        - status
+      type: object
+    BodyExpensePatch:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        category:
+          enum:
+            - RENTAL
+            - UTILITIES
+            - SALARIES
+            - SUPPLIES
+            - TRANSPORT
+            - MAINTENANCE
+            - MARKETING
+            - SOFTWARE
+            - PROFESSIONAL_SERVICES
+            - TAXES
+            - BANK_FEES
+            - TRAVEL
+            - TRAINING
+            - OTHER
+          example: MARKETING
+          nullable: true
+          type: string
+        description:
+          example: New Marketing Campaign
+          maxLength: 255
+          nullable: true
+          type: string
+        total:
+          example: 500.75
+          minimum: 0.01
+          type: number
+      type: object
+    BodyInventoryMovementCreate:
+      properties:
+        productId:
+          description: ID of the product
+          type: integer
+        purchaseId:
+          description: ID of the related purchase (optional)
+          type: integer
+        quantity:
+          description: Quantity of the movement
+          type: integer
+        reason:
+          description: Reason for the movement
+          maxLength: 200
+          type: string
+        saleId:
+          description: ID of the related sale (optional)
+          type: integer
+        type:
+          description: Type of movement
+          enum:
+            - ENTRY
+            - EXIT
+            - TRANSFERENCE
+            - ADJUSTMENT
+          type: string
+        warehouseId:
+          description: ID of the warehouse
+          type: integer
+      required:
+        - productId
+        - warehouseId
+        - quantity
+        - type
+      type: object
+    BodyInventoryMovementUpdate:
+      properties:
+        productId:
+          description: ID of the product
+          type: integer
+        purchaseId:
+          description: ID of the related purchase (optional)
+          type: integer
+        quantity:
+          description: Quantity of the movement
+          type: integer
+        reason:
+          description: Reason for the movement
+          maxLength: 200
+          type: string
+        saleId:
+          description: ID of the related sale (optional)
+          type: integer
+        type:
+          description: Type of movement
+          enum:
+            - ENTRY
+            - EXIT
+            - TRANSFERENCE
+            - ADJUSTMENT
+          type: string
+        warehouseId:
+          description: ID of the warehouse
+          type: integer
+      type: object
+    BodyNewsCreate:
+      properties:
+        description:
+          example: Noticia de última hora
+          maxLength: 400
+          minLength: 1
+          type: string
+        document:
+          example: Base 64
+          nullable: true
+          type: string
+        statusCode:
+          example: ACT
+          maxLength: 3
+          type: string
+        statusId:
+          example: 1
+          type: integer
+      required:
+        - description
+        - statusId
+        - statusCode
+      type: object
+    BodyPayrollUpdate:
+      description: "PATCH: al menos un campo."
+      properties:
+        baseSalary:
+          example: 2500.5
+          minimum: 1
+          type: number
+        deductions:
+          example: 80
+          minimum: 0
+          type: number
+        employeeId:
+          example: 1
+          minimum: 1
+          type: integer
+        extraHours:
+          example: 120.5
+          minimum: 0
+          type: number
+        month:
+          example: 6
+          maximum: 12
+          minimum: 1
+          type: integer
+        totalPayment:
+          example: 2541
+          minimum: 1
+          type: number
+        year:
+          example: 2024
+          maximum: 2100
+          minimum: 1900
+          type: integer
+      type: object
+    BodyProductCategoryCreate:
+      properties:
+        code:
+          description: Code of the product category
+          maxLength: 3
+          type: string
+        description:
+          description: Description of the product category
+          maxLength: 50
+          type: string
+      required:
+        - description
+        - code
+      type: object
+    BodyProductCategoryUpdate:
+      properties:
+        code:
+          description: Code of the product category
+          maxLength: 3
+          type: string
+        description:
+          description: Description of the product category
+          maxLength: 50
+          type: string
+      type: object
+    BodyProviderCreateUpdate:
+      properties:
+        address:
+          example: Av. Principal 123, Ciudad
+          maxLength: 120
+          nullable: true
+          type: string
+        code:
+          example: C01
+          maxLength: 3
+          type: string
+        contactEmail:
+          example: contacto@proveedor.com
+          maxLength: 80
+          nullable: true
+          type: string
+        contactName:
+          example: Juan Pérez
+          maxLength: 60
+          nullable: true
+          type: string
+        contactPhone:
+          example: "+123456789"
+          maxLength: 15
+          nullable: true
+          type: string
+        name:
+          example: Proveedor ABC
+          maxLength: 100
+          type: string
+        status:
+          example: true
+          type: boolean
+      required:
+        - code
+        - name
+        - status
+      type: object
+    BodyProviderPatch:
+      description: "PATCH: al menos un campo."
+      properties:
+        address:
+          example: Av. Principal 123
+          maxLength: 120
+          nullable: true
+          type: string
+        code:
+          example: P01
+          maxLength: 3
+          type: string
+        contactEmail:
+          example: contacto@proveedor.com
+          maxLength: 80
+          nullable: true
+          type: string
+        contactName:
+          example: Juan Pérez
+          maxLength: 60
+          nullable: true
+          type: string
+        contactPhone:
+          example: "+123456789"
+          maxLength: 15
+          nullable: true
+          type: string
+        name:
+          example: Proveedor ABC
+          maxLength: 100
+          type: string
+        status:
+          example: true
+          type: boolean
+      type: object
+    BodyPurchaseCreate:
+      properties:
+        details:
+          description: List of purchase details
+          items:
+            $ref: "#/components/schemas/PurchaseDetail"
+          minItems: 1
+          type: array
+        providerId:
+          description: ID of the provider
+          type: integer
+        total:
+          description: Total amount of the purchase
+          minimum: 0
+          type: number
+      required:
+        - providerId
+        - total
+        - details
+      type: object
+    BodyPurchasePatch:
+      description: "PATCH: al menos un campo."
+      properties:
+        details:
+          items:
+            properties:
+              price:
+                example: 750.37
+                minimum: 0
+                type: number
+              productId:
+                example: 1
+                type: integer
+              quantity:
+                example: 2
+                minimum: 1
+                type: integer
+            type: object
+          minItems: 1
+          type: array
+        providerId:
+          example: 1
+          type: integer
+        total:
+          example: 1500.75
+          minimum: 0
+          type: number
+      type: object
+    BodySaleCreateUpdate:
+      properties:
+        clientId:
+          description: ID of the client
+          type: integer
+        details:
+          description: List of sale details
+          items:
+            $ref: "#/components/schemas/SaleDetail"
+          minItems: 1
+          type: array
+        total:
+          description: Total amount of the sale
+          minimum: 0
+          type: number
+      required:
+        - clientId
+        - total
+        - details
+      type: object
+    BodySalePatch:
+      description: "PATCH: al menos un campo."
+      properties:
+        clientId:
+          example: 1
+          type: integer
+        details:
+          items:
+            properties:
+              price:
+                example: 750.37
+                minimum: 0
+                type: number
+              productId:
+                example: 1
+                type: integer
+              quantity:
+                example: 2
+                minimum: 1
+                type: integer
+            type: object
+          minItems: 1
+          type: array
+        total:
+          example: 1500.75
+          minimum: 0
+          type: number
+      type: object
+    BodyStockCreateUpdate:
+      properties:
+        expirationDate:
+          description: Fecha de expiración
+          format: date-time
+          type: string
+        lot:
+          description: Número de lote
+          type: string
+        maximum:
+          description: Cantidad máxima de stock
+          type: integer
+        minimum:
+          description: Cantidad mínima de stock
+          type: integer
+        productId:
+          description: ID del producto
+          type: integer
+        quantity:
+          description: Cantidad de stock
+          type: integer
+        unitMeasure:
+          description: Unidad de medida
+          enum:
+            - PIECES
+            - KILOGRAMS
+            - LITERS
+            - METERS
+          type: string
+        warehouseId:
+          description: ID del almacén
+          type: integer
+      required:
+        - quantity
+        - minimum
+        - unitMeasure
+        - productId
+        - warehouseId
+      type: object
+    BodyUserCreateUpdate:
+      properties:
+        address:
+          example: 123 Main St
+          maxLength: 250
+          nullable: true
+          type: string
+        birthday:
+          example: 1990-01-01T00:00:00Z
+          format: date-time
+          type: string
+        city:
+          example: Anytown
+          maxLength: 35
+          nullable: true
+          type: string
+        document:
+          example: "123456789"
+          nullable: true
+          type: string
+        email:
+          example: john@example.com
+          format: email
+          type: string
+        isAdmin:
+          example: false
+          type: boolean
+        name:
+          example: John Doe
+          maxLength: 100
+          type: string
+        password:
+          example: securePassword
+          maxLength: 100
+          type: string
+        picture:
+          example: url/to/picture
+          nullable: true
+          type: string
+        roleId:
+          example: 1
+          type: integer
+        socialSecurity:
+          example: "123456789"
+          maxLength: 9
+          type: string
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        state:
+          example: CA
+          maxLength: 50
+          nullable: true
+          type: string
+        statusId:
+          example: 1
+          type: integer
+        telephone:
+          example: 555-123-4567
+          maxLength: 15
+          type: string
+        userPermitId:
+          example: 1
+          type: integer
+        zipcode:
+          example: "90210"
+          maxLength: 9
+          type: string
+      required:
+        - name
+        - email
+        - password
+        - birthday
+        - roleId
+        - socialSecurity
+        - startDate
+        - statusId
+        - telephone
+        - zipcode
+        - userPermitId
+      type: object
+    BodyUserUpdate:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        accessConfiguration:
+          example: false
+          type: boolean
+        accessNews:
+          example: true
+          type: boolean
+        address:
+          example: 123 Main St
+          maxLength: 250
+          nullable: true
+          type: string
+        birthday:
+          example: 1990-01-01T00:00:00Z
+          format: date-time
+          type: string
+        city:
+          example: Anytown
+          maxLength: 35
+          nullable: true
+          type: string
+        document:
+          example: "123456789"
+          nullable: true
+          type: string
+        email:
+          example: john@example.com
+          format: email
+          type: string
+        isAdmin:
+          example: false
+          type: boolean
+        isManager:
+          example: false
+          type: boolean
+        name:
+          example: John Doe
+          maxLength: 100
+          minLength: 1
+          type: string
+        password:
+          description: "Solo escritura: nunca se devuelve en las respuestas."
+          example: S3cr3t
+          minLength: 1
+          type: string
+        permissions:
+          example:
+            - 1
+            - 2
+          items:
+            type: integer
+          type: array
+        picture:
+          example: https://example.com/avatar.png
+          nullable: true
+          type: string
+        roleId:
+          example: 2
+          minimum: 1
+          type: integer
+        socialSecurity:
+          example: "123456789"
+          maxLength: 9
+          type: string
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        state:
+          example: CA
+          maxLength: 50
+          nullable: true
+          type: string
+        statusId:
+          example: 1
+          minimum: 1
+          type: integer
+        telephone:
+          example: 555-123-4567
+          maxLength: 15
+          type: string
+        zipcode:
+          example: "90210"
+          maxLength: 9
+          type: string
+      type: object
+    BodyVacationPatch:
+      properties:
+        employeeId:
+          example: 1
+          minimum: 1
+          type: integer
+        endDate:
+          example: 2024-08-15T00:00:00Z
+          format: date-time
+          type: string
+        startDate:
+          example: 2024-08-01T00:00:00Z
+          format: date-time
+          type: string
+        status:
+          enum:
+            - PENDING
+            - APPROVED
+            - REJECTED
+          example: PENDING
+          type: string
+      type: object
+    BodyWarehouseCreate:
+      properties:
+        address:
+          example: 123 Storage St.
+          maxLength: 120
+          nullable: true
+          type: string
+        description:
+          example: Main storage facility
+          maxLength: 120
+          nullable: true
+          type: string
+        name:
+          example: Main Warehouse
+          maxLength: 50
+          type: string
+        status:
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - MAINTENANCE
+          example: ACTIVE
+          type: string
+      required:
+        - name
+        - status
+      type: object
+    BodyWarehouseUpdate:
+      properties:
+        address:
+          example: 123 Storage St.
+          maxLength: 120
+          nullable: true
+          type: string
+        description:
+          example: Main storage facility
+          maxLength: 120
+          nullable: true
+          type: string
+        name:
+          example: Main Warehouse
+          maxLength: 50
+          type: string
+        status:
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - MAINTENANCE
+          example: ACTIVE
+          type: string
+      type: object
+    ClientFilters:
+      properties:
+        email:
+          example: john@example.com
+          format: email
+          nullable: true
+          type: string
+        name:
+          example: John Doe
+          maxLength: 100
+          nullable: true
+          type: string
+      type: object
+    Delete:
+      properties:
+        data:
+          properties:
+            message:
+              example: Item deleted successfully
+              type: string
+          type: object
+        error:
+          example: false
+          type: boolean
+        statusCode:
+          example: 200
+          type: integer
+      type: object
+    Employee:
+      properties:
+        address:
+          example: Av. Siempre Viva 742
+          maxLength: 120
+          nullable: true
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-03-15T10:30:00Z
+          format: date-time
+          type: string
+        department:
+          example: Operaciones
+          maxLength: 100
+          type: string
+        dni:
+          example: "12345678"
+          maxLength: 128
+          type: string
+        email:
+          example: ana.perez@example.com
+          format: email
+          type: string
+        id:
+          example: 1
+          type: integer
+        lastName:
+          example: Pérez
+          maxLength: 100
+          type: string
+        name:
+          example: Ana
+          maxLength: 100
+          type: string
+        phone:
+          example: "+5491122334455"
+          maxLength: 15
+          nullable: true
+          type: string
+        position:
+          example: Analista
+          maxLength: 100
+          type: string
+        salary:
+          description: Salario serializado por la columna VarChar(128), no un número.
+          example: "2500.50"
+          maxLength: 128
+          type: string
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    EmployeeFilters:
+      properties:
+        department:
+          example: Operaciones
+          maxLength: 100
+          type: string
+        dni:
+          example: "12345678"
+          maxLength: 10
+          type: string
+        email:
+          example: ana.perez@example.com
+          format: email
+          type: string
+        lastName:
+          example: Pérez
+          maxLength: 100
+          type: string
+        limit:
+          example: 20
+          minimum: 1
+          type: integer
+        name:
+          example: Ana
+          maxLength: 100
+          type: string
+        page:
+          example: 1
+          minimum: 1
+          type: integer
+        position:
+          example: Analista
+          maxLength: 100
+          type: string
+      type: object
+    Error:
+      properties:
+        error:
+          example: true
+          type: boolean
+        message:
+          example: Some error message
+          type: string
+        statusCode:
+          example: 500
+          type: number
+      type: object
+    EventsUpdateSchema:
+      description: "PATCH: todos los campos son opcionales. `meetingUrl` es
+        obligatorio para ONLINE/HYBRID y prohibido para IN_PERSON; `location` al
+        contrario."
+      properties:
+        capacity:
+          example: 100
+          minimum: 0
+          type: integer
+        description:
+          example: Charla sobre IA
+          maxLength: 200
+          type: string
+        endTime:
+          example: 11:00
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          type: string
+        eventDate:
+          example: 2025-06-15T00:00:00Z
+          format: date-time
+          type: string
+        location:
+          example: Auditorio principal
+          maxLength: 200
+          type: string
+        meetingUrl:
+          example: https://meet.example.com/abc-123
+          maxLength: 500
+          type: string
+        modality:
+          enum:
+            - ONLINE
+            - IN_PERSON
+            - HYBRID
+          example: HYBRID
+          type: string
+        speaker:
+          example: John Doe
+          maxLength: 20
+          nullable: true
+          type: string
+        startTime:
+          example: 09:00
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          type: string
+        title:
+          example: Tech Conference 2025
+          maxLength: 50
+          type: string
+        type:
+          example: 2
+          type: integer
+      type: object
+    ExpenseFilters:
+      properties:
+        category:
+          example: Stationery
+          maxLength: 100
+          nullable: true
+          type: string
+        description:
+          example: Office Supplies
+          maxLength: 255
+          nullable: true
+          type: string
+        fromDate:
+          description: Filter expenses from this date
+          format: date-time
+          nullable: true
+          type: string
+        maxTotal:
+          description: Maximum total amount for expenses
+          format: float
+          minimum: 0
+          nullable: true
+          type: number
+        minTotal:
+          description: Minimum total amount for expenses
+          format: float
+          minimum: 0
+          nullable: true
+          type: number
+        status:
+          enum:
+            - RENTAL
+            - UTILITIES
+            - SALARIES
+            - SUPPLIES
+            - TRANSPORT
+            - MAINTENANCE
+            - MARKETING
+            - SOFTWARE
+            - PROFESSIONAL_SERVICES
+            - TAXES
+            - BANK_FEES
+            - TRAVEL
+            - TRAINING
+            - OTHER
+          example: SUPPLIES
+          nullable: true
+          type: string
+        toDate:
+          description: Filter expenses up to this date
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    GetEventsTypes:
+      properties:
+        code:
+          example: C01
+          type: string
+        description:
+          example: Event type description
+          type: string
+        id:
+          example: 1
+          type: integer
+      type: object
+    InventoryMovementFilters:
+      properties:
+        endDate:
+          description: Filter by end date
+          format: date-time
+          type: string
+        productId:
+          description: Filter by product ID
+          type: integer
+        startDate:
+          description: Filter by start date
+          format: date-time
+          type: string
+        type:
+          description: Filter by movement type
+          enum:
+            - ENTRY
+            - EXIT
+            - TRANSFERENCE
+            - ADJUSTMENT
+          type: string
+        warehouseId:
+          description: Filter by warehouse ID
+          type: integer
+      type: object
+    NewsFilters:
+      properties:
+        description:
+          example: test1
+          maxLength: 30
+          minLength: 1
+          nullable: true
+          type: string
+        fromDate:
+          example: 2024-08-05
+          format: date
+          nullable: true
+          type: string
+        statusCode:
+          example: C01
+          maxLength: 3
+          minLength: 3
+          nullable: true
+          type: string
+        toDate:
+          example: 2024-08-05
+          format: date
+          nullable: true
+          type: string
+      type: object
+    NewsStatus:
+      properties:
+        code:
+          example: C01
+          maxLength: 3
+          type: string
+        description:
+          example: ACTIVE
+          maxLength: 10
+          type: string
+        id:
+          example: 1
+          type: integer
+      type: object
+    NewsStatusArray:
+      items:
+        $ref: "#/components/schemas/NewsStatus"
+      type: array
+    NewsUpdate:
+      properties:
+        description:
+          example: Noticia creada exitosamente
+          maxLength: 400
+          minLength: 1
+          type: string
+        document:
+          example: Documento adjunto en base64
+          nullable: true
+          type: string
+        statusCode:
+          example: C01
+          maxLength: 3
+          type: string
+        statusId:
+          example: 1
+          type: integer
+      required:
+        - description
+        - statusId
+        - statusCode
+      type: object
+    NewsUpdatePartial:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        description:
+          example: Noticia actualizada
+          maxLength: 400
+          minLength: 1
+          type: string
+        document:
+          example: Documento en base64
+          nullable: true
+          type: string
+        statusCode:
+          example: C01
+          maxLength: 3
+          type: string
+        statusId:
+          example: 1
+          type: integer
+      type: object
+    NotFound:
+      properties:
+        error:
+          example: true
+          type: boolean
+        message:
+          example: Resource not found
+          type: string
+        statusCode:
+          example: 404
+          type: integer
+      type: object
+    PerformanceEvaluationCreate:
+      properties:
+        calification:
+          example: 8
+          maximum: 10
+          minimum: 1
+          type: integer
+        comments:
+          example: Buen desempeño
+          maxLength: 200
+          type: string
+        date:
+          example: 2024-06-30T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+      required:
+        - employeeId
+        - date
+        - calification
+      type: object
+    PerformanceEvaluationFilters:
+      properties:
+        employeeId:
+          example: 1
+          type: integer
+        fromDate:
+          example: 2024-01-01
+          format: date
+          type: string
+        limit:
+          example: 20
+          minimum: 1
+          type: integer
+        page:
+          example: 1
+          minimum: 1
+          type: integer
+        toDate:
+          example: 2024-12-31
+          format: date
+          type: string
+      type: object
+    PerformanceEvaluationPatch:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        calification:
+          example: 8
+          maximum: 10
+          minimum: 1
+          type: integer
+        comments:
+          example: Buen desempeño
+          maxLength: 200
+          type: string
+        date:
+          example: 2024-06-30T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+      type: object
+    Permission:
+      properties:
+        approvedAt:
+          description: Date and time when the permission was approved/rejected
+          example: 2024-03-25T10:00:00Z
+          format: date-time
+          type: string
+        approvedBy:
+          description: ID of the user who approved/rejected the permission
+          example: 2
+          type: integer
+        approver:
+          $ref: "#/components/schemas/ResponseGetUser"
+        comments:
+          description: Additional comments about the permission
+          example: Approved with conditions
+          type: string
+        createdOn:
+          description: Creation date and time
+          example: 2024-03-25T09:00:00Z
+          format: date-time
+          type: string
+        employee:
+          $ref: "#/components/schemas/Employee"
+        employeeId:
+          description: The ID of the employee requesting permission
+          example: 1
+          type: integer
+        endDate:
+          description: End date of the permission
+          example: 2024-03-26
+          format: date
+          type: string
+        id:
+          description: The permission ID
+          example: 1
+          type: integer
+        reason:
+          description: Reason for requesting permission
+          example: Medical appointment
+          type: string
+        startDate:
+          description: Start date of the permission
+          example: 2024-03-25
+          format: date
+          type: string
+        status:
+          description: Current status of the permission
+          enum:
+            - PENDING
+            - APPROVED
+            - REJECTED
+          example: PENDING
+          type: string
+        type:
+          description: The type of permission
+          enum:
+            - SICK
+            - PERSONAL
+            - MATERNITY
+            - PATERNITY
+            - OTHER
+          example: SICK
+          type: string
+        updatedOn:
+          description: Last update date and time
+          example: 2024-03-25T10:00:00Z
+          format: date-time
+          type: string
+      required:
+        - employeeId
+        - type
+        - startDate
+        - endDate
+        - reason
+      type: object
+    PermissionFilters:
+      properties:
+        employeeId:
+          description: Filter by employee ID
+          example: 1
+          type: integer
+        fromDate:
+          description: Filter by start date (inclusive)
+          example: 2024-03-01
+          format: date
+          type: string
+        status:
+          description: Filter by permission status
+          enum:
+            - PENDING
+            - APPROVED
+            - REJECTED
+          example: PENDING
+          type: string
+        toDate:
+          description: Filter by end date (inclusive)
+          example: 2024-03-31
+          format: date
+          type: string
+        type:
+          description: Filter by permission type
+          enum:
+            - SICK
+            - PERSONAL
+            - MATERNITY
+            - PATERNITY
+            - OTHER
+          example: SICK
+          type: string
+      type: object
+    Product:
+      properties:
+        barCode:
+          type: string
+        cost:
+          type: number
+        createdOn:
+          format: date-time
+          type: string
+        description:
+          type: string
+        id:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+        productCategoryId:
+          type: integer
+        productProviderId:
+          type: integer
+        productStatusId:
+          type: integer
+        sku:
+          type: string
+        updatedOn:
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    ProductCategoryFilters:
+      properties:
+        code:
+          description: Code to filter categories by
+          maxLength: 3
+          nullable: true
+          type: string
+        description:
+          description: Name to filter categories by
+          maxLength: 50
+          nullable: true
+          type: string
+      type: object
+    ProvidersFilters:
+      properties:
+        name:
+          example: Proveedor ABC
+          maxLength: 80
+          minLength: 1
+          nullable: true
+          type: string
+        status:
+          example: true
+          nullable: true
+          type: boolean
+      type: object
+    PurchaseDetail:
+      properties:
+        price:
+          description: Price per unit
+          minimum: 0
+          type: number
+        productId:
+          description: ID of the product
+          type: integer
+        quantity:
+          description: Quantity of the product
+          minimum: 1
+          type: integer
+      required:
+        - productId
+        - quantity
+        - price
+      type: object
+    PurchaseFilters:
+      properties:
+        endDate:
+          description: Filter by end date
+          format: date-time
+          type: string
+        maxTotal:
+          description: Filter by maximum total
+          minimum: 0
+          type: number
+        minTotal:
+          description: Filter by minimum total
+          minimum: 0
+          type: number
+        providerId:
+          description: Filter by provider ID
+          type: integer
+        startDate:
+          description: Filter by start date
+          format: date-time
+          type: string
+      type: object
+    ResponseAttendanceCreateUpdate:
+      properties:
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-08-05T09:00:00Z
+          format: date-time
+          type: string
+        date:
+          example: 2024-08-05T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+        entryTime:
+          example: 09:00
+          type: string
+        exitTime:
+          example: 17:00
+          type: string
+        id:
+          example: 1
+          type: integer
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+        workedHours:
+          example: "8.00"
+          type: string
+      type: object
+    ResponseClientCreateUpdate:
+      properties:
+        address:
+          example: 123 Main St
+          maxLength: 120
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-03-15T10:30:00Z
+          format: date-time
+          type: string
+        email:
+          example: john@example.com
+          format: email
+          type: string
+        id:
+          example: 1
+          type: integer
+        name:
+          example: John Doe
+          maxLength: 100
+          type: string
+        phone:
+          example: "+1234567890"
+          maxLength: 15
+          type: string
+        updatedBy:
+          example: 1
+          type: integer
+        updatedOn:
+          example: 2024-03-17T10:30:00Z
+          format: date-time
+          type: string
+      type: object
+    ResponseEmployeeCreateUpdate:
+      properties:
+        address:
+          example: null
+          nullable: true
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-03-15T10:30:00Z
+          format: date-time
+          type: string
+        department:
+          example: Operaciones
+          type: string
+        dni:
+          example: "12345678"
+          type: string
+        email:
+          example: ana.perez@example.com
+          format: email
+          type: string
+        id:
+          example: 1
+          type: integer
+        lastName:
+          example: Pérez
+          type: string
+        name:
+          example: Ana
+          type: string
+        phone:
+          example: null
+          nullable: true
+          type: string
+        position:
+          example: Analista
+          type: string
+        salary:
+          example: "2500.50"
+          type: string
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    ResponseEventCreateUpdate:
+      properties:
+        data:
+          properties:
+            createdBy:
+              example: 5
+              type: integer
+            createdOn:
+              example: 2025-03-10T14:30:00Z
+              format: date-time
+              type: string
+            description:
+              example: A detailed discussion on the future of AI
+              maxLength: 200
+              type: string
+            endTime:
+              example: 11:00
+              maxLength: 5
+              type: string
+            eventDate:
+              example: 2025-06-15T00:00:00Z
+              format: date-time
+              type: string
+            eventTypeId:
+              example: 2
+              type: integer
+            id:
+              example: 1
+              type: integer
+            speaker:
+              example: John Doe
+              maxLength: 20
+              nullable: true
+              type: string
+            startTime:
+              example: 09:00
+              maxLength: 5
+              type: string
+            title:
+              example: Conference on AI
+              maxLength: 50
+              type: string
+            updatedOn:
+              example: 2025-03-15T18:00:00Z
+              format: date-time
+              nullable: true
+              type: string
+          type: object
+      type: object
+    ResponseExpenseCreateUpdate:
+      allOf:
+        - $ref: "#/components/schemas/ResponseGetExpense"
+    ResponseGetAttendance:
+      properties:
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-08-05T09:00:00Z
+          format: date-time
+          type: string
+        date:
+          example: 2024-08-05T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+        employeeLastName:
+          example: Pérez
+          nullable: true
+          type: string
+        employeeName:
+          example: Ana
+          nullable: true
+          type: string
+        entryTime:
+          example: 09:00
+          type: string
+        exitTime:
+          example: 17:00
+          type: string
+        id:
+          example: 1
+          type: integer
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+        userAttendanceCreatedName:
+          example: Admin
+          nullable: true
+          type: string
+        userAttendanceUpdatedName:
+          example: null
+          nullable: true
+          type: string
+        workedHours:
+          description: Decimal(18,2) serializado como string por el driver de Postgres.
+          example: "8.00"
+          type: string
+      type: object
+    ResponseGetClient:
+      properties:
+        address:
+          example: 123 Main St
+          maxLength: 120
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-03-15T10:30:00Z
+          format: date-time
+          type: string
+        email:
+          example: john@example.com
+          format: email
+          type: string
+        id:
+          example: 1
+          type: integer
+        name:
+          example: John Doe
+          maxLength: 100
+          type: string
+        phone:
+          example: "+1234567890"
+          maxLength: 15
+          type: string
+        updatedBy:
+          example: 1
+          nullable: true
+          type: integer
+        updatedOn:
+          example: 2024-03-17T10:30:00Z
+          format: date-time
+          nullable: true
+          type: string
+        userClientCreatedName:
+          example: Admin
+          type: string
+        userClientUpdatedName:
+          example: Editor
+          nullable: true
+          type: string
+      type: object
+    ResponseGetClientOrder:
+      properties:
+        clientId:
+          description: Client ID
+          type: integer
+        createdOn:
+          description: Creation Timestamp
+          format: date-time
+          type: string
+        id:
+          description: Client Order ID
+          type: integer
+        notes:
+          description: Order Notes
+          nullable: true
+          type: string
+        saleId:
+          description: Sale ID
+          nullable: true
+          type: integer
+        status:
+          description: Order Status
+          type: string
+        updatedOn:
+          description: Update Timestamp
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    ResponseGetEmployee:
+      properties:
+        address:
+          example: null
+          maxLength: 120
+          nullable: true
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-03-15T10:30:00Z
+          format: date-time
+          type: string
+        department:
+          example: Operaciones
+          maxLength: 100
+          type: string
+        dni:
+          example: "12345678"
+          maxLength: 128
+          type: string
+        email:
+          example: ana.perez@example.com
+          format: email
+          type: string
+        id:
+          example: 1
+          type: integer
+        lastName:
+          example: Pérez
+          maxLength: 100
+          type: string
+        name:
+          example: Ana
+          maxLength: 100
+          type: string
+        phone:
+          example: null
+          maxLength: 15
+          nullable: true
+          type: string
+        position:
+          example: Analista
+          maxLength: 100
+          type: string
+        salary:
+          example: "2500.50"
+          maxLength: 128
+          type: string
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+        userEmployeeCreatedName:
+          example: Admin
+          nullable: true
+          type: string
+        userEmployeeUpdatedName:
+          example: null
+          nullable: true
+          type: string
+      type: object
+    ResponseGetEvents:
+      properties:
+        createdBy:
+          example: 123
+          type: integer
+        createdOn:
+          example: 2025-01-01T08:00:00Z
+          format: date-time
+          type: string
+        description:
+          example: An annual conference about emerging technologies.
+          type: string
+        endTime:
+          example: 12:00
+          type: string
+        eventDate:
+          example: 2025-06-15T00:00:00Z
+          format: date-time
+          type: string
+        eventTypeCode:
+          example: TECH
+          type: string
+        eventTypeDescription:
+          example: Eventos relacionados con tecnología
+          type: string
+        eventTypeId:
+          example: 2
+          type: integer
+        id:
+          example: 1
+          type: integer
+        speaker:
+          example: John Doe
+          nullable: true
+          type: string
+        startTime:
+          example: 10:00
+          type: string
+        title:
+          example: Tech Conference 2025
+          type: string
+        updatedOn:
+          example: 2025-02-01T10:30:00Z
+          format: date-time
+          nullable: true
+          type: string
+        userEventCreatedName:
+          example: Admin
+          type: string
+      type: object
+    ResponseGetExpense:
+      properties:
+        category:
+          example: Office Space
+          maxLength: 100
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2025-04-01T10:00:00Z
+          format: date-time
+          type: string
+        description:
+          example: Monthly Rent Payment
+          maxLength: 255
+          type: string
+        id:
+          example: clxkj234s0000m9qr8p5hfg8a
+          format: cuid
+          type: string
+        status:
+          enum:
+            - RENTAL
+            - UTILITIES
+            - SALARIES
+            - SUPPLIES
+            - TRANSPORT
+            - MAINTENANCE
+            - MARKETING
+            - SOFTWARE
+            - PROFESSIONAL_SERVICES
+            - TAXES
+            - BANK_FEES
+            - TRAVEL
+            - TRAINING
+            - OTHER
+          example: RENTAL
+          type: string
+        total:
+          example: 1200.5
+          format: float
+          type: number
+        updatedBy:
+          example: 2
+          nullable: true
+          type: integer
+        updatedOn:
+          example: 2025-04-02T11:30:00Z
+          format: date-time
+          nullable: true
+          type: string
+        userExpenseCreatedName:
+          example: John Doe
+          nullable: true
+          type: string
+        userExpenseUpdatedName:
+          example: Jane Smith
+          nullable: true
+          type: string
+      type: object
+    ResponseGetInventoryMovement:
+      properties:
+        createdBy:
+          type: integer
+        createdOn:
+          format: date-time
+          type: string
+        id:
+          type: integer
+        product:
+          $ref: "#/components/schemas/Product"
+        productId:
+          type: integer
+        purchaseId:
+          nullable: true
+          type: integer
+        quantity:
+          type: integer
+        reason:
+          type: string
+        saleId:
+          nullable: true
+          type: integer
+        type:
+          enum:
+            - ENTRY
+            - EXIT
+            - TRANSFERENCE
+            - ADJUSTMENT
+          type: string
+        updatedBy:
+          nullable: true
+          type: integer
+        updatedOn:
+          format: date-time
+          nullable: true
+          type: string
+        warehouse:
+          $ref: "#/components/schemas/Warehouse"
+        warehouseId:
+          type: integer
+      type: object
+    ResponseGetNews:
+      properties:
+        closedBy:
+          example: 1
+          nullable: true
+          type: integer
+        closedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-08-05T00:19:58.867Z
+          format: date-time
+          type: string
+        description:
+          example: test1
+          type: string
+        document:
+          example: ""
+          type: string
+        documentId:
+          example: null
+          nullable: true
+          type: string
+        id:
+          example: 1
+          type: integer
+        pendingBy:
+          example: null
+          nullable: true
+          type: integer
+        pendingOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+        status:
+          properties:
+            code:
+              example: C01
+              type: string
+            description:
+              example: ACTIVE
+              type: string
+            id:
+              example: 1
+              type: integer
+          type: object
+        statusId:
+          example: 1
+          type: integer
+        userNewsClosed:
+          properties:
+            name:
+              example: Admin
+              type: string
+          type: object
+        userNewsCreated:
+          properties:
+            name:
+              example: Admin
+              type: string
+          type: object
+        userNewsPending:
+          example: null
+          nullable: true
+          type: object
+      type: object
+    ResponseGetPerformanceEvaluation:
+      properties:
+        calification:
+          example: 8
+          type: integer
+        comments:
+          example: Buen desempeño
+          nullable: true
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-06-30T10:00:00Z
+          format: date-time
+          type: string
+        date:
+          example: 2024-06-30T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+        employeeName:
+          example: Ana
+          nullable: true
+          type: string
+        id:
+          example: 1
+          type: integer
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+        userPerformanceCreatedName:
+          example: Admin
+          nullable: true
+          type: string
+        userPerformanceUpdatedName:
+          example: null
+          nullable: true
+          type: string
+      type: object
+    ResponseGetProductCategories:
+      properties:
+        code:
+          description: Category unique code
+          maxLength: 3
+          type: string
+        createdOn:
+          description: Creation date
+          format: date-time
+          type: string
+        description:
+          description: Category description
+          maxLength: 50
+          type: string
+        id:
+          description: Category ID
+          type: integer
+        updatedOn:
+          description: Last update date
+          format: date-time
+          type: string
+      type: object
+    ResponseGetProductProvider:
+      properties:
+        address:
+          example: Av. Principal 123, Ciudad
+          maxLength: 120
+          nullable: true
+          type: string
+        code:
+          example: P01
+          maxLength: 3
+          type: string
+        contactEmail:
+          example: contacto@proveedor.com
+          format: email
+          maxLength: 80
+          nullable: true
+          type: string
+        contactName:
+          example: Juan Pérez
+          maxLength: 60
+          nullable: true
+          type: string
+        contactPhone:
+          example: "+123456789"
+          maxLength: 15
+          nullable: true
+          type: string
+        createdBy:
+          example: 5
+          type: integer
+        createdOn:
+          example: 2024-08-05T00:19:58.867Z
+          format: date-time
+          type: string
+        id:
+          example: 1
+          type: integer
+        name:
+          example: Proveedor ABC
+          maxLength: 100
+          type: string
+        status:
+          example: true
+          type: boolean
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+        userProductCreatedName:
+          example: Admin
+          nullable: true
+          type: string
+        userProductUpdatedName:
+          example: Editor
+          nullable: true
+          type: string
+      required:
+        - id
+        - code
+        - name
+        - createdOn
+        - createdBy
+        - status
+      type: object
+    ResponseGetPurchase:
+      properties:
+        createdBy:
+          type: integer
+        createdOn:
+          format: date-time
+          type: string
+        details:
+          items:
+            properties:
+              id:
+                type: integer
+              price:
+                type: number
+              product:
+                $ref: "#/components/schemas/Product"
+              productId:
+                type: integer
+              quantity:
+                type: integer
+            type: object
+          type: array
+        id:
+          type: integer
+        provider:
+          $ref: "#/components/schemas/ResponseGetProductProvider"
+        providerId:
+          type: integer
+        total:
+          type: number
+        updatedBy:
+          nullable: true
+          type: integer
+        updatedOn:
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    ResponseGetSale:
+      properties:
+        client:
+          $ref: "#/components/schemas/ResponseGetClient"
+        clientId:
+          type: integer
+        createdBy:
+          type: integer
+        createdOn:
+          format: date-time
+          type: string
+        details:
+          items:
+            properties:
+              id:
+                type: integer
+              price:
+                type: number
+              productId:
+                type: integer
+              quantity:
+                type: integer
+            type: object
+          type: array
+        id:
+          type: integer
+        total:
+          type: number
+        updatedBy:
+          nullable: true
+          type: integer
+        updatedOn:
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    ResponseGetStock:
+      properties:
+        createdBy:
+          description: ID del usuario que creó el registro
+          type: integer
+        createdOn:
+          description: Fecha de creación
+          format: date-time
+          type: string
+        expirationDate:
+          description: Fecha de expiración
+          format: date-time
+          type: string
+        expirationStatus:
+          description: Estado de expiración
+          enum:
+            - EXPIRED
+            - NOT EXPIRED
+          type: string
+        id:
+          description: ID del registro de stock
+          type: integer
+        lot:
+          description: Número de lote
+          maxLength: 50
+          type: string
+        maximum:
+          description: Cantidad máxima de stock
+          minimum: 0
+          type: integer
+        minimum:
+          description: Cantidad mínima de stock
+          minimum: 0
+          type: integer
+        productCost:
+          description: Costo del producto
+          type: number
+        productId:
+          description: ID del producto
+          type: integer
+        productName:
+          description: Nombre del producto
+          type: string
+        productPrice:
+          description: Precio del producto
+          type: number
+        quantity:
+          description: Cantidad de stock
+          minimum: 0
+          type: integer
+        totalCost:
+          description: Costo total del stock
+          type: number
+        unitMeasure:
+          description: Unidad de medida
+          enum:
+            - PIECES
+            - KILOGRAMS
+            - LITERS
+            - METERS
+          type: string
+        updatedBy:
+          description: ID del usuario que actualizó el registro
+          type: integer
+        updatedOn:
+          description: Fecha de actualización
+          format: date-time
+          type: string
+        userStockCreatedName:
+          description: Nombre del usuario que creó el registro
+          type: string
+        userStockUpdatedName:
+          description: Nombre del usuario que actualizó el registro
+          type: string
+        warehouseId:
+          description: ID del almacén
+          type: integer
+        warehouseName:
+          description: Nombre del almacén
+          type: string
+      required:
+        - quantity
+        - minimum
+        - unitMeasure
+        - productId
+        - warehouseId
+      type: object
+    ResponseGetStockAlerts:
+      properties:
+        expired:
+          description: Cantidad de productos vencidos
+          type: integer
+        lowStock:
+          description: Cantidad de productos con stock bajo
+          type: integer
+      type: object
+    ResponseGetStockByProductId:
+      properties:
+        createdBy:
+          description: ID del usuario que creó el registro
+          type: integer
+        createdOn:
+          description: Fecha de creación
+          format: date-time
+          type: string
+        expirationDate:
+          description: Fecha de expiración
+          format: date-time
+          type: string
+        id:
+          description: ID del registro de stock
+          type: integer
+        lot:
+          description: Número de lote
+          maxLength: 50
+          type: string
+        maximum:
+          description: Cantidad máxima de stock
+          minimum: 0
+          type: integer
+        minimum:
+          description: Cantidad mínima de stock
+          minimum: 0
+          type: integer
+        productId:
+          description: ID del producto
+          type: integer
+        quantity:
+          description: Cantidad de stock
+          minimum: 0
+          type: integer
+        unitMeasure:
+          description: Unidad de medida
+          enum:
+            - PIECES
+            - KILOGRAMS
+            - LITERS
+            - METERS
+          type: string
+        updatedBy:
+          description: ID del usuario que actualizó el registro
+          type: integer
+        updatedOn:
+          description: Fecha de actualización
+          format: date-time
+          type: string
+        warehouseId:
+          description: ID del almacén
+          type: integer
+      required:
+        - quantity
+        - minimum
+        - unitMeasure
+        - productId
+        - warehouseId
+      type: object
+    ResponseGetUser:
+      properties:
+        address:
+          example: 123 Main St
+          maxLength: 250
+          nullable: true
+          type: string
+        birthday:
+          example: 1990-01-01T00:00:00Z
+          format: date-time
+          type: string
+        city:
+          example: Anytown
+          maxLength: 35
+          nullable: true
+          type: string
+        document:
+          example: "123456789"
+          nullable: true
+          type: string
+        email:
+          example: john@example.com
+          format: email
+          type: string
+        id:
+          example: 1
+          type: integer
+        isAdmin:
+          example: false
+          type: boolean
+        lastUpdatedBy:
+          example: 1
+          type: integer
+        lastUpdatedByName:
+          example: Admin User
+          type: string
+        lastUpdatedOn:
+          example: 2025-05-12T00:00:00Z
+          format: date-time
+          nullable: true
+          type: string
+        name:
+          example: John Doe
+          maxLength: 100
+          type: string
+        picture:
+          example: url/to/picture
+          nullable: true
+          type: string
+        roleDescription:
+          example: Administrator
+          type: string
+        roleId:
+          example: 1
+          type: integer
+        socialSecurity:
+          example: "123456789"
+          maxLength: 9
+          type: string
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        state:
+          example: CA
+          maxLength: 50
+          nullable: true
+          type: string
+        statusDescription:
+          example: Active
+          type: string
+        statusId:
+          example: 1
+          type: integer
+        telephone:
+          example: 555-123-4567
+          maxLength: 15
+          type: string
+        userPermitAccessConfiguration:
+          example: true
+          type: boolean
+        userPermitAccessNews:
+          example: false
+          type: boolean
+        userPermitId:
+          example: 1
+          type: integer
+        zipcode:
+          example: "90210"
+          maxLength: 9
+          type: string
+      type: object
+    ResponseGetWarehouse:
+      properties:
+        address:
+          example: 123 Storage St.
+          maxLength: 120
+          nullable: true
+          type: string
+        createdOn:
+          example: 2024-03-15T10:30:00Z
+          format: date-time
+          type: string
+        description:
+          example: Main storage facility
+          maxLength: 120
+          nullable: true
+          type: string
+        id:
+          example: 1
+          type: integer
+        name:
+          example: Main Warehouse
+          maxLength: 50
+          type: string
+        status:
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - MAINTENANCE
+          example: ACTIVE
+          type: string
+        updatedOn:
+          example: 2024-03-17T10:30:00Z
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    ResponseInventoryMovementCreate:
+      properties:
+        createdBy:
+          type: integer
+        createdOn:
+          format: date-time
+          type: string
+        id:
+          type: integer
+        product:
+          $ref: "#/components/schemas/Product"
+        productId:
+          type: integer
+        quantity:
+          type: integer
+        reason:
+          type: string
+        type:
+          enum:
+            - ENTRY
+            - EXIT
+            - TRANSFERENCE
+            - ADJUSTMENT
+          type: string
+        warehouse:
+          $ref: "#/components/schemas/Warehouse"
+        warehouseId:
+          type: integer
+      type: object
+    ResponseInventoryMovementUpdate:
+      properties:
+        createdBy:
+          type: integer
+        createdOn:
+          format: date-time
+          type: string
+        id:
+          type: integer
+        product:
+          $ref: "#/components/schemas/Product"
+        productId:
+          type: integer
+        quantity:
+          type: integer
+        reason:
+          type: string
+        type:
+          enum:
+            - ENTRY
+            - EXIT
+            - TRANSFERENCE
+            - ADJUSTMENT
+          type: string
+        updatedBy:
+          type: integer
+        updatedOn:
+          format: date-time
+          type: string
+        warehouse:
+          $ref: "#/components/schemas/Warehouse"
+        warehouseId:
+          type: integer
+      type: object
+    ResponseNewsCreateUpdate:
+      properties:
+        closedBy:
+          example: 1
+          nullable: true
+          type: integer
+        closedOn:
+          example: 2025-03-09T12:00:00Z
+          format: date-time
+          nullable: true
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2025-03-09T12:00:00Z
+          format: date-time
+          type: string
+        description:
+          example: Noticia creada exitosamente
+          type: string
+        document:
+          example: Documento adjunto en base64
+          nullable: true
+          type: string
+        documentId:
+          example: null
+          nullable: true
+          type: string
+        id:
+          example: 123
+          type: integer
+        pendingBy:
+          example: 1
+          nullable: true
+          type: integer
+        pendingOn:
+          example: 2025-03-09T12:00:00Z
+          format: date-time
+          nullable: true
+          type: string
+        statusId:
+          example: 1
+          type: integer
+      type: object
+    ResponseProductCategoryCreateUpdate:
+      properties:
+        code:
+          description: Category unique code
+          maxLength: 3
+          type: string
+        createdOn:
+          description: Creation date
+          format: date-time
+          type: string
+        description:
+          description: Category description
+          maxLength: 50
+          type: string
+        id:
+          description: Category ID
+          type: integer
+        status:
+          description: Category status
+          type: boolean
+        updatedOn:
+          description: Last update date
+          format: date-time
+          type: string
+      type: object
+    ResponseProviderCreateUpdate:
+      properties:
+        address:
+          example: Av. Principal 123, Ciudad
+          maxLength: 120
+          nullable: true
+          type: string
+        code:
+          example: P01
+          maxLength: 3
+          type: string
+        contactEmail:
+          example: contacto@proveedor.com
+          format: email
+          maxLength: 80
+          nullable: true
+          type: string
+        contactName:
+          example: Juan Pérez
+          maxLength: 60
+          nullable: true
+          type: string
+        contactPhone:
+          example: "+123456789"
+          maxLength: 15
+          nullable: true
+          type: string
+        createdBy:
+          example: 5
+          type: integer
+        createdOn:
+          example: 2024-08-05T00:19:58.867Z
+          format: date-time
+          type: string
+        id:
+          example: 1
+          type: integer
+        name:
+          example: Proveedor ABC
+          maxLength: 100
+          type: string
+        products:
+          items:
+            $ref: "#/components/schemas/Product"
+          type: array
+        status:
+          example: true
+          type: boolean
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+      required:
+        - id
+        - code
+        - name
+        - createdOn
+        - createdBy
+        - status
+      type: object
+    ResponsePurchaseCreate:
+      properties:
+        createdBy:
+          type: integer
+        createdOn:
+          format: date-time
+          type: string
+        details:
+          items:
+            properties:
+              id:
+                type: integer
+              price:
+                type: number
+              product:
+                $ref: "#/components/schemas/Product"
+              productId:
+                type: integer
+              quantity:
+                type: integer
+            type: object
+          type: array
+        id:
+          type: integer
+        provider:
+          $ref: "#/components/schemas/ResponseGetProductProvider"
+        providerId:
+          type: integer
+        total:
+          type: number
+      type: object
+    ResponsePurchaseUpdate:
+      properties:
+        createdBy:
+          type: integer
+        createdOn:
+          format: date-time
+          type: string
+        details:
+          items:
+            properties:
+              id:
+                type: integer
+              price:
+                type: number
+              product:
+                $ref: "#/components/schemas/Product"
+              productId:
+                type: integer
+              quantity:
+                type: integer
+            type: object
+          type: array
+        id:
+          type: integer
+        provider:
+          $ref: "#/components/schemas/ResponseGetProductProvider"
+        providerId:
+          type: integer
+        total:
+          type: number
+        updatedBy:
+          type: integer
+        updatedOn:
+          format: date-time
+          type: string
+      type: object
+    ResponseSaleCreateUpdate:
+      properties:
+        client:
+          $ref: "#/components/schemas/ResponseGetClient"
+        clientId:
+          type: integer
+        createdBy:
+          type: integer
+        createdOn:
+          format: date-time
+          type: string
+        details:
+          items:
+            properties:
+              id:
+                type: integer
+              price:
+                type: number
+              productId:
+                type: integer
+              quantity:
+                type: integer
+            type: object
+          type: array
+        id:
+          type: integer
+        total:
+          type: number
+      type: object
+    ResponseStockCreateUpdate:
+      properties:
+        createdBy:
+          description: ID del usuario que creó el registro
+          type: integer
+        createdOn:
+          description: Fecha de creación
+          format: date-time
+          type: string
+        expirationDate:
+          description: Fecha de expiración
+          format: date-time
+          type: string
+        id:
+          description: ID del registro de stock
+          type: integer
+        lot:
+          description: Número de lote
+          maxLength: 50
+          type: string
+        maximum:
+          description: Cantidad máxima de stock
+          minimum: 0
+          type: integer
+        minimum:
+          description: Cantidad mínima de stock
+          minimum: 0
+          type: integer
+        productId:
+          description: ID del producto
+          type: integer
+        quantity:
+          description: Cantidad de stock
+          minimum: 0
+          type: integer
+        unitMeasure:
+          description: Unidad de medida
+          enum:
+            - PIECES
+            - KILOGRAMS
+            - LITERS
+            - METERS
+          type: string
+        updatedBy:
+          description: ID del usuario que actualizó el registro
+          type: integer
+        updatedOn:
+          description: Fecha de actualización
+          format: date-time
+          type: string
+        warehouseId:
+          description: ID del almacén
+          type: integer
+      type: object
+    ResponseUserCreateUpdate:
+      properties:
+        address:
+          example: 123 Main St
+          maxLength: 250
+          nullable: true
+          type: string
+        birthday:
+          example: 1990-01-01T00:00:00Z
+          format: date-time
+          type: string
+        city:
+          example: Anytown
+          maxLength: 35
+          nullable: true
+          type: string
+        document:
+          example: "123456789"
+          nullable: true
+          type: string
+        email:
+          example: john@example.com
+          format: email
+          type: string
+        id:
+          example: 1
+          type: integer
+        isAdmin:
+          example: false
+          type: boolean
+        lastUpdatedBy:
+          example: 1
+          type: integer
+        lastUpdatedOn:
+          example: 2025-05-12T00:00:00Z
+          format: date-time
+          nullable: true
+          type: string
+        name:
+          example: John Doe
+          maxLength: 100
+          type: string
+        picture:
+          example: url/to/picture
+          nullable: true
+          type: string
+        roleId:
+          example: 1
+          type: integer
+        socialSecurity:
+          example: "123456789"
+          maxLength: 9
+          type: string
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        state:
+          example: CA
+          maxLength: 50
+          nullable: true
+          type: string
+        statusId:
+          example: 1
+          type: integer
+        telephone:
+          example: 555-123-4567
+          maxLength: 15
+          type: string
+        userPermitId:
+          example: 1
+          type: integer
+        zipcode:
+          example: "90210"
+          maxLength: 9
+          type: string
+      type: object
+    ResponseWarehouseCreate:
+      properties:
+        address:
+          example: 123 Storage St.
+          maxLength: 120
+          nullable: true
+          type: string
+        createdOn:
+          example: 2024-03-15T10:30:00Z
+          format: date-time
+          type: string
+        description:
+          example: Main storage facility
+          maxLength: 120
+          nullable: true
+          type: string
+        id:
+          example: 1
+          type: integer
+        name:
+          example: Main Warehouse
+          maxLength: 50
+          type: string
+        status:
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - MAINTENANCE
+          example: ACTIVE
+          type: string
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    ResponseWarehouseUpdate:
+      properties:
+        address:
+          example: 123 Storage St.
+          maxLength: 120
+          nullable: true
+          type: string
+        createdOn:
+          example: 2024-03-15T10:30:00Z
+          format: date-time
+          type: string
+        description:
+          example: Main storage facility
+          maxLength: 120
+          nullable: true
+          type: string
+        id:
+          example: 1
+          type: integer
+        name:
+          example: Main Warehouse
+          maxLength: 50
+          type: string
+        status:
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - MAINTENANCE
+          example: ACTIVE
+          type: string
+        updatedOn:
+          example: 2024-03-17T10:30:00Z
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    SaleDetail:
+      properties:
+        price:
+          description: Price per unit
+          minimum: 0
+          type: number
+        productId:
+          description: ID of the product
+          type: integer
+        quantity:
+          description: Quantity of the product
+          minimum: 1
+          type: integer
+      required:
+        - productId
+        - quantity
+        - price
+      type: object
+    SaleFilters:
+      properties:
+        clientId:
+          description: Filter by client ID
+          type: integer
+        endDate:
+          description: Filter by end date
+          format: date-time
+          type: string
+        maxTotal:
+          description: Filter by maximum total
+          minimum: 0
+          type: number
+        minTotal:
+          description: Filter by minimum total
+          minimum: 0
+          type: number
+        startDate:
+          description: Filter by start date
+          format: date-time
+          type: string
+      type: object
+    Settings:
+      properties:
+        createdOn:
+          description: Creation timestamp
+          format: date-time
+          type: string
+        displayEvents:
+          default: false
+          description: Toggle for events display
+          type: boolean
+        displayLanguage:
+          default: false
+          description: Toggle for language display
+          type: boolean
+        displayNews:
+          default: false
+          description: Toggle for news display
+          type: boolean
+        displayNotes:
+          default: false
+          description: Toggle for notes display
+          type: boolean
+        displayPayroll:
+          default: false
+          description: Toggle for payroll display
+          type: boolean
+        displayProfile:
+          default: false
+          description: Toggle for profile display
+          type: boolean
+        displayReports:
+          default: false
+          description: Toggle for reports display
+          type: boolean
+        displayStock:
+          default: false
+          description: Toggle for stock display
+          type: boolean
+        id:
+          description: Unique identifier for the settings
+          example: 1
+          type: integer
+        language:
+          description: Language code (e.g., en, es)
+          example: en
+          maxLength: 2
+          type: string
+        updatedOn:
+          description: Last update timestamp
+          format: date-time
+          nullable: true
+          type: string
+        userId:
+          description: ID of the user who owns these settings
+          type: integer
+      type: object
+    SettingsDisplay:
+      properties:
+        displayEvents:
+          type: boolean
+        displayLanguage:
+          type: boolean
+        displayNews:
+          type: boolean
+        displayNotes:
+          type: boolean
+        displayPayroll:
+          type: boolean
+        displayProfile:
+          type: boolean
+        displayReports:
+          type: boolean
+        displayStock:
+          type: boolean
+        id:
+          description: Unique identifier for the settings
+          example: 1
+          type: integer
+      required:
+        - displayEvents
+        - displayNotes
+        - displayNews
+        - displayProfile
+        - displayLanguage
+        - displayReports
+        - displayPayroll
+        - displayStock
+      type: object
+    SettingsLanguage:
+      properties:
+        id:
+          description: Unique identifier for the settings
+          example: 1
+          type: integer
+        language:
+          example: en
+          maxLength: 2
+          type: string
+      required:
+        - language
+      type: object
+    SettingsPatch:
+      properties:
+        displayOptions:
+          properties:
+            displayEvents:
+              example: true
+              type: boolean
+            displayLanguage:
+              example: true
+              type: boolean
+            displayNews:
+              example: true
+              type: boolean
+            displayNotes:
+              example: true
+              type: boolean
+            displayPayroll:
+              example: true
+              type: boolean
+            displayProfile:
+              example: true
+              type: boolean
+            displayReports:
+              example: true
+              type: boolean
+            displayStock:
+              example: true
+              type: boolean
+          type: object
+        language:
+          enum:
+            - es
+            - en
+          example: es
+          type: string
+      type: object
+    SettingsResponse:
+      properties:
+        data:
+          $ref: "#/components/schemas/Settings"
+          type: object
+      type: object
+    SettingsUpdate:
+      properties:
+        displayEvents:
+          type: boolean
+        displayLanguage:
+          type: boolean
+        displayNews:
+          type: boolean
+        displayNotes:
+          type: boolean
+        displayPayroll:
+          type: boolean
+        displayProfile:
+          type: boolean
+        displayReports:
+          type: boolean
+        language:
+          example: en
+          maxLength: 2
+          type: string
+      required:
+        - language
+      type: object
+    StockFilters:
+      properties:
+        lot:
+          description: Número de lote para filtrar
+          maxLength: 50
+          type: string
+        productId:
+          description: ID del producto para filtrar
+          type: string
+        stocksExpirated:
+          description: Mostrar productos vencidos
+          type: boolean
+        stocksLow:
+          description: Mostrar productos con stock bajo
+          type: boolean
+        unitMeasure:
+          description: Unidad de medida para filtrar
+          enum:
+            - PIECES
+            - KILOGRAMS
+            - LITERS
+            - METERS
+          type: string
+        warehouseId:
+          description: ID del almacén para filtrar
+          type: string
+      type: object
+    StockPatch:
+      description: "PATCH: al menos un campo."
+      properties:
+        expirationDate:
+          example: 2025-06-15T00:00:00Z
+          format: date-time
+          nullable: true
+          type: string
+        lot:
+          example: L-2024-01
+          maxLength: 50
+          nullable: true
+          type: string
+        maximum:
+          example: 100
+          minimum: 0
+          nullable: true
+          type: integer
+        minimum:
+          example: 2
+          minimum: 0
+          type: integer
+        productId:
+          example: 1
+          type: integer
+        quantity:
+          example: 10
+          minimum: 0
+          type: integer
+        unitMeasure:
+          enum:
+            - PIECES
+            - KILOGRAMS
+            - LITERS
+            - METERS
+          example: PIECES
+          type: string
+        warehouseId:
+          example: 1
+          type: integer
+      type: object
+    Unauthorized:
+      properties:
+        message:
+          example: Unauthorized
+          type: string
+      type: object
+    UserFilters:
+      properties:
+        email:
+          example: john@example.com
+          format: email
+          nullable: true
+          type: string
+        name:
+          example: John Doe
+          maxLength: 100
+          nullable: true
+          type: string
+      type: object
+    Warehouse:
+      properties:
+        address:
+          type: string
+        createdOn:
+          format: date-time
+          type: string
+        description:
+          type: string
+        id:
+          type: integer
+        name:
+          type: string
+        status:
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - MAINTENANCE
+          type: string
+        updatedOn:
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    WarehouseFilters:
+      properties:
+        name:
+          example: Main Warehouse
+          maxLength: 50
+          nullable: true
+          type: string
+        status:
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - MAINTENANCE
+          example: ACTIVE
+          nullable: true
+          type: string
+      type: object
+    clientOrderCreateUpdateSchema:
+      properties:
+        clientId:
+          description: Client ID
+          type: integer
+        notes:
+          description: Order Notes
+          nullable: true
+          type: string
+        saleId:
+          description: Sale ID
+          nullable: true
+          type: integer
+        status:
+          description: Order Status
+          type: string
+      type: object
+    clientOrderFiltersSchema:
+      properties:
+        clientId:
+          description: Client ID
+          nullable: true
+          type: integer
+        status:
+          description: Order Status
+          nullable: true
+          type: string
+      type: object
+  securitySchemes:
+    bearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
+info:
+  title: ERP API
+  version: 1.0.0
+openapi: 3.1.0
+paths:
+  /api/v1/attendance:
+    get:
+      parameters:
+        - description: Filter by employee ID
+          in: query
+          name: employeeId
+          required: false
+          schema:
+            type: integer
+        - description: Filter by specific date
+          in: query
+          name: date
+          required: false
+          schema:
+            format: date
+            type: string
+        - description: Filter by date range start
+          in: query
+          name: fromDate
+          required: false
+          schema:
+            format: date
+            type: string
+        - description: Filter by date range end
+          in: query
+          name: toDate
+          required: false
+          schema:
+            format: date
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetAttendance"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get all attendance records with optional filters
+      tags:
+        - Attendance
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyAttendanceCreateUpdate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseAttendanceCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Attendance record created successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Create a new attendance record
+      tags:
+        - Attendance
+  /api/v1/attendance/{id}:
+    delete:
+      parameters:
+        - description: Attendance ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: Attendance record deleted
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Delete an attendance record by ID
+      tags:
+        - Attendance
+    patch:
+      parameters:
+        - description: Attendance ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyAttendanceUpdatePartial"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseAttendanceCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: Attendance record updated successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Partially update an attendance record by ID
+      tags:
+        - Attendance
+  /api/v1/clients:
+    get:
+      parameters:
+        - description: Filtros opcionales para buscar clientes.
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/ClientFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetClient"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get all clients with optional filters
+      tags:
+        - Clients
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyClientCreateUpdate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseClientCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Client created successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Create a new client
+      tags:
+        - Clients
+  /api/v1/clients/{id}:
+    delete:
+      parameters:
+        - description: Client ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: Client deleted
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Delete a client by ID
+      tags:
+        - Clients
+    patch:
+      parameters:
+        - description: Client ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyClientUpdatePartial"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseClientCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: Client updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Partially update a client by ID
+      tags:
+        - Clients
+  /api/v1/employees:
+    get:
+      parameters:
+        - description: Filtros opcionales para buscar empleados.
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/EmployeeFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetEmployee"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get all employees with optional filters
+      tags:
+        - Employees
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyEmployeeCreate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseEmployeeCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Employee created successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Create a new employee
+      tags:
+        - Employees
+  /api/v1/employees/{id}:
+    delete:
+      parameters:
+        - description: Employee ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: Employee deleted
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Delete an employee by ID
+      tags:
+        - Employees
+    patch:
+      parameters:
+        - description: Employee ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyEmployeeUpdate"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseEmployeeCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: Employee updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Partially update an employee by ID
+      tags:
+        - Employees
+  /api/v1/events:
+    get:
+      description: Obtiene la lista de eventos junto con la información del tipo de
+        evento. Se puede filtrar usando 'searchQuery', 'type', 'dateFrom',
+        'dateTo', 'speaker', y 'status'.
+      parameters:
+        - description: Texto para buscar en el título, descripción o speaker del evento.
+          example: Tech Conference 2025
+          in: query
+          name: searchQuery
+          required: false
+          schema:
+            maxLength: 30
+            minLength: 1
+            type: string
+        - description: Filtrar por ID de tipo de evento (coincidencia exacta en
+            eventTypeId).
+          example: 1
+          in: query
+          name: type
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+        - description: "Filtrar eventos desde esta fecha (inclusive, formato ISO:
+            YYYY-MM-DD)."
+          example: 2025-01-01
+          in: query
+          name: dateFrom
+          required: false
+          schema:
+            format: date
+            type: string
+        - description: "Filtrar eventos hasta esta fecha (inclusive, formato ISO:
+            YYYY-MM-DD, normalizado a fin de día)."
+          example: 2025-12-31
+          in: query
+          name: dateTo
+          required: false
+          schema:
+            format: date
+            type: string
+        - description: Filtrar por nombre del speaker (coincidencia parcial,
+            case-insensitive).
+          example: John
+          in: query
+          name: speaker
+          required: false
+          schema:
+            maxLength: 50
+            type: string
+        - description: "Filtrar por estado del evento: 'upcoming' (futuros), 'past'
+            (pasados), o 'all' (todos)."
+          example: upcoming
+          in: query
+          name: status
+          required: false
+          schema:
+            enum:
+              - upcoming
+              - past
+              - all
+            type: string
+        - description: "Número de página para paginación (default: 1)."
+          example: 2
+          in: query
+          name: page
+          required: false
+          schema:
+            default: 1
+            minimum: 1
+            type: integer
+        - description: "Cantidad de eventos por página (default: 20, max: 100)."
+          example: 20
+          in: query
+          name: limit
+          required: false
+          schema:
+            default: 20
+            maximum: 100
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetEvents"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Error inesperado
+      security:
+        - bearerAuth: []
+      summary: Obtener eventos
+      tags:
+        - Events
+    post:
+      description: Este endpoint requiere autenticación. El userId se extrae
+        automáticamente del token JWT.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyEventCreateUpdate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseEventCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Created
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Crea un provider
+      tags:
+        - Events
+  /api/v1/events/eventTypes:
+    get:
+      description: Obtiene la lista de eventos disponibles.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/GetEventsTypes"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Error inesperado
+      summary: Obtener event types
+      tags:
+        - Events
+  /api/v1/events/{id}:
+    delete:
+      description: Este endpoint requiere autenticación. El userId se extrae
+        automáticamente del token JWT.
+      parameters:
+        - description: ID del evento a eliminar.
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Elimina un evento
+      tags:
+        - Events
+    patch:
+      description: Este endpoint requiere autenticación. El userId se extrae
+        automáticamente del token JWT.
+      parameters:
+        - description: ID del evento a actualizar.
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventsUpdateSchema"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseEventCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Actualiza un evento
+      tags:
+        - Events
+  /api/v1/expenses:
+    get:
+      parameters:
+        - description: Optional filters to search expenses.
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/ExpenseFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetExpense"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Expenses retrieved successfully
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get all expenses with optional filters
+      tags:
+        - Expenses
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyExpenseCreateUpdate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseExpenseCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Expense created successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Create a new expense
+      tags:
+        - Expenses
+  /api/v1/expenses/{id}:
+    delete:
+      parameters:
+        - description: Expense ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: Expense deleted
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Delete an expense by ID
+      tags:
+        - Expenses
+    patch:
+      parameters:
+        - description: Expense ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyExpensePatch"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseExpenseCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Expense updated successfully
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: Expense updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Partially update an expense by ID
+      tags:
+        - Expenses
+  /api/v1/inventory-movements:
+    get:
+      parameters:
+        - description: Filtros opcionales para buscar movimientos de inventario.
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/InventoryMovementFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetInventoryMovement"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get all inventory movements
+      tags:
+        - Inventory Movements
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyInventoryMovementCreate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseInventoryMovementCreate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Created
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Create a new inventory movement
+      tags:
+        - Inventory Movements
+  /api/v1/inventory-movements/{id}:
+    delete:
+      parameters:
+        - description: Inventory Movement ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: Inventory Movement deleted
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Delete an inventory movement
+      tags:
+        - Inventory Movements
+  /api/v1/news:
+    get:
+      description: Obtiene la lista de eventos junto con la información del tipo de
+        evento. Se puede filtrar usando 'searchQuery'.
+      parameters:
+        - description: Filtros opcionales para buscar estados de noticias.
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/NewsFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetNews"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Error inesperado
+      security:
+        - bearerAuth: []
+      summary: Obtener news
+      tags:
+        - News
+    post:
+      description: Este endpoint requiere autenticación. El userId se extrae
+        automáticamente del token JWT.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyNewsCreate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseNewsCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Created
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Crea una noticia
+      tags:
+        - News
+  /api/v1/news/status:
+    get:
+      description: Obtiene la lista de estados de noticias disponibles.
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/NewsStatus"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Error inesperado
+      summary: Obtener estado de noticias
+      tags:
+        - News
+  /api/v1/news/{id}:
+    delete:
+      description: Este endpoint requiere autenticación. El userId se extrae
+        automáticamente del token JWT.
+      parameters:
+        - description: ID de la noticia a eliminar.
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Elimina una noticia
+      tags:
+        - News
+    patch:
+      description: Este endpoint requiere autenticación. El userId se extrae
+        automáticamente del token JWT.
+      parameters:
+        - description: ID de la noticia a actualizar.
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewsUpdatePartial"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseNewsCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Actualiza parcialmente una noticia
+      tags:
+        - News
+  /api/v1/payroll:
+    get:
+      parameters:
+        - description: Filter by employee ID
+          in: query
+          name: employeeId
+          schema:
+            type: integer
+        - description: Filter by month
+          in: query
+          name: month
+          schema:
+            maximum: 12
+            minimum: 1
+            type: integer
+        - description: Filter by year
+          in: query
+          name: year
+          schema:
+            maximum: 2100
+            minimum: 1900
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      properties:
+                        baseSalary:
+                          type: number
+                        deductions:
+                          type: number
+                        employee:
+                          properties:
+                            id:
+                              type: integer
+                            user:
+                              properties:
+                                id:
+                                  type: integer
+                                lastName:
+                                  type: string
+                                name:
+                                  type: string
+                              type: object
+                          type: object
+                        employeeId:
+                          type: integer
+                        extraHours:
+                          type: number
+                        id:
+                          type: integer
+                        month:
+                          type: integer
+                        totalPayment:
+                          type: number
+                        year:
+                          type: integer
+                      type: object
+                    type: array
+                  message:
+                    example: Payroll retrieved successfully
+                    type: string
+                  status:
+                    example: success
+                    type: string
+                type: object
+          description: List of payroll records
+      security:
+        - bearerAuth: []
+      summary: Get all payroll records
+      tags:
+        - Payroll
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                baseSalary:
+                  format: float
+                  type: number
+                deductions:
+                  format: float
+                  type: number
+                employeeId:
+                  type: integer
+                extraHours:
+                  format: float
+                  type: number
+                month:
+                  maximum: 12
+                  minimum: 1
+                  type: integer
+                totalPayment:
+                  format: float
+                  type: number
+                year:
+                  maximum: 2100
+                  minimum: 1900
+                  type: integer
+              required:
+                - employeeId
+                - month
+                - year
+                - baseSalary
+                - extraHours
+                - deductions
+                - totalPayment
+              type: object
+        required: true
+      responses:
+        "201":
+          description: Payroll record created successfully
+      security:
+        - bearerAuth: []
+      summary: Create a new payroll record
+      tags:
+        - Payroll
+  /api/v1/payroll/{id}:
+    delete:
+      parameters:
+        - description: Payroll ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Payroll record deleted successfully
+      security:
+        - bearerAuth: []
+      summary: Delete a payroll record
+      tags:
+        - Payroll
+    patch:
+      parameters:
+        - description: Payroll ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyPayrollUpdate"
+        required: true
+      responses:
+        "200":
+          description: Payroll record partially updated successfully
+      security:
+        - bearerAuth: []
+      summary: Partially update a payroll record
+      tags:
+        - Payroll
+  /api/v1/performance-evaluations:
+    get:
+      parameters:
+        - description: Optional filters for performance evaluations
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/PerformanceEvaluationFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetPerformanceEvaluation"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Success
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+      security:
+        - bearerAuth: []
+      summary: Get all performance evaluations with optional filters
+      tags:
+        - Performance Evaluations
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PerformanceEvaluationCreate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseGetPerformanceEvaluation"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Performance evaluation created successfully
+                    type: string
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Created
+      security:
+        - bearerAuth: []
+      summary: Create a new performance evaluation
+      tags:
+        - Performance Evaluations
+  /api/v1/performance-evaluations/{id}:
+    delete:
+      parameters:
+        - description: Performance evaluation ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseGetPerformanceEvaluation"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Performance evaluation deleted successfully
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+      security:
+        - bearerAuth: []
+      summary: Delete a performance evaluation by ID
+      tags:
+        - Performance Evaluations
+    patch:
+      parameters:
+        - description: Performance evaluation ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PerformanceEvaluationPatch"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseGetPerformanceEvaluation"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Performance evaluation partially updated successfully
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+      security:
+        - bearerAuth: []
+      summary: Partially update a performance evaluation by ID
+      tags:
+        - Performance Evaluations
+  /api/v1/permission:
+    get:
+      description: Retrieve a list of permissions with optional filters
+      parameters:
+        - description: Filter by employee ID
+          in: query
+          name: employeeId
+          schema:
+            type: integer
+        - description: Filter by permission type
+          in: query
+          name: type
+          schema:
+            enum:
+              - SICK
+              - PERSONAL
+              - MATERNITY
+              - PATERNITY
+              - OTHER
+            type: string
+        - description: Filter by permission status
+          in: query
+          name: status
+          schema:
+            enum:
+              - PENDING
+              - APPROVED
+              - REJECTED
+            type: string
+        - description: Filter by start date (inclusive)
+          in: query
+          name: fromDate
+          schema:
+            format: date
+            type: string
+        - description: Filter by end date (inclusive)
+          in: query
+          name: toDate
+          schema:
+            format: date
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/Permission"
+                    type: array
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: List of permissions retrieved successfully
+        "401":
+          description: Unauthorized - Invalid or missing token
+        "500":
+          description: Internal server error
+      security:
+        - bearerAuth: []
+      summary: Get all permissions
+      tags:
+        - Permissions
+    post:
+      description: Create a new permission request for an employee
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Permission"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Permission"
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Permission created successfully
+        "400":
+          description: Invalid request body
+        "401":
+          description: Unauthorized - Invalid or missing token
+        "500":
+          description: Internal server error
+      security:
+        - bearerAuth: []
+      summary: Create a new permission
+      tags:
+        - Permissions
+  /api/v1/permission/{id}:
+    delete:
+      description: Delete an existing permission by its ID
+      parameters:
+        - description: Permission ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Permission"
+                  message:
+                    example: Permission deleted successfully
+                    type: string
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Permission deleted successfully
+        "401":
+          description: Unauthorized - Invalid or missing token
+        "404":
+          description: Permission not found
+        "500":
+          description: Internal server error
+      security:
+        - bearerAuth: []
+      summary: Delete a permission
+      tags:
+        - Permissions
+    patch:
+      description: Partially update an existing permission by its ID
+      parameters:
+        - description: Permission ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Permission"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Permission"
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Permission partially updated successfully
+        "400":
+          description: Invalid request body
+        "401":
+          description: Unauthorized - Invalid or missing token
+        "404":
+          description: Permission not found
+        "500":
+          description: Internal server error
+      security:
+        - bearerAuth: []
+      summary: Partially update a permission
+      tags:
+        - Permissions
+  /api/v1/provider/{id}:
+    delete:
+      description: Este endpoint requiere autenticación. El userId se extrae
+        automáticamente del token JWT.
+      parameters:
+        - description: ID del evento a eliminar.
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Elimina un proveedor
+      tags:
+        - Providers
+  /api/v1/providers:
+    get:
+      description: Obtiene la lista de providers.Se puede filtrar usando 'ProvidersFilters'.
+      parameters:
+        - description: Filtros opcionales para buscar providers.
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/ProvidersFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetProductProvider"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Obtener providers
+      tags:
+        - Providers
+    post:
+      description: Este endpoint requiere autenticación. El userId se extrae
+        automáticamente del token JWT.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyProviderCreateUpdate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseProviderCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Created
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Crea un proveedor
+      tags:
+        - Providers
+  /api/v1/providers/{id}:
+    patch:
+      description: Este endpoint requiere autenticación. El userId se extrae
+        automáticamente del token JWT.
+      parameters:
+        - description: ID del proveedor a actualizar.
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyProviderPatch"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseProviderCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Actualiza parcialmente un proveedor
+      tags:
+        - Providers
+  /api/v1/purchases:
+    get:
+      parameters:
+        - description: Filter by provider ID
+          in: query
+          name: providerId
+          schema:
+            type: integer
+        - description: Filter by start date
+          in: query
+          name: startDate
+          schema:
+            format: date-time
+            type: string
+        - description: Filter by end date
+          in: query
+          name: endDate
+          schema:
+            format: date-time
+            type: string
+        - description: Filter by minimum total
+          in: query
+          name: minTotal
+          schema:
+            minimum: 0
+            type: number
+        - description: Filter by maximum total
+          in: query
+          name: maxTotal
+          schema:
+            minimum: 0
+            type: number
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetPurchase"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: List of purchases retrieved successfully
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Get all purchases with optional filters
+      tags:
+        - Purchases
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyPurchaseCreate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponsePurchaseCreate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Purchase created successfully
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Create a new purchase
+      tags:
+        - Purchases
+  /api/v1/purchases/{id}:
+    delete:
+      parameters:
+        - description: Purchase ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          $ref: "#/components/schemas/Delete"
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Delete a purchase by ID
+      tags:
+        - Purchases
+    patch:
+      parameters:
+        - description: Purchase ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyPurchasePatch"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponsePurchaseUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: Purchase updated successfully
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Partially update a purchase by ID
+      tags:
+        - Purchases
+  /api/v1/sales:
+    get:
+      parameters:
+        - description: Filtros opcionales para buscar ventas.
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/SaleFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetSale"
+                    type: array
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+                type: object
+          description: List of sales
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get all sales with optional filters
+      tags:
+        - Sales
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodySaleCreateUpdate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseSaleCreateUpdate"
+                  message:
+                    type: string
+                type: object
+          description: Sale created successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Create a new sale
+      tags:
+        - Sales
+  /api/v1/sales/{id}:
+    delete:
+      parameters:
+        - description: Sale ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: Sale deleted
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Delete a sale by ID
+      tags:
+        - Sales
+    patch:
+      parameters:
+        - description: Sale ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodySalePatch"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseSaleCreateUpdate"
+                  message:
+                    type: string
+                type: object
+          description: Sale updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Partially update a sale by ID
+      tags:
+        - Sales
+  /api/v1/settings/display:
+    post:
+      description: Este endpoint requiere autenticación. Crea o actualiza la
+        configuración de visualización para el usuario.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsDisplay"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/SettingsResponse"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Display settings updated successfully
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Crear o actualizar configuración de visualización
+      tags:
+        - Settings
+  /api/v1/settings/language:
+    post:
+      description: Este endpoint requiere autenticación. Crea o actualiza la
+        configuración de idioma para el usuario.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsLanguage"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/SettingsResponse"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Language settings updated successfully
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Crear o actualizar configuración de idioma
+      tags:
+        - Settings
+  /api/v1/settings/product/categories:
+    get:
+      description: Obtiene la lista de categorías de productos.Se puede filtrar usando
+        'ProductCategoryFilters'.
+      parameters:
+        - description: Filtros opcionales para buscar categorías de productos.
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/ProductCategoryFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetProductCategories"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Obtener categorías de productos
+      tags:
+        - Settings Product Categories
+    post:
+      description: Este endpoint requiere autenticación. El userId se extrae
+        automáticamente del token JWT.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyProductCategoryCreate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseGetProductCategories"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Created
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Crea una categoría de producto
+      tags:
+        - Settings Product Categories
+  /api/v1/settings/product/categories/{id}:
+    delete:
+      description: Este endpoint requiere autenticación. El userId se extrae
+        automáticamente del token JWT.
+      parameters:
+        - description: ID del evento a eliminar.
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Elimina una categoría de producto
+      tags:
+        - Settings Product Categories
+    patch:
+      description: Este endpoint requiere autenticación. El userId se extrae
+        automáticamente del token JWT.
+      parameters:
+        - description: ID del evento a actualizar.
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyProductCategoryUpdate"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseProductCategoryCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Actualiza una categoría de producto
+      tags:
+        - Settings Product Categories
+  /api/v1/settings/{id}:
+    get:
+      description: Este endpoint requiere autenticación. Obtiene la configuración
+        específica según el ID proporcionado.
+      parameters:
+        - description: ID de la configuración a obtener.
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/SettingsResponse"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Obtener configuración por ID
+      tags:
+        - Settings
+    patch:
+      description: Este endpoint requiere autenticación. Actualiza parcialmente la
+        configuración del usuario por ID.
+      parameters:
+        - description: ID de la configuración a actualizar.
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsPatch"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/SettingsResponse"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Settings updated successfully
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+          description: Not Found
+        5XX:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: FAILED
+      security:
+        - bearerAuth: []
+      summary: Actualiza parcialmente la configuración del usuario
+      tags:
+        - Settings
+  /api/v1/stock:
+    get:
+      parameters:
+        - description: Optional filters for stock entries
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/StockFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetStock"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get all stock entries
+      tags:
+        - Stock
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyStockCreateUpdate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseStockCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Created
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Create a new stock entry
+      tags:
+        - Stock
+  /api/v1/stock/alerts:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetStockAlerts"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get all stock Alerts
+      tags:
+        - Stock
+  /api/v1/stock/{id}:
+    delete:
+      parameters:
+        - description: Stock entry ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: Stock entry deleted
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Delete a stock entry
+      tags:
+        - Stock
+    get:
+      parameters:
+        - description: Product ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseGetStockByProductId"
+                    type: object
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get stock by productID
+      tags:
+        - Stock
+    patch:
+      parameters:
+        - description: Stock entry ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StockPatch"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseStockCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Partially update a stock entry
+      tags:
+        - Stock
+  /api/v1/users:
+    get:
+      parameters:
+        - description: Optional filters to search users.
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/UserFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetUser"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get all users with optional filters
+      tags:
+        - Users
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyUserCreateUpdate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseUserCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: User created successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Create a new user
+      tags:
+        - Users
+  /api/v1/users/by-status/{status}:
+    get:
+      parameters:
+        - description: User status
+          in: path
+          name: status
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetUser"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Users not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get users by status
+      tags:
+        - Users
+  /api/v1/users/{id}:
+    delete:
+      parameters:
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: User deleted
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Delete a user by ID
+      tags:
+        - Users
+    patch:
+      parameters:
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyUserUpdate"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseUserCreateUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: User updated successfully
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Partially update a user by ID
+      tags:
+        - Users
+  /api/v1/vacation:
+    get:
+      parameters:
+        - description: Filter by employee ID
+          in: query
+          name: employeeId
+          schema:
+            type: integer
+        - description: Filter by status
+          in: query
+          name: status
+          schema:
+            enum:
+              - PENDING
+              - APPROVED
+              - REJECTED
+            type: string
+        - description: Filter by start date (greater than or equal)
+          in: query
+          name: fromDate
+          schema:
+            format: date
+            type: string
+        - description: Filter by end date (less than or equal)
+          in: query
+          name: toDate
+          schema:
+            format: date
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      properties:
+                        employee:
+                          properties:
+                            id:
+                              type: integer
+                            user:
+                              properties:
+                                firstName:
+                                  type: string
+                                lastName:
+                                  type: string
+                              type: object
+                          type: object
+                        employeeId:
+                          type: integer
+                        endDate:
+                          format: date
+                          type: string
+                        id:
+                          type: integer
+                        startDate:
+                          format: date
+                          type: string
+                        status:
+                          type: string
+                      type: object
+                    type: array
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: List of vacation records
+      security:
+        - bearerAuth: []
+      summary: Get all vacation records
+      tags:
+        - Vacation
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                employeeId:
+                  type: integer
+                endDate:
+                  format: date
+                  type: string
+                startDate:
+                  format: date
+                  type: string
+                status:
+                  default: PENDING
+                  enum:
+                    - PENDING
+                    - APPROVED
+                    - REJECTED
+                  type: string
+              required:
+                - employeeId
+                - startDate
+                - endDate
+              type: object
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    properties:
+                      employeeId:
+                        type: integer
+                      endDate:
+                        format: date
+                        type: string
+                      id:
+                        type: integer
+                      startDate:
+                        format: date
+                        type: string
+                      status:
+                        type: string
+                    type: object
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Vacation record created successfully
+      security:
+        - bearerAuth: []
+      summary: Create a new vacation record
+      tags:
+        - Vacation
+  /api/v1/vacation/{id}:
+    delete:
+      parameters:
+        - description: Vacation ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    properties:
+                      id:
+                        type: integer
+                    type: object
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Vacation record deleted successfully
+      security:
+        - bearerAuth: []
+      summary: Delete a vacation record by ID
+      tags:
+        - Vacation
+    patch:
+      parameters:
+        - description: Vacation ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyVacationPatch"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    properties:
+                      employeeId:
+                        type: integer
+                      endDate:
+                        format: date
+                        type: string
+                      id:
+                        type: integer
+                      reason:
+                        type: string
+                      startDate:
+                        format: date
+                        type: string
+                      status:
+                        type: string
+                      type:
+                        type: string
+                    type: object
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Vacation record updated successfully
+      security:
+        - bearerAuth: []
+      summary: Partially update a vacation record by ID
+      tags:
+        - Vacation
+  /api/v1/warehouse:
+    get:
+      parameters:
+        - description: Filtros opcionales para buscar almacenes.
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/WarehouseFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    items:
+                      $ref: "#/components/schemas/ResponseGetWarehouse"
+                    type: array
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get all warehouses
+      tags:
+        - Warehouse
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyWarehouseCreate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseWarehouseCreate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 201
+                    type: integer
+                type: object
+          description: Created
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Create a new warehouse
+      tags:
+        - Warehouse
+  /api/v1/warehouse/{id}:
+    delete:
+      parameters:
+        - description: Warehouse ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: Warehouse deleted
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Delete a warehouse
+      tags:
+        - Warehouse
+    patch:
+      parameters:
+        - description: Warehouse ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyWarehouseUpdate"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseWarehouseUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  message:
+                    example: Some success message
+                    type: string
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Update a warehouse
+      tags:
+        - Warehouse
+tags: []

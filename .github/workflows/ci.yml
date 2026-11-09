@@ -40,6 +40,11 @@ jobs:
       server: ${{ steps.scope.outputs.server }}
       e2e: ${{ steps.scope.outputs.e2e }}
       shared: ${{ steps.scope.outputs.shared }}
+      # change `ci-shifting-left` (capability workflow-linting): ámbito propio para
+      # el job `validate-pipeline`. NO se reutiliza `shared` porque incluye
+      # package.json/lockfile/scripts y dispararía el lint de workflows en PRs
+      # que no tocan ni un YAML de `.github/`.
+      workflows: ${{ steps.scope.outputs.workflows }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
@@ -58,6 +63,10 @@ jobs:
               - 'apps/server/**'
             e2e:
               - 'e2e/**'
+            workflows:
+              - '.github/workflows/**'
+              - '.github/dependabot.yml'
+              - '.yamllint.yml'
             shared:
               - 'package.json'
               - 'package-lock.json'
@@ -98,6 +107,7 @@ jobs:
           FILTER_SERVER: ${{ steps.filter.outputs.server }}
           FILTER_E2E: ${{ steps.filter.outputs.e2e }}
           FILTER_SHARED: ${{ steps.filter.outputs.shared }}
+          FILTER_WORKFLOWS: ${{ steps.filter.outputs.workflows }}
         run: |
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             {
@@ -105,6 +115,7 @@ jobs:
               echo "server=true"
               echo "e2e=true"
               echo "shared=true"
+              echo "workflows=true"
             } >> "$GITHUB_OUTPUT"
             echo "::notice::event '${{ github.event_name }}' has no PR diff — every workspace is treated as changed (full suite)."
             exit 0
@@ -114,6 +125,7 @@ jobs:
             echo "server=${FILTER_SERVER:-false}"
             echo "e2e=${FILTER_E2E:-false}"
             echo "shared=${FILTER_SHARED:-false}"
+            echo "workflows=${FILTER_WORKFLOWS:-false}"
           } >> "$GITHUB_OUTPUT"
         shell: bash
 
@@ -150,7 +162,7 @@ jobs:
             # For merge_group, use the commit SHA that triggered the workflow
             SHA="${{ github.sha }}"
             echo "single_sha=$SHA" >> $GITHUB_OUTPUT
-            
+
           else
             echo "event_type=pull_request" >> $GITHUB_OUTPUT
             echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
@@ -1517,7 +1529,10 @@ jobs:
     name: 'Security: Secret Detection'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: github.event_name == 'pull_request'
+    # `merge_group` (change `secret-scanning-history-governance`, task 3.2): si el
+    # job solo corriera en PR, en la merge queue quedaría skipped y el agregador
+    # de seguridad no podría distinguir "no escaneado" de "limpio".
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
     permissions:
       contents: read
       security-events: read
@@ -1532,9 +1547,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: git --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" --redact --verbose
+          # El rango sale del evento: `pull_request` usa base/head del PR y
+          # `merge_group` los del grupo (mismo diff que la merge queue construye).
+          args: git --log-opts="${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}..${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}" --redact --verbose
       - name: Scan for secrets (licensed action - optional)
-        if: ${{ env.GIT_LEAKS != '' }}
+        # gitleaks-action v3 escanea pull requests: en `merge_group` no existe el
+        # contexto de PR, así que la capa con licencia corre solo en PR (el diff
+        # del grupo ya lo cubre el paso OSS de arriba).
+        if: ${{ env.GIT_LEAKS != '' && github.event_name == 'pull_request' }}
         uses: gitleaks/gitleaks-action@v3
         env:
           GITLEAKS_LICENSE: ${{ secrets.GIT_LEAKS }}
@@ -1955,7 +1975,7 @@ jobs:
           if-no-files-found: warn
 
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, openspec-validate, docs-validation (advisory)
+  # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, db-contract, validate-pipeline, api-contract, frontend-budgets, openspec-validate, docs-validation (advisory)
   # ═══════════════════════════════════════════════════════════════
   # --- Client Pre-Build ---
   client-lint:
@@ -2065,6 +2085,44 @@ jobs:
           path: reports/dependency-cruiser.html
           if-no-files-found: warn
           retention-days: 7
+
+  # Presupuestos de performance del cliente (change `ci-shifting-left`,
+  # capability `frontend-budgets`): size-limit (tamaño de bundle por entry,
+  # gzip) + Lighthouse CI (LCP/TBT/tamaño total) sobre el build estático servido
+  # por `vite preview`.
+  #
+  # Gate BLOCKING: el build entró en el budget (200 375 B de `total-byte-weight`
+  # contra 204 800 B, con LCP 211 ms y TBT 0 ms) al lazy-loadear `Home` en
+  # `App.jsx`. El job está en `prebuild-quality-complete.needs`; el último paso
+  # pendiente es marcarlo como required status check en branch protection de
+  # `main` (se configura fuera del repo).
+  frontend-budgets:
+    if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Frontend Budgets'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - name: Build client
+        run: npm run build --workspace=apps/client
+      - name: Bundle size budgets (size-limit)
+        run: npm run size --workspace=apps/client
+      - name: Lighthouse CI (LCP/TBT/total-size)
+        run: npm run lighthouse --workspace=apps/client
+        env:
+          CI: 'true'
+      - name: Upload Lighthouse reports (retention 14d)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-report-pr
+          path: apps/client/reports/lighthouse
+          if-no-files-found: warn
+          retention-days: 14
 
   # --- Server Pre-Build ---
   server-lint:
@@ -2179,6 +2237,86 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+  # Contrato schema Prisma ↔ migraciones (change `ci-shifting-left`, capability
+  # `db-contract-testing`). Detecta DRIFT en el PR en vez de en el deploy: el
+  # schema se valida contra el estado que producen las migraciones versionadas.
+  # `prisma migrate diff --from-migrations` exige una shadow database (Prisma
+  # replaya las migraciones en una base desechable), de ahí el service `postgres`
+  # + creación explícita de `shadow_db`. Blocking: entra en
+  # `prebuild-quality-complete.needs`. Path-scoped al workspace server.
+  db-contract:
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: DB Contract'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports: ['5432:5432']
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: project_one_test
+        options: >-
+          --health-cmd "pg_isready -U test -d project_one_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      # La shadow DB debe EXISTIR antes del diff (Prisma la resetea, no la crea
+      # cuando se le pasa --shadow-database-url explícito).
+      - name: Create shadow database
+        env:
+          PGPASSWORD: test
+        run: psql -h localhost -U test -d postgres -c 'CREATE DATABASE shadow_db;'
+        shell: bash
+      - name: Check schema/migrations contract
+        env:
+          # DATABASE_URL: el schema lo referencia (env("DATABASE_URL")) y el CLI
+          # lo resuelve al cargar el schema; no se conecta a esa base.
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
+          SHADOW_DATABASE_URL: postgresql://test:test@localhost:5432/shadow_db
+        run: npm run db:contract --workspace=apps/server
+
+  # Contrato OpenAPI (change `ci-shifting-left`, capability api-contract-linting):
+  # `openapi.yaml` se GENERA desde las anotaciones `@openapi` (script versionado
+  # `apps/server/scripts/generate-openapi.ts`) y Spectral lo lintá con
+  # `spectral:oas` + reglas custom (.spectral.yaml): naming de operationId/path
+  # params, ids numéricos literales, HTTP Basic y GET con body.
+  #
+  # Gate BLOCKING desde que los 28 `$ref` huérfanos (`invalid-ref`) se
+  # resolvieron: los schemas de RRHH y los cuerpos PATCH viven en
+  # `apps/server/src/docs/schemas-shift-left.ts` y el resto se retargeteó a
+  # schemas existentes. `spectral lint` sale en 0 errores, así que el job
+  # bloquea (está en `prebuild-quality-complete.needs`). Las 227 warnings de
+  # `spectral:oas` (operationId/description/tags) son deuda de documentación
+  # visible, no un fallo: la severidad no se relajó.
+  api-contract:
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: API Contract'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      # El contrato versionado debe corresponder a las anotaciones: si alguien
+      # edita una ruta sin regenerar, el diff lo delata aquí.
+      - name: Verify generated contract is committed
+        run: |
+          npm run openapi:generate --workspace=apps/server
+          git diff --exit-code apps/server/openapi.yaml
+        shell: bash
+      - name: Lint OpenAPI contract (Spectral)
+        run: npm run lint:api --workspace=apps/server
+
   # --- E2E Pre-Build ---
   # Lint estático del workspace e2e (sin navegador): specs, page objects y
   # playwright.config.js. Mismo patrón que client-lint/server-lint; el umbral
@@ -2195,6 +2333,49 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - run: npm run lint --workspace=e2e
+
+  # --- Pipeline Config Pre-Build ---
+  # Validación estática de los workflows (change `ci-shifting-left`, capability
+  # `workflow-linting`): yamllint (estructura YAML) + actionlint (sintaxis de
+  # GitHub Actions, expresiones `${{ }}`, permisos, shellcheck de `run:`) como
+  # gate BLOCKING, con paths-filter (`workflows`): solo corre cuando el PR toca
+  # `.github/workflows/**`, `.github/dependabot.yml` o `.yamllint.yml`.
+  #
+  # Relación con `actionlint-advisory` (change `pipeline-config-scan`): ese job
+  # produce evidencia SARIF y sigue siendo advisory (FASE 1); la promoción a
+  # blocking de SU step es FASE 2 de ese change y NO se toca aquí. Este job es
+  # el gate rápido de pre-commit reproducido en CI (misma config: `.yamllint.yml`
+  # y `.github/actionlint.yaml`), sin subida SARIF, así que no duplica
+  # categorías de Code Scanning.
+  validate-pipeline:
+    if: needs.repo-discovery.outputs.workflows == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: Validate Pipeline'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      # yamllint es una herramienta Python: venv local + versión FIJADA (las
+      # imágenes ubuntu-latest tienen PEP 668 activo, `pip install` global falla).
+      - name: Install yamllint (pinned)
+        run: |
+          python3 -m venv "$RUNNER_TEMP/yamllint-venv"
+          "$RUNNER_TEMP/yamllint-venv/bin/pip" install --quiet --disable-pip-version-check yamllint==1.38.0
+          echo "$RUNNER_TEMP/yamllint-venv/bin" >> "$GITHUB_PATH"
+        shell: bash
+      - name: yamllint (workflows + dependabot)
+        run: yamllint -c .yamllint.yml -f parsable .github/workflows/*.yml .github/dependabot.yml
+        shell: bash
+      # actionlint REAL v1.7.12 (misma imagen pinneada que el job advisory): el
+      # stub npm `actionlint@2.0.6` es WASM y no expone binario, por eso aquí se
+      # usa el contenedor oficial. Sin `|| true`: un hallazgo FALLA el job.
+      - name: actionlint (all workflows)
+        run: |
+          docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 \
+            -no-color -config-file .github/actionlint.yaml .github/workflows/*.y*ml
+        shell: bash
 
   # --- Shared Pre-Build ---
   # Guard de higiene del manifest raíz (change `root-manifest-cleanup`, spec
@@ -2235,6 +2416,15 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
       - name: Validate OpenSpec main specs (strict)
         run: npx openspec validate --specs --strict
+      # Guard de `## Purpose` (2026-11-07). `openspec validate --strict` convierte
+      # el placeholder que escribe el archive (`TBD - created by archiving…`)
+      # en WARNING → exit 1, pero el mensaje no dice cómo arreglarlo ni en qué
+      # fichero; el guard falla con el path y la acción exacta (editar el
+      # `## Purpose` del main spec, nunca el delta). Ver
+      # `scripts/ci/spec-purpose-guard.mjs` y su test en `npm run test:scripts`,
+      # que este mismo job ejecuta más abajo.
+      - name: Guard spec Purpose sections
+        run: node scripts/ci/spec-purpose-guard.mjs
       # Gate del lockstep plantilla ↔ política del PR body (change
       # `pr-metadata-workflow`, task 1.9): `scripts/ci/pr-body-lint.test.mjs`
       # incluye el test que FALLA si un heading de
@@ -2805,6 +2995,18 @@ jobs:
       - server-dead-code
       - server-import-bounds
       - e2e-lint
+      # change `ci-shifting-left`: contrato de DB (drift schema↔migraciones) y
+      # validación estática de workflows (yamllint + actionlint). Ambos
+      # path-scoped: skipped fuera de PRs de server / de `.github/**`
+      # (el agregador tolera skipped; un rojo sí lo falla).
+      - db-contract
+      - validate-pipeline
+      # Contrato OpenAPI: regeneración determinista + Spectral sin errores
+      # (path-scoped a `server`, tolera skipped fuera de PRs de server).
+      - api-contract
+      # Budgets del cliente (size-limit + Lighthouse LCP/TBT/total). La ruta `/`
+      # entra por debajo del budget (200 375 B medidos vs 204 800 B).
+      - frontend-budgets
       - root-manifest-guard
       - openspec-validate
     steps:
@@ -2839,7 +3041,16 @@ jobs:
             echo "❌ One or more security jobs were cancelled"
             exit 1
           fi
-          echo "✅ Security substage succeeded or was skipped"
+          # Anti-skip (change `secret-scanning-history-governance`, G8/A6): un
+          # scanner saltado NO es un resultado limpio. Se comprueba solo
+          # `secrets` — `dependency-review` y `scancode-license-pr-diff` tienen
+          # condiciones propias (scope intencional, ver delta spec) — y solo en
+          # PR, porque en `merge_group` el job corre por diseño.
+          if [[ "${{ github.event_name }}" == "pull_request" && "${{ needs.secrets.result }}" == "skipped" ]]; then
+            echo "❌ Secret Detection quedó skipped en un PR: un scanner saltado no es un scanner limpio"
+            exit 1
+          fi
+          echo "✅ Security substage succeeded (no job failed, cancelled or skipped-on-PR)"
 
   # Renamed by change `ci-stage-aggregator-topology` (D9): the aggregator carries the whole tier-1
   # testing surface, not only unit tests, so the `unit` wording became false and the id now mirrors

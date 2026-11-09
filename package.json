@@ -128,7 +128,9 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,cjs,mjs,json,jsonc,md}": "prettier --write",
     "*.{js,jsx,ts,cts,mts,cjs,mjs}": "eslint --fix --max-warnings 0 --no-warn-ignored",
-    "*.{js,jsx,ts,tsx,cjs,mjs}": "depcruise --config .dependency-cruiser.cjs --output-type err-long --ignore-known=.dependency-cruiser-known-violations.json"
+    "*.{js,jsx,ts,tsx,cjs,mjs}": "depcruise --config .dependency-cruiser.cjs --output-type err-long --ignore-known=.dependency-cruiser-known-violations.json",
+    "apps/server/prisma/schema.prisma": "node scripts/ci/prisma-schema-check.mjs",
+    ".github/**/*.{yml,yaml}": "node scripts/ci/yamllint-staged.mjs"
   },
   "version": "1.0.0",
   "directories": {

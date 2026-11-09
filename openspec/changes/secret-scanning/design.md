@@ -6,9 +6,9 @@ Secret scanning existe en 3 capas (L1 hook local, L3 PR-time `security.yml`, L3 
 
 - `.gitleaks.toml` (139 líneas): `useDefault = true` + 5 reglas custom + 4 allowlists; **7 hallazgos** (§4.2) — el más grave: `[[rules]] id = "generic-api-key"` **overridea** la regla default completa al hacer `[extend]` (keywords + entropy + allowlists propias se pierden).
 - `package.json` L56-57: `gitleaks detect --source .` y `gitleaks protect --staged` → deprecados desde **`v8.19.0`** (aún funcionan, ocultos de `--help`).
-- `security.yml` job `secrets` (`name: Secret Detection`): scan diff-scoped `git --log-opts="base..head"`, `GITHUB_TOKEN` obligatorio (403 sin él), acción licenciada condicionada a `env.GIT_LEAKS` (§5.6) → `secrets.*` no disponible en `steps.if`.
+- `ci.yml` job `secrets` (`name: Security: Secret Detection`, substage 2C): scan diff-scoped `git --log-opts="base..head"`, `GITHUB_TOKEN` obligatorio (403 sin él), acción licenciada condicionada a `env.GIT_LEAKS` (§5.6) → `secrets.*` no disponible en `steps.if`.
 - `scheduled-security.yml`: 2 steps full-history con `continue-on-error: true` (modo audit, cumple R2) → el job **nunca** pasa a `failure`, así que `notify-failure` con `if: failure()` es código muerto.
-- Wiring: el job `secrets` no está en `needs` de `ci-complete`; el ruleset `main` solo exige 4 checks governance (§3.5/§5.2).
+- Wiring: el job `secrets` no está en `needs` de `ci-complete`; el ruleset `main` solo exige 2 checks governance (`Governance: PR Body Lint`, `Prebuild Governance Complete`) (§3.5/§5.2).
 
 Ver proposal.md - Why.
 
@@ -35,11 +35,11 @@ Ver proposal.md - Why.
 
 Clasificación única y explícita, consistente con `docs/learning/quality-gates.md`:
 
-| Check                                        | Workflow / job                                  | Modo                                            | Nivel                           |
-| -------------------------------------------- | ----------------------------------------------- | ----------------------------------------------- | ------------------------------- |
-| `Secret Detection` (check `secret-scanning`) | `security.yml` → job `secrets`                  | exit 1 default, **sin** `continue-on-error`     | **blocking** (PR gate)          |
-| `Gitleaks Full History Scan`                 | `scheduled-security.yml` → `gitleaks-full-scan` | `continue-on-error: true` + artifact JSON/SARIF | **advisory/audit**              |
-| Licensed step                                | `security.yml` step condicional `env.GIT_LEAKS` | `::warning::` si no hay licencia                | advisory (nunca requisito — R3) |
+| Check                                                  | Workflow / job                                            | Modo                                            | Nivel                           |
+| ------------------------------------------------------ | --------------------------------------------------------- | ----------------------------------------------- | ------------------------------- |
+| `Security: Secret Detection` (check `secret-scanning`) | `ci.yml` → job `secrets` (substage 2C)                    | exit 1 default, **sin** `continue-on-error`     | **blocking** (PR gate)          |
+| `Gitleaks Full History Scan`                           | `scheduled-security.yml` → `gitleaks-full-scan`           | `continue-on-error: true` + artifact JSON/SARIF | **advisory/audit**              |
+| Licensed step                                          | `ci.yml` step condicional `env.GIT_LEAKS` (job `secrets`) | `::warning::` si no hay licencia                | advisory (nunca requisito — R3) |
 
 Regla de oro: **`continue-on-error` jamás en el gate PR**; un secret nuevo debe bloquear. El scheduled full-history es advisory porque un hallazgo histórico exige **rotación + issue**, no bloquear merges (R2: "NO fallar por reportar hallazgo"). Añadir la fila que falta en la tabla de taxonomía de `quality-gates.md`.
 
@@ -65,7 +65,7 @@ Alternativa descartada: ambos bloqueantes → un FP histórico de `.gitleaksigno
      # steps.<scan-json>.outcome == 'failure' || steps.<scan-sarif>.outcome == 'failure'
    ```
    (`needs.*.result` sigue siendo `success`; solo `steps.*.outcome` refleja el fallo del step con `continue-on-error` — semántica oficial documentada en `quality-gates.md` §3, `actions/toolkit#581`.)
-4. **Pin**: `zricethezav/gitleaks:v8.22.1` → última release (v8.30.1) en `security.yml` y `scheduled-security.yml`.
+4. **Pin**: `zricethezav/gitleaks:v8.22.1` → última release (v8.30.1) en `ci.yml` (job `secrets`) y `scheduled-security.yml`.
 
 Alternativa descartada para `notify-failure`: quitar `continue-on-error` → el run fallaría por hallazgos históricos, violando R2 (modo audit).
 
@@ -73,7 +73,7 @@ Alternativa descartada para `notify-failure`: quitar `continue-on-error` → el 
 
 1. **Enable** (sin tocar YAML): `gh workflow enable .github/workflows/security.yml` y `gh workflow enable .github/workflows/scheduled-security.yml`; verificar con `gh api repos/.../actions/workflows` que `state = active` (los 2 están `disabled_manually`, §3.4/§5.9).
 2. **Orden obligatorio** (reglas 7/8 de `CONTEXT-CICD`): primero ≥1 run exitoso del workflow para conocer el **nombre exacto** del status check, **después** añadirlo al ruleset. El nombre es el `name:` del job: `Secret Detection` (job `secrets` de `ci.yml`, substage 2C) — referenciado como check `secret-scanning` en esta change. Renombrar el job rompe el binding (strict=true).
-3. **Ruleset `main`**: añadir `Secret Detection` al `required_status_checks` (hoy solo los 4 checks governance, strict). Rationale: R1 vale a nivel check pero **no** a nivel ruleset — sin esto el gate es opcional (cualquiera puede mergear en verde). No wirear a `ci-complete.needs` (evita acoplar el agregador de gobernanza); wireado al substage `prebuild-security-complete.needs` (ci.yml) para que el Pre-Build falle si gitleaks falla.
+3. **Ruleset `main`**: añadir `Security: Secret Detection` al `required_status_checks` (hoy solo 2 checks governance, strict). Rationale: R1 vale a nivel check pero **no** a nivel ruleset — sin esto el gate es opcional (cualquiera puede mergear en verde). No wirear a `ci-complete.needs` (evita acoplar el agregador de gobernanza); wireado al substage `prebuild-security-complete.needs` (ci.yml) para que el Pre-Build falle si gitleaks falla. (Pendiente: task 6.2 declinada por el owner, 2026-11-08.)
 
 Alternativa descartada: mantener `secrets` en `security.yml` sin wire a prebuild-security-complete — el ruleset bloquea merge pero §23.5 (Pre-Build / CI) queda desincronizada; el usuario explícito exige gitleaks en ci.yml.
 

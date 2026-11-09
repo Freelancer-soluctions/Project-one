@@ -8,14 +8,14 @@ Validates GitHub Actions workflow files statically with actionlint and yamllint 
 
 ### Requirement: Pre-commit workflow linting
 
-The system SHALL run actionlint and yamllint on GitHub Actions workflow files as part of the pre-commit hook via lint-staged, so invalid workflow syntax is caught before the commit is created.
+The system SHALL run yamllint on GitHub Actions workflow files as part of the pre-commit hook via lint-staged, so invalid YAML is caught before the commit is created. actionlint runs in the same pre-commit hook as an advisory layer (blocking promotion owned by `pipeline-config-scan` FASE 2) and blocks in the `validate-pipeline` CI job.
 
 #### Scenario: Workflow file staged for commit
 
 - **WHEN** a developer stages a change to a file under `.github/workflows/**` or `.github/dependabot.yml`
-- **THEN** lint-staged SHALL run `actionlint` on the staged workflow files
-- **AND** lint-staged SHALL run `yamllint` on the staged YAML files
-- **AND** the commit SHALL be blocked if either tool reports an error
+- **THEN** lint-staged SHALL run `yamllint` on the staged YAML files
+- **AND** the commit SHALL be blocked if yamllint reports an error
+- **AND** the advisory actionlint layer SHALL report findings without blocking (the blocking actionlint gate is the `validate-pipeline` job)
 
 #### Scenario: Valid workflow file staged
 

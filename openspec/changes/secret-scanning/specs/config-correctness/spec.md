@@ -4,7 +4,7 @@
 
 ### Requirement: Secret scanning gate taxonomy (blocking vs advisory)
 
-Secret scanning SHALL be classified by enforcement level, following `docs/learning/secret-scanning.md` (§5.3, §6) and `docs/learning/quality-gates.md`: the PR-time scan (job `secrets`, `name: Secret Detection` in `.github/workflows/security.yml`) SHALL be a **blocking** gate that fails the check when a secret is found in the PR diff (gitleaks default `--exit-code 1`), and the scheduled full-history scan (job `gitleaks-full-scan` in `.github/workflows/scheduled-security.yml`) SHALL remain **advisory/audit** (`continue-on-error: true` + JSON/SARIF artifacts, findings reported as issues, never blocking merges). `continue-on-error` SHALL NOT be applied to the PR-time gitleaks step, and the licensed `gitleaks/gitleaks-action@v3` step SHALL remain optional (conditional on `GIT_LEAKS` per `docs/CONTEXT-CICD.md` §5.6) — a missing license SHALL produce a `::warning::`, never a failure. The taxonomy table in `docs/learning/quality-gates.md` SHALL include a secret-scanning row.
+Secret scanning SHALL be classified by enforcement level, following `docs/learning/secret-scanning.md` (§5.3, §6) and `docs/learning/quality-gates.md`: the PR-time scan (job `secrets`, `name: Security: Secret Detection` in `.github/workflows/ci.yml`, substage 2C) SHALL be a **blocking** gate that fails the check when a secret is found in the PR diff (gitleaks default `--exit-code 1`), and the scheduled full-history scan (job `gitleaks-full-scan` in `.github/workflows/scheduled-security.yml`) SHALL remain **advisory/audit** (`continue-on-error: true` + JSON/SARIF artifacts, findings reported as issues, never blocking merges). `continue-on-error` SHALL NOT be applied to the PR-time gitleaks step, and the licensed `gitleaks/gitleaks-action@v3` step SHALL remain optional (conditional on `GIT_LEAKS` per `docs/CONTEXT-CICD.md` §5.6) — a missing license SHALL produce a `::warning::`, never a failure. The taxonomy table in `docs/learning/quality-gates.md` SHALL include a secret-scanning row.
 
 #### Scenario: New secret in a PR blocks the check
 
@@ -13,7 +13,7 @@ Secret scanning SHALL be classified by enforcement level, following `docs/learni
 
 #### Scenario: PR gate never uses continue-on-error
 
-- **WHEN** `.github/workflows/security.yml` job `secrets` is inspected
+- **WHEN** `.github/workflows/ci.yml` job `secrets` is inspected
 - **THEN** no `continue-on-error` SHALL be set on the OSS gitleaks scan step
 
 #### Scenario: Scheduled full-history scan stays advisory
@@ -57,7 +57,7 @@ Scripts SHALL use only non-deprecated gitleaks commands (`detect`/`protect` were
 
 ### Requirement: Workflow enablement and `secret-scanning` required status check
 
-Both secret-scanning workflows SHALL be operational at GitHub level: `security.yml` and `scheduled-security.yml` SHALL have `state = active` in the Actions API (no longer `disabled_manually`, per `docs/CONTEXT-CICD.md` §3.4/§5.9). After at least one successful run has revealed the exact check name, the `main` ruleset `required_status_checks` SHALL include the secret-scanning check — the job `name: Secret Detection` of job `secrets` in `.github/workflows/ci.yml`, substage 2C, wireado al agregador `prebuild-security-complete.needs` — referenced as the `secret-scanning` check — so a red or missing secret scan blocks merges (currently only 4 governance checks are required). The job SHALL keep `name: Secret Detection`, because renaming breaks the check binding (`CONTEXT-CICD.md` §3.5 rules 7/8). This requirement covers enablement by `gh workflow enable` / GitHub UI; enabling GitHub-native `secret_scanning` + push protection (§5.7) stays a documented follow-up.
+Both secret-scanning workflows SHALL be operational at GitHub level: `security.yml` and `scheduled-security.yml` SHALL have `state = active` in the Actions API (no longer `disabled_manually`, per `docs/CONTEXT-CICD.md` §3.4/§5.9). After at least one successful run has revealed the exact check name, the `main` ruleset `required_status_checks` SHALL include the secret-scanning check — the job `name: Security: Secret Detection` of job `secrets` in `.github/workflows/ci.yml`, substage 2C, wireado al agregador `prebuild-security-complete.needs` — referenced as the `secret-scanning` check — so a red or missing secret scan blocks merges (the ruleset currently requires 2 governance checks: `Governance: PR Body Lint` and `Prebuild Governance Complete`). The job SHALL keep `name: Security: Secret Detection`, because renaming breaks the check binding (`CONTEXT-CICD.md` §3.5 rules 7/8). Note: as of 2026-11-08 the owner declined task 6.2, so the binding is pending; the gate still runs red but is not yet ruleset-bound. This requirement covers enablement by `gh workflow enable` / GitHub UI; enabling GitHub-native `secret_scanning` + push protection (§5.7) stays a documented follow-up.
 
 #### Scenario: Workflows are active
 
@@ -76,8 +76,8 @@ Both secret-scanning workflows SHALL be operational at GitHub level: `security.y
 
 #### Scenario: Exact check name is preserved
 
-- **WHEN** the `secrets` job of `security.yml` is edited
-- **THEN** its `name:` SHALL remain exactly `Secret Detection` so the ruleset binding does not break
+- **WHEN** the `secrets` job of `ci.yml` is edited
+- **THEN** its `name:` SHALL remain exactly `Security: Secret Detection` so the ruleset binding does not break
 
 ### Requirement: `notify-failure` reacts to step outcome and docs reflect state
 

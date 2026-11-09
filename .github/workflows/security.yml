@@ -84,6 +84,39 @@ jobs:
           category: trivy
 
   # =========================
+  # Secret verification (TruffleHog) — change `ci-shifting-left`
+  # =========================
+  # Complementa a Gitleaks, NO lo reemplaza: Gitleaks escanea el diff staged/PR
+  # con reglas offline; TruffleHog recorre el historial del repo y VERIFICA cada
+  # candidato contra la API del emisor (`--results=verified`), así que filtra los
+  # falsos positivos por formato y solo reporta credenciales vivas.
+  # Imagen FIJADA por tag de versión (nunca `:latest`): 3.99.4.
+  # `--fail` hace que un hallazgo VERIFICADO devuelva exit 183 y falle el job
+  # (sin el flag, exit 0 con hallazgos: trufflehog es un streamer por diseño).
+  # `--repo` se pasa como URL completa (formato que documenta la CLI); el token
+  # del workflow evita rate limits de la API de GitHub.
+  trufflehog:
+    name: Secret Verification (TruffleHog)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Run TruffleHog (verified results only)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker run --rm \
+            -e GITHUB_TOKEN \
+            ghcr.io/trufflesecurity/trufflehog:3.99.4 \
+            github \
+            --repo "${{ github.server_url }}/${{ github.repository }}" \
+            --token "$GITHUB_TOKEN" \
+            --results=verified \
+            --fail
+        shell: bash
+
+  # =========================
   # SAST (Static Analysis)
   # =========================
   sast:

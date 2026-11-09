@@ -1,7 +1,7 @@
-# 🏆 Nivel Profesional — Guías 18 a 23
+# 🏆 Nivel Profesional — Guías 18 a 29
 
 > **Ruta de aprendizaje CI/CD · Nivel 4 de 4**
-> Índice del nivel **Profesional**: 6 guías (18-23) que cubren seguridad avanzada (SAST/SCA/SBOM), seguridad programada, Dependabot, mantenimiento de workflows, métricas DORA y pipelines enterprise.
+> Índice del nivel **Profesional**: gobernanza y revisión (18-22), pipeline enterprise (23), DAG de infraestructura (24) y seguridad, Dependabot, mantenimiento y métricas DORA (25-29).
 
 Bienvenido al nivel **Profesional**, el cuarto y último nivel de la ruta de aprendizaje de CI/CD del proyecto. Si has completado los niveles **Fundamentos** (guías 00-04), **Intermedio** (guías 05-10) y **Avanzado** (guías 11-17), estás listo para el salto de **Senior a Staff**: dejarás de "operar el CI" y empezarás a **diseñar, asegurar, medir y mantener el pipeline como un activo de producción**.
 
@@ -15,8 +15,8 @@ Al completar este nivel serás capaz de:
 2. **Operar la seguridad por cron**: el modelo de seguridad de 3 niveles (pre-commit / PR / cron), `scheduled-security.yml` (Gitleaks full-history) y `security-digest.yml` (SBOM + OSV + digest).
 3. **Gestionar Dependabot de forma rutinaria**: los 3 ecosistemas (npm, github-actions, docker), la rutina mensual de revisión y por qué Dependabot evita el drift de actions.
 4. **Mantener workflows con una filosofía clara**: `.nvmrc` como single source of truth, `fetch-depth: 0` opt-in, política de versionado de actions, checklist trimestral y anti-patrones.
-5. **Interpretar métricas DORA y SLSA**: las 4 métricas DORA, los niveles SLSA 1-4, y dónde se ubica el proyecto (nivel 2-3).
-6. **Evaluar patrones enterprise**: qué separa el CI/CD del proyecto de un pipeline enterprise de 30+ jobs, VEX, escaneo de IaC y future-proofing.
+5. **Interpretar métricas DORA y SLSA**: las 4 métricas DORA, los niveles SLSA 1-4, y dónde se ubica el proyecto (Build L1, con camino abierto a L2).
+6. **Evaluar patrones enterprise**: qué capacidades (SLSA, VEX, IaC, entornos reales) separan realmente a un pipeline enterprise — más allá del número de jobs — y qué parte del future-proofing merece la pena.
 
 ## 📋 Prerequisitos
 
@@ -34,53 +34,76 @@ Si no has completado el nivel Avanzado, te recomendamos empezar por el [índice 
 
 La ruta completa de CI/CD del proyecto tiene **4 niveles**. Este índice corresponde al nivel **Profesional**, el cuarto y último:
 
-| Nivel           | Guías | Estado        | Contenido                                                                   |
-| --------------- | ----- | ------------- | --------------------------------------------------------------------------- |
-| **Fundamentos** | 00-04 | ✅ Completado | Qué es CI/CD, Git y YAML, GitHub Actions, secrets, Docker                   |
-| **Intermedio**  | 05-10 | ✅ Completado | Husky, ci.yml, workflows reutilizables, composite actions, caching, testing |
-| **Avanzado**    | 11-17 | ✅ Completado | CD, AWS, Floci, deploy.yml, preview.yml, OIDC, ECS, Changesets              |
-| **Profesional** | 18-23 | 🟢 En curso   | Seguridad avanzada, Dependabot, mantenimiento, DORA, SLSA, enterprise       |
+| Nivel           | Guías | Estado        | Contenido                                                               |
+| --------------- | ----- | ------------- | ----------------------------------------------------------------------- |
+| **Fundamentos** | 00-04 | ✅ Completado | Qué es CI/CD, Git y YAML, GitHub Actions, secrets, Docker               |
+| **Intermedio**  | 05-10 | ✅ Completado | Husky, ci.yml, workflows reutilizables, composite actions, caching      |
+| **Avanzado**    | 11-17 | ✅ Completado | CD, AWS, Floci, deploy.yml, preview.yml, OIDC, ECS, Changesets          |
+| **Profesional** | 18-29 | 🟢 En curso   | Gobernanza, enterprise, DAG, seguridad, Dependabot, mantenimiento, DORA |
 
 ## 📚 Guías del nivel Profesional
 
-| #   | Guía                                                                          | Descripción                                                          | Tiempo estimado |
-| --- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------- | --------------- |
-| 18  | [security.yml: SAST, SCA y SBOM](./18-security-yml-sast-sca-sbom.md)          | Familia de seguridad desde cero, 5 jobs de security.yml, permisos    | 90-120 min      |
-| 19  | [Seguridad programada (cron)](./19-scheduled-security-yml.md)                 | Modelo de 3 niveles, scheduled-security.yml, security-digest.yml     | 90-120 min      |
-| 20  | [Dependabot: 3 ecosistemas](./20-dependabot-3-ecosistemas.md)                 | dependabot.yml, rutina mensual, drift de actions                     | 60-90 min       |
-| 21  | [Mantenimiento de workflows](./21-mantenimiento-workflows.md)                 | .nvmrc SSOT, fetch-depth opt-in, checklist trimestral, anti-patrones | 90-120 min      |
-| 22  | [Métricas DORA y performance tuning](./22-dora-metrics-performance-tuning.md) | 4 métricas DORA, SLSA, tuning del pipeline, act local                | 90-120 min      |
-| 23  | [Pipeline enterprise de referencia](./23-ci-enterprise-reference-pipeline.md) | 9 vs 30+ jobs, SLSA L3, VEX, IaC, future-proofing                    | 90-120 min      |
+| #   | Guía                                                                          | Descripción                                                                                                                            | Estado         |
+| --- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| 18  | [Trunk-based development](./18-trunk-based-development.md)                    | Estrategia de ramas integradas, PRs pequeños y despliegue continuo                                                                     | ✅ Publicada   |
+| 19  | [Governance Gates](./19-governance-gates.md)                                  | Framework de 5 niveles de enforcement: commit → PR → merge → post-merge → audit                                                        | ✅ Publicada   |
+| 20  | [Governance Stage](./20-governance-stage.md)                                  | Implementación por fases de los gates de gobernanza en el pipeline del proyecto                                                        | ✅ Publicada   |
+| 21  | [Code Review](./21-code-review.md)                                            | La técnica de QA nº 1: por qué, 6 dimensiones, técnicas, IA, métricas, single-dev                                                      | ✅ Publicada   |
+| 22  | [Rulesets](./22-rulesets-guide.md)                                            | Catálogo de reglas, bypass actors, enforcement y binding ruleset ↔ checks                                                              | ✅ Publicada   |
+| 23  | [Pipeline enterprise de referencia](./23-ci-enterprise-reference-pipeline.md) | Escala real (15 archivos / 94 jobs), SLSA L1-L3, VEX, IaC advisory, future-proofing; `ci-enterprise.yml` **retirado** → snippets 02/09 | ✅ Publicada   |
+| 24  | [DAG de infraestructura](./24-dag-infraestructura.md)                         | Grafo acíclico del pipeline, panorama de sistemas y el DAG real de `ci.yml`                                                            | ✅ Publicada   |
+| 25  | security.yml: SAST, SCA y SBOM                                                | Familia de seguridad desde cero, 5 jobs de `security.yml`, permisos                                                                    | 📝 Planificada |
+| 26  | Seguridad programada (cron)                                                   | Modelo de 3 niveles, `scheduled-security.yml`, `security-digest.yml`                                                                   | 📝 Planificada |
+| 27  | Dependabot: 3 ecosistemas                                                     | `dependabot.yml`, rutina mensual, drift de actions                                                                                     | 📝 Planificada |
+| 28  | Mantenimiento de workflows                                                    | `.nvmrc` SSOT, `fetch-depth` opt-in, checklist trimestral, anti-patrones                                                               | 📝 Planificada |
+| 29  | Métricas DORA y performance tuning                                            | 4 métricas DORA, SLSA, tuning del pipeline, `act` local                                                                                | 📝 Planificada |
 
-### Guías de la serie Governance / Review (existentes en el repo)
+### Nota sobre la numeración
 
-Las guías reales **18-21** que existen hoy en el repo pertenecen a la **serie de gobernanza y revisión**, y son un recorrido acumulativo hacia el enforcement de `main`:
+El plan original de este nivel asignaba a sus guías los números **18-23**, pero 18-22 ya estaban ocupadas por la serie de gobernanza y revisión y el 24 por el DAG. Para no romper enlaces ni renombrar archivos publicados, las guías pendientes se renumeran a **25-29** conservando su orden relativo (seguridad → cron → Dependabot → mantenimiento → DORA), y sólo la 23 coincide con el plan original. Las filas marcadas como "Planificada" **no tienen archivo todavía**: no son enlaces a propósito.
 
-| #   | Guía                                                       | Descripción                                                                       |
-| --- | ---------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| 18  | [Trunk-based development](./18-trunk-based-development.md) | Estrategia de ramas integradas, PRs pequeños y despliegue continuo                |
-| 19  | [Governance Gates](./19-governance-gates.md)               | Framework de 5 niveles de enforcement: commit → PR → merge → post-merge → audit   |
-| 20  | [Governance Stage](./20-governance-stage.md)               | Implementación por fases de los gates de gobernanza en el pipeline del proyecto   |
-| 21  | [Code Review](./21-code-review.md)                         | La técnica de QA nº 1: por qué, 6 dimensiones, técnicas, IA, métricas, single-dev |
-
-> ⚠️ **Nota de sincronización**: la tabla superior (18-23) es el **plan original** del nivel Profesional (matriz de seguridad/Dependabot/DORA/enterprise). La tabla de abajo refleja las **guías realmente creadas** hoy (serie governance/review). La reconciliación completa del plan pasa a otra sesión; **la guía 21 (code review) es un archivo real** y tiene la numeración coherente con la serie governance (tras la 20).
-
-### Orden de lectura recomendado
+## 🛣️ Orden de lectura recomendado
 
 Las guías están ordenadas de forma **acumulativa**: cada una asume los conceptos de la anterior.
 
-1. Empieza por la **guía 18** (security.yml) — es la base de toda la seguridad del nivel.
-2. Sigue con la **guía 19** (seguridad programada) — el modelo de 3 niveles que organiza todo.
-3. Continúa con la **guía 20** (Dependabot) — la gestión rutinaria de dependencias.
-4. Profundiza con la **guía 21** (mantenimiento) — la filosofía de mantener el pipeline.
-5. Mide con la **guía 22** (DORA y performance) — los marcos Staff-level.
-6. Cierra con la **guía 23** (enterprise) — el salto de escala y el wrap-up del nivel.
+1. **Gobernanza y revisión (18-22)** — trunk-based development → governance gates → governance stage → code review → rulesets. Gobiernan _qué puede entrar_ en `main` y _cómo se revisa_.
+2. **Guía 23 (enterprise)** — el salto de escala: qué capacidades añade un pipeline enterprise y dónde está realmente este repo.
+3. **Guía 24 (DAG)** — el grafo del pipeline: por qué el orden de los jobs no es el orden del archivo.
+4. **Guía 25 (security.yml)** — la base de seguridad del nivel: SAST, SCA, SBOM, secrets y dependency review.
+5. **Guía 26 (seguridad programada)** — el modelo de 3 niveles y la red de seguridad por cron.
+6. **Guía 27 (Dependabot)** — la gestión rutinaria de dependencias y el drift de actions.
+7. **Guía 28 (mantenimiento)** — la filosofía de mantener el pipeline vivo.
+8. **Guía 29 (DORA y performance)** — la medición: los marcos Staff-level y el cierre del nivel.
 
-> **Serie governance/review (guías reales 18-21)**: si estás siguiendo la serie que existe hoy en vez del plan superior, el orden es **18** (trunk-based) → **19** (governance gates) → **20** (governance stage) → **21** (code review). La guía 21 cierra la serie de revisión: tras gobernar _qué puede entrar_ en `main`, aprendes _cómo se revisa_ bien lo que entra.
+> Si sigues la serie de gobernanza por separado: **18** (trunk-based) → **19** (governance gates) → **20** (governance stage) → **21** (code review) → **22** (rulesets). Tras gobernar _qué puede entrar_ en `main`, la guía 21 enseña _cómo se revisa_ y la 22 convierte las decisiones en reglas ejecutables.
 
 ## 🔍 Descripción detallada de las guías
 
-### Guía 18 — security.yml: SAST, SCA y SBOM
+### Guía 23 — Pipeline enterprise de referencia
+
+**Objetivo**: cerrar la parte comparativa del nivel con el salto de escala. Aprenderás a medir la escala real del pipeline (y por qué "9 workflows" o "30+ jobs" no son métricas de madurez), qué capacidades definen un pipeline enterprise, los requisitos de SLSA Build L1-L3, VEX, el estado real del escaneo de IaC y qué parte del future-proofing (Kubernetes, canary, feature flags, OpenTelemetry) merece la pena.
+
+**Contenido destacado**:
+
+- Las cuatro métricas de escala que se confunden en una: archivos (15), definiciones de job (94, 57 en `ci.yml`),
+  workflows activos en el registro (9) y required checks (4).
+- El drift de conteo: `quality.yml` eliminado (jobs inline `if: false`) y `ci-enterprise.yml` retirado → los archivos
+  bajaron y los jobs de `ci.yml` subieron; la comparación "9 vs 30+ jobs" queda obsoleta.
+- Los 14 stages del pipeline genérico (`ci-cd-pipeline-empresarial.md` §2.3) frente a lo que el repo cubre hoy.
+- SLSA: tabla L1-L4, posición real del proyecto (Build L1: SBOM sin provenance firmada) y qué falta para L3.
+- VEX: los 4 statuses (not_affected, affected, fixed, under_investigation) y por qué `ignore-unfixed` de Trivy es un
+  sustituto pobre.
+- Escaneo de IaC: existe como `checkov-iac` en `ci.yml` (advisory, `soft_fail`), no en `security.yml`; la FASE 2
+  (baseline fail-on-new) está planificada y sin implementar.
+- `ci-enterprise.yml` como referencia didáctica: paths `frontend/`/`backend/` inexistentes, cache miss garantizado y
+  path filter muerto. **El archivo está retirado** (ver `CONTEXT-CICD.md` §5.9), así que el módulo trabaja con los
+  snippets de las guías 02/09.
+- Future-proofing con criterio coste/beneficio: por qué canary y Kubernetes no son la siguiente prioridad de este repo.
+
+**Hands-on**: medir archivos/jobs/`if: false`, detectar paths fantasma en `cache-dependency-path`, comparar el drift
+actual de pins (`setup-node` en dos versiones vs `paths-filter` en una) y auditar el nivel SLSA en dos comandos.
+
+### Guía 25 — security.yml: SAST, SCA y SBOM
 
 **Objetivo**: construir la base de seguridad del nivel. Aprenderás la taxonomía de seguridad de aplicaciones **desde cero** — SAST, SCA, SBOM, secrets detection y dependency review — y leerás el workflow `security.yml` de principio a fin: sus 5 jobs, triggers, concurrency y el modelo de permisos de mínimo privilegio.
 
@@ -92,11 +115,11 @@ Las guías están ordenadas de forma **acumulativa**: cada una asume los concept
 - Job `sbom`: `anchore/sbom-action@v0.24.0`, CycloneDX JSON, artifact 365 días.
 - Job `secrets`: Gitleaks OSS (diff scan) + licensed (gated por `${{ secrets.GIT_LEAKS }}`) + el gotcha del warning/skip silencioso.
 - Job `dependency-review`: `actions/dependency-review-action@v5` (vuln + license check en PR).
-- Modelo de permisos: `security-events: write` en los workflows que suben SARIF, y la excepción de `ci-enterprise.yml`.
+- Modelo de permisos: `security-events: write` en los workflows que suben SARIF, y la excepción histórica de `ci-enterprise.yml` (workflow **retirado**; el archivo ya no existe).
 
 **Hands-on**: leer `security.yml` en el repo y localizar cada job, trigger y permiso.
 
-### Guía 19 — Seguridad programada (cron)
+### Guía 26 — Seguridad programada (cron)
 
 **Objetivo**: entender la seguridad por cron como la red de seguridad que cubre lo que el diff no ve. Aprenderás el **modelo de seguridad de 3 niveles** (pre-commit / PR / cron) como principio organizador, y desglosarás `scheduled-security.yml` y `security-digest.yml`.
 
@@ -110,7 +133,7 @@ Las guías están ordenadas de forma **acumulativa**: cada una asume los concept
 
 **Hands-on**: inspeccionar ambos workflows y el script de digest en el repo.
 
-### Guía 20 — Dependabot: 3 ecosistemas
+### Guía 27 — Dependabot: 3 ecosistemas
 
 **Objetivo**: dominar la gestión rutinaria de dependencias con Dependabot. Aprenderás los 3 ecosistemas configurados en `.github/dependabot.yml`, la rutina mensual de revisión y por qué Dependabot es la defensa contra el drift de actions.
 
@@ -121,18 +144,18 @@ Las guías están ordenadas de forma **acumulativa**: cada una asume los concept
 - Ecosistemas github-actions (prefix `ci`) y docker (`apps/server`, prefix `ci`).
 - Diferencia de cadencia npm vs github-actions (por qué las actions se priorizan).
 - Rutina mensual: revisar cluster de PRs, batch-merge patch+minor, evaluar major aparte.
-- Por qué Dependabot evita el drift de actions y qué pasa si `dependabot.yml` desaparece.
+- Por qué Dependabot evita el drift de actions (medible en la tabla de pins de `CONTEXT-CICD.md` §13.5) y qué pasa si `dependabot.yml` desaparece.
 
 **Hands-on**: revisar los PRs de Dependabot abiertos y clasificarlos por tipo de bump.
 
-### Guía 21 — Mantenimiento de workflows
+### Guía 28 — Mantenimiento de workflows
 
 **Objetivo**: adoptar la filosofía de mantenimiento "**los workflows son código y se pudren**". Aprenderás los casos reales del repo (Caso 1 EBADENGINE, Caso 2 test-reporter), las políticas de `.nvmrc`, `fetch-depth` y versionado de actions, el checklist trimestral y los anti-patrones.
 
 **Contenido destacado**:
 
-- Filosofía de mantenimiento (`docs/workflows-mantenimiento-guia.md` sección 1).
-- `.nvmrc` como single source of truth: Caso 1 (EBADENGINE omniroute@3.8.49, commit `cf5e1bb`), propagación atómica a 9 workflows + composite.
+- Filosofía de mantenimiento (`workflows-mantenimiento-guia.md` sección 1).
+- `.nvmrc` como single source of truth: Caso 1 (EBADENGINE omniroute@3.8.49, commit `cf5e1bb`) y su propagación atómica. El caso se resolvió con 9 archivos de workflow; hoy hay **15 archivos y 94 definiciones de job** (fuente: `CONTEXT-CICD.md` §3.4) — el número caduca, la regla de editar la fuente de verdad y propagar en un solo commit no.
 - `fetch-depth: 0` opt-in: Caso 2 (dorny/test-reporter exit 128) y anti-patrones asociados.
 - Política de versionado de actions: tags vs SHA pinning (decisión: tags + Dependabot gana).
 - Gotcha del timeout de bash 120s en `.husky/pre-commit` (commits `cf5e1bb` y `32d35a8`).
@@ -141,46 +164,22 @@ Las guías están ordenadas de forma **acumulativa**: cada una asume los concept
 
 **Hands-on**: ejecutar el checklist trimestral contra el repo real.
 
-### Guía 22 — Métricas DORA y performance tuning
+### Guía 29 — Métricas DORA y performance tuning
 
-**Objetivo**: medir el pipeline con los marcos Staff-level. Aprenderás las 4 métricas DORA, los niveles SLSA 1-4, y las técnicas de performance tuning del pipeline (jobs paralelos, cache hit ratio, path filtering, concurrency, composite actions, `act`).
+**Objetivo**: medir el pipeline con los marcos Staff-level y cerrar el nivel. Aprenderás las 4 métricas DORA, los niveles SLSA 1-4, y las técnicas de performance tuning del pipeline (jobs paralelos, cache hit ratio, path filtering, concurrency, composite actions, `act`).
 
 **Contenido destacado**:
 
 - Las 4 métricas DORA en tabla: Deployment Frequency, Lead Time for Changes, Change Failure Rate, MTTR.
-- Cómo el pipeline del proyecto afecta cada métrica (conexión con `docs/cicd-plan-implementacion.md` §12).
-- SLSA desde cero: niveles 1-4 y dónde se ubica el proyecto (nivel 2-3 vía provenance SBOM + OIDC + dependency review).
+- Cómo el pipeline del proyecto afecta cada métrica (conexión con `docs/ci-cd-pipeline-empresarial.md` §26).
+- SLSA desde cero: niveles 1-4 y dónde se ubica el proyecto (Build L1: SBOM + dependency review sin provenance firmada; L2 = un job `actions/attest`).
 - Framing Staff-level: DORA y SLSA como marcadores de la transición Senior → Staff.
 - Performance tuning: jobs paralelos, cache hit ratio (npm/Vitest/Playwright), path filtering (`dorny/paths-filter`), cancelación por `concurrency`, composite actions.
 - `act` para dry-run local sin gastar minutos de GitHub Actions.
 
 **Hands-on**: calcular las 4 métricas DORA del proyecto con datos reales de GitHub Actions.
 
-### Guía 23 — Pipeline enterprise de referencia
-
-**Objetivo**: cerrar el nivel con el salto de escala. Aprenderás qué separa el CI/CD del proyecto (9 workflows) de un pipeline enterprise de 30+ jobs, los requisitos de SLSA Level 3, VEX, el escaneo de IaC, y el future-proofing (Kubernetes, canary, feature flags, OpenTelemetry).
-
-**Contenido destacado**:
-
-- Tabla comparativa: 9 workflows del proyecto vs pipeline enterprise de 30+ jobs.
-- El drift de conteo: 12 pre-cleanup Aug 2026 → 3 zombies eliminados → 9 workflows hoy (verificar contra el filesystem real).
-- SLSA Level 3: provenance firmada, builds hermetic, entornos aislados, y qué le falta al proyecto.
-- VEX: los 4 statuses (not_affected, affected, fixed, under_investigation), relación con SBOM (gap G18).
-- Escaneo de IaC: el gap del proyecto (job `iac-security` comentado en `security.yml`).
-- `ci-enterprise.yml` como referencia didáctica: paths `frontend/`/`backend/` inexistentes, cache miss garantizado, NO operativo.
-- Future-proofing: Kubernetes/EKS, canary deploys, feature flags, OpenTelemetry.
-
-**Hands-on**: comparar `ci-enterprise.yml` con los workflows operacionales y detectar el version drift.
-
-### Guía 21 (real) — Code Review: Práctica, Técnica y Cultura de Revisión
-
-**Objetivo**: dominar **la técnica de QA nº 1 de la industria** — la revisión humana del código antes de que entre a `main`. Cubre el _por qué_ (8 beneficios), las **6 dimensiones** del análisis (funcionalidad, diseño, seguridad, testing, performance, documentación), las técnicas (lectura, ejecución, incremental, walkthrough), el **rol de la IA** (no aprueba, solo comenta), las métricas (SmartBear: <400 LOC, <500 LOC/h, 60-90 min) y el caso **single-dev** real del proyecto.
-
-**Conexión con el repo**: complementa `docs/code-review-checklist.md` (la herramienta operativa) y la serie de gobernanza (guía 19). Aplica lo que los 4 checks del ruleset **no** automatizan: el juicio humano de diseño, intención y seguridad-de-diseño.
-
-**Hands-on**: aplicar `docs/code-review-checklist.md` a un PR propio (self-review) usando las 6 dimensiones y las reglas de severidad.
-
-## 🧑🏫 Cómo usar este nivel
+## 🧑‍🏫 Cómo usar este nivel
 
 ### Metodología
 
@@ -202,32 +201,32 @@ Las guías de este nivel **no copian** la documentación técnica existente del 
 
 Estas guías se apoyan en la documentación técnica existente del proyecto. No necesitas leerlos completos antes, pero te serán útiles como referencia:
 
-| Documento                                    | Contenido                                                   | Se usa en        |
-| -------------------------------------------- | ----------------------------------------------------------- | ---------------- |
-| `docs/workflows-mantenimiento-guia.md`       | Playbook de mantenimiento de workflows (casos, checklist)   | Guías 18-21      |
-| `docs/cicd-estado-actual.md`                 | Estado actual del CI/CD (Stage 4 Security, Stage 6 Operate) | Guías 18, 19, 23 |
-| `docs/cicd-plan-implementacion.md`           | Plan de implementación (§12 DORA, §16 SLSA, §19.2.3 VEX)    | Guías 22, 23     |
-| `docs/security/security-enterprise-guide.md` | Guía enterprise de seguridad (SLSA, VEX, SBOM)              | Guías 22, 23     |
-| `docs/aws-deploy-architecture.md`            | Arquitectura de despliegue AWS                              | Guía 23          |
-| `docs/aws-cd-learning-path.md`               | Ruta pedagógica AWS: Floci → Consola → Terraform            | Guía 23          |
+| Documento                                             | Contenido                                                             | Se usa en       |
+| ----------------------------------------------------- | --------------------------------------------------------------------- | --------------- |
+| `docs/learning/ci-cd/workflows-mantenimiento-guia.md` | Playbook de mantenimiento de workflows (casos, checklist, inventario) | Guías 25-28     |
+| `docs/CONTEXT-CICD.md`                                | Inventario de workflows (§3.4, §5.9), pins y drift (§13.5)            | Guías 23, 25-27 |
+| `docs/ci-cd-pipeline-empresarial.md`                  | 14 stages (§2.3), supply chain §25, métricas DORA y costo (§26)       | Guías 23, 29    |
+| `docs/security/security-enterprise-guide.md`          | Guía enterprise de seguridad (SLSA, VEX, SBOM)                        | Guías 23, 29    |
+| `docs/aws-deploy-architecture.md`                     | Arquitectura de despliegue AWS                                        | Guía 23         |
+| `docs/aws-cd-learning-path.md`                        | Ruta pedagógica AWS: Floci → Consola → Terraform                      | Guía 23         |
 
 ### Archivos fuente que analizarás
 
-| Archivo               | Ruta                                            | Guías  |
-| --------------------- | ----------------------------------------------- | ------ |
-| Security pipeline     | `.github/workflows/security.yml`                | 18, 23 |
-| Seguridad programada  | `.github/workflows/scheduled-security.yml`      | 19     |
-| Security digest       | `.github/workflows/security-digest.yml`         | 19     |
-| Dependabot            | `.github/dependabot.yml`                        | 20     |
-| CI enterprise         | `.github/workflows/ci-enterprise.yml`           | 23     |
-| Digest script         | `scripts/security/generate-security-digest.mjs` | 19     |
-| Guía de mantenimiento | `docs/workflows-mantenimiento-guia.md`          | 18-21  |
+| Archivo               | Ruta                                                  | Guías  |
+| --------------------- | ----------------------------------------------------- | ------ |
+| Security pipeline     | `.github/workflows/security.yml`                      | 25, 23 |
+| Seguridad programada  | `.github/workflows/scheduled-security.yml`            | 26     |
+| Security digest       | `.github/workflows/security-digest.yml`               | 26     |
+| Dependabot            | `.github/dependabot.yml`                              | 27     |
+| Digest script         | `scripts/security/generate-security-digest.mjs`       | 26     |
+| CI enterprise         | — (archivo **retirado**; snippets guías 02/09)        | 23     |
+| Guía de mantenimiento | `docs/learning/ci-cd/workflows-mantenimiento-guia.md` | 28     |
 
 ## ❓ FAQ
 
 ### ¿Necesito conocimientos previos de seguridad para este nivel?
 
-**No.** La guía 18 introduce la familia SAST/SCA/SBOM **desde cero**, con analogías y tablas comparativas. Si completaste los niveles anteriores, tienes el contexto de CI/CD necesario; la seguridad se construye sobre esa base. Las guías 22 y 23 hacen lo mismo con DORA, SLSA y VEX.
+**No.** La guía 25 introduce la familia SAST/SCA/SBOM **desde cero**, con analogías y tablas comparativas. Si completaste los niveles anteriores, tienes el contexto de CI/CD necesario; la seguridad se construye sobre esa base. Las guías 29 y 23 hacen lo mismo con DORA, SLSA y VEX.
 
 ### ¿Qué diferencia hay entre este nivel y el Avanzado?
 
@@ -235,15 +234,15 @@ El nivel **Avanzado** se centra en el **CD**: cómo el código verificado se con
 
 ### ¿Qué es el "modelo de seguridad de 3 niveles"?
 
-Es el principio organizador de la guía 19: la seguridad del proyecto se organiza en 3 capas complementarias — **pre-commit** (hooks de Husky locales: Semgrep + Gitleaks en staged), **PR/CI** (`security.yml` en cada PR: Trivy, CodeQL, Gitleaks diff, SBOM, Dependency Review) y **cron** (`scheduled-security.yml` + `security-digest.yml` cada lunes: Gitleaks full-history, OSV, digest). Cada capa tiene coste y cobertura distintos; juntas forman "shifting left con red de seguridad por cron".
+Es el principio organizador de la guía 26: la seguridad del proyecto se organiza en 3 capas complementarias — **pre-commit** (hooks de Husky locales: Semgrep + Gitleaks en staged), **PR/CI** (`security.yml` en cada PR: Trivy, CodeQL, Gitleaks diff, SBOM, Dependency Review) y **cron** (`scheduled-security.yml` + `security-digest.yml` cada lunes: Gitleaks full-history, OSV, digest). Cada capa tiene coste y cobertura distintos; juntas forman "shifting left con red de seguridad por cron".
 
 ### ¿Qué son las métricas DORA y por qué importan?
 
-**DORA** (DevOps Research and Assessment) define 4 métricas estándar de rendimiento de entrega: **Deployment Frequency** (frecuencia de deploys), **Lead Time for Changes** (tiempo de commit a producción), **Change Failure Rate** (% de deploys que causan incidentes) y **MTTR** (tiempo de recuperación). Son el estándar de la industria para medir si el pipeline es un activo o un freno. Guía 22.
+**DORA** (DevOps Research and Assessment) define 4 métricas estándar de rendimiento de entrega: **Deployment Frequency** (frecuencia de deploys), **Lead Time for Changes** (tiempo de commit a producción), **Change Failure Rate** (% de deploys que causan incidentes) y **MTTR** (tiempo de recuperación). Son el estándar de la industria para medir si el pipeline es un activo o un freno. Guía 29.
 
 ### ¿Qué es SLSA?
 
-**SLSA** (Supply-chain Levels for Software Artifacts) es un marco de niveles 1-4 para la seguridad de la cadena de suministro: cuánta confianza puedes tener en que un artifact se construyó de forma íntegra y verificable. El proyecto se ubica en nivel 2-3 vía provenance SBOM + OIDC + dependency review. Guías 22 y 23.
+**SLSA** (Supply-chain Levels for Software Artifacts) es un marco de niveles 1-4 para la seguridad de la cadena de suministro: cuánta confianza puedes tener en que un artifact se construyó de forma íntegra y verificable. El proyecto se ubica en **Build L1** (SBOM CycloneDX + dependency review, sin provenance firmada: no hay `attest`, `cosign`, `provenance` ni `sigstore` en los workflows); el OIDC hacia AWS no cuenta como SLSA Build. Alcanzar L2 es un job de `actions/attest`. Guías 29 y 23.
 
 ### ¿Qué es VEX?
 
@@ -251,11 +250,11 @@ Es el principio organizador de la guía 19: la seguridad del proyecto se organiz
 
 ### ¿Cuánto tiempo toma completar el nivel?
 
-Entre **8 y 12 horas** en total, dependiendo de tu ritmo: cada guía toma entre 60 y 120 minutos (ver tabla de guías). Las guías 18 y 19 (seguridad) son las más densas porque introducen conceptos desde cero.
+Entre **10 y 14 horas** en total, dependiendo de tu ritmo: cada guía toma entre 60 y 120 minutos (ver tabla de guías). Las guías 25 y 26 (seguridad) son las más densas porque introducen conceptos desde cero.
 
 ### ¿Puedo saltarme alguna guía?
 
-Las guías 18 y 19 son **prerequisito** de las demás: sin la familia SAST/SCA/SBOM y sin el modelo de 3 niveles, las guías 20-23 serán difíciles de seguir. Las guías 20, 21 y 22 son más independientes entre sí, pero todas asumen el contexto de las dos primeras.
+Las guías 25 y 26 son **prerequisito** de las demás del bloque de seguridad: sin la familia SAST/SCA/SBOM y sin el modelo de 3 niveles, las guías 27-29 serán difíciles de seguir. Las guías 27, 28 y 29 son más independientes entre sí, pero todas asumen el contexto de las dos primeras.
 
 ### ¿Dónde están los archivos de los que hablan las guías?
 

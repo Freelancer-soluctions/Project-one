@@ -371,10 +371,23 @@ function buildDayCell({
   const visible = dayEvents.slice(0, 2);
   const remaining = dayEvents.length - visible.length;
 
+  // a11y (change `ci-shifting-left`, jsx-a11y): la celda era un `div` con
+  // `onClick` (ratón-only). Rol + tabIndex + Enter/Espacio la hacen operable
+  // por teclado sin cambiar el comportamiento del click.
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onDateClick?.(day);
+    }
+  };
+
   return (
     <div
       key={day.toISOString()}
+      role="button"
+      tabIndex={0}
       onClick={() => onDateClick?.(day)}
+      onKeyDown={handleKeyDown}
       className={cn(
         'min-h-[80px] cursor-pointer border-b border-r p-1.5 last:border-r-0 lg:min-h-[100px]',
         !inMonth && 'bg-muted/30'

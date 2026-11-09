@@ -86,7 +86,22 @@ The repository SHALL document how to enable GitHub native secret scanning and pu
 
 ## Notes
 
-- **Operational status (verified 2026-09-23):** both implementing workflows exist with correct YAML (`actionlint` passes) but are **`disabled_manually` in GitHub** — confirmed via API (`gh workflow list`): `Security Pipeline` (security.yml) and `Scheduled Security Scan` (scheduled-security.yml). This is an intentional ops decision documented in `docs/CONTEXT-CICD.md` §3.4/§3.5 (only `ci.yml`, `opencode-review.yml` and `dependabot-updates` are active), NOT an implementation gap: the YAML satisfies R1–R3 as written.
-- **Consequence (roles updated 2026-10-19, change `sast-shift-left-hooks-parity`):** the PR-time gate (R1) and the weekly full-history scan (R2) do not execute today. Actual secret protection is layered: **Gitleaks staged scan in the `pre-commit` hook** (the earliest possible point — a committed secret means rewriting history; layer L1 per `docs/pre-merge-gates-governance.md` §4.6), **diff-scoped SAST (which includes Semgrep `p/secrets`) in the `pre-push` hook** (layer L2) and in the **active `ci.yml` `sast` job** (`SAST_MODE=ci node scripts/sast-diff.mjs`, FASE 1 advisory with a 14-day report artifact). The SAST layers complement, not replace, the staged Gitleaks gate — SAST needs a baseline commit and therefore cannot live in `pre-commit`.
+- **Operational status (verified 2026-11-08 via `gh workflow list --all`):** both implementing workflows are now
+  **`active`** — `Security Pipeline` (security.yml, id 243939664) and `Scheduled Security Scan`
+  (scheduled-security.yml, id 328325417). The previous note (2026-09-23, `disabled_manually`) is obsolete. Also
+  verified the same day: GitHub native `secret_scanning` and `secret_scanning_push_protection` are **enabled** on the
+  public repo (`security_and_analysis` API), so the native layer is live in addition to the Gitleaks layers.
+- **Consequence (superseded 2026-11-08):** with both workflows active, the PR-time gate (R1) and the weekly
+  full-history scan (R2) **do execute**. Historical note (2026-10-19, change `sast-shift-left-hooks-parity`), kept
+  for context — at that time they did not run, and protection relied on: Actual secret protection is layered: **Gitleaks staged scan in the `pre-commit` hook** (the earliest possible point — a committed secret means rewriting history; layer L1 per `docs/pre-merge-gates-governance.md` §4.6), **diff-scoped SAST (which includes Semgrep `p/secrets`) in the `pre-push` hook** (layer L2) and in the **active `ci.yml` `sast` job** (`SAST_MODE=ci node scripts/sast-diff.mjs`, FASE 1 advisory with a 14-day report artifact). The SAST layers complement, not replace, the staged Gitleaks gate — SAST needs a baseline commit and therefore cannot live in `pre-commit`.
 - **Re-enablement path:** `gh workflow enable "Security Pipeline" && gh workflow enable "Scheduled Security Scan"` (or Settings → Actions → Workflows). No YAML changes required.
-- **Merge-blocking caveat:** even when enabled, `Secret Detection` is not a required status check in the branch ruleset (only the 4 governance checks are) — R1's "blocking merge" holds at the check level, not at the ruleset level.
+- **Merge-blocking caveat:** `Secret Detection` is still not in the branch ruleset's `required_status_checks` (only
+  the governance checks are) — R1's "blocking merge" holds at the check level and, since change
+  `secret-scanning-history-governance`, at the aggregator level: `prebuild-security-complete` fails when the job is
+  `skipped` in a PR and the job now also runs on `merge_group` (the ruleset binding is owned by change
+  `secret-scanning` tasks 6.x).
+- **Anti-skip + governance (2026-11-08, change `secret-scanning-history-governance`):** a skipped `secrets` job in a
+  PR fails the security aggregator; `.gitleaksignore` / `.gitleaks.toml` changes require a devops code owner
+  (`CODEOWNERS` + ruleset `require_code_owner_review=true`); the scheduled scan asserts a non-shallow checkout before
+  scanning, pastes rule/file/commit into the failure issue, and the release pipeline runs a full-history scan before
+  publishing. Response/rotation procedure: `docs/security/secret-incident-response.md`.

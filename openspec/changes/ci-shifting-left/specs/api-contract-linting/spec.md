@@ -24,6 +24,7 @@ The server SHALL include a `.spectral.yaml` configuration that extends `spectral
 - **WHEN** the server contains `openapi.yaml`
 - **THEN** the file SHALL be a valid OpenAPI 3.x document
 - **AND** the file SHALL describe the server's public API endpoints
+- **AND** every internal `$ref` SHALL resolve to a schema declared under `components.schemas`
 
 ### Requirement: CI API contract lint job
 
@@ -40,6 +41,12 @@ The CI pipeline SHALL include an `api-contract` job that runs `spectral lint ope
 - **WHEN** `openapi.yaml` complies with all configured rules
 - **THEN** the `api-contract` job SHALL pass
 - **AND** the PR check SHALL report success
+
+#### Scenario: Contract validation is blocking
+
+- **WHEN** the `api-contract` job fails
+- **THEN** the `prebuild-quality-complete` aggregator SHALL fail
+- **AND** the PR SHALL NOT be able to merge with a passing required check set
 
 #### Scenario: OpenAPI file invalid
 

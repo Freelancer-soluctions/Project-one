@@ -1,27 +1,33 @@
 ## Purpose
 
-Define el contrato de contenido, estructura y estilo pedagógico de las 6 guías del nivel Profesional (18-23) de la ruta de aprendizaje de CI/CD, para que un desarrollador que completó los niveles Fundamentos, Intermedio y Avanzado alcance una práctica de CI/CD de nivel Staff: SecOps, mantenimiento, métricas DORA, SLSA y patrones enterprise.
+Define el contrato de contenido, estructura y estilo pedagógico de las 6 guías del nivel Profesional (23 y 25-29) de la ruta de aprendizaje de CI/CD, para que un desarrollador que completó los niveles Fundamentos, Intermedio y Avanzado alcance una práctica de CI/CD de nivel Staff: SecOps, mantenimiento, métricas DORA, SLSA y patrones enterprise.
 
 ## ADDED Requirements
 
 ### Requirement: Guías del nivel Profesional
 
-El nivel Profesional SHALL contener exactamente 6 guías markdown en `docs/learning/ci-cd/`: `18-security-yml-sast-sca-sbom.md`, `19-scheduled-security-yml.md`, `20-dependabot-3-ecosistemas.md`, `21-mantenimiento-workflows.md`, `22-dora-metrics-performance-tuning.md` y `23-ci-enterprise-reference-pipeline.md`.
+El nivel Profesional SHALL constar de 6 guías markdown en `docs/learning/ci-cd/` con estos nombres fijados:
+`23-ci-enterprise-reference-pipeline.md` (publicada), `25-security-yml-sast-sca-sbom.md`,
+`26-scheduled-security-yml.md`, `27-dependabot-3-ecosistemas.md`, `28-mantenimiento-workflows.md` y
+`29-dora-metrics-performance-tuning.md`. Los números 18-22 están ocupados por la serie governance/review
+(`18-trunk-based-development.md`, `19-governance-gates.md`, `20-governance-stage.md`, `21-code-review.md`,
+`22-rulesets-guide.md`) y el 24 por `24-dag-infraestructura.md`; la renumeración 18-22 → 25-29 se decidió el 2026-11-07
+(D10 de `design.md`) y ningún archivo publicado se renombra.
 
-#### Scenario: Existen las 6 guías
+#### Scenario: Nombres de archivo del nivel
 
 - **WHEN** se inspecciona el directorio `docs/learning/ci-cd/`
-- **THEN** existen los 6 archivos de guía con los nombres exactos especificados
+- **THEN** la guía enterprise existe como `23-ci-enterprise-reference-pipeline.md` y las pendientes tienen nombre reservado 25-29
 
-#### Scenario: La numeración continúa a los niveles previos
+#### Scenario: La numeración no invade guías existentes de otro cambio
 
-- **WHEN** se listan los archivos del nivel Profesional
-- **THEN** la numeración de las guías continúa la secuencia de los niveles Fundamentos (00-04), Intermedio (05-10) y Avanzado (11-17) con los números 18-23
+- **WHEN** se elige el nombre de archivo de una guía del nivel
+- **THEN** el número no colisiona con una guía ya existente (18-22 y 24 están ocupadas) y la decisión queda registrada en el change (D10)
 
-#### Scenario: No hay guías fuera del nivel
+#### Scenario: Las guías pendientes no se declaran existentes
 
-- **WHEN** se listan los archivos del nivel Profesional
-- **THEN** no existen guías de este nivel en otros directorios ni guías de otros niveles con numeración 18-23
+- **WHEN** un lector recorre la tabla de guías del nivel
+- **THEN** el README indica explícitamente qué guías del plan están escritas y cuáles no, en lugar de enlazar a archivos inexistentes
 
 ### Requirement: Estructura obligatoria de cada guía
 
@@ -47,9 +53,9 @@ Cada guía SHALL seguir la estructura: objetivos de aprendizaje, prerequisitos (
 - **WHEN** se lee el final de cualquier guía
 - **THEN** contiene un resumen de lo aprendido y un enlace a la siguiente guía del nivel (o al índice profesional si es la última)
 
-### Requirement: Contenido didáctico de 18-security-yml-sast-sca-sbom
+### Requirement: Contenido didáctico de 25-security-yml-sast-sca-sbom
 
-La guía `18-security-yml-sast-sca-sbom.md` SHALL hacer un walkthrough profundo de `.github/workflows/security.yml` (5 jobs: dependency-scan, sast, secrets, sbom, dependency-review), introduciendo los conceptos de seguridad desde cero: SAST (CodeQL), SCA (Trivy), SBOM (Anchore), detección de secrets (Gitleaks) y Dependency Review.
+La guía `25-security-yml-sast-sca-sbom.md` SHALL hacer un walkthrough profundo de `.github/workflows/security.yml` (5 jobs: dependency-scan, sast, secrets, sbom, dependency-review), introduciendo los conceptos de seguridad desde cero: SAST (CodeQL), SCA (Trivy), SBOM (Anchore), detección de secrets (Gitleaks) y Dependency Review.
 
 #### Scenario: Introduce SAST desde cero
 
@@ -91,9 +97,9 @@ La guía `18-security-yml-sast-sca-sbom.md` SHALL hacer un walkthrough profundo 
 - **WHEN** la guía trata los permisos de `security.yml`
 - **THEN** explica que `security-events: write` está presente en los workflows que suben SARIF (security.yml + scheduled-security.yml) Y en ci-enterprise.yml (excepción — workflow de referencia no-operacional; deberías notar esto como excepción/violación del 'mínimo privilegio'), y que security-digest.yml NO lo necesita (sube artifacts, no SARIF) — conectando con el principio de mínimo privilegio de `docs/workflows-mantenimiento-guia.md` sección 16
 
-### Requirement: Contenido didáctico de 19-scheduled-security-yml
+### Requirement: Contenido didáctico de 26-scheduled-security-yml
 
-La guía `19-scheduled-security-yml.md` SHALL explicar la seguridad por cron: `.github/workflows/scheduled-security.yml` (Gitleaks full-history `--all` → JSON + SARIF + artifact con `if: always()`), `.github/workflows/security-digest.yml` (SBOM + OSV Scanner → digest markdown + comment opcional en PR) y los jobs `notify-failure`, presentando el modelo de seguridad de 3 niveles (pre-commit / PR / cron) como principio organizador.
+La guía `26-scheduled-security-yml.md` SHALL explicar la seguridad por cron: `.github/workflows/scheduled-security.yml` (Gitleaks full-history `--all` → JSON + SARIF + artifact con `if: always()`), `.github/workflows/security-digest.yml` (SBOM + OSV Scanner → digest markdown + comment opcional en PR) y los jobs `notify-failure`, presentando el modelo de seguridad de 3 niveles (pre-commit / PR / cron) como principio organizador.
 
 #### Scenario: Explica el cron de scheduled-security
 
@@ -120,9 +126,9 @@ La guía `19-scheduled-security-yml.md` SHALL explicar la seguridad por cron: `.
 - **WHEN** la guía trata la política de fallo
 - **THEN** explica que `continue-on-error` fue removido (fail-closed) y el rol de `if: always()` en los uploads para no perder artefactos de diagnóstico aunque el scan falle
 
-### Requirement: Contenido didáctico de 20-dependabot-3-ecosistemas
+### Requirement: Contenido didáctico de 27-dependabot-3-ecosistemas
 
-La guía `20-dependabot-3-ecosistemas.md` SHALL explicar la gestión de dependencias con Dependabot: `.github/dependabot.yml` con tres ecosistemas (npm, github-actions, docker), la rutina mensual de revisión y la importancia de Dependabot para evitar el drift de versions de actions.
+La guía `27-dependabot-3-ecosistemas.md` SHALL explicar la gestión de dependencias con Dependabot: `.github/dependabot.yml` con tres ecosistemas (npm, github-actions, docker), la rutina mensual de revisión y la importancia de Dependabot para evitar el drift de versions de actions.
 
 #### Scenario: Explica los tres ecosistemas
 
@@ -142,21 +148,21 @@ La guía `20-dependabot-3-ecosistemas.md` SHALL explicar la gestión de dependen
 #### Scenario: Explica por qué Dependabot evita el drift
 
 - **WHEN** la guía trata el problema del drift
-- **THEN** explica que sin Dependabot las actions se quedan stale (drift enumerado en `docs/workflows-mantenimiento-guia.md`), con el riesgo de CVEs no corregidos y breaking changes acumulados, y por qué Dependabot lo mitiga con PRs automáticos semanales
+- **THEN** explica que sin Dependabot las actions se quedan stale (drift enumerado en `docs/learning/ci-cd/workflows-mantenimiento-guia.md` y medible en `CONTEXT-CICD.md` §13.5), con el riesgo de CVEs no corregidos y breaking changes acumulados, y por qué Dependabot lo mitiga con PRs automáticos semanales
 
-### Requirement: Contenido didáctico de 21-mantenimiento-workflows
+### Requirement: Contenido didáctico de 28-mantenimiento-workflows
 
-La guía `21-mantenimiento-workflows.md` SHALL explicar la filosofía de mantenimiento de workflows ("los workflows son código y se pudren"), el `.nvmrc` como single source of truth, la política de `fetch-depth: 0` opt-in, la política de versionado de actions, el gotcha del timeout de bash 120s, el checklist trimestral y los anti-patrones.
+La guía `28-mantenimiento-workflows.md` SHALL explicar la filosofía de mantenimiento de workflows ("los workflows son código y se pudren"), el `.nvmrc` como single source of truth, la política de `fetch-depth: 0` opt-in, la política de versionado de actions, el gotcha del timeout de bash 120s, el checklist trimestral y los anti-patrones.
 
 #### Scenario: Explica la filosofía de mantenimiento
 
 - **WHEN** un lector lee la guía
-- **THEN** entiende que los workflows son código que se pudre (dependencias de terceros publican versiones nuevas, GitHub depreca APIs, los CVEs afectan actions viejas) y que el mantenimiento es parte del rol, citando `docs/workflows-mantenimiento-guia.md` sección 1
+- **THEN** entiende que los workflows son código que se pudre (dependencias de terceros publican versiones nuevas, GitHub depreca APIs, los CVEs afectan actions viejas) y que el mantenimiento es parte del rol, citando `docs/learning/ci-cd/workflows-mantenimiento-guia.md` sección 1
 
 #### Scenario: Explica .nvmrc como single source of truth
 
 - **WHEN** la guía trata el versionado de Node
-- **THEN** explica que `.nvmrc` es la única fuente de verdad (leído por `node-version-file: '.nvmrc'` en 9 workflows + la composite action), usando el Caso 1 (EBADENGINE de omniroute@3.8.49, commit `cf5e1bb`) como ejemplo didáctico, y que NUNCA se debe editar `node-version:` workflow por workflow
+- **THEN** explica que `.nvmrc` es la única fuente de verdad (leído por `node-version-file: '.nvmrc'` en todos los workflows que consumen Node: 9 archivos cuando se resolvió el caso, 15 hoy — el conteo se cita como dato verificado en `CONTEXT-CICD.md` §3.4, no de memoria), usando el Caso 1 (EBADENGINE de omniroute@3.8.49, commit `cf5e1bb`) como ejemplo didáctico, y que NUNCA se debe editar `node-version:` workflow por workflow
 
 #### Scenario: Explica la política fetch-depth opt-in
 
@@ -166,7 +172,7 @@ La guía `21-mantenimiento-workflows.md` SHALL explicar la filosofía de manteni
 #### Scenario: Explica la política de versionado de actions
 
 - **WHEN** la guía trata las versiones de third-party actions
-- **THEN** explica la decisión del proyecto de usar tags versionados en lugar de SHA pinning (rechazado por coste de mantenimiento, con riesgo residual aceptado), gestionado por Dependabot github-actions weekly, citando `docs/workflows-mantenimiento-guia.md` sección 7
+- **THEN** explica la decisión del proyecto de usar tags versionados en lugar de SHA pinning (rechazado por coste de mantenimiento, con riesgo residual aceptado), gestionado por Dependabot github-actions weekly, citando `docs/learning/ci-cd/workflows-mantenimiento-guia.md` sección 7
 
 #### Scenario: Cubre el gotcha del timeout de bash 120s
 
@@ -176,26 +182,26 @@ La guía `21-mantenimiento-workflows.md` SHALL explicar la filosofía de manteni
 #### Scenario: Presenta el checklist trimestral
 
 - **WHEN** la guía trata el mantenimiento periódico
-- **THEN** presenta el checklist de mantenimiento trimestral (11 items de la sección 17 de `docs/workflows-mantenimiento-guia.md`): auditoría de actions, `.nvmrc` vs security releases, engines floors, fetch-depth, `act` local, Dependabot, runs fallidos, security workflows, imágenes Docker, rotation de secrets y documentación de nuevos casos
+- **THEN** presenta el checklist de mantenimiento trimestral (11 items de la sección 17 de `docs/learning/ci-cd/workflows-mantenimiento-guia.md`): auditoría de actions, `.nvmrc` vs security releases, engines floors, fetch-depth, `act` local, Dependabot, runs fallidos, security workflows, imágenes Docker, rotation de secrets y documentación de nuevos casos
 
 #### Scenario: Enumera los anti-patrones
 
 - **WHEN** la guía trata lo que NO se debe hacer
-- **THEN** enumera los anti-patrones: editar `.nvmrc` workflow por workflow, pins de engines en package.json, `fetch-depth: 0` "por si acaso" y combinar bump+workflow en un mismo commit (sección 18 de `docs/workflows-mantenimiento-guia.md`)
+- **THEN** enumera los anti-patrones: editar `.nvmrc` workflow por workflow, pins de engines en package.json, `fetch-depth: 0` "por si acaso" y combinar bump+workflow en un mismo commit (sección 18 de `docs/learning/ci-cd/workflows-mantenimiento-guia.md`)
 
-### Requirement: Contenido didáctico de 22-dora-metrics-performance-tuning
+### Requirement: Contenido didáctico de 29-dora-metrics-performance-tuning
 
-La guía `22-dora-metrics-performance-tuning.md` SHALL explicar las 4 métricas DORA (Deployment Frequency, Lead Time for Changes, Change Failure Rate, MTTR), los niveles SLSA (Supply-chain Levels for Software Artifacts) y las técnicas de performance tuning del pipeline.
+La guía `29-dora-metrics-performance-tuning.md` SHALL explicar las 4 métricas DORA (Deployment Frequency, Lead Time for Changes, Change Failure Rate, MTTR), los niveles SLSA (Supply-chain Levels for Software Artifacts) y las técnicas de performance tuning del pipeline.
 
 #### Scenario: Explica las 4 métricas DORA
 
 - **WHEN** un lector lee la guía
-- **THEN** entiende las 4 métricas DORA (frecuencia de despliegue, lead time para cambios, tasa de fallos de cambio, tiempo medio de recuperación) con una tabla y cómo el pipeline del proyecto afecta a cada una, conectando con `docs/cicd-plan-implementacion.md` §12
+- **THEN** entiende las 4 métricas DORA (frecuencia de despliegue, lead time para cambios, tasa de fallos de cambio, tiempo medio de recuperación) con una tabla y cómo el pipeline del proyecto afecta a cada una, conectando con `docs/ci-cd-pipeline-empresarial.md` §26
 
 #### Scenario: Explica SLSA desde cero
 
 - **WHEN** la guía trata la cadena de suministro
-- **THEN** explica qué es SLSA, sus niveles 1-4 y dónde se ubica el proyecto (nivel 2-3 vía provenance SBOM + OIDC + dependency review), referenciando `docs/cicd-plan-implementacion.md` §16 (Técnicas Avanzadas) + §2 Glosario y `docs/security/security-enterprise-guide.md`
+- **THEN** explica qué es SLSA, sus niveles 1-4 y dónde se ubica el proyecto (**Build L1**: SBOM + dependency review sin provenance firmada; el OIDC hacia AWS no cuenta como SLSA Build), referenciando `docs/ci-cd-pipeline-empresarial.md` §25.2 y `docs/security/security-enterprise-guide.md`
 
 #### Scenario: Explica el framing Staff-level
 
@@ -210,46 +216,48 @@ La guía `22-dora-metrics-performance-tuning.md` SHALL explicar las 4 métricas 
 #### Scenario: Introduce act para dry-run local
 
 - **WHEN** la guía trata la optimización de coste
-- **THEN** introduce `act` para ejecutar workflows localmente sin gastar minutos de GitHub Actions (ej. `act -j quality -W .github/workflows/quality.yml`), citando `docs/workflows-mantenimiento-guia.md` Apéndice A
+- **THEN** introduce `act` para ejecutar workflows localmente sin gastar minutos de GitHub Actions (ej. `act -j quality -W .github/workflows/ci.yml` — `quality.yml` ya no existe), citando `docs/learning/ci-cd/workflows-mantenimiento-guia.md` Apéndice A
 
 ### Requirement: Contenido didáctico de 23-ci-enterprise-reference-pipeline
 
-La guía `23-ci-enterprise-reference-pipeline.md` SHALL explicar qué separa el CI/CD del proyecto de un pipeline enterprise de referencia: SLSA Level 3, VEX, escaneo de IaC, `ci-enterprise.yml` como referencia didáctica y future-proofing.
+La guía `23-ci-enterprise-reference-pipeline.md` SHALL explicar qué **capacidades** separan el CI/CD del proyecto de un
+pipeline enterprise de referencia —SLSA, VEX, escaneo de IaC, portabilidad de `ci-enterprise.yml` y future-proofing—
+midiendo la escala con datos verificados del repo en lugar de con conteos recordados.
 
-#### Scenario: Compara el proyecto con un pipeline enterprise
+#### Scenario: Mide la escala con las cuatro métricas
 
-- **WHEN** la guía compara pipelines
-- **THEN** presenta una tabla que contrasta los 9 workflows del proyecto con un pipeline enterprise hipotético de 30+ jobs, explicando qué añade cada diferencia (seguridad, observabilidad, compliance)
+- **WHEN** la guía compara la escala del proyecto con un pipeline enterprise
+- **THEN** distingue archivos de workflow (15), definiciones de job (94, 57 en `ci.yml` con 16 `if: false`), workflows activos en el registro (9) y required checks (4), cita la fuente de cada número (`CONTEXT-CICD.md` §3.4/§5.9) y concluye que la brecha enterprise es de capacidades, no de número de jobs
 
-#### Scenario: Explica SLSA Level 3
+#### Scenario: Explica SLSA y la posición real del proyecto
 
-- **WHEN** la guía trata SLSA Level 3
-- **THEN** explica los requisitos de nivel 3 (provenance firmada, builds hermetic, entornos de build aislados) y qué le falta al proyecto para alcanzarlo, referenciando `docs/cicd-plan-implementacion.md` y `docs/security/security-enterprise-guide.md`
+- **WHEN** la guía trata SLSA
+- **THEN** explica los niveles Build L1-L4, sitúa al proyecto en **Build L1** (hay SBOM CycloneDX y dependency review; no hay provenance firmada: 0 referencias a `attest`/`cosign`/`provenance`/`sigstore` en workflows), aclara que el OIDC hacia AWS no cuenta como SLSA Build, y enumera qué falta para L3, incluido el requisito organizativo de revisión de dos partes
 
-#### Scenario: Explica VEX
+#### Scenario: Explica VEX y su ausencia
 
 - **WHEN** la guía trata VEX
-- **THEN** explica qué es VEX (Vulnerability Exploitability Exchange), cómo comunica si una vulnerabilidad es explotable en el contexto del proyecto, enumera los 4 statuses del estándar VEX (not_affected, affected, fixed, under_investigation — no solo 2), y su relación con el SBOM (gap G18 de `docs/cicd-plan-implementacion.md` §19.2.3)
+- **THEN** explica qué es VEX, enumera los 4 statuses (`not_affected`, `affected`, `fixed`, `under_investigation`) y muestra por qué `ignore-unfixed: 'true'` de Trivy es una política implícita que no distingue "no hay fix" de "no me afecta"
 
-#### Scenario: Explica el escaneo de IaC
+#### Scenario: Explica el escaneo de IaC real
 
 - **WHEN** la guía trata IaC
-- **THEN** explica el escaneo de infraestructura como código (Terraform en CI), identifica que el proyecto no tiene Terraform aún (gap, job `iac-security` comentado en `security.yml`) y referencia `docs/aws-deploy-architecture.md` como material de referencia
+- **THEN** identifica el job `checkov-iac` de `ci.yml` (advisory: `soft_fail: true` + `continue-on-error: true`), distingue "hay escaneo" de "hay gate", señala que la FASE 2 (`.checkov.baseline`) está planificada en un comentario pero no implementada, y que con 1 Dockerfile y 0 manifiestos Terraform/K8s parte del alcance está vacío
 
-#### Scenario: Presenta ci-enterprise.yml como referencia didáctica
+#### Scenario: Presenta ci-enterprise.yml como workflow retirado
 
 - **WHEN** la guía trata `ci-enterprise.yml`
-- **THEN** lo presenta explícitamente como herramienta de enseñanza (qué es un pipeline de 30+ jobs), aclarando que los paths `frontend/` y `backend/` NO existen en este monorepo (cache miss garantizado, gap A3 de `docs/cicd-estado-actual.md`) y que NO es un workflow operativo aquí
+- **THEN** declara que el archivo está retirado (no existe en el repo ni en el registro, `CONTEXT-CICD.md` §5.9), lo estudia por los snippets de las guías 02 §7.1 y 09 §6.1-§6.3, y enumera los cinco anti-patrones de portabilidad con su síntoma observable (paths fantasma, cache-miss silencioso, path filter muerto, version drift, trigger huérfano)
 
-#### Scenario: Muestra el version drift de ci-enterprise.yml
-
-- **WHEN** la guía cubre ci-enterprise.yml
-- **THEN** menciona que este workflow usa versiones más antiguas que los workflows operacionales (`setup-node@v4` vs `setup-node@v5` en otros; `codeql@v3` vs `codeql@v4`) — un buen ejemplo de version drift en pipelines enterprise de referencia
-
-#### Scenario: Explica el future-proofing
+#### Scenario: Explica el future-proofing con criterio
 
 - **WHEN** la guía trata la evolución del pipeline
-- **THEN** explica las direcciones futuras: orquestación de contenedores (Kubernetes/EKS), canary deploys, feature flags y OpenTelemetry, referenciando `docs/cicd-plan-implementacion.md` y `docs/aws-deploy-architecture.md`
+- **THEN** evalúa Kubernetes/EKS, canary, feature flags y OpenTelemetry con coste y prerrequisitos, y argumenta por qué attestations y OpenTelemetry van antes que canary o Kubernetes en un repo sin entornos desplegados
+
+#### Scenario: Las afirmaciones se apoyan en datos del repo
+
+- **WHEN** la guía afirma un nivel de madurez, un conteo o la existencia de un job
+- **THEN** cada afirmación se puede reproducir con un comando de la propia guía (Hands-on) y se corrige cuando contradice el estado del repo
 
 ### Requirement: Estilo didáctico y formato
 
@@ -273,15 +281,19 @@ Las guías SHALL usar español, tono de enseñanza de nivel profesional, tablas 
 #### Scenario: Extensión dentro del rango
 
 - **WHEN** se mide la extensión de cada guía
-- **THEN** cada archivo tiene entre 800 y 1500 líneas
+- **THEN** cada archivo tiene entre 800 y 1500 líneas, salvo la guía 23 (469 líneas documentadas como excepción: delega la profundidad en `docs/ci-cd-pipeline-empresarial.md` por la regla link-don't-copy)
 
 ### Requirement: Sin duplicación de documentación existente
 
-Las guías SHALL referenciar con enlaces la documentación existente (`docs/workflows-mantenimiento-guia.md` con uso intensivo, `docs/cicd-estado-actual.md`, `docs/cicd-plan-implementacion.md`, `docs/aws-*.md`) en lugar de copiar su contenido.
+Las guías SHALL referenciar con enlaces la documentación existente (`docs/learning/ci-cd/workflows-mantenimiento-guia.md`
+con uso intensivo, `docs/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`, `docs/security/security-enterprise-guide.md`,
+`docs/aws-*.md`) en lugar de copiar su contenido. `docs/cicd-estado-actual.md` y `docs/cicd-plan-implementacion.md`
+NO son referenciables: no existen en el repo.
 
 #### Scenario: Se enlaza en lugar de copiar
 
-- **WHEN** una guía necesita contenido que ya existe en `docs/cicd-*.md`, `docs/workflows-mantenimiento-guia.md` o docs de AWS
+- **WHEN** una guía necesita contenido que ya existe en `docs/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`,
+  `docs/learning/ci-cd/workflows-mantenimiento-guia.md` o docs de AWS
 - **THEN** enlaza al documento existente en lugar de duplicar el contenido
 
 #### Scenario: Los enlaces cruzados funcionan

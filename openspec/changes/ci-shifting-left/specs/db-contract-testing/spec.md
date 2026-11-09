@@ -12,7 +12,7 @@ The CI pipeline SHALL include a `db-contract` job that compares the Prisma schem
 
 #### Scenario: Schema and migrations in sync
 
-- **WHEN** the `db-contract` job runs `prisma migrate diff --from-migrations ./prisma/migrations --to-schema-datamodel ./prisma/schema.prisma --exit-code`
+- **WHEN** the `db-contract` job runs `prisma migrate diff --from-migrations ./prisma/migrations --to-schema-datamodel ./prisma/schema.prisma --shadow-database-url <SHADOW_DATABASE_URL> --exit-code` (Prisma exige una shadow database para replayar las migraciones)
 - **THEN** the command SHALL exit with code 0 when the schema matches the migrations
 - **AND** the job SHALL pass
 
@@ -53,7 +53,8 @@ The server workspace SHALL expose a `db:contract` npm script that runs the migra
 #### Scenario: Script invoked locally
 
 - **WHEN** a developer runs `npm run db:contract --workspace=server-express`
-- **THEN** the script SHALL execute `prisma migrate diff --from-migrations ./prisma/migrations --to-schema-datamodel ./prisma/schema.prisma --exit-code`
+- **THEN** the script SHALL execute `prisma migrate diff --from-migrations ./prisma/migrations --to-schema-datamodel ./prisma/schema.prisma --shadow-database-url <SHADOW_DATABASE_URL> --exit-code`
+- **AND** the script SHALL fail with an actionable message when `SHADOW_DATABASE_URL` is not set (never a false green)
 - **AND** the script SHALL exit with code 0 when in sync and code 2 when drifted
 
 #### Scenario: Script invoked in CI

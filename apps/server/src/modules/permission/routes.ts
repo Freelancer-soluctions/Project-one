@@ -88,7 +88,7 @@ router.use(verifyToken);
  *         employee:
  *           $ref: '#/components/schemas/Employee'
  *         approver:
- *           $ref: '#/components/schemas/User'
+ *           $ref: '#/components/schemas/ResponseGetUser'
  *       required:
  *         - employeeId
  *         - type

@@ -494,6 +494,16 @@ En el tier de CI:
   que estos 6 jobs se ejecutan ahí.
 - El **nightly** (`nightly-full-suite.yml`) corre las suites completas a diario: es la red que detecta lo que el
   diff-scoped dejó fuera (orden, cache, deriva de dependencias).
+- La **exploración nocturna de propiedades** (`pbt-nightly.yml`, martes 04:50 UTC) corre `test:pbt` en ambos
+  workspaces con **semilla aleatoria** (`PBT_SEED`) y `PBT_NUMRUNS=5000`, con time-box de 12 minutos en el step. No es
+  un check required ni entra en `ci-complete`: su entregable es un issue (`PBT nightly exploration found a
+counterexample`) con la semilla y el comando para reproducir (`PBT_SEED=<seed> npm run test:pbt`), que se comenta si
+  ya hay uno abierto. El job de PR mantiene la semilla fija (42) para que un rojo sea reproducible; esta corrida es la
+  que explora inputs nuevos (change `pbt-hardening`, gap G7 del PRD de PBT).
+- Los ficheros `*.properties.unit.test.*` tienen un **guard de pureza** en `eslint.config.js` (bloque `(6c)`): el lint
+  falla si la propiedad usa `Math.random`, `Date.now`, `fetch`, `XMLHttpRequest` o `axios`. La razón es de
+  reproducibilidad: con el reloj real o la red, un fallo deja de re-derivarse de la semilla y se vuelve flaky sin
+  diagnóstico. `new Date(valor)` sigue permitido — el caso legítimo es derivar el instante del input generado.
 - El **tripwire de cobertura** solo evaluye corridas de suite completa; en diff-scoped verifica la presencia del
   artefacto y difiere el umbral (`coverage.changed` por glob es P3).
 - Los tests intermitentes en cuarentena (`.github/flaky-quarantine.yml`) se excluyen en los runs bloqueantes de PR, pero

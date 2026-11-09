@@ -47,7 +47,13 @@ Restricciones que condicionan el diseño:
 - [El parser `node -e` del D5 es código inline en el workflow (no reutilizable ni testeable aparte)] → Mantener la key de deny-list plana y simple en el YAML; si crece la política, extraer a script versionado en `scripts/security/` (anotado como seguimiento, no en este change).
 - [Desincronización futura entre `.github/license-policy.yml` y `docs/learning/license-policy.md`] → La spec `license-compliance` exige igualdad exacta; el delta la mantiene sobre la nueva fuente. El primer run de `scancode-license-pr-diff` imprime la lista efectiva en el log (conservado), lo que hace visible el drift en cada PR.
 
-## Migration Plan
+## Deuda GHAS (2026-11-07, PR #164)
+
+Contexto: 30 alertas abiertas en GitHub Advanced Security (CVEs en `package-lock.json` + mutable action tags / self-repository syntax). No bloquean CI. Plan de remediación:
+
+- **D8 — CVEs en lockfile**: actualizar dependencias reportadas a versiones parcheadas y regenerar `package-lock.json`; validar con `npm audit` + `Security: Dependency Review`.
+- **D9 — Mutable tags**: pinear `actions/*`, `dorny/test-reporter` y terceras a SHA de 40 caracteres; migrar `./.github/actions/setup-monorepo` a la sintaxis `$/.` recomendada por zizmor.
+- **D10 — Cierre de alertas**: re-ejecutar `gh api .../code-scanning/alerts`, cerrar las resueltas y documentar las restantes como accepted risk en `docs/learning/`.
 
 1. Crear `.github/license-policy.yml` (D3) — archivo nuevo, sin impacto en runs existentes.
 2. Editar ci.yml tras snapshot `.tmp/ci.yml.pre-supply-chain-hygiene` + conteo de jobs con método correcto (50, excluyendo triggers) — un solo commit con todas las ediciones atómicas (needs del agregador, header 2B, job advisory a Docker, dependency-review y scancode a policy file).

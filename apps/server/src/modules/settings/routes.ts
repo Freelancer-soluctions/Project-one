@@ -332,7 +332,7 @@ router.post(
  *                   type: boolean
  *                   example: false
  *                 statusCode:
- *                   type: int
+ *                   type: integer
  *                   example: 200
  *                 message:
  *                   type: string

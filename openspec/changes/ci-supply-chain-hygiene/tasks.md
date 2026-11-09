@@ -25,7 +25,13 @@
 - [x] 3.4 `docs/learning/quality-gates.md` §2: fila blocking sin `actionlint` (solo `e2e-lint`, `openspec-validate`); fila `actionlint-advisory` actualizada (Docker pinneado, consolidación, FASE 2 = restablecimiento del gate). **Evidencia**: la tabla ya no presenta el gate bloqueante como activo
 - [x] 3.5 Prettier aplicado sobre los 5 docs tocados. **Evidencia**: `npx prettier --write` OK (4 reflow menores, license-policy unchanged)
 
-## 4. Validación final
+## 5. Deuda técnica: alertas GHAS pre-existentes (2026-11-07)
+
+Contexto: el PR #164 dejó 30 alertas abiertas en GitHub Advanced Security (CVEs en `package-lock.json` + mutable action tags / self-repository syntax en workflows). No bloquean CI, pero son deuda de seguridad/supply-chain.
+
+- [ ] 5.1 Auditar y actualizar dependencias con CVEs reportados en `package-lock.json` (alertas 14xx/15xx) → bump a versiones parcheadas y regenerar lockfile. Owner: supply-chain.
+- [ ] 5.2 Pinear a SHA de 40 caracteres todas las actions con tag mutable (`actions/checkout@v5`, `dorny/test-reporter@v3`, etc.) y los `./.github/actions/setup-monorepo` (migrar a sintaxis `$/.` recomendada por zizmor). Owner: ci-security.
+- [ ] 5.3 Re-ejecutar `gh api .../code-scanning/alerts` y cerrar las alertas resueltas; documentar las que queden como accepted risk en `docs/learning/`.
 
 - [x] 4.1 **Evidencia**: `openspec validate ci-supply-chain-hygiene --strict` → "is valid" (exit 0, sin warnings); `openspec validate --specs --strict` → **118 passed, 0 failed**
 - [x] 4.2 **Evidencia**: `npm run docs:lint` (gate real) exit 0; join diff×lint sobre los 5 docs → 94 líneas añadidas, 0 violaciones nuevas

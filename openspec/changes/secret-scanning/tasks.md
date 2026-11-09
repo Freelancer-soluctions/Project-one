@@ -31,8 +31,8 @@
   - Verificado vía parse YAML: `docker://zricethezav/gitleaks:v8.30.1`.
 - [x] 3.2 Confirmar que el step OSS NO lleva `continue-on-error` y que `args` mantiene `git --log-opts="base..head" --redact --verbose` + `GITHUB_TOKEN` (403 sin él) — verificar `grep -n "continue-on-error" .github/workflows/ci.yml` sin resultados en el job `secrets`
   - Verificado: `continue-on-error` NO SET, `args: git --log-opts="base..head" --redact --verbose`, `GITHUB_TOKEN` presente, `name: Secret Detection` intacto, job en `prebuild-security-complete.needs`.
-- [x] 3.3 Validar sintaxis con `actionlint` (job `actionlint` de `ci.yml`) y abrir PR de prueba que plante un secret → el check `Secret Detection` debe fallar y bloquear (PR gate)
-  - Sintaxis validada con js-yaml (los 3 workflows parsean; el binario npm `actionlint` es un stub wasm — la validación real corre en el job `actionlint` del CI). El PR de prueba con secret plantado queda para el momento del push del branch (ver nota en 5.2).
+- [ ] 3.3 Validar sintaxis con `actionlint` (job `actionlint` de `ci.yml`) y abrir PR de prueba que plante un secret → el check `Secret Detection` debe fallar y bloquear (PR gate)
+  - Sintaxis validada con js-yaml (los 3 workflows parsean; el binario npm `actionlint` es un stub wasm — la validación real corre en el job `actionlint` del CI). El PR de prueba con secret plantado queda para el momento del push del branch (ver nota en 5.2). El caso "secret plantado → check rojo" sigue sin ejercitarse en un PR real.
 
 ## 4. `scheduled-security.yml` — `notify-failure` sin dead path
 
@@ -49,6 +49,7 @@
   - Ejecutado y verificado por API: ambos `state: active` (2026-09-25).
 - [ ] 5.2 Abrir 1 PR de prueba para confirmar que `Secret Detection` (job `secrets` de `ci.yml`, substage 2C) dispara en `pull_request` y reporta el check — verificar en la pestaña Checks del PR que `prebuild-security-complete` depende de `secrets`
   - **Pendiente del push**: requiere que el branch con los cambios llegue a GitHub; el YAML de main aún no tiene el job `secrets` en `ci.yml`.
+  - **Estado 2026-11-07 — VERIFICADO EN UN RUN REAL (no requiere PR nuevo):** el job `secrets` ya corre en `pull_request` y reporta el check. Evidencia: run 42360549136 (branch `ci-prebuild-improvement-v6`, 2026-11-07) → job `Security: Secret Detection` **success**, y `Prebuild Security Complete` **success** en el mismo commit (`c9f6d751`). El wiring `prebuild-security-complete.needs` incluye `secrets` (verificado en YAML, L2838). Lo único no ejercitado es el caso "secret plantado → check rojo" en un PR real (3.3/6.3).
 - [ ] 5.3 Lanzar `Scheduled Security Scan` vía `workflow_dispatch` para confirmar cron semanal y artefactos JSON/SARIF — verificar `gitleaks-report` y upload SARIF en el run
   - **Pendiente del push** (mismo motivo que 4.3).
 
@@ -56,8 +57,10 @@
 
 > Tasks 6.1-6.3 son la mitad GitHub-API del enablement y dependen del PR de prueba de 5.2 (el ruleset exige ≥1 run exitoso para conocer el nombre exacto del check — regla de orden de CONTEXT-CICD §3.5). NO se pueden ejecutar desde el working tree local: requieren push del branch + PR abierto. Pasos exactos documentados en la Nota final de este archivo.
 
-- [ ] 6.1 Capturar el nombre EXACTO del check tras el run de 5.2 (`Secret Detection`, job `secrets`) — verificar con `gh api repos/.../commits/<sha>/checks --jq '.check_runs[].name'`
+- [x] 6.1 Capturar el nombre EXACTO del check tras el run de 5.2 (`Secret Detection`, job `secrets`) — verificar con `gh api repos/.../commits/<sha>/checks --jq '.check_runs[].name'`
+  - **Hecho 2026-11-07 (API):** nombre exacto = **`Security: Secret Detection`** (con prefijo `Security: `, no `Secret Detection` a secas como asumía la task). Capturado de `commits/c9f6d751.../check-runs` en el run 42360549136 (branch `ci-prebuild-improvement-v6`): `Security: Secret Detection | success | completed`. El job corrió verde con el pin `zricethezav/gitleaks:v8.30.1` (step "Pull zricethezav/gitleaks:v8.30.1" success) y `Prebuild Security Complete` también verde en ese commit.
 - [ ] 6.2 Añadir `Secret Detection` al `required_status_checks` (strict) del ruleset de `main` — verificar `gh api repos/.../branches/main/protection/required_status_checks` lo incluye junto a los 4 checks governance
+  - **Estado 2026-11-07 — DECLINADO por el owner (no ejecutado).** Payload preparado y validado (`scripts/ci/ruleset-add-check.mjs`, construido desde el ruleset vivo: 7 reglas preservadas, strict intacto, bypass actor intacto, 3 checks resultantes) pero el owner eligió **no** aplicar el PUT al ruleset 21227644. Estado real del ruleset hoy: 2 required checks (`Governance: PR Body Lint`, `Prebuild Governance Complete`). El gate `Security: Secret Detection` sigue corriendo y bloqueando vía `prebuild-security-complete` → `Prebuild Governance Complete`, así que la protección efectiva existe; lo que falta es el binding directo del check al ruleset. Reabrir cuando el owner lo decida.
 - [ ] 6.3 Abrir PR con el check en roto/pendiente → el merge debe quedar bloqueado — verificar el mensaje de ruleset en el PR y que con todo verde el merge se habilita
 
 ## 7. Documentación
@@ -78,8 +81,13 @@
   - `Change 'secret-scanning' is valid`. Además `openspec validate --specs --strict` → 98/98.
 - [x] 8.2 Ejecutar `gitleaks git --config .gitleaks.toml --redact --no-banner` y `npm run security:secrets` en verde sobre el repo limpio
   - Full-history: `no leaks found` (332 commits) con los 12 hallazgos históricos baselined en `.gitleaksignore` (placeholders de tutorial + credencial Cloudinary ya rotada/eliminada, documentado inline); staged scan: `no leaks found`.
+  - **Estado 2026-11-08 — RE-VERIFICADO Y CORREGIDO (la claim anterior estaba stale).** Al re-ejecutar hoy, `npm run security:secrets:full` salía **ROJO: 8 hallazgos, exit 1** (478 commits escaneados), ninguno cubierto por `.gitleaksignore`. Dos causas reales, ambas de configuración:
+    1. **Allowlist de socket desactualizada por la migración TS:** el bloque "Ignore placeholder REDIS_URL examples in socket training files" listaba `apps/server/src/socket/levels/level-11-scale.js`, pero el fichero hoy es **`.ts`** → la allowlist dejó de matchear en silencio y el comentario `rediss://:password@redis-cluster.example.com:6380` (L158) volvió a disparar `database-url`. **Fix:** añadido `level-11-scale.ts` al bloque.
+    2. **Placeholder de tutorial no eximido:** `docs/omniroute-install-tutorial.md` L50-52 (`OMNIROUTE_API_KEY="sk-omniroute-local"`) disparaba `custom-api-key` en 2 commits. **Fix:** `[[rules.allowlists]]` rule-scoped en `custom-api-key` con `regexTarget = "match"` y regex **anclada al valor completo** (`...['"]\s*$` sobre sufijos `local|example|placeholder|test|fake|dummy`), no por substring de fichero — así no puede ocultar una clave real.
+       **Verificación post-fix:** `security:secrets:full` → **478 commits, `no leaks found`, exit 0**; `security:secrets` (staged) → `no leaks found`, exit 0. **Contraverificación del allowlist:** clave real plantada (`api_key = "sk-proj-Q7fK9mZ2xR4tL8vN3wY6bC1dH5jG0aE"` en `apps/server/src/__probe_secret.ts`) → **detectada** (exit 1); fichero de prueba eliminado y `git status` limpio salvo `.gitleaks.toml`.
 - [ ] 8.3 Verificar el estado final conjunto: workflows `active` por API, `Secret Detection` en `required_status_checks`, y `openspec status --change secret-scanning` con los 4 artifacts completos
   - Parcial: workflows `active` ✅ (API 2026-09-25); `Secret Detection` en ruleset ⏳ (requiere PR de prueba de 5.2 — ver Nota final); artifacts completos ✅ (proposal/design/specs/tasks).
+  - **Estado 2026-11-07 (re-verificado por API):** workflows `Security Pipeline` = **active** y `Scheduled Security Scan` = **active** (`gh workflow list --all`); artifacts completos ✅. `Security: Secret Detection` en `required_status_checks` = **NO aplicado** (task 6.2 declinada por el owner) → la task sigue `[ ]` por ese único punto. Repo-side re-verificado hoy: `.gitleaks.toml` con `disabledRules = ["generic-api-key"]` + 5 reglas con `keywords`/`entropy`/`secretGroup`; `package.json` sin `gitleaks protect|detect` (0 matches); `ci.yml` pin `v8.30.1` y `secrets` en `prebuild-security-complete.needs`; `scheduled-security.yml` con 0 `if: failure()` y `notify-failure` sobre `needs.gitleaks-full-scan.outputs.*-outcome`.
 
 ## Nota final — secuencia GitHub post-merge (tasks 4.3/5.2/5.3/6.1-6.3/8.3)
 

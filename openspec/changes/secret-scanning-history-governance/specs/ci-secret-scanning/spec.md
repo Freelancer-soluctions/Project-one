@@ -77,6 +77,13 @@ The pre-build security aggregator SHALL fail when a secret scan job is skipped o
 - **THEN** `prebuild-security-complete` SHALL fail
 - **AND** the merge SHALL remain blocked until the scan runs or is explicitly justified
 
+#### Scenario: Merge queue runs the scan instead of skipping it
+
+- **WHEN** the pipeline runs for a `merge_group` event
+- **THEN** the `secrets` job SHALL run against the merge group base/head range instead of being skipped
+- **AND** the anti-skip rule SHALL apply only to the `secrets` job, leaving `dependency-review` and
+  `scancode-license-pr-diff` governed by their own conditions (intentional scope, not an oversight)
+
 ### Requirement: Pre-release secret scan
 
 The release pipeline SHALL run a full-history secret scan before publishing, failing the release if a secret outside the allowlist is present.

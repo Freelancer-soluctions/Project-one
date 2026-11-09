@@ -35,17 +35,25 @@ Alert.propTypes = {
   variant: PropTypes.oneOf(['default', 'destructive']),
 };
 
-const AlertTitle = React.forwardRef(({ className, ...props }, ref) => (
-  <h5
-    ref={ref}
-    className={cn('mb-1 font-medium leading-none tracking-tight', className)}
-    {...props}
-  />
-));
+// a11y (change `ci-shifting-left`): `children` se declara y renderiza de forma
+// explícita; con `{...props}` a secas jsx-a11y/heading-has-content no puede
+// verificar que el heading tiene contenido accesible.
+const AlertTitle = React.forwardRef(
+  ({ className, children, ...props }, ref) => (
+    <h5
+      ref={ref}
+      className={cn('mb-1 font-medium leading-none tracking-tight', className)}
+      {...props}
+    >
+      {children}
+    </h5>
+  )
+);
 AlertTitle.displayName = 'AlertTitle';
 
 AlertTitle.propTypes = {
   className: PropTypes.string,
+  children: PropTypes.node,
 };
 
 const AlertDescription = React.forwardRef(({ className, ...props }, ref) => (

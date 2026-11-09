@@ -10,7 +10,7 @@ El proyecto ya tiene una base sólida de shifting left (Husky pre-commit con Sem
 - Añadir job CI `db-contract` en `ci.yml` (backend) que ejecuta `prisma migrate diff --from-migrations ./prisma/migrations --to-schema-datamodel ./prisma/schema.prisma --exit-code` (exit 2 = drift)
 - Añadir `prisma validate` + `prisma format --check` en lint-staged
 - Añadir script `db:contract` en `apps/server/package.json`
-- **BREAKING** para PRs: Añadir `actions/dependency-review-action@v4` como required status check en `main` (bloquea PRs que introducen CVEs)
+- **BREAKING** para PRs: Añadir `actions/dependency-review-action@v5` como required status check en `main` (bloquea PRs que introducen CVEs)
 - Añadir `.github/dependabot.yml` (npm + docker + github-actions ecosystems) para remediación automática de CVEs
 - Instalar `eslint-plugin-security` y `eslint-plugin-jsx-a11y` en client y server
 - Añadir `plugin:security/recommended` y `plugin:jsx-a11y/recommended` a `eslint.config.*` (client y server)
@@ -90,7 +90,7 @@ El proyecto ya tiene una base sólida de shifting left (Husky pre-commit con Sem
 **Dependencies nuevas:**
 
 - `eslint-plugin-security`, `eslint-plugin-jsx-a11y`, `@stoplight/spectral-cli`, `size-limit`, `@size-limit/esbuild`, `@lhci/cli`, `knip`
-- Actions: `actions/dependency-review-action@v4`, `treosh/lighthouse-ci-action@v11` (o `@lhci/cli`)
+- Actions: `actions/dependency-review-action@v5`, `treosh/lighthouse-ci-action@v11` (o `@lhci/cli`)
 - Binaries (CI): `actionlint`, `yamllint`, `trufflehog`
 
 **Sistemas:**
