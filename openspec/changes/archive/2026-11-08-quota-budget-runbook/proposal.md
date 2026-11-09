@@ -28,4 +28,4 @@ None — no existing capability's requirements change.
 
 - **New files**: `docs/opencode/quota-runbook.md` (and, if useful, a small measurement checklist reusing `docs/opencode/eval/token-recording-template.md`).
 - **No affected code, APIs, dependencies, or systems**: documentation only. No CI/CD, hooks, config, or runtime changes.
-- **Exit criterion**: runbook committed; a 3-day baseline captured with `opencode-quota` and the weekly review cadence established.
+- **Exit criterion**: runbook committed. The 3-day baseline capture with `opencode-quota` and the weekly review cadence are **deferred operational follow-ups** (3 real workdays required; tracked in runbook §9 calibration log as "pending"). The runbook ships with provisional thresholds that become final only after the baseline is captured.

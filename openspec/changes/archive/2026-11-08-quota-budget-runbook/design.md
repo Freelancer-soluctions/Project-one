@@ -39,6 +39,7 @@ Constraints that shape this design:
 All operational content lives in one file: `docs/opencode/quota-runbook.md`. Sections are ordered by cadence (daily -> mid-day -> weekly -> on-change -> baseline), so an operator opening the file during the day lands on the relevant section first.
 
     docs/opencode/quota-runbook.md
+    ├── 0. Prerequisites            (access to opencode-quota, template, script, rubric, hooks)
     ├── 1. Purpose & scope          (what this is, what it isn't, links)
     ├── 2. Key terms & windows      (monthly quota, 5h/weekly/monthly windows, working days)
     ├── 3. Daily budget             (formula + calculation steps + example)
@@ -48,7 +49,10 @@ All operational content lives in one file: `docs/opencode/quota-runbook.md`. Sec
     ├── 7. Skill pruning criteria   (when to remove a skill)
     ├── 8. Model re-evaluation      (triggers + procedure)
     ├── 9. 3-day baseline process   (steps + inputs + exit criteria)
-    └── 10. Quick reference card    (one-page cheat sheet)
+    ├── 10. Cadence & ownership     (who does what, when)
+    ├── 11. Rollback                (how to revert thresholds)
+    ├── 12. Quick reference card    (one-page cheat sheet)
+    └── Appends A/B                (templates)
 
 Rationale: one file keeps the runbook discoverable and diffable; cadence-ordered sections minimize lookup time during a workday. Alternatives: split into per-cadence files (rejected - fragments the routine and risks drift), or embed in the factorization plan PRD (rejected - PRDs are planning artifacts, not operating procedures).
 
