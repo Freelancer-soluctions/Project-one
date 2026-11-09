@@ -22,7 +22,7 @@
 ## 4. Scopes de fallo
 
 - [x] 4.1 Inspeccionar `fail-on-scopes` actual (default `runtime`) y decidir si se agrega `development`; registrar la decisión como comentario en `ci.yml` o en `dependency-review.md` §4 y verificar con grep que la decisión aparece documentada — ✅ **decisión: mantener default `runtime`**. Justificación comentada en `ci.yml` (bloque `# fail-on-scopes decision (task 4.1)`) y en §3.1 del doc: las devDependencies del repo son tooling de build/test; activar `development` sin PR de prueba arriesga bloquear PRs de tooling. La línea `# fail-on-scopes: runtime, development` queda como recordatorio. grep confirma la decisión en ambos archivos.
-- [ ] 4.2 Si se incluye `development`: fijar `fail-on-scopes: runtime, development` en `ci.yml`, verificar con `actionlint` y confirmar con un PR que toca una devDependency vulnerable que el gate la bloquea — ⏳ **no aplicable hoy / post-merge**: 4.1 decidió NO incluir `development` (condicional "si se incluye" no se cumple). Reevaluar tras el PR de prueba de 3.2.
+- [x] 4.2 Si se incluye `development`: fijar `fail-on-scopes: runtime, development` en `ci.yml`, verificar con `actionlint` y confirmar con un PR que toca una devDependency vulnerable que el gate la bloquea — **N/A (2026-11-09)**: 4.1 decidió NO incluir `development` (condicional "si se incluye" no se cumple). Reevaluar tras el PR de prueba de 3.2.
 
 ## 5. Permisos y separación de capas
 
