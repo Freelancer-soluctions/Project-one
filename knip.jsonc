@@ -41,6 +41,8 @@
         "lint-staged",
         "omniroute",
         "depcheck",
+        // ESLint plugins consumed via eslint.config.js (knip can't detect)
+        "eslint-plugin-jsx-a11y",
       ],
       // ren (Windows rename), gitleaks y vale: binarios standalone llamados
       // directamente en scripts npm — no son paquetes npm declarables.
@@ -176,9 +178,10 @@
         "cloudinary",
         "knex",
         "socket.io-client",
-        "vite",
         // CLI debug invocado por script parser
         "why-is-node-running",
+        // ESLint plugin consumed via eslint.config.js (knip can't detect)
+        "eslint-plugin-security",
       ],
       // No reporta exports solo usados en mismo archivo (server)
       "ignoreExportsUsedInFile": true,

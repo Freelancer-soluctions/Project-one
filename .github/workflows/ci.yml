@@ -1554,7 +1554,10 @@ jobs:
         # gitleaks-action v3 escanea pull requests: en `merge_group` no existe el
         # contexto de PR, así que la capa con licencia corre solo en PR (el diff
         # del grupo ya lo cubre el paso OSS de arriba).
+        # Licencia nunca es requisito (R3): continue-on-error para que un token
+        # inválido/expirado no bloquee el gate (el OSS ya cubre el diff).
         if: ${{ env.GIT_LEAKS != '' && github.event_name == 'pull_request' }}
+        continue-on-error: true
         uses: gitleaks/gitleaks-action@v3
         env:
           GITLEAKS_LICENSE: ${{ secrets.GIT_LEAKS }}
