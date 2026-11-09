@@ -296,9 +296,10 @@ The substage 2C security block of `ci.yml` SHALL contain exactly the 9 jobs of t
 
 #### Scenario: Security block composition
 
-- **When** a developer inspects the job definitions between the `# SUBSTAGE 2C: SECURITY` header and the `# STAGE 3: BUILD` banner
-- **Then** the job ids found are exactly the 9 listed above, in the order stated, with no other job definitions interleaved
+- **When** a developer inspects the 9 job definitions that make up the pre-build security block (starting at `dependency-review` and ending at `typosquat-guarddog`)
+- **Then** the job ids found are exactly the 9 listed above, in the order stated, with no other security job interleaved
 - **And** the 3 relocated jobs appear after `containerfile-lint` in the order `actionlint-advisory`, `zizmor-advisory`, `typosquat-guarddog`
+- **And** the block is contiguous in the original layout of this change (later changes may have relocated substage 2B after it; the 9-job set and order are unchanged)
 
 #### Scenario: Advisory jobs relocated without semantic changes
 
@@ -308,9 +309,10 @@ The substage 2C security block of `ci.yml` SHALL contain exactly the 9 jobs of t
 
 #### Scenario: Blocking actionlint stays in substage 2B
 
-- **When** a developer inspects where the blocking `actionlint` job (workflow syntax lint) is defined
-- **Then** it remains inside the substage 2B quality block (before the 2C header) and in `prebuild-quality-complete.needs`
+- **When** a developer inspects where the blocking workflow-lint gate is defined
+- **Then** it remains inside the substage 2B quality block and in `prebuild-quality-complete.needs`
 - **And** it is NOT part of the 2C security block (documented deviation from §23.3, decision 2026-09-30: syntax lint = quality; `zizmor` = the security layer of pipeline config via `unpinned-uses`)
+- **And** the gate is now the `validate-pipeline` job (`Quality: Validate Pipeline`, pinned `yamllint==1.38.0` + `rhysd/actionlint:1.7.12` container), which consolidated the earlier standalone `actionlint` job — no `actionlint` job id exists in `ci.yml` anymore
 
 ### Requirement: prebuild-security-complete needs contract
 

@@ -287,8 +287,11 @@ reported`, un mensaje que no sugiere en absoluto que la causa sea un nombre. Pre
 > La capa de pipeline config complementaria es `zizmor-advisory` (unpinned-uses). Los 3 jobs
 > advisory fueron reubicados desde la zona quality (movimiento puro, sin cambios de semántica; evidencia byte-a-byte en
 > el change). En la misma pasada (D8) `docs-validation` — job quality advisory preexistente que había quedado
-> físicamente al cierre del stage 2 — se reubicó a 2B quality (tras `openspec-validate`), de modo que entre el header
-> 2C y el banner STAGE 3 hay exactamente los 9 jobs de security.
+> físicamente al cierre del stage 2 — se reubicó a 2B quality (tras `openspec-validate`), de modo que los 9 jobs de
+> security quedan consecutivos (dependency-review … typosquat-guarddog) sin jobs quality intercalados en el bloque
+> original del change; cambios posteriores (ci-shifting-left) insertaron el bloque 2B completo entre el header 2C y
+> el banner STAGE 3, por lo que la afirmación "exactamente los 9 jobs entre header 2C y banner STAGE 3" ya no es
+> válida en el layout actual.
 >
 > **Path-scoping de los 2 lint activos (change `ci-prebuild-quality-lint`, MERGED 2026-09-17 vía PRs
 > #127/#128/#129):** `client-lint` → `if: needs.repo-discovery.outputs.client == 'true' && github.event_name ==

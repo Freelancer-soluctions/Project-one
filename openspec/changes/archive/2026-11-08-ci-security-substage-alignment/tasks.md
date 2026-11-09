@@ -23,8 +23,8 @@
 
 ## 3. Validación final
 
-- [x] 3.1 `openspec validate ci-security-substage-alignment --strict` → válido (delta MODIFIED matchea el header del requirement base). **Spec**: todos
-- [x] 3.2 `openspec validate --specs --strict` → 118/118, 0 failed (117 specs previos + el delta de este change incluido en el gate). **Spec**: todos
+- [x] 3.1 `openspec validate ci-security-substage-alignment --strict` → válido (re-verificado 2026-11-09 tras refresh del delta a la main spec actual; 0 errores). **Spec**: todos
+- [x] 3.2 `openspec validate --specs --strict` → 158/158, 0 failed (re-verificado 2026-11-09). **Spec**: todos
 - [x] 3.3 Markdownlint de 0 violaciones nuevas en los docs tocados (join líneas-diff × líneas-violación, patrón de la sesión). **Spec**: —
 - [x] 3.4 `actionlint` final sobre `ci.yml` y `scheduled-security.yml` (per-file) → exit 0 ambos. **Spec**: "Advisory jobs relocated without semantic changes"
 - [x] 3.5 Confirmación de no-renombrado: extracto de `name:` de los 9 jobs del bloque 2C idéntico al baseline del 0.1 (ningún required status check del ruleset cambia). **Spec**: "Advisory jobs relocated without semantic changes"
