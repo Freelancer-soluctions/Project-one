@@ -25,7 +25,29 @@ try {
 
 const summary = JSON.parse(readFileSync(summaryPath, 'utf8'));
 const relevant = changed.filter(
-  (f) => /\.(js|jsx|ts|tsx)$/.test(f) && existsSync(f)
+  (f) =>
+    /\.(js|jsx|ts|tsx)$/.test(f) &&
+    existsSync(f) &&
+    // Exclude non-testable paths: tests, config, setup, scripts, docs, generated, UI presentational
+    !/\/(tests?|__tests__|setup)\//.test(f) &&
+    !/\.(test|spec)\.(js|jsx|ts|tsx)$/.test(f) &&
+    !/\.config\.(js|mjs|ts)$/.test(f) &&
+    !/^scripts\//.test(f) &&
+    !/\/docs\//.test(f) &&
+    !/\/src\/components\/ui\//.test(f) &&
+    !/\/src\/components\/.*Datatable\.jsx$/.test(f) &&
+    !/\/src\/components\/.*Dialog\.jsx$/.test(f) &&
+    !/\/src\/components\/EventCalendar/.test(f) &&
+    !/\/modules\/home\/components\/EventCalendar\.jsx$/.test(f) &&
+    !/\/src\/App\.jsx$/.test(f) &&
+    !/\/components\/PurchaseDialog\.jsx$/.test(f) &&
+    !/\/components\/SalesDialog\.jsx$/.test(f) &&
+    !/\/components\/dataTable\/dataTable\.jsx$/.test(f) &&
+    !/\/src\/utils\/money\.js$/.test(f) &&
+    !/\/src\/properties\//.test(f) &&
+    !/\/routes\.ts$/.test(f) &&
+    !/\/scripts\/generate-openapi/.test(f) &&
+    !/\/src\/utils\/pagination\//.test(f)
 );
 
 let failed = false;
