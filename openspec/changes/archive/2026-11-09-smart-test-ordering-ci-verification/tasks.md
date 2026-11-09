@@ -10,5 +10,5 @@
 
 - [ ] 2.1 Registrar evidencia (links a runs, screenshots del step summary) en este tasks.md.
 - [ ] 2.2 Marcar todas las tasks `[x]`.
-- [ ] 2.3 `openspec validate smart-test-ordering-ci-verification --strict` exit 0.
+- [x] 2.3 `openspec validate smart-test-ordering-ci-verification --strict` exit 0 (verificado 2026-11-09).
 - [ ] 2.4 Archivar el change.
