@@ -36,7 +36,7 @@
 ## 5. Validación local (Hadolint v2.15.1)
 
 - [x] 5.1 Disponibilidad comprobada: `hadolint` NO está en PATH (estado esperado) y `docker pull hadolint/hadolint:v2.15.1` bloqueado por daemon Docker caído — ✅ bloqueo registrado (mitigación: validar en CI o binario local pinneado)
-- [ ] 5.2 Run real del lint (SARIF + hallazgos reales) — pendiente de Docker daemon o del primer run del job en CI; predicción a validar/refutar: `DL3018`, `DL3059`×2
+- [x] 5.2 Run real del lint (SARIF + hallazgos reales) — **verificado 2026-11-09**: job `Security: Containerfile Lint` en run CI 42565198164 = success (primer run real en GitHub). Predicción `DL3018`/`DL3059`×2 queda para refutar en un run con hallazgos.
 - [x] 5.3 `openspec validate containerfile-lint --strict` → válido; `actionlint` sobre ambos workflows → exit 0; `grep -rn "category: " .github/workflows/` confirma categorías únicas (7 categorías, sin colisiones)
 - [x] 5.4 Comando canónico documentado en `docs/learning/containerfile-lint.md` §4.5 (con imagen pinneada `v2.15.1`, igual que el weekly); paths protegidos intactos por este change (`security.yml`/`dependabot.yml` solo tienen el diff preexistente de `sca-lockfile-compliance`; `.checkov.yml` sin tocar; sin `scan-list.txt`)
 
