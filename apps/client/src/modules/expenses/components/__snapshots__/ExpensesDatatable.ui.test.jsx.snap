@@ -6,6 +6,8 @@ exports[`ExpensesDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Description
     <svg
@@ -43,6 +45,8 @@ exports[`ExpensesDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Total
     <svg
@@ -80,6 +84,8 @@ exports[`ExpensesDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Category
     <svg
@@ -117,6 +123,8 @@ exports[`ExpensesDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Created by
     <svg
@@ -154,6 +162,8 @@ exports[`ExpensesDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Created on
     <svg
@@ -191,6 +201,8 @@ exports[`ExpensesDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated by
     <svg
@@ -228,6 +240,8 @@ exports[`ExpensesDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated on
     <svg

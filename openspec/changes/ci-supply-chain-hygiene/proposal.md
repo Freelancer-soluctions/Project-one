@@ -16,7 +16,9 @@ Dos debilidades de supply chain en los jobs activos de los substages 2B (quality
 - **Coherencia de las tres fuentes preservada**: `LICENSE_DENY_LIST` en `scripts/security/generate-security-digest.mjs` sigue siendo superconjunto documentado; `docs/learning/license-policy.md` sigue siendo la política narrativa y ahora referencia el archivo de config como fuente ejecutable.
 - No se mueve ningún job de substage, no cambian `name:` de jobs existentes ni permisos.
 
-## Capabilities
+## Follow-up / Debt
+
+- **GHAS alerts pre-existentes (2026-11-07, PR #164)**: 30 alertas abiertas en GitHub Advanced Security — CVEs en `package-lock.json` (alertas 14xx/15xx) y mutable action tags / self-repository syntax en workflows (ci.yml, nightly-full-suite.yml). No bloquean CI. Registradas como tareas 5.1–5.3 en `tasks.md` para remediación futura (bump de deps + pinning a SHA + cierre de alertas).
 
 ### New Capabilities
 

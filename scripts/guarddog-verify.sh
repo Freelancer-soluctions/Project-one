@@ -43,16 +43,33 @@ export GUARDDOG_NPM_INCLUDE_DEV_DEPENDENCIES=false
 # Pin estricto de versión (nunca `latest`). Verificación abajo.
 GUARDDOG_PIN='3.2.0'
 
+# Intérprete PINADO. NO quitar: uvx elige por defecto el Python más nuevo que
+# encuentre (hoy 3.14 en los runners, vía setup-uv) y guarddog 3.2.0 exige
+# `pygit2>=1.11,<1.19` + `yara-python ^4.5.4`, que NO publican wheels para
+# cp314: uv cae a compilar desde fuente y falla → `--version` sale vacío y el
+# paso aborta con "guarddog.sarif vacio" (verificado 2026-11-06 con
+# `uv pip compile --python-version 3.14 --no-build`: insatisfacible).
+# 3.13 sí resuelve (wheels cp313 de pygit2/yara-python) y es la versión con la
+# que el job pasó originalmente. uv la descarga (managed) si no está.
+GUARDDOG_PYTHON='3.13'
+
 # Verificación de versión ANTES del scan (si difiere → fallo del paso;
 # uvx resolvería `latest` si el pin se pierde — esto lo detecta).
-guarddog_version="$(uvx "guarddog==${GUARDDOG_PIN}" --version 2>/dev/null || true)"
+# stderr se captura aparte: el llamador redirige stdout al .sarif, así que un
+# error de uv NUNCA debe acabar ahí (lo vería upload-sarif como SARIF roto);
+# se reemite por stderr para que quede en el log del job.
+guarddog_stderr="$(mktemp)"
+guarddog_version="$(uvx --python "${GUARDDOG_PYTHON}" "guarddog==${GUARDDOG_PIN}" --version 2>"${guarddog_stderr}" || true)"
 case "${guarddog_version}" in
   *"${GUARDDOG_PIN}"*) : ;;
   *)
+    cat "${guarddog_stderr}" >&2 || :
     echo "ERROR: guarddog version mismatch (esperado ${GUARDDOG_PIN}, obtenido: '${guarddog_version}')" >&2
+    rm -f "${guarddog_stderr}"
     exit 1
     ;;
 esac
+rm -f "${guarddog_stderr}"
 
 # Sandbox Landlock/Seatbelt OBLIGATORIO (nunca --no-sandbox): si la
 # plataforma no lo soporta, el scan falla — comportamiento seguro por
@@ -64,4 +81,4 @@ esac
 # `guarddog-weekly` y el hook pre-commit redirigen stdout a un .sarif que
 # se sube a Code Scanning (upload-sarif valida el JSON). Sin el flag,
 # GuardDog imprime texto plano y el "SARIF" queda corrupto/invalido.
-exec uvx "guarddog==${GUARDDOG_PIN}" npm verify package.json --output-format sarif "$@"
+exec uvx --python "${GUARDDOG_PYTHON}" "guarddog==${GUARDDOG_PIN}" npm verify package.json --output-format sarif "$@"

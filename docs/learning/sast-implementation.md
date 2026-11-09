@@ -339,7 +339,7 @@ El proyecto `project-one` implementa SAST en múltiples capas con diverso grado 
 3. **Upload SARIF Semgrep**: ~~Falta paso de subida~~ → **RESUELTO**: job `semgrep-full-scan` en `security.yml` sube `semgrep.sarif` con `upload-sarif@v4 category: semgrep`; CodeQL sube vía `analyze@v4 category: codeql` (sin upload separado); categorías únicas verificadas (`codeql`/`semgrep`/`trivy`/`gitleaks`).
 4. **Umbral de severidad en ruleset**: Falta configurar `Required code scanning results` en rama `main` con umbral de High or higher — pendiente (aplica a L2, no al schedule advisory).
 5. **Baseline gestionada**: No hay proceso para crear y mantener baseline de branch protection (main/release/\*) — pendiente (§4.2 medio plazo).
-6. **Doble definición CodeQL**: Existe job `sast` en `security.yml` (v4) y otro desalineado en `ci-enterprise.yml` (v3 + autobuild) — pendiente de consolidación (follow-up documentado en el design del change).
+6. **Doble definición CodeQL**: Existe job `sast` en `security.yml` (v4) y otro desalineado en `ci-enterprise.yml` (v3 + autobuild) — **RESUELTO por retirada**: `ci-enterprise.yml` ya no existe en el repo (`CONTEXT-CICD.md` §5.9), así que solo queda el job de `security.yml`.
 7. **Falta merge_group**: ~~Los scans SAST no incluyen trigger `merge_group`~~ → **RESUELTO**: añadido a `security.yml` y `scheduled-security.yml` (task 2.1/2.2).
 
 #### Triaje semanal (security champions) — proceso del change `sast-weekly-scan`

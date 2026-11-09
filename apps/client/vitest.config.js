@@ -35,8 +35,10 @@ export default mergeConfig(
       // sufría el síntoma (26/26 con y sin), pero mantener la divergencia sería dejar la
       // trampa armada para el próximo test que mockee un módulo compartido.
       ...(process?.env?.CI === 'true' ? { maxWorkers: 1 } : {}),
+      allowOnly: process?.env?.CI !== 'true',
       reporters: ['default', 'hanging-process'],
       coverage: {
+        reporter: ['text', 'json-summary'],
         exclude: ['node_modules/', 'tests/', '**/*.config.js'],
         thresholds: {
           // PISO GLOBAL — describe el conjunto del workspace. EXCEPCIÓN DOCUMENTADA

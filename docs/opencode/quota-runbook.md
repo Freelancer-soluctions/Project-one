@@ -9,6 +9,16 @@ final.
 It is a decision aid, **not a gate**: nothing here blocks a tool call. The only
 enforcement layers are the repository's own (permissions, guardrails, hooks, CI).
 
+## 0. Prerequisites
+
+Before using this runbook you need:
+
+- Access to `opencode-quota` (plan/monthly_quota read) and the token-recording template `docs/opencode/eval/token-recording-template.md`.
+- The recording script `scripts/eval/record-tokens.mjs` available and executable.
+- The rubric `docs/opencode/eval/rubric.md` (to classify a phase as paid vs free).
+- Git hooks active (`husky` installed) so commit/PR evidence is captured.
+- A 3-day baseline is **not** required to start — thresholds are provisional until the baseline (§9) is captured; treat §4 traffic lights as advisory until then.
+
 ## 1. Purpose & scope
 
 **In scope:** paid-token consumption of the OpenCode agent workflow —

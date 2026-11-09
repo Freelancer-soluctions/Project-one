@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "status": "unrecorded",
+  "score": null,
+  "detected": 0,
+  "undetected": 0,
+  "mutantCount": 0,
+  "recordedAt": null,
+  "thresholds": {
+    "high": 80,
+    "low": 60
+  }
+}

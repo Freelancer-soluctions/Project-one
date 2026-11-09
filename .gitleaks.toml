@@ -27,7 +27,7 @@ disabledRules = ["generic-api-key"]
 # ==========================================================
 
 [[allowlists]]
-description = "Ignore dependency and build directories"
+description = "Ignore dependency and build directories (reviewed 2026-11-08)"
 
 paths = [
   '''replacements.txt''', # Archivo de limpieza para git-filter-repo
@@ -57,7 +57,7 @@ paths = [
 # cualquier path que contuviera "tests" (p. ej. `src/modules/lowest-price.js`).
 
 [[allowlists]]
-description = "Ignore test fixtures and mocks (anchored paths)"
+description = "Ignore test fixtures and mocks (anchored paths) (reviewed 2026-11-08)"
 
 paths = [
   '''(^|/)__tests__/''',
@@ -79,13 +79,25 @@ id = "custom-api-key"
 
 description = "Generic API key assignment"
 
-regex = '''(?i)api[_-]?key['\"]?\s*[:=]\s*['\"][A-Za-z0-9_\-]{16,}['\"]'''
+regex = '''(?i)api[_-]?key['\"]?\s*[:=]\s*['\"]([A-Za-z0-9_\-]{16,})['\"]'''
 
 keywords = ["api_key", "api-key", "apikey"]
 
 entropy = 3.0
+secretGroup = 1
 
 tags = ["api","key"]
+
+# Placeholders documentados en tutoriales (p.ej. `sk-omniroute-local` en
+# docs/omniroute-install-tutorial.md). Anclado al VALOR completo: solo exime
+# valores que terminan en `-local`/`-example`/`-placeholder`/`-test`/`-fake`,
+# así que una clave real (aleatoria) sigue disparando el gate.
+[[rules.allowlists]]
+description = "Documented placeholder API keys (value must end in a placeholder suffix) (reviewed 2026-11-08)"
+regexTarget = "match"
+regexes = [
+  '''(?i)['"][A-Za-z0-9_\-]*(local|example|placeholder|test|fake|dummy)['"]\s*$''',
+]
 
 
 
@@ -153,7 +165,7 @@ secretGroup = 1
 # se permite por MATCH (la URL completa), no por línea, y con AND implícito
 # de esta lista con la regla (rule-scoped allowlist).
 [[rules.allowlists]]
-description = "Placeholder/example database URLs (not real credentials)"
+description = "Placeholder/example database URLs (not real credentials) (reviewed 2026-11-08)"
 regexTarget = "match"
 regexes = [
   '''example''',
@@ -169,18 +181,19 @@ tags = ["database","connection"]
 # ==========================================================
 
 [[allowlists]]
-description = "Ignore placeholder REDIS_URL examples in socket training files"
+description = "Ignore placeholder REDIS_URL examples in socket training files (reviewed 2026-11-08)"
 
 paths = [
   '''apps/server/src/socket/adapter.js''',
   '''apps/server/src/socket/levels/README.md''',
-  '''apps/server/src/socket/levels/level-11-scale.js'''
+  '''apps/server/src/socket/levels/level-11-scale.js''',
+  '''apps/server/src/socket/levels/level-11-scale.ts'''
 ]
 
 
 
 [[allowlists]]
-description = "Ignore placeholder REDIS_URL in PM2 ecosystem config"
+description = "Ignore placeholder REDIS_URL in PM2 ecosystem config (reviewed 2026-11-08)"
 
 paths = [
   '''apps/server/ecosystem.config.js'''

@@ -38,4 +38,5 @@ Closes #
 
 - [ ] Documentation updated (if applicable)
 - [ ] Snapshots reviewed and explained (if applicable)
+- [ ] Si este PR corrige un hallazgo de propiedades, el contraejemplo quedó fijado como `examples:` en el `fc.assert` (o como test de ejemplo)
 - [ ] No breaking changes (or documented in Summary)

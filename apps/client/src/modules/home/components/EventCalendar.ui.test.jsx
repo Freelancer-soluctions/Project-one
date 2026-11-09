@@ -61,6 +61,8 @@ describe('EventCalendar - UI snapshot', () => {
       `
       <div
         class="min-h-[80px] cursor-pointer border-b border-r p-1.5 last:border-r-0 lg:min-h-[100px] bg-muted/30"
+        role="button"
+        tabindex="0"
       >
         <div
           class="mb-1 flex items-center justify-between"

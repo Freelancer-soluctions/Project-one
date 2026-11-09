@@ -1,0 +1,70 @@
+# Ruleset de Spectral para el contrato OpenAPI del server.
+# Change `ci-shifting-left`, capability `api-contract-linting`.
+#
+# Base: `spectral:oas` (reglas oficiales de OpenAPI). Encima, 4 reglas custom
+# que expresan decisiones de diseño de ESTA API; todas en `error` para que
+# `spectral lint` (y el job `api-contract`) fallen, no solo avisen.
+extends: spectral:oas
+
+rules:
+  # 1) Naming: operaciones y parámetros de path en lowerCamelCase y con nombre
+  #    explícito. `pattern` solo valida cuando el campo existe, así que esto NO
+  #    obliga a añadir operationId (eso lo cubre la regla siguiente, acotada).
+  api-operation-id-naming:
+    description: operationId debe ser lowerCamelCase (verboSustantivo).
+    message: '{{property}} debe ser lowerCamelCase (ej: getUsers, createUser).'
+    severity: error
+    given: $.paths[*][get,post,put,patch,delete]
+    then:
+      field: operationId
+      function: pattern
+      functionOptions:
+        match: '^[a-z][a-zA-Z0-9]*$'
+
+  # 2) Naming de path params: `{user_id}` / `{UserId}` no; `{userId}` sí.
+  api-path-param-naming:
+    description: Los parámetros de path deben ser lowerCamelCase.
+    message: 'El path param {{property}} debe ser lowerCamelCase.'
+    severity: error
+    given: $.paths
+    then:
+      field: '@key'
+      function: pattern
+      functionOptions:
+        notMatch: '\{[^}]*[^a-zA-Z0-9}][^}]*\}'
+
+  # 3) IDs numéricos literales en el path: `/users/123` incrusta un identificador
+  #    en la ruta publicada y rompe el contrato; debe ser `/users/{id}`.
+  api-no-numeric-ids:
+    description: No se permiten ids numéricos literales en los paths.
+    message: "El path '{{property}}' contiene un id numérico literal; usa un path param."
+    severity: error
+    given: $.paths
+    then:
+      field: '@key'
+      function: pattern
+      functionOptions:
+        notMatch: '/[0-9]+(/|$)'
+
+  # 4) Seguridad: HTTP Basic no puede ser el esquema del contrato (la API usa
+  #    Bearer JWT — `components.securitySchemes.bearerAuth`).
+  api-no-http-basic:
+    description: HTTP Basic auth está prohibido en el contrato.
+    message: '{{property}} usa HTTP Basic; usa bearerAuth (JWT).'
+    severity: error
+    given: $.components.securitySchemes[*]
+    then:
+      field: scheme
+      function: pattern
+      functionOptions:
+        notMatch: '^[Bb]asic$'
+
+  # 5) GET no debe declarar cuerpo de request (semántica HTTP + caches/proxies).
+  api-request-get-no-body:
+    description: Las operaciones GET no pueden tener requestBody.
+    message: 'Una operación GET no puede declarar requestBody.'
+    severity: error
+    given: $.paths[*][get]
+    then:
+      field: requestBody
+      function: falsy

@@ -25,7 +25,10 @@ export const getSafePagination = ({
   // 2. Si no viene, uso el DEFAULT_LIMIT.
   // 3. Aplico Math.min para asegurar que nunca supere el MAX_LIMIT.
   // Esto es clave para mitigar devoluciones masivas de datos ante ataques o errores.
-  const safeLimit = Math.min(Number(limit) || DEFAULT_LIMIT, MAX_LIMIT);
+  const safeLimit = Math.min(
+    Math.max(Number(limit) || DEFAULT_LIMIT, 1),
+    MAX_LIMIT
+  );
 
   // Normalizo la página:
   // - Si no viene page, uso la página 1.

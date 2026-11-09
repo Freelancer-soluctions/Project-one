@@ -97,6 +97,8 @@ for (const ws of targets) {
       join(ROOT, 'scripts', 'ci', 'check-coverage.mjs'),
       `apps/${ws.id}`,
       ws.coverageDir,
+      '--type',
+      'unit',
     ],
     { cwd: ROOT, stdio: 'inherit' }
   );

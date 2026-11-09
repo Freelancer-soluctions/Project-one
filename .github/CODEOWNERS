@@ -27,3 +27,14 @@ docs/learning/              @Freelancer-soluctions/core-team
 scripts/ci/               @Freelancer-soluctions/devops-team
 apps/*/vitest.config.*    @Freelancer-soluctions/devops-team
 scripts/ci/check-coverage.mjs @Freelancer-soluctions/devops-team
+.coverage-policy.json @Freelancer-soluctions/devops-team
+.coverage-baseline.json @Freelancer-soluctions/devops-team
+
+# Baseline y allowlist de secretos (change `secret-scanning-history-governance`,
+# RH-4/G6/A7). Igual que `.github/**` (ya arriba), estas entradas viven AL FINAL
+# porque CODEOWNERS resuelve por el ÚLTIMO patrón que coincide: una entrada más
+# arriba quedaría enmascarada. Cambiar cualquiera de estos ficheros exige
+# revisión del equipo devops (ruleset `require_code_owner_review=true`).
+.gitleaksignore            @Freelancer-soluctions/devops-team
+.gitleaks.toml             @Freelancer-soluctions/devops-team
+.github/workflows/         @Freelancer-soluctions/devops-team

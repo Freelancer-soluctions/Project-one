@@ -165,7 +165,7 @@
       "model": "opencode/mimo-v2.6-flash-free",
       "description": "Code and spec reviewer",
       "prompt": "{file:docs/opencode/prompts/reviewer.md}",
-      "steps": 15,
+      "steps": 25,
       "temperature": 0,
       "permission": {
         "lsp": "allow",

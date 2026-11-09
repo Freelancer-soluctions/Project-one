@@ -4,7 +4,7 @@
 - [ ] 1.2 Add SARIF upload step to the `trivy-full-scan` job: `github/codeql-action/upload-sarif@v4` with `sarif_file: trivy.sarif` and `category: trivy` (spec R2)
 - [ ] 1.3 Add artifact upload step in the `trivy-full-scan` job: `actions/upload-artifact@v4` with `name: trivy-sarif`, `path: trivy.sarif`, `retention-days: 30` (consistent with `gitleaks-report`)
 - [ ] 1.4 Add `npm-audit` job to `.github/workflows/scheduled-security.yml`: `actions/checkout@v5` + `actions/setup-node@v4` (`node-version-file: '.nvmrc'`, `cache: 'npm'`) + `run: npm audit --audit-level=high` with `continue-on-error: true` (audit mode, spec R3)
-- [ ] 1.5 Confirm the existing `gitleaks-full-scan` job (JSON + SARIF upload) is unchanged and the workflow remains the single owner of the Gitleaks full-history scan (spec R4); regression-check that top-level permissions `contents: read` + `security-events: write` remain intact after the edit (`upload-sarif@v4` hard-requires `security-events: write`)
+- [ ] 1.5 Confirm the `gitleaks-full-scan` job still performs its JSON + SARIF upload and the workflow remains the single owner of the Gitleaks full-history scan (spec R4). Note: the job is no longer byte-identical — `secret-scanning-history-governance` added the anti-shallow guard step and rewired `notify-failure` (create-or-update) — so verify JSON+SARIF uploads and top-level permissions (`contents: read` + `security-events: write`, required by `upload-sarif@v4`) remain intact rather than asserting the job is "unchanged".
 
 ## 2. Documentation
 

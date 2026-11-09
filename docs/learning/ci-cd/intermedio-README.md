@@ -120,7 +120,7 @@ flowchart LR
 - [ ] Diseñar claves de cache Vitest: `vitest-${{ runner.os }}-${{ hashFiles('package-lock.json') }}`
 - [ ] Configurar cache Playwright (solo browsers: `~/.cache/ms-playwright`)
 - [ ] Definir reglas de invalidación: `restore-keys`, `cache-hit` vs `cache-miss`
-- [ ] Diagnosticar gotcha real: `ci-enterprise.yml` referenciando paths `frontend/` y `backend/` inexistentes
+- [ ] Diagnosticar el gotcha (workflow **retirado**, se estudia por snippets): paths `frontend/` y `backend/` inexistentes
 - [ ] Ejecutar workflows localmente con `act` para validar cache
 
 ### Guía 10: Testing Pipeline
@@ -232,7 +232,7 @@ Ver guías 07 y 08 para ejemplos reales del repo.
 1. Verifica que la **key** incluya hash de archivos de config (`package-lock.json`, `vitest.config.ts`, etc.)
 2. Revisa `restore-keys` para fallback parcial
 3. Ejecuta con `act -j <job>` localmente y inspecciona logs de `actions/cache`
-4. Ver guía 09: gotcha real `ci-enterprise.yml` con paths inexistentes
+4. Ver guía 09: gotcha de `ci-enterprise.yml` (retirado) con paths inexistentes, explicado por snippets
 
 ### ¿Cómo ejecuto todo localmente antes de pushear?
 

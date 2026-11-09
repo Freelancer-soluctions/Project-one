@@ -164,9 +164,12 @@ include_dev_dependencies: false # devDeps EXCLUIDAS por defecto
 ### 4.5 Validación local antes de merge
 
 ```bash
-# Verificar que no haya introducido nuevos hallazgos de alto nivel
-uvx guarddog==3.2.0 npm verify package.json --output-format sarif --exclude-rules typosquatting > .tmp/guarddog.sarif
-jq -e '.runs[0].results | length == 0' .tmp/guarddog.sarif
+# Usar SIEMPRE el wrapper versionado (policy-as-code): no se pasan flags que
+# anulen la política del wrapper (p.ej. --exclude-rules). El wrapper fija
+# GUARDDOG_PYTHON=3.13 (guarddog 3.2.0 no publica wheels cp314) y las env vars.
+bash scripts/guarddog-verify.sh > .tmp/guarddog.sarif
+# Verificar que el SARIF sea válido y no contenga hallazgos:
+test -s .tmp/guarddog.sarif && jq -e '.runs[0].results | length == 0' .tmp/guarddog.sarif
 # Si alguno falla (exit != 0) → revisar y corregir antes de merge; no usar --no-fail ni forzar merge sin revisión.
 ```
 

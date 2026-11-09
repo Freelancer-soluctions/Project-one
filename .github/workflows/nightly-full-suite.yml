@@ -118,7 +118,7 @@ jobs:
             echo "::error::coverage summary missing — full-suite floor cannot be evaluated"
             exit 1
           fi
-          node scripts/ci/check-coverage.mjs apps/client apps/client/coverage
+          node scripts/ci/check-coverage.mjs apps/client apps/client/coverage --type unit
         shell: bash
 
       - name: Report Client Unit Tests
@@ -130,6 +130,10 @@ jobs:
           reporter: java-junit
 
   nightly-server:
+    env:
+      # Opt-out del sequencer TIA (paridad con nightly-client): el nocturno corre
+      # la suite completa SIN orden impuesto por fallos historicos (design D7).
+      TIA_SEQUENCER: stable
     name: Nightly - Server Full Suite
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -196,7 +200,7 @@ jobs:
             echo "::error::coverage summary missing — full-suite floor cannot be evaluated"
             exit 1
           fi
-          node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage
+          node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage --type unit
         shell: bash
 
       - name: Report Server Unit Tests

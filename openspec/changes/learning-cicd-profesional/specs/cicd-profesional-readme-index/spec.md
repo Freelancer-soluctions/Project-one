@@ -1,17 +1,22 @@
 ## Purpose
 
-Define el contrato de contenido y estructura del archivo `profesional-README.md` índice del nivel Profesional de la ruta de aprendizaje de CI/CD, que funciona como punto de entrada al nivel final, mapa de navegación de las guías 18-23, y ceremonia de graduación que conecta los 4 niveles en una ruta de maestría CI/CD.
+Define el contrato de contenido y estructura del archivo `profesional-README.md` índice del nivel Profesional de la ruta de aprendizaje de CI/CD, que funciona como punto de entrada al nivel final, mapa de navegación de las guías del nivel (plan original 18-23; entrega actual: guía 23), y ceremonia de graduación que conecta los 4 niveles en una ruta de maestría CI/CD.
 
 ## ADDED Requirements
 
 ### Requirement: README como índice del nivel Profesional
 
-El archivo `docs/learning/ci-cd/profesional-README.md` SHALL ser el índice del nivel Profesional, listando las 7 piezas (README + 6 guías) con una descripción breve de cada una y su orden de lectura recomendado.
+El archivo `docs/learning/ci-cd/profesional-README.md` SHALL ser el índice del nivel Profesional, listando las piezas del nivel con una descripción breve de cada una, su orden de lectura recomendado y el estado de entrega de cada una.
 
-#### Scenario: Lista todas las piezas del nivel
+#### Scenario: Lista las piezas del nivel con su estado
 
 - **WHEN** se lee el README del nivel Profesional
-- **THEN** lista el README y las 6 guías (18 a 23) con descripción breve y orden de lectura
+- **THEN** lista las guías con descripción breve y orden de lectura, e indica cuáles están publicadas (18-24, con la 23 del bloque enterprise/DAG) y cuáles son plan pendiente ya numerado (25-29)
+
+#### Scenario: Los enlaces apuntan a archivos existentes
+
+- **WHEN** el README enlaza una guía
+- **THEN** el enlace resuelve a un archivo existente; las guías no escritas se mencionan como texto sin enlace roto
 
 #### Scenario: Indica el nivel actual en el roadmap
 
@@ -43,8 +48,8 @@ El README SHALL enlazar a las guías del nivel, a los documentos de referencia e
 
 #### Scenario: Enlaza a documentación de referencia
 
-- **WHEN** el README menciona documentación existente (workflows-mantenimiento-guia, cicd-estado-actual, cicd-plan-implementacion, security-enterprise-guide, AWS)
-- **THEN** enlaza a esos documentos en `docs/` en lugar de duplicar su contenido
+- **WHEN** el README menciona documentación existente (`docs/learning/ci-cd/workflows-mantenimiento-guia.md`, `docs/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`, `docs/security/security-enterprise-guide.md`, AWS)
+- **THEN** enlaza a esos documentos en `docs/` en lugar de duplicar su contenido, y no referencia `docs/cicd-estado-actual.md` ni `docs/cicd-plan-implementacion.md` (no existen)
 
 #### Scenario: Enlaza de vuelta al nivel Avanzado
 

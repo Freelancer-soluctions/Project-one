@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Extends the existing ESLint gate with security-focused rules on the server (`eslint-plugin-security`) and accessibility rules on the client (`eslint-plugin-jsx-a11y`), running through the same lint-staged and quality.yml pipeline, so SAST basics and a11y issues are caught at commit and PR time.
+Extends the existing ESLint gate with security-focused rules on the server (`eslint-plugin-security`) and accessibility rules on the client (`eslint-plugin-jsx-a11y`), running through the same lint-staged pre-commit hook and the `client-lint`/`server-lint` jobs of `ci.yml` (no `quality.yml` — forbidden by zombie-workflow-guard), so SAST basics and a11y issues are caught at commit and PR time.
 
 ## ADDED Requirements
 
@@ -18,7 +18,7 @@ The server ESLint configuration SHALL include `eslint-plugin-security` with the 
 
 #### Scenario: Server lint runs in CI
 
-- **WHEN** the `quality.yml` workflow runs the server lint step
+- **WHEN** the `server-lint` job of `ci.yml` runs (or lint-staged runs on a staged server file):
 - **THEN** the security plugin rules SHALL be active
 - **AND** the job SHALL fail if any security rule is violated
 
@@ -34,7 +34,7 @@ The client ESLint configuration SHALL include `eslint-plugin-jsx-a11y` with the 
 
 #### Scenario: Client lint runs in CI
 
-- **WHEN** the `quality.yml` workflow runs the client lint step
+- **WHEN** the `client-lint` job of `ci.yml` runs (or lint-staged runs on a staged client file):
 - **THEN** the jsx-a11y plugin rules SHALL be active
 - **AND** the job SHALL fail if any a11y rule is violated
 

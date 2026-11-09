@@ -46,6 +46,17 @@ import { defineConfig } from 'eslint/config';
 // default-exports, nombres de stories, jerarquía, etc.
 import storybook from 'eslint-plugin-storybook';
 
+// Plugin de seguridad para Node (change `ci-shifting-left`, capability
+// `shift-left-lint-extensions`): SAST básico en el editor/pre-commit
+// (`eval`, regex insegura, path traversal, object injection...). Se aplica SOLO
+// al backend (bloque 3) y hereda su preset `recommended`.
+import security from 'eslint-plugin-security';
+
+// Plugin de accesibilidad para JSX (mismo change): detecta `alt` ausente,
+// inputs sin label, elementos no interactivos con handlers... Se aplica SOLO al
+// frontend (bloque 4) con su preset `recommended`.
+import jsxA11y from 'eslint-plugin-jsx-a11y';
+
 // Exporta la configuración usando Flat Config (formato recomendado por ESLint 9+)
 // envuelta en `defineConfig` para tipado y `extends` acotado por `files`.
 export default defineConfig([
@@ -138,6 +149,8 @@ export default defineConfig([
     // describe/it/expect/vi que requieren sus reglas y sus globals.
     plugins: {
       vitest,
+      // Plugin de seguridad (preset `recommended` en `rules`, abajo).
+      security,
     },
 
     // Define opciones del lenguaje para Node.js moderno.
@@ -169,6 +182,19 @@ export default defineConfig([
     rules: {
       // Hereda las reglas recomendadas de Vitest (no-focused-tests, etc.).
       ...vitest.configs.recommended.rules,
+      // Preset de seguridad de eslint-plugin-security (change `ci-shifting-left`).
+      // Corre bajo el MISMO gate existente (`--max-warnings 0` en lint-staged
+      // y en `server-lint`): no se añade un job nuevo ni se relaja el umbral.
+      ...security.configs.recommended.rules,
+      // Excepción documentada (única regla del preset desactivada):
+      // `detect-object-injection` marca TODO `obj[clave]` sin distinguir un
+      // índice no validado de una clave estática. En este backend los 47
+      // hallazgos son accesos a mapas internos cerrados: campos de Prisma
+      // resueltos por nombre (`prisma-query`), claves de `process.env`
+      // restringidas al union `EnvKey` y mapas de labels/colores. Se mantiene
+      // activo el resto del preset (eval, regex no literal, path traversal,
+      // non-literal-fs, child_process...), que sí tiene FPs despreciables.
+      'security/detect-object-injection': 'off',
       // Permite el uso de console.log en backend,
       // ya que es común para logging en servidores.
       // Decisión consciente: en server el console es el logger por defecto
@@ -254,6 +280,8 @@ export default defineConfig([
       // Plugin de Vitest: también el frontend testea con Vitest + RTL,
       // así que necesita las mismas reglas/globals de test que el backend.
       vitest,
+      // Plugin de accesibilidad (preset `recommended` en `rules`, abajo).
+      'jsx-a11y': jsxA11y,
     },
 
     // Opciones del lenguaje para frontend.
@@ -313,6 +341,10 @@ export default defineConfig([
       // Reglas recomendadas de Vitest (igual que en server).
       ...vitest.configs.recommended.rules,
 
+      // Preset de accesibilidad de eslint-plugin-jsx-a11y (change
+      // `ci-shifting-left`): a11y detectada en commit/PR, no en auditoría.
+      ...jsxA11y.configs.recommended.rules,
+
       // Desactiva la regla que exige importar React en JSX.
       // A partir de React 17+, esto ya no es necesario.
       // Con el nuevo JSX transform (Vite + React 18) el import React es
@@ -324,11 +356,11 @@ export default defineConfig([
   // ---------------------------------------------------------------------------
   // (4b) Snapshots serializados (G4 del change `snapshot-gates`).
   // ---------------------------------------------------------------------------
-  // Regla `vitest/no-large-snapshots` scoped SOLO a los `.snap` serializados de
-  // apps/client. FASE 1 advisory (job `client-snapshot-size` con
-  // `continue-on-error: true`); la extensión a los bloques inline
-  // (`*.ui.test.jsx`) y la promoción a blocking son el PR atómico final del
-  // change (design D4/D8). NO tocar el bloque client de arriba: su glob
+  // Regla `vitest/no-large-snapshots` scoped a los `.snap` serializados de
+  // apps/client. Promovida a blocking: job `client-snapshot-size` sin
+  // `continue-on-error` y en `prebuild-tests-complete.needs`. La extensión
+  // inline (`*.ui.test.jsx`) vive en el bloque 4c como `error`. NO tocar el
+  // bloque client de arriba: su glob
   // `**/*.{js,jsx}` no matchea `.snap`, así que `client-lint` no cambia.
   {
     files: ['apps/client/**/__snapshots__/*.snap'],
@@ -338,7 +370,7 @@ export default defineConfig([
     },
 
     rules: {
-      // Regla G4 (advisory FASE 1): límite de tamaño de snapshots serializados.
+      // Regla G4 (blocking via snapshot:size-check --max-warnings 0): límite de tamaño de snapshots serializados.
       'vitest/no-large-snapshots': ['warn', { maxSize: 50, inlineMaxSize: 50 }],
       // Los `.snap` son artefactos serializados por Vitest ( CommonJS `exports[...]`),
       // no código fuente: silencian las reglas base que no aplican a artefactos.
@@ -349,6 +381,29 @@ export default defineConfig([
       // Los snapshots serializados contienen whitespace irregular legítimo
       // (el contenido renderizado del UI se serializa tal cual).
       'no-irregular-whitespace': 'off',
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // (4c) Snapshots inline en tests de cliente (G4 promovido, blocking).
+  // ---------------------------------------------------------------------------
+  // Extensión de `vitest/no-large-snapshots` a los bloques inline
+  // (`toMatchInlineSnapshot`) de `*.ui.test.jsx`. Promovido a `error`
+  // (definitivo): `client-lint` (`--max-warnings 0`) lo hace bloqueante.
+  // El tamaño de los `.snap` serializados sigue gobernado por el bloque (4b)
+  // y el job `client-snapshot-size`.
+  {
+    files: ['apps/client/src/**/*.ui.test.jsx'],
+
+    plugins: {
+      vitest,
+    },
+
+    rules: {
+      'vitest/no-large-snapshots': [
+        'error',
+        { maxSize: 50, inlineMaxSize: 50 },
+      ],
     },
   },
 
@@ -486,6 +541,60 @@ export default defineConfig([
       // Espeja complexity: 'off' como defensa en profundidad: aunque el
       // glob core se ampliara algún día, los tests siguen exentos.
       'max-lines-per-function': 'off',
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // (6c) PUREZA de las pruebas de propiedades (change `pbt-hardening`, tarea 6.2 / G4).
+  // ---------------------------------------------------------------------------
+  // Una propiedad debe ser determinista: sólo pueden entrar inputs que vengan
+  // del generador de fast-check. `Math.random` rompe la semilla reproducible del
+  // fallo (no se puede re-correr el mismo caso), `Date.now` introduce el reloj
+  // real en el SUT y las llamadas de red vuelven el test dependiente del entorno.
+  // El caso legítimo de fecha ("un instante concreto") se escribe con
+  // `new Date(valor)`, que esta regla NO prohíbe.
+  {
+    files: ['**/*.properties.unit.test.{js,jsx,ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "MemberExpression[object.name='Math'][property.name='random']",
+          message:
+            'Propiedades: genera las entradas con fast-check, no con Math.random (el fallo deja de ser reproducible desde la semilla).',
+        },
+        {
+          selector: "MemberExpression[object.name='Date'][property.name='now']",
+          message:
+            'Propiedades: no leas el reloj real con Date.now; deriva la fecha del input generado.',
+        },
+      ],
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'fetch',
+          message:
+            'Propiedades: sin red. Prueba la lógica pura o inyecta el cliente como dependencia.',
+        },
+        {
+          name: 'XMLHttpRequest',
+          message:
+            'Propiedades: sin red. Prueba la lógica pura o inyecta el cliente como dependencia.',
+        },
+      ],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'axios',
+              message:
+                'Propiedades: sin red. Prueba la lógica pura o inyecta el cliente como dependencia.',
+            },
+          ],
+        },
+      ],
     },
   },
 

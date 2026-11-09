@@ -24,6 +24,37 @@
  * @openapi
  * components:
  *   schemas:
+ *     BadRequest:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: boolean
+ *           example: true
+ *         statusCode:
+ *           type: integer
+ *           example: 400
+ *         message:
+ *           type: string
+ *           example: "Validation failed"
+ *     NotFound:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: boolean
+ *           example: true
+ *         statusCode:
+ *           type: integer
+ *           example: 404
+ *         message:
+ *           type: string
+ *           example: "Resource not found"
+ *
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
  *     Unauthorized:
  *       type: object
  *       properties:
@@ -266,12 +297,12 @@
  *           type: string
  *           format: date
  *           nullable: true
- *           example: "2024-08-05T00:00:00Z"
+ *           example: "2024-08-05"
  *         toDate:
  *           type: string
  *           format: date
  *           nullable: true
- *           example: "2024-08-05T00:00:00Z"
+ *           example: "2024-08-05"
  */
 
 /**
@@ -370,7 +401,7 @@
  *         statusCode:
  *           type: string
  *           maxLength: 3
- *           example: "ACTIVE"
+ *           example: "ACT"
  *         document:
  *           type: string
  *           nullable: true
@@ -1721,7 +1752,7 @@
  *           type: integer
  *           nullable: true
  *         provider:
- *           $ref: '#/components/schemas/ProductProvider'
+ *           $ref: '#/components/schemas/ResponseGetProductProvider'
  *         details:
  *           type: array
  *           items:
@@ -1753,7 +1784,7 @@
  *         createdBy:
  *           type: integer
  *         provider:
- *           $ref: '#/components/schemas/ProductProvider'
+ *           $ref: '#/components/schemas/ResponseGetProductProvider'
  *         details:
  *           type: array
  *           items:
@@ -1790,7 +1821,7 @@
  *         updatedBy:
  *           type: integer
  *         provider:
- *           $ref: '#/components/schemas/ProductProvider'
+ *           $ref: '#/components/schemas/ResponseGetProductProvider'
  *         details:
  *           type: array
  *           items:

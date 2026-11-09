@@ -1,0 +1,68 @@
+name: Coverage Ratchet Monthly
+
+# Monthly floor-raise proposal. This workflow never enables Vitest
+# `autoUpdate` and never rewrites thresholds directly on main: it rewrites a
+# bot branch, advances the versioned baseline to match, and opens/updates one
+# PR. That PR still passes `coverage-floor-guard` like any other change.
+#
+# A fixed branch name (`coverage-ratchet/monthly`) is the duplicate guard: the
+# action updates the existing PR instead of opening a second one. When no floor
+# can be raised, the action finds no diff and opens nothing.
+
+on:
+  schedule:
+    # First day of each month at 04:00 UTC.
+    - cron: '0 4 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: coverage-ratchet-monthly
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    name: Monthly - Propose floor raises
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+
+      # Same App-token strategy as release.yml: the token is what lets the bot
+      # create signed commits through the API (required_signatures).
+      - name: Create GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Measure coverage and compute proposals
+        run: >-
+          node scripts/ci/coverage-ratchet-cron.mjs --write
+          --proposal reports/coverage-ratchet-proposal.json
+          --summary reports/coverage-ratchet-proposal.md
+
+      - name: Open or update ratchet PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: coverage-ratchet/monthly
+          sign-commits: true
+          title: 'chore(coverage): raise floors from monthly measurement'
+          body-path: reports/coverage-ratchet-proposal.md
+          commit-message: 'chore(coverage): raise floors from monthly measurement'
+          labels: coverage-ratchet
+          delete-branch: false
+          add-paths: |
+            apps/client/vitest.config.js
+            apps/server/vitest.config.ts
+            .coverage-baseline.json
+            docs/learning/coverage-tripwire-floor-ratchet.md
+          draft: false

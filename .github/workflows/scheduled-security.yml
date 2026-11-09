@@ -30,6 +30,25 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Guard A5 (change `secret-scanning-history-governance`): un checkout
+      # shallow haría que `--log-opts="--all"` viera solo el último commit y
+      # reportara verde sin haber escaneado el pasado (falso negativo silencioso).
+      # Se comprueba ANTES de escanear, sin dependencia de red, y se falla con
+      # mensaje propio en lugar de dejar que gitleaks falle por otra razón.
+      - name: Assert full-history checkout (not shallow)
+        run: |
+          if [ "$(git rev-parse --is-shallow-repository)" != "false" ]; then
+            echo "::error::Checkout shallow: el escaneo full-history vería solo el ÚLTIMO commit. Configura fetch-depth: 0."
+            exit 1
+          fi
+          commits=$(git rev-list --count --all)
+          echo "Historial disponible: ${commits} commits"
+          if [ "$commits" -lt 2 ]; then
+            echo "::error::Historial insuficiente (${commits} commit): el scan no cubriría el pasado."
+            exit 1
+          fi
+        shell: bash
+
       # Audit mode (spec ci-secret-scanning — "Secret found in historical commit"):
       # el run NO falla por hallazgos; los reporta (artifact JSON) y continúa.
       - name: Run Gitleaks full history scan (JSON report)
@@ -80,17 +99,104 @@ jobs:
       # Con `steps.<id>.outcome` capturado en outputs del job upstream, esta
       # condición crea el Issue EXACTAMENTE cuando un scan step falló
       # (hallazgos con exit 1 o error de tool) y se salta en runs limpios.
+      # El JSON del scan vive en el artifact del job upstream: hay que bajarlo
+      # antes de parsearlo. `continue-on-error` porque el artifact puede faltar
+      # (p. ej. el scan murió antes de escribirlo) y el issue debe crearse igual.
+      - name: Download Gitleaks JSON report
+        if: needs.gitleaks-full-scan.outputs.scan-json-outcome == 'failure' || needs.gitleaks-full-scan.outputs.scan-sarif-outcome == 'failure'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report
+
+      # A8/RH-6: el issue lleva el resumen (regla, archivo, commit) para que el
+      # triage no dependa de abrir el run. Nunca se imprime el valor del secreto:
+      # gitleaks ya lo redacta y aquí solo se leen RuleID/File/Commit/StartLine.
       - name: Create failure issue when a scan step failed
         if: needs.gitleaks-full-scan.outputs.scan-json-outcome == 'failure' || needs.gitleaks-full-scan.outputs.scan-sarif-outcome == 'failure'
         uses: actions/github-script@v8
         with:
           script: |
-            await github.rest.issues.create({
+            const fs = require('fs');
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const reportPath = 'gitleaks-report/gitleaks-report.json';
+            const MAX_FINDINGS = 20;
+            let findings = [];
+            let reportError = '';
+            try {
+              findings = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+              if (!Array.isArray(findings)) {
+                reportError = 'el JSON no es un array de hallazgos';
+                findings = [];
+              }
+            } catch (error) {
+              reportError = `no se pudo leer \`${reportPath}\` (${error.message})`;
+            }
+
+            const lines = [];
+            if (findings.length === 0) {
+              lines.push(
+                reportError
+                  ? `⚠️ Sin resumen de hallazgos: ${reportError}. Revisa el artifact \`gitleaks-report\`.`
+                  : '⚠️ El scan falló sin hallazgos en el JSON (posible error de tooling, no de secretos).'
+              );
+            } else {
+              lines.push(`**${findings.length} hallazgo(s)** fuera de allowlist (valores redactados):`, '');
+              lines.push('| Regla | Archivo | Commit |');
+              lines.push('| --- | --- | --- |');
+              for (const finding of findings.slice(0, MAX_FINDINGS)) {
+                const rule = finding.RuleID || finding.Rule || 'unknown';
+                const file = finding.File || 'unknown';
+                const line = finding.StartLine ? `:${finding.StartLine}` : '';
+                const commit = String(finding.Commit || '').slice(0, 12) || 'unknown';
+                lines.push(`| \`${rule}\` | \`${file}${line}\` | \`${commit}\` |`);
+              }
+              if (findings.length > MAX_FINDINGS) {
+                lines.push('', `_…y ${findings.length - MAX_FINDINGS} más (ver artifact)_.`);
+              }
+              lines.push(
+                '',
+                'Sigue el runbook: `docs/security/secret-incident-response.md` (RR-1 revocar/rotar primero, plazo D3 = 24 h).'
+              );
+            }
+
+            const body = [
+              `Run: ${runUrl}`,
+              '',
+              ...lines,
+              '',
+              'Este issue lo abre el escaneo semanal full-history de `.github/workflows/scheduled-security.yml`.',
+            ].join('\n');
+
+            const title = `Scheduled security scan failed: ${context.workflow}`;
+            // Dedup (create-or-update): si ya hay un issue abierto con el mismo
+            // prefijo, añadir un comentario con el nuevo run en vez de crear
+            // otro issue (evita spam semanal para un secreto sin remediar).
+            const existing = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `Scheduled security scan failed: ${context.workflow} (${new Date().toISOString().split('T')[0]})`,
-              body: `See run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
-            })
+              state: 'open',
+              labels: 'security',
+              per_page: 100,
+            }).catch(() => ({ data: [] }));
+            const openIssue = (existing.data || []).find(i => i.title && i.title.startsWith(title));
+            if (openIssue) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: openIssue.number,
+                body: `Nuevo run con hallazgos: ${runUrl}\n\n${body}`,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `${title} (${new Date().toISOString().split('T')[0]})`,
+                labels: ['security'],
+                body
+              });
+            }
 
   # ═══════════════════════════════════════════════════════════════
   # License audit L3 — ScanCode (change `license-compliance`)
@@ -365,4 +471,3 @@ jobs:
           path: guarddog-weekly.sarif
           retention-days: 90
           if-no-files-found: warn
-

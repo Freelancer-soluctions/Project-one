@@ -23,7 +23,7 @@ Estado verificado (`project-one`):
 - `.github/actionlint.yaml`: política como código (ignores de `SC2086`, `SC2129`, etc.).
 - `package.json`: stub `actionlint: 2.0.6` (WASM, no valida de verdad).
 - `zizmor`: 0 matches en `.github/workflows/`; solo mención en `docs/ci-cd-pipeline-empresarial.md` L2854 (roadmap).
-- Directorios `.github/workflows/`: 9 workflows activos (`ci.yml`, `ci-enterprise.yml`, `deploy.yml`, `opencode-review.yml`, `preview.yml`, `release.yml`, `scheduled-security.yml`, `security-digest.yml`, `security.yml`).
+- Directorios `.github/workflows/` (snapshot 2026-09-28): 9 workflows (`ci.yml`, `deploy.yml`, `opencode-review.yml`, `preview.yml`, `release.yml`, `scheduled-security.yml`, `security-digest.yml`, `security.yml`, `ci-enterprise.yml`). Posteriores: `ci-enterprise.yml` **fue retirado** (no existe en el repo ni en el registro) y se sumaron otros workflows; inventario vigente en `docs/CONTEXT-CICD.md` §3.4/§5.9, no aquí.
 
 ---
 

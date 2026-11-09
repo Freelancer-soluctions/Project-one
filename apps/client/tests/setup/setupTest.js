@@ -5,9 +5,32 @@ import { server } from './msw/server';
 import i18n from '@/config/i18n';
 import fc from 'fast-check';
 
+/**
+ * Configuración global de fast-check (change `pbt-hardening`, tareas 4.3 y 6.3).
+ * Misma precedencia que en `apps/server/tests/setupTest.ts`:
+ * - `numRuns`: `PBT_NUMRUNS` > CI 1000 > local 100.
+ * - `seed`: `PBT_SEED` > 42 en CI > aleatoria en local.
+ * - `maxSkipsPerRun: 50`: una propiedad que descarta casi todo no está probando
+ *   el SUT, así que se falla en vez de pasar en silencio.
+ */
+const envNumRuns = Number(process.env.PBT_NUMRUNS);
+const envSeed = Number(process.env.PBT_SEED);
+const numRuns =
+  Number.isFinite(envNumRuns) && envNumRuns > 0
+    ? envNumRuns
+    : process.env.CI
+      ? 1000
+      : 100;
+const seed = Number.isFinite(envSeed)
+  ? envSeed
+  : process.env.CI
+    ? 42
+    : undefined;
+
 fc.configureGlobal({
-  numRuns: process.env.CI ? 1000 : 100,
-  ...(process.env.CI ? { seed: 42 } : {}),
+  numRuns,
+  maxSkipsPerRun: 50,
+  ...(seed === undefined ? {} : { seed }),
 });
 
 // Shared mock for @tanstack/react-table - provides realistic flexRender

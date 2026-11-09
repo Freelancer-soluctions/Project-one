@@ -441,7 +441,9 @@ Para situar dónde está tu equipo/proyecto, usa este modelo simplificado basado
 | **Preview**            | `preview.yml`            | CD Preview      | Levanta stack Floci+Postgres+Docker por PR                                                                                                                                     | `pull_request` (opened/synchronize)                                          |
 | **Deploy**             | `deploy.yml`             | CD Principal    | 2 fases: docker-build (Floci) → ECR OIDC → ECS staging/prod                                                                                                                    | `push` a `main` + `workflow_dispatch`                                        |
 | **Release**            | `release.yml`            | Release         | Changesets: version bump + npm publish + tags                                                                                                                                  | `push` a `main`                                                              |
-| **CI Enterprise**      | `ci-enterprise.yml`      | CI Extended     | Pipeline extendido para validaciones enterprise                                                                                                                                | `workflow_dispatch`                                                          |
+| ~~**CI Enterprise**~~  | —                        | —               | **Retirado** (2026): `ci-enterprise.yml` ya no existe en el repo ni en el registro de workflows                                                                                | —                                                                            |
+
+> 🗑️ **`ci-enterprise.yml` está retirado.** Existió como "CI Extended" heredado de otro layout (paths `frontend/`/`backend/` que nunca existieron aquí) y se eliminó del repo; tampoco aparece en el registro de GitHub Actions (snapshot verificado en `docs/CONTEXT-CICD.md` §5.9). Lo que sigue en las guías 09 y en el módulo 23 es **anti-ejemplo didáctico** (cache miss garantizado, version drift, path filtering muerto), no un workflow vivo. Para el inventario real usa §3.4/§5.9 de `CONTEXT-CICD.md`.
 
 > ⚠️ **Nota (2026-08-28):** `quality.yml` fue **eliminado** en la consolidación — sus jobs de calidad ahora son `if: false` inline en `ci.yml`. Por eso el inventario pasó de 9 a 8 workflows. Versiones viejas de esta tabla (y del curso) mencionan 9; el estado verificado está en `CONTEXT-CICD.md` §3.3.
 
@@ -520,7 +522,7 @@ El pipeline actual **implementa** el plan de 8 semanas de [`../../cicd-plan-impl
 | 4               | Preview environments            | `preview.yml`                                                   |
 | 5-6             | CD: Docker + Floci + ECS        | `deploy.yml`                                                    |
 | 7               | Release automatizado            | `release.yml`                                                   |
-| 8               | Hardening + enterprise          | `ci-enterprise.yml`                                             |
+| 8               | Hardening + enterprise          | `ci-enterprise.yml` (**retirado** después)                      |
 
 > 📖 **Ver plan completo**: [`../../cicd-plan-implementacion.md`](../../cicd-plan-implementacion.md#10-plan-de-implementación-por-sprints)
 
@@ -657,11 +659,23 @@ M apps/server/src/modules/users/service.js
 
 Lista 3 validaciones que hoy ocurren "tarde" (staging/prod) y podrías mover a "temprano" (editor/pre-commit/CI):
 
-1. **\*\***\*\*\*\***\*\***\_**\*\***\*\*\*\***\*\*** (ej: validación de schema de API)
-2. **\*\***\*\*\*\***\*\***\_**\*\***\*\*\*\***\*\*** (ej: check de dependencias vulnerables)
-3. **\*\***\*\*\*\***\*\***\_**\*\***\*\*\*\***\*\*** (ej: test de contrato de base de datos)
+1. **Validación de schema de API (OpenAPI)** → **Spectral** en pre-commit/CI
+   (`spectral:oas` + reglas custom, job `api-contract`), ahorro ~80-95%.
+2. **Check de dependencias vulnerables** → **Dependabot** (fix PRs) +
+   `dependency-review-action` como gate en el PR + Trivy, ahorro ~90%.
+3. **Test de contrato de base de datos** → **`prisma migrate diff --exit-code`**
+   (job `db-contract`), ahorro ~90-95%.
 
 Para cada una: ¿qué tool/hook la ejecutaría antes? ¿Cuánto tiempo ahorrarías estimado?
+
+- **Spectral** corre en el pre-commit (lint-staged) y en CI: el contrato roto
+  sale antes de que otro equipo lo consuma, en segundos, no en un incidente.
+- **Dependabot + dependency-review** bloquean en el PR la dependencia que
+  introduce el CVE; sin esto, la alerta aparece días/semanas después (y el 95%
+  de las vulnerabilidades consumidas ya tenían fix disponible).
+- **`prisma migrate diff`** compara `schema.prisma` contra las migraciones en
+  cada PR; sin esto el drift se descubre al desplegar (o en staging), con la
+  base ya en un estado inconsistente.
 
 ---
 
@@ -702,7 +716,7 @@ Para cada una: ¿qué tool/hook la ejecutaría antes? ¿Cuánto tiempo ahorrarí
 - `release.yml` = versionado + publish — solo push/main
 - `scheduled-security.yml` = cron semanal — full history scans
 - `security-digest.yml` = reporting — digests automáticos
-- `ci-enterprise.yml` = pipeline extendido — manual/on-demand
+- ~~`ci-enterprise.yml` = pipeline extendido — manual/on-demand~~ (**retirado**: el archivo ya no existe)
 
 **Beneficios**: aislamiento de fallos, reutilización (DRY), permisos mínimos por workflow, concurrencia independiente, debugging más fácil.
 
@@ -771,7 +785,7 @@ El workflow `deploy.yml` tiene **jobs "skipped" paralelos** (`ecr-push-skipped`,
 | **Pipeline stages**               | Source → Lint → Unit Tests → Integration → Build → Security → Image → Registry → Staging → (Approval) → Production |
 | **Shifting Left**                 | Detectar temprano = 1x costo; detectar tarde = 1000x+ costo                                                        |
 | **DORA metrics**                  | Frequency, Lead Time, MTTR, Change Failure Rate — estándar de la industria                                         |
-| **8 workflows del proyecto**      | ci, security, scheduled-security, security-digest, preview, deploy, release, ci-enterprise                         |
+| **7 workflows del proyecto**      | ci, security, scheduled-security, security-digest, preview, deploy, release (`ci-enterprise` está retirado)        |
 | **Path filtering**                | `dorny/paths-filter` → outputs → `needs.changes.outputs.*` → `if:` condicionales                                   |
 | **Reusable workflows**            | Patrón `workflow_call` (ej: `security.yml`); `quality.yml` eliminado 2026-08-28                                    |
 | **Concurrency groups**            | PRs: cancel-in-progress=true; CD: cancel-in-progress=false (protege integridad)                                    |

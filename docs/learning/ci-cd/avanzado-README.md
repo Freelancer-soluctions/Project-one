@@ -33,12 +33,12 @@ Si no has completado el nivel Intermedio, te recomendamos empezar por el [índic
 
 La ruta completa de CI/CD del proyecto tiene **4 niveles**. Este índice corresponde al nivel **Avanzado**:
 
-| Nivel           | Guías | Estado          | Contenido                                                                   |
-| --------------- | ----- | --------------- | --------------------------------------------------------------------------- |
-| **Fundamentos** | 00-04 | ✅ Completado   | Qué es CI/CD, Git y YAML, GitHub Actions, secrets, Docker                   |
-| **Intermedio**  | 05-10 | ✅ Completado   | Husky, ci.yml, workflows reutilizables, composite actions, caching, testing |
-| **Avanzado**    | 11-17 | 🟠 En curso     | CD, AWS, Floci, deploy.yml, preview.yml, OIDC, ECS, Changesets              |
-| **Profesional** | 18+   | 🔜 Próximamente | Terraform, observabilidad, costos, seguridad avanzada                       |
+| Nivel           | Guías | Estado        | Contenido                                                                   |
+| --------------- | ----- | ------------- | --------------------------------------------------------------------------- |
+| **Fundamentos** | 00-04 | ✅ Completado | Qué es CI/CD, Git y YAML, GitHub Actions, secrets, Docker                   |
+| **Intermedio**  | 05-10 | ✅ Completado | Husky, ci.yml, workflows reutilizables, composite actions, caching, testing |
+| **Avanzado**    | 11-17 | 🟠 En curso   | CD, AWS, Floci, deploy.yml, preview.yml, OIDC, ECS, Changesets              |
+| **Profesional** | 18-29 | 🟢 En curso   | Gobernanza, enterprise, DAG, seguridad, Dependabot, mantenimiento, DORA     |
 
 ## 📚 Guías del nivel Avanzado
 
@@ -365,7 +365,7 @@ Si necesitas repasar los conceptos previos, vuelve al [índice de Intermedio](./
 
 ### Nivel siguiente: Profesional
 
-El nivel **Profesional** (guías 05b+, 🔜 próximamente) cubrirá Terraform avanzado, observabilidad, optimización de costos y seguridad avanzada. Este nivel Avanzado es el prerequisito directo.
+El nivel **Profesional** (guías 18-29, 🟢 en curso) cubre gobernanza y revisión, pipeline enterprise, DAG, seguridad (SAST/SCA/SBOM), Dependabot, mantenimiento y métricas DORA. Empieza por el [índice de Profesional](./profesional-README.md); este nivel Avanzado es el prerequisito directo.
 
 ### Índice de guías
 

@@ -22,6 +22,7 @@
  *
  * Usage:
  *   node scripts/ci/check-coverage.mjs <workspace> [coverageDir] [--advisory]
+ *     [--type unit|integration] [--policy <path>] [--critical-paths <path>]
  *
  *   <workspace>   path to the workspace, e.g. apps/client
  *   [coverageDir] optional override for the coverage directory
@@ -30,13 +31,18 @@
  *                 plus a `::notice::` annotation and ALWAYS exit 0, so a
  *                 diff-limited report never fails the job. Strict mode (the
  *                 default) is unchanged and is the only one that gates.
+ *   --type        test type this verdict applies to: unit (default) or
+ *                 integration. Thresholds are never mixed across types.
+ *   --policy      coverage policy with objectives + per-type threshold sets
+ *                 (defaults to <repo>/.coverage-policy.json).
+ *   --critical-paths  override the critical-path inventory file.
  *
  * Exit codes:
  *   0  coverage meets thresholds (or any outcome in --advisory mode)
  *   1  coverage below thresholds, EMPTY report, or report/config missing
  *   2  usage error (never masked by --advisory)
  */
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { appendFileSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 // `URL` is used for file-path resolution. ESLint's `no-undef` treats it as
@@ -71,10 +77,19 @@ import {
   evaluateCriticalPathCoverage,
   validateCriticalPaths,
 } from './coverage-critical-paths.mjs';
+import {
+  TEST_TYPES,
+  loadCoveragePolicy,
+  objectiveLine,
+  selectThresholds,
+  validateObjective,
+} from './coverage-policy.mjs';
 
 const argv = process.argv.slice(2);
 const advisory = argv.includes('--advisory');
 let criticalPathsFile;
+let policyFile;
+let type = 'unit';
 const positional = [];
 for (let i = 0; i < argv.length; i++) {
   const arg = argv[i];
@@ -87,9 +102,31 @@ for (let i = 0; i < argv.length; i++) {
     criticalPathsFile = arg.slice('--critical-paths='.length);
     continue;
   }
+  if (arg === '--type') {
+    type = argv[++i];
+    continue;
+  }
+  if (arg.startsWith('--type=')) {
+    type = arg.slice('--type='.length);
+    continue;
+  }
+  if (arg === '--policy') {
+    policyFile = argv[++i];
+    continue;
+  }
+  if (arg.startsWith('--policy=')) {
+    policyFile = arg.slice('--policy='.length);
+    continue;
+  }
   positional.push(arg);
 }
 const workspace = positional[0];
+if (!TEST_TYPES.includes(type)) {
+  console.error(
+    `❌ --type must be one of: ${TEST_TYPES.join(', ')} (got ${type})`
+  );
+  process.exit(2);
+}
 
 // Resolve the workspace path from the repo root (where this script lives),
 // not from the caller's CWD. CI always passes the absolute workspace path
@@ -193,6 +230,48 @@ const workspaceId =
   workspace === 'client' || workspace === 'server'
     ? workspace
     : wsRoot.split(/[\\/]/).filter(Boolean).at(-1);
+
+// Objective + per-type thresholds live outside `coverage.thresholds` because
+// Vitest would enforce any non-metric key there as a glob (D4/D5).
+const coveragePolicyPath = policyFile
+  ? resolve(policyFile)
+  : join(ROOT, '.coverage-policy.json');
+const {
+  policy,
+  errors: coveragePolicyErrors,
+  warnings: coveragePolicyWarnings,
+} = loadCoveragePolicy(coveragePolicyPath);
+if (coveragePolicyErrors.length) {
+  for (const error of coveragePolicyErrors) console.error(`❌ ${error}`);
+  process.exit(advisory ? 0 : 1);
+}
+for (const warning of coveragePolicyWarnings) console.log(`⚠️  ${warning}`);
+
+const selection = selectThresholds({
+  policy,
+  workspace: workspaceId,
+  type,
+  flatThresholds: thresholds,
+});
+if (selection.error) {
+  console.error(`❌ ${selection.error}`);
+  process.exit(advisory ? 0 : 1);
+}
+const effectiveThresholds = selection.thresholds;
+console.log(
+  `Test type: ${type} (${selection.source}${selection.fallback ? ', flat fallback' : ''})`
+);
+
+const objective = policy?.objectives?.[workspaceId];
+const objectiveErrors = validateObjective({
+  objective,
+  thresholds: effectiveThresholds,
+});
+if (objectiveErrors.length) {
+  for (const error of objectiveErrors) console.error(`❌ ${error}`);
+  process.exit(advisory ? 0 : 1);
+}
+
 const policyPath = criticalPathsFile
   ? resolve(criticalPathsFile)
   : join(ROOT, '.coverage-critical-paths.json');
@@ -236,15 +315,17 @@ let failed = false;
 
 // `100: true` is Vitest's shortcut for all four metrics at 100.
 const numericThresholds = {};
-if (thresholds['100'] === true) {
+if (effectiveThresholds['100'] === true) {
   for (const m of METRICS) numericThresholds[m] = 100;
 } else {
   for (const m of METRICS) {
-    if (typeof thresholds[m] === 'number') numericThresholds[m] = thresholds[m];
+    if (typeof effectiveThresholds[m] === 'number') {
+      numericThresholds[m] = effectiveThresholds[m];
+    }
   }
 }
 
-const globThresholds = Object.entries(thresholds).filter(
+const globThresholds = Object.entries(effectiveThresholds).filter(
   ([key]) =>
     !METRICS.includes(key) && !['100', 'perFile', 'autoUpdate'].includes(key)
 );
@@ -315,7 +396,7 @@ function verdict(label, threshold, measured, uncoveredCount) {
   return { ok, detail, label };
 }
 
-console.log(`Coverage report: ${summaryPath}\n`);
+console.log(`Coverage guard: ${workspaceId} (${type}) — ${summaryPath}\n`);
 
 // ---- Global floor -------------------------------------------------------
 console.log('Workspace totals:');
@@ -327,6 +408,13 @@ for (const [metric, threshold] of Object.entries(numericThresholds)) {
     uncovered(files, metric)
   );
   console.log(`  ${r.ok ? '✅' : '❌'} ${r.detail}`);
+  const target = objectiveLine({
+    metric,
+    target: objective?.[metric],
+    measured: pct(summary.total[metric]),
+    floor: effectiveThresholds[metric],
+  });
+  if (target) console.log(`      ${target}`);
   if (!r.ok) {
     failed = true;
     const contributors = files
@@ -348,10 +436,40 @@ for (const [metric, threshold] of Object.entries(numericThresholds)) {
   }
 }
 
+// Objective (display-only) is also published to the CI step summary; it never
+// participates in the verdict below.
+if (process.env.GITHUB_STEP_SUMMARY && objective) {
+  const rows = METRICS.map((metric) => {
+    const measured = pct(summary.total[metric]);
+    const floor = effectiveThresholds[metric];
+    const target = objective[metric];
+    const state =
+      typeof target === 'number' && measured >= target
+        ? 'met'
+        : `${Math.round((target - measured) * 100) / 100}pp to go`;
+    return `| ${metric} | ${measured}% | ${floor ?? '—'}% | ${target}% | ${state} |`;
+  });
+  appendFileSync(
+    process.env.GITHUB_STEP_SUMMARY,
+    [
+      `### Coverage objective — ${workspaceId} (${type})`,
+      '',
+      '| Metric | Measured | Floor | Objective | Status |',
+      '| --- | ---: | ---: | ---: | --- |',
+      ...rows,
+      '',
+      'The objective is display-only; the verdict depends only on the floor.',
+      '',
+    ].join('\n')
+  );
+}
+
 // Top-level `perFile`: every file must clear the per-file minimums.
-if (thresholds.perFile) {
+if (effectiveThresholds.perFile) {
   const perFile =
-    thresholds.perFile === true ? numericThresholds : thresholds.perFile;
+    effectiveThresholds.perFile === true
+      ? numericThresholds
+      : effectiveThresholds.perFile;
   const entries = Object.entries(perFile).filter(([k]) => METRICS.includes(k));
   console.log('\nPer-file thresholds:');
   if (!entries.length) {
@@ -473,12 +591,23 @@ if (enforcedCriticalPaths.length || exemptCriticalPaths.length) {
       `  ⚠️  ${group}/: ${count} source path(s) exempt until ${entry.expiresAt} (${entry.owner}) — ${entry.reason}`
     );
   }
-  const breaches = evaluateCriticalPathCoverage({
-    policy: criticalPathPolicy,
-    workspace: workspaceId,
-    files,
-    thresholds,
-  });
+  const missingFloors = enforcedCriticalPaths.filter(
+    (entry) => !effectiveThresholds[entry.path]
+  );
+  for (const entry of missingFloors) {
+    console.error(
+      `  ❌ ${entry.path} is enforced but has no coverage floor in the ${type} threshold set`
+    );
+    failed = true;
+  }
+  const breaches = missingFloors.length
+    ? []
+    : evaluateCriticalPathCoverage({
+        policy: criticalPathPolicy,
+        workspace: workspaceId,
+        files,
+        thresholds: effectiveThresholds,
+      });
   for (const breach of breaches) {
     console.error(
       `  ❌ ${breach.path} ${breach.metric}: ${breach.reason} (measured ${breach.measured}, floor ${breach.threshold})`
@@ -498,10 +627,10 @@ if (failed) {
     );
     process.exit(0);
   }
-  console.error(`❌ Coverage below thresholds for ${workspace}`);
+  console.error(`❌ Coverage below ${type} thresholds for ${workspace}`);
   process.exit(1);
 }
 if (advisory) {
-  console.log('::notice::coverage meets thresholds (advisory)');
+  console.log(`::notice::coverage meets ${type} thresholds (advisory)`);
 }
-console.log(`✅ Coverage meets thresholds for ${workspace}`);
+console.log(`✅ Coverage meets ${type} thresholds for ${workspace}`);

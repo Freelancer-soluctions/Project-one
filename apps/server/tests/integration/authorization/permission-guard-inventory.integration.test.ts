@@ -51,6 +51,7 @@ const matchParen = (src: string, open: number): number => {
 };
 
 const walk = (dir: string, acc: string[] = []): string[] => {
+  // eslint-disable-next-line security/detect-non-literal-fs-filename -- inventario de tests: el directorio se deriva de `SRC` (constante del repo), no de input externo.
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full, acc);
@@ -87,6 +88,7 @@ const discoverGuardedRoutes = (): GuardedRoute[] => {
 
   for (const file of walk(path.join(SRC, 'modules'))) {
     if (file === ROUTES_INDEX) continue;
+    // eslint-disable-next-line security/detect-non-literal-fs-filename -- `file` sale de `walk(SRC/modules)`: rutas del propio repo, sin input de usuario.
     const src = fs.readFileSync(file, 'utf8');
     const rel = path
       .relative(path.join(SRC, 'modules'), file)

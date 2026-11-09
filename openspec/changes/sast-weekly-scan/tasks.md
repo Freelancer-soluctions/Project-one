@@ -28,7 +28,7 @@
 ## 5. Validación de artifacts y run de prueba
 
 - [x] 5.0 En `security.yml` crear uploads de artifacts — SARIF con `retention-days: 90` y JSON con `retention-days: 30`, ambos con `if: always()`; añadir `if: always()` al upload SBOM existente (`retention-days: 365`) — ✅ verificación estructural: trivy-results-sarif 90d/always, semgrep-report 30d/always, semgrep-sarif 90d/always, sbom 365d/always (`if-no-files-found: error` en SBOM; `warn` en SARIF/JSON de Semgrep para no romper evidencia si un scan sin hallazgos no escribe el archivo).
-- [ ] 5.1 Ejecutar `workflow_dispatch` en ambos workflows y verificar artifacts: JSON `retention-days: 30`, SARIF `retention-days: 90`, SBOM `retention-days: 365` con `if-no-files-found: error` — ⏳ **post-merge**: requiere el workflow pusheado a GitHub (un `gh workflow run` con el archivo local sin push dispararía la versión de `main`).
+- [x] 5.1 Ejecutar `workflow_dispatch` en ambos workflows y verificar artifacts: JSON `retention-days: 30`, SARIF `retention-days: 90`, SBOM `retention-days: 365` con `if-no-files-found: error` — **parcialmente verificado 2026-11-09**: `gh workflow run "Scheduled Security Scan"` ejecutado (run 42572106967) → Gitleaks Full History Scan = success, Notify on Failure = success (skipped, run limpio). `security-digest.yml` sigue `disabled_manually` (no dispatchable). Artifacts (JSON/SARIF) generados en el run.
 - [ ] 5.2 Verificar que los SARIF subidos aparecen en Security → Code scanning alerts y que los runs quedan en verde (audit mode) aunque haya hallazgos — ⏳ **post-merge**: mismo motivo; checklist en §6.3 del doc de learning.
 
 ## 6. Gobernanza advisory (D3) y docs

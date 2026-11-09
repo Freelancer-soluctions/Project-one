@@ -31,6 +31,21 @@ export function verifyCoverageDoc(document, expected) {
     : ['managed coverage figures do not match the current configuration'];
 }
 
+/** Replace the managed block with freshly rendered figures. */
+export function replaceCoverageFigures(document, figures) {
+  const start = document.indexOf(START);
+  const end = document.indexOf(END);
+  if (
+    start < 0 ||
+    end < 0 ||
+    end < start ||
+    document.indexOf(START, start + START.length) >= 0
+  ) {
+    throw new Error('managed coverage figure markers are missing or invalid');
+  }
+  return `${document.slice(0, start + START.length)}\n\n${figures}\n\n${document.slice(end)}`;
+}
+
 /** Ignore Markdown table alignment padding while preserving every cell value. */
 function normalizeMarkdownTable(markdown) {
   return markdown

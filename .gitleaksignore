@@ -1,4 +1,10 @@
-# Falso positivo en traducción
+# ============================================================
+# Falso positivos de traducción (RH-4: motivo + fecha de revisión).
+# Motivo: claves de i18n (`"password": ...`) en el locale inglés y una
+# asignación de ejemplo en el config legacy de Sequelize — no son credenciales
+# reales ni valores usables. Política: FP por contenido, no por path.
+# Revisado: 2026-11-08 (change `secret-scanning-history-governance`).
+# ============================================================
 4b291ada8d50ef5bbe8574978aacaa427d56976b:client/src/locale/en.json:password-assignment:50
 4b291ada8d50ef5bbe8574978aacaa427d56976b:client/src/locale/en.json:password-assignment:59
 60136374f4f226c8d4cc5699bccd88d360a0d633:server/config/db.sequalize.js:password-assignment:11

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Defines a single-source-of-truth knip configuration for the monorepo: exactly one root `knip.json` declares entry, project, and ignore configuration for every workspace, so dead-code analysis scope is identical from any working directory and in CI.
+Defines a single-source-of-truth knip configuration for the monorepo: exactly one root `knip.jsonc` declares entry, project, and ignore configuration for every workspace, so dead-code analysis scope is identical from any working directory and in CI.
 
 ## Requirements
 

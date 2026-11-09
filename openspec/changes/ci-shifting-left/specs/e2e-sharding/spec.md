@@ -4,6 +4,8 @@
 
 Reduces the E2E test lead time from ~20 minutes to ~6 minutes by sharding Playwright tests across 4 parallel CI jobs with the blob reporter and merge-reports, enabling fully parallel execution with retries and cached browsers.
 
+> **Precondition (2026-11-08):** the `e2e` job in `.github/workflows/ci.yml` is currently `if: false` (disabled). All requirements below are conditional on reactivating E2E; they are NOT in effect until then.
+
 ## ADDED Requirements
 
 ### Requirement: Sharded E2E execution

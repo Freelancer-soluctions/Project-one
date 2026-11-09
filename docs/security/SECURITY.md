@@ -550,9 +550,9 @@ Typical detection patterns include:
 
 This project uses a **two-layer secret detection strategy**:
 
-1. **GitHub Native Secret Scanning** (primary layer) — Runs automatically on every push to the repository. Free for public repositories; requires GitHub Advanced Security (GHAS) for private repositories. Provides real-time alerts in the Security tab and optional push protection.
+1. **GitHub Native Secret Scanning** (primary layer) — Enabled on this repository since 2026-11-08 (verified via `security_and_analysis`). Runs automatically on every push. Free for public repositories; requires GitHub Advanced Security (GHAS) for private repositories. Provides real-time alerts in the Security tab and push protection (also enabled).
 
-2. **Gitleaks Open Source in CI** (enforcement layer) — Runs on every pull request (diff-scoped scan) and weekly (full-history scan) via GitHub Actions. Uses the `zricethezav/gitleaks` Docker image (MIT licensed). No commercial license or secret required.
+2. **Gitleaks Open Source in CI** (enforcement layer) — Runs on every pull request and merge-queue group (diff-scoped scan), weekly (full-history audit scan) and before every release (full-history, fail-closed) via GitHub Actions. Uses the `zricethezav/gitleaks` Docker image (MIT licensed). No commercial license or secret required.
 
 ### Layer 1: GitHub Native Secret Scanning
 
@@ -567,9 +567,9 @@ This project uses a **two-layer secret detection strategy**:
 **Via API (one-liner, automatable):**
 
 ```bash
-gh api -X PATCH repos/{owner}/{repo}/security-and-analysis \
-  -f secret_scanning.enabled=true \
-  -f secret_scanning_push_protection.enabled=true
+gh api -X PATCH repos/{owner}/{repo} \
+  -f 'security_and_analysis[secret_scanning][status]=enabled' \
+  -f 'security_and_analysis[secret_scanning_push_protection][status]=enabled'
 ```
 
 > **Note for private repositories:** GitHub Secret Scanning and Push Protection require **GitHub Advanced Security (GHAS)**, which is a paid feature. If the repository is private and GHAS is not enabled, the native layer cannot be activated. In this case, the operational detection layer is **Gitleaks OSS only** — the CI workflows will still run and detect secrets via the open-source tool.
@@ -591,7 +591,7 @@ When GitHub Secret Scanning detects a secret:
 
 ### Layer 2: Gitleaks in CI
 
-> **Estado operativo (verificado 2026-09-23):** `security.yml` (Security Pipeline) y `scheduled-security.yml` (Scheduled Security Scan) están **`disabled_manually`** en GitHub — no se ejecutan hoy (ver `docs/CONTEXT-CICD.md` §3.4/§3.5). El YAML es correcto y validado con `actionlint`; la protección activa actualmente es el pre-commit hook local (Gitleaks staged, capa L1) y Semgrep `p/secrets` en el `ci.yml` activo. Re-habilitación: `gh workflow enable "Security Pipeline" && gh workflow enable "Scheduled Security Scan"`. El job `Secret Detection` tampoco figura como required check en el ruleset de la rama (solo los 4 checks de governance).
+> **Estado operativo (verificado 2026-11-08):** `security.yml` (Security Pipeline) y `scheduled-security.yml` (Scheduled Security Scan) están **`active`** en GitHub (ver `docs/CONTEXT-CICD.md` §3.4/§3.5), y la capa nativa `secret_scanning` + `secret_scanning_push_protection` está **habilitada** en el repo público (§5.7). El job `Secret Detection` no figura como required check del ruleset (solo los checks de governance), pero desde el change `secret-scanning-history-governance` el agregador `prebuild-security-complete` falla si ese job queda `skipped` en un PR, corre también en `merge_group` y el pipeline de release ejecuta un escaneo full-history antes de publicar.
 
 #### PR-Time Gate (Pull Request Scan)
 
@@ -619,9 +619,9 @@ When GitHub Secret Scanning detects a secret:
 
 This project uses a **two-layer secret detection strategy**:
 
-1. **GitHub Native Secret Scanning** (primary layer) — Runs automatically on every push to the repository. Free for public repositories; requires GitHub Advanced Security (GHAS) for private repositories. Provides real-time alerts in the Security tab and optional push protection.
+1. **GitHub Native Secret Scanning** (primary layer) — Enabled on this repository since 2026-11-08 (verified via `security_and_analysis`). Runs automatically on every push. Free for public repositories; requires GitHub Advanced Security (GHAS) for private repositories. Provides real-time alerts in the Security tab and push protection (also enabled).
 
-2. **Gitleaks Open Source in CI** (enforcement layer) — Runs on every pull request (diff-scoped scan) and weekly (full-history scan) via GitHub Actions. Uses the `zricethezav/gitleaks` Docker image (MIT licensed). No commercial license or secret required.
+2. **Gitleaks Open Source in CI** (enforcement layer) — Runs on every pull request and merge-queue group (diff-scoped scan), weekly (full-history audit scan) and before every release (full-history, fail-closed) via GitHub Actions. Uses the `zricethezav/gitleaks` Docker image (MIT licensed). No commercial license or secret required.
 
 ### Layer 1: GitHub Native Secret Scanning
 
@@ -636,9 +636,9 @@ This project uses a **two-layer secret detection strategy**:
 **Via API (one-liner, automatable):**
 
 ```bash
-gh api -X PATCH repos/{owner}/{repo}/security-and-analysis \
-  -f secret_scanning.enabled=true \
-  -f secret_scanning_push_protection.enabled=true
+gh api -X PATCH repos/{owner}/{repo} \
+  -f 'security_and_analysis[secret_scanning][status]=enabled' \
+  -f 'security_and_analysis[secret_scanning_push_protection][status]=enabled'
 ```
 
 > **Note for private repositories:** GitHub Secret Scanning and Push Protection require **GitHub Advanced Security (GHAS)**, which is a paid feature. If the repository is private and GHAS is not enabled, the native layer cannot be activated. In this case, the operational detection layer is **Gitleaks OSS only** — the CI workflows will still run and detect secrets via the open-source tool.
@@ -660,7 +660,7 @@ When GitHub Secret Scanning detects a secret:
 
 ### Layer 2: Gitleaks in CI
 
-> **Estado operativo (verificado 2026-09-23):** `security.yml` (Security Pipeline) y `scheduled-security.yml` (Scheduled Security Scan) están **`disabled_manually`** en GitHub — no se ejecutan hoy (ver `docs/CONTEXT-CICD.md` §3.4/§3.5). El YAML es correcto y validado con `actionlint`; la protección activa actualmente es el pre-commit hook local (Gitleaks staged, capa L1) y Semgrep `p/secrets` en el `ci.yml` activo. Re-habilitación: `gh workflow enable "Security Pipeline" && gh workflow enable "Scheduled Security Scan"`. El job `Secret Detection` tampoco figura como required check en el ruleset de la rama (solo los 4 checks de governance).
+> **Estado operativo (verificado 2026-11-08):** `security.yml` (Security Pipeline) y `scheduled-security.yml` (Scheduled Security Scan) están **`active`** en GitHub (ver `docs/CONTEXT-CICD.md` §3.4/§3.5), y la capa nativa `secret_scanning` + `secret_scanning_push_protection` está **habilitada** en el repo público (§5.7). El job `Secret Detection` no figura como required check del ruleset (solo los checks de governance), pero desde el change `secret-scanning-history-governance` el agregador `prebuild-security-complete` falla si ese job queda `skipped` en un PR, corre también en `merge_group` y el pipeline de release ejecuta un escaneo full-history antes de publicar.
 
 #### PR-Time Gate (Pull Request Scan)
 

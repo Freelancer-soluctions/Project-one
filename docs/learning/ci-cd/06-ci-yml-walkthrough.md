@@ -192,7 +192,7 @@ En los jobs de test verás `--workspace=client-react` y `--workspace=server-expr
 | `client-react`                       | `apps/client/`  | `client`              | `frontend`       |
 | `server-express`                     | `apps/server/`  | `server`              | `backend`        |
 
-> 📖 **Referencia**: `package.json` raíz, campo `workspaces`. Esta discrepancia de naming es deuda técnica conocida del repo — no te sorprendas si en `ci-enterprise.yml` (guía 09) verás paths distintos (`frontend/`/`backend/`) que no existen aquí.
+> 📖 **Referencia**: `package.json` raíz, campo `workspaces`. Esta discrepancia de naming es deuda técnica conocida del repo — no te sorprendas si en los snippets de `ci-enterprise.yml` (workflow **retirado**, guía 09) ves paths distintos (`frontend/`/`backend/`) que no existen aquí.
 
 ---
 

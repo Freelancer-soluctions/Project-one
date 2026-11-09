@@ -38,7 +38,15 @@ PaginationItem.propTypes = {
   className: PropTypes.string,
 };
 
-const PaginationLink = ({ className, isActive, size = 'icon', ...props }) => (
+// a11y (change `ci-shifting-left`): `children` explícito para que
+// jsx-a11y/anchor-has-content pueda verificar el texto accesible del enlace.
+const PaginationLink = ({
+  className,
+  isActive,
+  size = 'icon',
+  children,
+  ...props
+}) => (
   <a
     aria-current={isActive ? 'page' : undefined}
     className={cn(
@@ -49,13 +57,16 @@ const PaginationLink = ({ className, isActive, size = 'icon', ...props }) => (
       className
     )}
     {...props}
-  />
+  >
+    {children}
+  </a>
 );
 PaginationLink.displayName = 'PaginationLink';
 PaginationLink.propTypes = {
   className: PropTypes.string,
   isActive: PropTypes.bool,
   size: PropTypes.string,
+  children: PropTypes.node,
 };
 
 const PaginationPrevious = ({ className, ...props }) => (

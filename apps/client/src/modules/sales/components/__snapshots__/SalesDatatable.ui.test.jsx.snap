@@ -6,6 +6,8 @@ exports[`SalesDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Client
     <svg
@@ -43,6 +45,8 @@ exports[`SalesDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Total
     <svg
@@ -80,6 +84,8 @@ exports[`SalesDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Products
     <svg
@@ -117,6 +123,8 @@ exports[`SalesDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Created on
     <svg
@@ -154,6 +162,8 @@ exports[`SalesDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Created by
     <svg
@@ -191,6 +201,8 @@ exports[`SalesDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated on
     <svg
@@ -228,6 +240,8 @@ exports[`SalesDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated by
     <svg

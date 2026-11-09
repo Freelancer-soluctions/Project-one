@@ -107,7 +107,7 @@ El cache npm se configura **dentro** de `actions/setup-node@v5`, no como un step
     cache-dependency-path: package-lock.json
 ```
 
-El mismo patrón aparece en `quality.yml` (líneas 28-33), `ci-enterprise.yml` (job install) y otros workflows.
+El mismo patrón apareció en `quality.yml` (líneas 28-33) y en `ci-enterprise.yml` (job install) — ambos **retirados** — y puede reaparecer en cualquier workflow nuevo, así que conviene reconocerlo.
 
 ### 2.2 Cómo funciona
 
@@ -334,10 +334,12 @@ GitHub Actions cachea por repo con un **límite total de 10 GB** (sin costo adic
 
 ## 6. Gotcha: el cache-miss garantizado de `ci-enterprise.yml`
 
+> 🗑️ **Workflow retirado.** `ci-enterprise.yml` ya no existe en el repo ni en el registro de GitHub Actions (ver `docs/CONTEXT-CICD.md` §5.9). El gotcha se conserva porque el patrón —`cache-dependency-path` apuntando a un layout ajeno— sigue siendo un fallo real que cualquiera puede reintroducir copiando YAML de otro proyecto; el ejercicio 9.3 se hace **leyendo el ejemplo de esta sección**, no el archivo.
+
 ### 6.1 El snippet problemático
 
 ```yaml
-# Source: ../../../.github/workflows/ci-enterprise.yml (job install, líneas 43-51)
+# Source (histórico, workflow retirado): ci-enterprise.yml (job install, líneas 43-51)
 - name: Setup Node
   uses: actions/setup-node@v4
   with:
@@ -364,7 +366,7 @@ GitHub Actions cachea por repo con un **límite total de 10 GB** (sin costo adic
 Además, el job `changes` de `ci-enterprise.yml` usa `dorny/paths-filter@v3` con filtros `frontend/**` y `backend/**`:
 
 ```yaml
-# Source: ../../../.github/workflows/ci-enterprise.yml (job changes, líneas 27-34)
+# Source (histórico, workflow retirado): ci-enterprise.yml (job changes, líneas 27-34)
 with:
   filters: |
     frontend:
@@ -396,9 +398,12 @@ ls frontend/package-lock.json backend/package-lock.json
 ls package-lock.json apps/client/package-lock.json apps/server/package-lock.json
 # → package-lock.json existe; apps/* no tienen lockfile propio (hoisting)
 
-# 3. Ver los runs de ci-enterprise.yml
-gh run list --workflow=ci-enterprise.yml --limit 5
+# 3. Comprobar que el workflow ya no existe (ni archivo ni runs)
+ls .github/workflows/ci-enterprise.yml   # → No such file or directory
+gh run list --workflow=ci-enterprise.yml --limit 5   # → sin resultados
 ```
+
+> Desde su retirada (ver `docs/CONTEXT-CICD.md` §5.9) el paso 3 confirma la ausencia en vez de inspeccionar runs: el diagnóstico que importa —paths ajenos al repo— se hace sobre el snippet de §6.1.
 
 ---
 
@@ -599,7 +604,7 @@ sha256sum package-lock.json
 
 **Respuesta esperada**: no cambia ninguna key (ninguna key incluye `apps/**`). El código fuente no está en las keys — solo el lockfile y el OS. Eso es correcto: el cache de dependencias no necesita invalidarse por cambios de código.
 
-### 9.3 Ejercicio 3: Reproducir el gotcha de `ci-enterprise.yml` localmente
+### 9.3 Ejercicio 3: Reproducir el gotcha del cache-miss (snippet de `ci-enterprise.yml`, retirado)
 
 **Objetivo**: ver con tus ojos que los paths `frontend/` y `backend/` no existen.
 
@@ -617,12 +622,7 @@ ls package-lock.json
 ls apps/client apps/server   # no hay lockfiles por workspace (hoisting)
 ```
 
-3. Lee el job `changes` de `ci-enterprise.yml`:
-
-```bash
-# Source: ../../../.github/workflows/ci-enterprise.yml (job changes)
-grep -n -A 12 "filters:" .github/workflows/ci-enterprise.yml
-```
+3. Lee el job `changes` en el snippet de este workflow (§6.1 y §6.3): el archivo **ya no existe** en el repo, así que no hay nada que grepear — el valor didáctico está en reconocer el patrón de filtros que nunca matchean cuando copies YAML de otro proyecto.
 
 4. Reflexiona: los filtros `frontend/**` y `backend/**` nunca matchean. ¿Qué outputs tendrá siempre el job `changes`? (Respuesta: `false`, `false`). ¿Qué implica eso para los jobs que dependen de él? (Respuesta: nunca corren o corren con condiciones muertas).
 
@@ -826,7 +826,7 @@ Marca cada ítem cuando puedas hacerlo **sin consultar la guía**:
 ## 15. Referencias
 
 - [`docs/workflows-mantenimiento-guia.md`](../../../docs/workflows-mantenimiento-guia.md) — sección 12 (inventario de caches) y Apéndice A (comandos de mantenimiento con `act`)
-- [`docs/cicd-estado-actual.md`](../../../docs/cicd-estado-actual.md) — gap A3 de `ci-enterprise.yml` y métricas de tiempos de CI
+- [`docs/CONTEXT-CICD.md`](../../../docs/CONTEXT-CICD.md) — inventario vigente de workflows (§3.4/§5.9) y estado del gap A3 de `ci-enterprise.yml` (retirado)
 - [`docs/adr/turborepo-evaluation.md`](../../../docs/adr/turborepo-evaluation.md) — evaluación de Turborepo como evolución del cache de tareas
 - [Documentación oficial de `actions/cache`](https://github.com/actions/cache) — opciones `key`, `restore-keys`, `exclude`, `cache-hit`
 - [Documentación de `actions/setup-node`](https://github.com/actions/setup-node) — `cache: 'npm'` y `cache-dependency-path`

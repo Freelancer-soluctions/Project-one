@@ -1,21 +1,13 @@
 import type { Express, Request, Response } from 'express';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-
-// Basic Meta Informations about our API
-const options = {
-  definition: {
-    openapi: '3.1.0',
-    info: { title: 'ERP API', version: '1.0.0' },
-  },
-  apis: ['src/components/**/routes.js', 'src/docs/schemas.js'],
-
-  // apis: ['./components/events/routes.js', './docs/schemas.js']
-  // ['./api/**/routes.js', './api/**/schema.js']
-};
+// Opciones compartidas con el generador del contrato versionado
+// (`scripts/generate-openapi.ts` → `openapi.yaml`): una sola fuente para los
+// globs de anotaciones (change `ci-shifting-left`, capability api-contract-linting).
+import { swaggerOptions } from './swagger-options.ts';
 
 // Docs in JSON format
-const swaggerSpec = swaggerJSDoc(options);
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
 // Function to setup our docs
 export const swaggerDocs = (app: Express, port: number | string): void => {
