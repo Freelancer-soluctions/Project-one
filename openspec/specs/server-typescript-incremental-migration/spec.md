@@ -1,14 +1,14 @@
-# Spec Delta
+# server-typescript-incremental-migration Specification
 
 ## Purpose
 
 Incremental TypeScript migration of the `apps/server` workspace: Phase 0 infrastructure (verification-only tsconfig, type packages, `.ts` toolchain coverage, enabled typecheck CI gate) plus the per-file conversion protocol and phased rollout that guarantee the server keeps running at every commit.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Verification-only TypeScript infrastructure
 
-The `apps/server` workspace SHALL have a `tsconfig.json` that type-checks without emitting (`noEmit: true`), coexists with JavaScript during the migration (`allowJs: true`), and resolves modules with `module: nodenext` / `moduleResolution: nodenext`. During Phases 0–2 the runtime SHALL continue executing the `.js` sources directly (no build step, no `dist/` output); the Phase 3 endgame switches the runtime to `tsx` running `src/bin/index.ts` (design decision 9, 2026-10-14). `strict` SHALL be `false` during Phase 0 and enabled incrementally (one flag per change) in the final phase.
+The `apps/server` workspace SHALL have a `tsconfig.json` that type-checks without emitting (`noEmit: true`), coexists with JavaScript during the migration (`allowJs: true`), and resolves modules with `module: nodenext` / `moduleResolution: nodenext`. During Phases 0–2 the runtime SHALL continue executing the `.js` sources directly (no build step, no `dist/` output); the Phase 3 endgame switches the runtime to `tsx` running `src/bin/index.ts` (design decision 9, 2026-10-14). `strict` SHALL be `false` during Phase 0 and enabled incrementally (one flag or one homogeneous sub-group of flags per step) in the final phase.
 
 #### Scenario: tsconfig does not break execution
 
@@ -91,7 +91,7 @@ Every conversion of a JavaScript file to TypeScript SHALL follow the protocol: o
 
 ### Requirement: Phased rollout from graph leaves to core
 
-The migration SHALL proceed in phases with the order: (1) graph leaves (`config/db`, `config/dotenv`, `config/cors`, `config/aws`, `common/crypto`, `logger`, `utils/constants/enums`, `schemas`), (2) the 24 business modules following the per-module file order schemas → dao → service → routes → controller, (3) transversal core (`middleware`, `socket`, then `app` and `bin/index` last), (4) the configurations and scripts phase (`Fase configs`, tasks §5: `vitest.config.js`, `vitest.smoke.config.js`, `ecosystem.config.js`, `prisma/seed.js`, `scripts/preview-smoke.mjs`, `test-sanitize`, `.dependency-cruiser.cjs`), and (5) strict-mode hardening (tasks §6) with one flag per change. Dead code flagged by knip (e.g., `clientOrder`, `providerOrder`) SHALL be audited for deletion before being migrated.
+The migration SHALL proceed in phases with the order: (1) graph leaves (`config/db`, `config/dotenv`, `config/cors`, `config/aws`, `common/crypto`, `logger`, `utils/constants/enums`, `schemas`), (2) the 24 business modules following the per-module file order schemas → dao → service → routes → controller, (3) transversal core (`middleware`, `socket`, then `app` and `bin/index` last), (4) the configurations and scripts phase (`Fase configs`, tasks §5: `vitest.config.js`, `vitest.smoke.config.js`, `ecosystem.config.js`, `prisma/seed.js`, `scripts/preview-smoke.mjs`, `test-sanitize`, `.dependency-cruiser.cjs`), and (5) strict-mode hardening (tasks §6) with one flag or one homogeneous sub-group of flags per step. Dead code flagged by knip (e.g., `clientOrder`, `providerOrder`) SHALL be audited for deletion before being migrated.
 
 #### Scenario: Phase 1 starts at the leaves
 

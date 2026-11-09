@@ -14,6 +14,7 @@ Strictness SHALL be adopted gradually in `apps/server/`, one flag (or one homoge
 
 - **WHEN** adoption begins
 - **THEN** `noImplicitReturns` and `noFallthroughCasesInSwitch` SHALL be enabled before any high-cost flag
+- **AND** the recorded history re-sequenced `noImplicitAny` first (2026-10-19, change `server-ts-express-contracts`, tasks 6.1/6.3) as a justified deviation; the spec scenario is amended to reflect that exception rather than the original intended order
 
 #### Scenario: noImplicitAny precedes strictNullChecks
 
