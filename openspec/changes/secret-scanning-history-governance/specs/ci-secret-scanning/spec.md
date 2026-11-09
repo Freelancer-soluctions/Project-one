@@ -75,7 +75,7 @@ The pre-build security aggregator SHALL fail when a secret scan job is skipped o
 
 - **WHEN** the `secrets` job is skipped during a pull request
 - **THEN** `prebuild-security-complete` SHALL fail
-- **AND** the merge SHALL remain blocked until the scan runs or is explicitly justified
+- **AND** the merge SHALL remain blocked **once `Secret Detection` (and/or `Prebuild Security Complete`) is added to the ruleset `required_status_checks` (change `secret-scanning` task 6.2, pending/declined by owner as of 2026-11-08)**; until then the failure surfaces in the aggregator but is not enforced at the branch-protection level
 
 #### Scenario: Merge queue runs the scan instead of skipping it
 

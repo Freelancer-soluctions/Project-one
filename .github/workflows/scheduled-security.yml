@@ -169,12 +169,34 @@ jobs:
               'Este issue lo abre el escaneo semanal full-history de `.github/workflows/scheduled-security.yml`.',
             ].join('\n');
 
-            await github.rest.issues.create({
+            const title = `Scheduled security scan failed: ${context.workflow}`;
+            // Dedup (create-or-update): si ya hay un issue abierto con el mismo
+            // prefijo, añadir un comentario con el nuevo run en vez de crear
+            // otro issue (evita spam semanal para un secreto sin remediar).
+            const existing = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `Scheduled security scan failed: ${context.workflow} (${new Date().toISOString().split('T')[0]})`,
-              body
-            });
+              state: 'open',
+              labels: 'security',
+              per_page: 100,
+            }).catch(() => ({ data: [] }));
+            const openIssue = (existing.data || []).find(i => i.title && i.title.startsWith(title));
+            if (openIssue) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: openIssue.number,
+                body: `Nuevo run con hallazgos: ${runUrl}\n\n${body}`,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `${title} (${new Date().toISOString().split('T')[0]})`,
+                labels: ['security'],
+                body
+              });
+            }
 
   # ═══════════════════════════════════════════════════════════════
   # License audit L3 — ScanCode (change `license-compliance`)
