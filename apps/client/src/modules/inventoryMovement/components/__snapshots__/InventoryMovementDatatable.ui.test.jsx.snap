@@ -6,6 +6,8 @@ exports[`InventoryMovementDatatable - UI snapshot > renders each column header w
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Product
     <svg
@@ -43,6 +45,8 @@ exports[`InventoryMovementDatatable - UI snapshot > renders each column header w
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Warehouse
     <svg
@@ -80,6 +84,8 @@ exports[`InventoryMovementDatatable - UI snapshot > renders each column header w
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Quantity
     <svg
@@ -117,6 +123,8 @@ exports[`InventoryMovementDatatable - UI snapshot > renders each column header w
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Type
     <svg
@@ -154,6 +162,8 @@ exports[`InventoryMovementDatatable - UI snapshot > renders each column header w
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Reason
     <svg
@@ -191,6 +201,8 @@ exports[`InventoryMovementDatatable - UI snapshot > renders each column header w
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Created on
     <svg
@@ -228,6 +240,8 @@ exports[`InventoryMovementDatatable - UI snapshot > renders each column header w
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated on
     <svg

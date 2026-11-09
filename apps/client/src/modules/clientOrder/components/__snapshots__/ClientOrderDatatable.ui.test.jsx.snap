@@ -6,6 +6,8 @@ exports[`ClientOrderDatatable - UI snapshot > renders each column header with it
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     clientId
     <svg
@@ -43,6 +45,8 @@ exports[`ClientOrderDatatable - UI snapshot > renders each column header with it
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Status
     <svg
@@ -80,6 +84,8 @@ exports[`ClientOrderDatatable - UI snapshot > renders each column header with it
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Notes
     <svg
@@ -117,6 +123,8 @@ exports[`ClientOrderDatatable - UI snapshot > renders each column header with it
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Created on
     <svg
@@ -154,6 +162,8 @@ exports[`ClientOrderDatatable - UI snapshot > renders each column header with it
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated on
     <svg
@@ -191,6 +201,8 @@ exports[`ClientOrderDatatable - UI snapshot > renders each column header with it
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     saleId
     <svg

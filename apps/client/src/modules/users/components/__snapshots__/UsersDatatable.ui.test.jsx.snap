@@ -6,6 +6,8 @@ exports[`UsersDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Start date
     <svg
@@ -43,6 +45,8 @@ exports[`UsersDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Name
     <svg
@@ -80,6 +84,8 @@ exports[`UsersDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Status
     <svg
@@ -117,6 +123,8 @@ exports[`UsersDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Rol
     <svg
@@ -154,6 +162,8 @@ exports[`UsersDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Email
     <svg
@@ -191,6 +201,8 @@ exports[`UsersDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Telephone
     <svg
@@ -228,6 +240,8 @@ exports[`UsersDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     State
     <svg
@@ -265,6 +279,8 @@ exports[`UsersDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Address
     <svg
@@ -302,6 +318,8 @@ exports[`UsersDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Birthday
     <svg
@@ -339,6 +357,8 @@ exports[`UsersDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated by
     <svg
@@ -376,6 +396,8 @@ exports[`UsersDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated on
     <svg

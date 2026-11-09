@@ -6,6 +6,8 @@ exports[`ClientsDatatable - UI snapshot > renders each column header with its fi
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Name
     <svg
@@ -43,6 +45,8 @@ exports[`ClientsDatatable - UI snapshot > renders each column header with its fi
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Email
     <svg
@@ -80,6 +84,8 @@ exports[`ClientsDatatable - UI snapshot > renders each column header with its fi
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Phone
     <svg
@@ -117,6 +123,8 @@ exports[`ClientsDatatable - UI snapshot > renders each column header with its fi
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Address
     <svg
@@ -154,6 +162,8 @@ exports[`ClientsDatatable - UI snapshot > renders each column header with its fi
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Created on
     <svg
@@ -191,6 +201,8 @@ exports[`ClientsDatatable - UI snapshot > renders each column header with its fi
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated on
     <svg

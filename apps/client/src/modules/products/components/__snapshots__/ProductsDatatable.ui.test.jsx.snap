@@ -6,6 +6,8 @@ exports[`ProductsDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Created on
     <svg
@@ -43,6 +45,8 @@ exports[`ProductsDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     SKU
     <svg
@@ -80,6 +84,8 @@ exports[`ProductsDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Name
     <svg
@@ -117,6 +123,8 @@ exports[`ProductsDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Category
     <svg
@@ -154,6 +162,8 @@ exports[`ProductsDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Provider
     <svg
@@ -191,6 +201,8 @@ exports[`ProductsDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Price ($)
     <svg
@@ -228,6 +240,8 @@ exports[`ProductsDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Cost ($)
     <svg
@@ -265,6 +279,8 @@ exports[`ProductsDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Created by
     <svg
@@ -302,6 +318,8 @@ exports[`ProductsDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated by
     <svg
@@ -339,6 +357,8 @@ exports[`ProductsDatatable - UI snapshot > renders each column header with its f
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated on
     <svg

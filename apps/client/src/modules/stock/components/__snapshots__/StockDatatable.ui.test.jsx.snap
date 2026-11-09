@@ -6,6 +6,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Created on
     <svg
@@ -43,6 +45,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Product
     <svg
@@ -80,6 +84,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Price ($)
     <svg
@@ -117,6 +123,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Quantity
     <svg
@@ -154,6 +162,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Total cost
     <svg
@@ -191,6 +201,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Warehouse
     <svg
@@ -228,6 +240,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Unit measure
     <svg
@@ -265,6 +279,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Lot
     <svg
@@ -302,6 +318,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Expiration date
     <svg
@@ -339,6 +357,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Expiration status
     <svg
@@ -376,6 +396,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Created by
     <svg
@@ -413,6 +435,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated by
     <svg
@@ -450,6 +474,8 @@ exports[`StockDatatable - UI snapshot > renders each column header with its filt
 >
   <div
     class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
   >
     Updated on
     <svg
