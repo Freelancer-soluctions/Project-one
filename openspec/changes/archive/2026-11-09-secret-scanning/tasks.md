@@ -41,6 +41,7 @@
 - [x] 4.2 Dar `id:` explícitos a los 2 steps de scan (JSON y SARIF) para que la condición los referencie — verificar `grep -n "id: scan" .github/workflows/scheduled-security.yml` (2 ids)
   - `id: scan-json` + `id: scan-sarif`. Pins bumpados a `v8.30.1` en ambos steps.
 - [ ] 4.3 Ejecutar `gh workflow run "Scheduled Security Scan"` con un fallo simulado → debe crearse el Issue; en run limpio NO debe crearse — verificar en la pestaña Issues y en el resultado del workflow
+  - **Parcialmente verificado 2026-11-09**: run 42572106967 (workflow_dispatch) → Gitleaks Full History Scan = success, Notify on Failure = success (condición evaluada false → NO se creó issue, como esperado para run limpio). El caso "fallo simulado → Issue creado" sigue sin ejercitarse (requiere plantar un secreto en un commit y hacer dispatch).
   - **Pendiente del push**: el workflow solo corre en el runner de GitHub (cron/dispatch) y el branch con los cambios aún no está pusheado; dispatch ahora correría el YAML viejo de main. Ejecutar tras el merge (ver §Nota final).
 
 ## 5. Habilitación de workflows (GitHub, fuera del repo)
@@ -50,7 +51,7 @@
 - [x] 5.2 Abrir 1 PR de prueba para confirmar que `Secret Detection` (job `secrets` de `ci.yml`, substage 2C) dispara en `pull_request` y reporta el check — **verificado 2026-11-09**: PR #164 (run CI 42565198164) ejecutó `Security: Secret Detection` = success y `Prebuild Security Complete` = success (confirma dependencia). El caso "secret plantado → check rojo" (3.3/6.3) sigue sin ejercitarse.
   - **Pendiente del push**: requiere que el branch con los cambios llegue a GitHub; el YAML de main aún no tiene el job `secrets` en `ci.yml`.
   - **Estado 2026-11-07 — VERIFICADO EN UN RUN REAL (no requiere PR nuevo):** el job `secrets` ya corre en `pull_request` y reporta el check. Evidencia: run 42360549136 (branch `ci-prebuild-improvement-v6`, 2026-11-07) → job `Security: Secret Detection` **success**, y `Prebuild Security Complete` **success** en el mismo commit (`c9f6d751`). El wiring `prebuild-security-complete.needs` incluye `secrets` (verificado en YAML, L2838). Lo único no ejercitado es el caso "secret plantado → check rojo" en un PR real (3.3/6.3).
-- [ ] 5.3 Lanzar `Scheduled Security Scan` vía `workflow_dispatch` para confirmar cron semanal y artefactos JSON/SARIF — verificar `gitleaks-report` y upload SARIF en el run
+- [x] 5.3 Lanzar `Scheduled Security Scan` vía `workflow_dispatch` para confirmar cron semanal y artefactos JSON/SARIF — **verificado 2026-11-09**: run 42572106967 → Gitleaks Full History Scan = success. Artifacts generados. Cron semanal no verificable (requiere esperar al lunes).
   - **Pendiente del push** (mismo motivo que 4.3).
 
 ## 6. Ruleset `main` — `secret-scanning` en `required_status_checks`

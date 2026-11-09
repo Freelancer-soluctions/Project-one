@@ -23,4 +23,4 @@
 
 - [x] 3.1 **Evidencia**: `openspec validate ci-governance-quality-hygiene --strict` → "is valid" (exit 0); `openspec validate --specs --strict` → **118 passed, 0 failed**
 - [x] 3.2 **Evidencia**: `npm run docs:lint` (gate real) exit 0; join diff×lint sobre los 3 docs → 22 líneas tocadas, 0 violaciones nuevas
-- [ ] 3.3 Operacional post-merge documentado: definir `SIGNING_ROLLOUT_DATE=2026-08-01` en Settings → Secrets and variables → Actions → Variables (D3; opcional, el fallback ya da el mismo valor). Verificación: paso anotado aquí y ejecutado post-merge
+- [x] 3.3 Operacional post-merge documentado: definir `SIGNING_ROLLOUT_DATE=2026-08-01` en Settings → Secrets and variables → Actions → Variables (D3; opcional, el fallback ya da el mismo valor). Verificación: **ejecutado 2026-11-09** vía `gh variable set SIGNING_ROLLOUT_DATE --body "2026-08-01"` (exit 0).:
