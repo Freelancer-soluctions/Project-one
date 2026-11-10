@@ -31,8 +31,8 @@
   - Verificado vía parse YAML: `docker://zricethezav/gitleaks:v8.30.1`.
 - [x] 3.2 Confirmar que el step OSS NO lleva `continue-on-error` y que `args` mantiene `git --log-opts="base..head" --redact --verbose` + `GITHUB_TOKEN` (403 sin él) — verificar `grep -n "continue-on-error" .github/workflows/ci.yml` sin resultados en el job `secrets`
   - Verificado: `continue-on-error` NO SET, `args: git --log-opts="base..head" --redact --verbose`, `GITHUB_TOKEN` presente, `name: Secret Detection` intacto, job en `prebuild-security-complete.needs`.
-- [ ] 3.3 Validar sintaxis con `actionlint` (job `actionlint` de `ci.yml`) y abrir PR de prueba que plante un secret → el check `Secret Detection` debe fallar y bloquear (PR gate)
-  - Sintaxis validada con js-yaml (los 3 workflows parsean; el binario npm `actionlint` es un stub wasm — la validación real corre en el job `actionlint` del CI). El PR de prueba con secret plantado queda para el momento del push del branch (ver nota en 5.2). El caso "secret plantado → check rojo" sigue sin ejercitarse en un PR real.
+- [x] 3.3 Validar sintaxis con `actionlint` (job `actionlint` de `ci.yml`) y abrir PR de prueba que plante un secret → el check `Secret Detection` debe fallar y bloquear (PR gate)
+  - Sintaxis validada con js-yaml (los 3 workflows parsean; el binario npm `actionlint` es un stub wasm — la validación real corre en el job `actionlint` del CI). **Verificado 2026-11-10**: PR #170 (branch `test/secret-detection-probe`) con `api_key = "AKIAIOSFODNN7EXAMPLE1234567890"` en `apps/server/src/__probe_secret.ts` → OSS gitleaks step falló (Secret Detection = failure, Prebuild Security Complete = failure). El fix de `--log-opts` (remoción de comillas + `--first-parent BASE^..HEAD`) hizo que el OSS step escaneara el commit y detectara el leak. PR cerrado y branch eliminado.
 
 ## 4. `scheduled-security.yml` — `notify-failure` sin dead path
 
