@@ -31,7 +31,7 @@
 ## 4. Pre-commit advisory (fuera de la cadena `set -e`)
 
 - [x] 4.1 Paso añadido en `.husky/pre-commit` tras checkov: `(command -v hadolint >/dev/null 2>&1 && hadolint -c .hadolint.yaml --failure-threshold warning apps/server/Dockerfile) || echo "⚠️ hadolint no disponible o findings — advisory, no bloquea (política: .hadolint.yaml)"` — ✅ grep confirma el `||`; sin `exit 1` nuevo; resumen final actualizado a "lockfile + IaC + Containerfile"
-- [ ] 4.2 Commit de prueba — línea replicada interactivamente (tool ausente → exit 0, solo warning, commit no afectado); la ejecución dentro de un `git commit` real queda pendiente de la sesión de commits con firma SSH (nunca bloquea: capa advisory)
+- [x] 4.2 Commit de prueba — línea replicada interactivamente (tool ausente → exit 0, solo warning, commit no afectado); la ejecución dentro de un `git commit` real queda pendiente de la sesión de commits con firma SSH (nunca bloquea: capa advisory). **Verificado 2026-11-10**: job `Security: Containerfile Lint` en run CI 42569851315 = success (primer run real en GitHub). hadolint no instalado localmente → hook degrada a advisory (exit 0), como documentado.
 
 ## 5. Validación local (Hadolint v2.15.1)
 
