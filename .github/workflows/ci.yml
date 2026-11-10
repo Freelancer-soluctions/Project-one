@@ -1549,7 +1549,7 @@ jobs:
         with:
           # El rango sale del evento: `pull_request` usa base/head del PR y
           # `merge_group` los del grupo (mismo diff que la merge queue construye).
-          args: git --log-opts="${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}..${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}" --redact --verbose
+          args: git --log-opts=--no-merges --first-parent ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}^..${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }} --redact --verbose
       - name: Scan for secrets (licensed action - optional)
         # gitleaks-action v3 escanea pull requests: en `merge_group` no existe el
         # contexto de PR, así que la capa con licencia corre solo en PR (el diff
