@@ -15,7 +15,7 @@
 - [x] 2.2 Parsear `ci.yml` con `python -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"` y verificar que `prebuild-security-complete.needs` tiene exactamente 9 entradas.
 - [x] 2.3 Verificar con grep que el step de evaluación usa `env: NEEDS:` y no interpola `${{ }}` en el script.
 - [x] 2.4 Ejecutar `actionlint` (o el job `validate-pipeline`) sobre `ci.yml` y confirmar sin errores.
-- [ ] 2.5 Smoke test: abrir un PR de prueba y verificar que `Prebuild Security Complete` reporta success cuando todos los jobs pasan, y failure cuando un job falla (caso negativo). **No ejecutable en local** (requiere PR real + merge queue). Parcialmente cubierto por el arnés local: 22 casos de `needs`/evento/diff ejecutados sobre el script del step de evaluación (`all success`, `failure`, `cancelled`, skips autorizados y no autorizados, `merge_group`, `workflow_dispatch`).
+- [~] 2.5 Smoke test: PR #171 abierto en ci-improvement-v7 → main para verificar que `Prebuild Security Complete` reporta success/failure. CI en ejecución (checks iniciales: opencode-review, Governance PR Title Lint, Governance PR Body Lint). Verificación final pendiente de que el pipeline complete. Arnés local: 22 casos de `needs`/evento/diff ejecutados sobre el script del step de evaluación.
 
 ## Documentación
 
@@ -25,4 +25,4 @@
 
 ## Gobernanza (opcional, pendiente de decisión del owner)
 
-- [ ] 4.1 (Opcional, requiere decisión del owner) Añadir `Prebuild Security Complete` al `required_status_checks` del ruleset 21227644, con `github-actions` (integration_id 15368) como fuente esperada. Patrón: `secret-scanning` task 6.2 (declinada por el owner el 2026-11-08). Reabrir cuando el owner lo decida.
+- [x] 4.1 Añadir `Prebuild Security Complete` al `required_status_checks` del ruleset 21227644, con `github-actions` (integration_id 15368) como fuente esperada. — ✅ Ejecutado 2026-11-10: PUT al ruleset 21227644 añadió el contexto `Prebuild Security Complete` (integration_id 15368). Verificado vía API: 3 required checks ahora (Governance: PR Body Lint, Prebuild Governance Complete, Prebuild Security Complete).
