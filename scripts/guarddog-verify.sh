@@ -75,7 +75,8 @@ rm -f "${guarddog_stderr}"
 # plataforma no lo soporta, el scan falla — comportamiento seguro por
 # defecto (mitiga CVE-2022-23530/31, CVE-2026-22870/871). En Windows
 # nativo fallará (GuardDog solo soporta Windows vía Docker): los
-# consumidores llaman este script con `|| true` (advisory).
+# consumidores llaman este script con `|| true` (para generar la evidencia) y
+# el gate bloqueante parsea el SARIF, no el exit code.
 #
 # `--output-format sarif` es OBLIGATORIO: los jobs `typosquat-guarddog` /
 # `guarddog-weekly` y el hook pre-commit redirigen stdout a un .sarif que

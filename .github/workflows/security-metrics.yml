@@ -1,0 +1,87 @@
+name: Monthly Security Metrics
+
+# ============================================================
+# Métricas mensuales del stage SECURITY
+# (change `security-exceptions-policy`, tasks 2.2/2.3)
+# ============================================================
+# Primer día de cada mes a las 04:00 UTC (después del nocturno de suite y del
+# weekly de seguridad). Recolecta las 7 métricas del PRD con
+# `scripts/security/security-metrics.mjs`, abre/actualiza el issue
+# `[monthly-security-metrics]` y publica el informe como PR versionado en
+# `security/metrics/YYYY-MM.md` (retención de evidencia para auditoría).
+#
+# Por qué un PR y no un commit directo: `main` exige PR + commits firmados
+# (ruleset). `peter-evans/create-pull-request` con `sign-commits: true` usa la
+# API de GitHub, que firma el commit; el merge lo revisa `/security/`
+# (CODEOWNERS).
+on:
+  schedule:
+    - cron: '0 4 1 * *' # día 1 de cada mes, 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  metrics:
+    name: Collect security metrics
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # rama del PR de métricas
+      issues: write # abrir/actualizar el issue mensual
+      pull-requests: write # abrir/actualizar el PR de métricas
+      actions: read # leer runs/jobs de ci.yml y scheduled-security.yml
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Node + dependencias desde el lockfile (nada de ad-hoc packages:
+      # zizmor `adhoc-packages`).
+      - uses: ./.github/actions/setup-monorepo
+
+      - name: Collect metrics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/security/security-metrics.mjs \
+            --out "security/metrics/$(date -u +%Y-%m).md" \
+            --json security/metrics/latest.json
+
+      - name: Open or update monthly issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MONTH="$(date -u +%Y-%m)"
+          TITLE="[monthly-security-metrics] $MONTH"
+          BODY="security/metrics/$MONTH.md"
+          NUMBER="$(gh issue list --state open --search "$TITLE in:title" --json number,title \
+            --jq ".[] | select(.title == \"$TITLE\") | .number" | head -n 1)"
+          if [ -n "$NUMBER" ]; then
+            gh issue edit "$NUMBER" --body-file "$BODY"
+            echo "Issue #$NUMBER actualizado."
+          else
+            gh issue create --title "$TITLE" --body-file "$BODY"
+          fi
+
+      - name: Open or update metrics PR
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          token: ${{ github.token }}
+          branch: security/monthly-metrics
+          sign-commits: true
+          title: 'chore(security): monthly metrics'
+          commit-message: 'chore(security): monthly metrics'
+          body: |
+            Informe automático de métricas de seguridad del mes
+            (`scripts/security/security-metrics.mjs`, change
+            `security-exceptions-policy`).
+
+            Revisión requerida: `/security/` (CODEOWNERS). El merge conserva la
+            evidencia para auditoría en `security/metrics/`.
+          labels: security-metrics
+          delete-branch: false
+          add-paths: |
+            security/metrics/

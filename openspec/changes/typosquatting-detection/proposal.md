@@ -9,8 +9,8 @@ This change governs the conditional execution, calibration period, and eventual 
 ## What Changes
 
 - Condition `typosquat-guarddog` on manifest/lockfile changes via `repo-discovery` outputs (already wired; verify and document).
-- Define a 2-4 week calibration period with false-positive tracking before promotion to blocking.
-- Promote to blocking: remove `continue-on-error: true`, add to `prebuild-security-complete.needs`, rename job to drop "advisory"/"FASE 1" labels.
+- Promote to blocking from day one: remove `continue-on-error: true`, add to `prebuild-security-complete.needs`, rename job to drop "advisory"/"FASE 1" labels.
+- Condition `typosquat-guarddog` on manifest/lockfile changes via `repo-discovery` outputs.
 - Evaluate Socket (commercial) as an alternative if GuardDog's false-positive rate remains unacceptable after calibration.
 - Update `docs/learning/quality-gates.md` taxonomy.
 

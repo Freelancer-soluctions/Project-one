@@ -14,17 +14,35 @@
 # se aplican por defecto). Formato y severidad mínima se pasan por
 # CLI (`--format=sarif`), no por este fichero.
 #
-# FASE 1 (advisory): `"*": ref-pin` — los tags `@v5` de las actions
-# oficiales bastan; endurecer progresivamente a `hash-pin` por owner
-# solo tras clasificar el ruido del primer SARIF (via PR auditable,
-# patrón `.checkov.yml` / `.hadolint.yaml`).
+# FASE 2 (endurecida 2026-11-10, change `sha-pinning-remaining-actions`):
+# `"*": hash-pin` — TODA action remota debe ir pinneada a un SHA de 40
+# caracteres; `@v5` deja de ser suficiente. La política se puede endurecer
+# aquí porque el repo ya no tiene ninguna referencia por tag (las 204 refs
+# de los 17 workflows + el composite van a SHA completo con el tag en
+# comentario) y el mantenimiento lo hace Dependabot (`github-actions`,
+# weekly). Es el gate que convierte el pinning de convención en garantía:
+# una regresión a `@v*` rompe `Security: Zizmor (unpinned-uses)`.
 #
-# Nota: `"*": ref-pin` NO desactiva nada — sigue reportando uses
-# totalmente unpinned (`@master`, `@main`, sin ref). Endurecer es
-# apretar, nunca aflojar.
+# Nota: `hash-pin` también sigue reportando uses totalmente unpinned
+# (`@master`, `@main`, sin ref). Endurecer es apretar, nunca aflojar; el
+# rollback a `ref-pin` exige PR con causa registrada (patrón `.checkov.yml`).
 
+# `self-repository` (severidad `help`, sin impacto de seguridad) sugiere la
+# sintaxis `$/...` para actions locales. Los workflows que usan
+# `./.github/actions/*` se ignoran hasta confirmar soporte de `$/` en el
+# runner y en actionlint (1.7.12 no lo conoce); la regla NO se desactiva, así
+# que sigue cubriendo workflows nuevos.
 rules:
   unpinned-uses:
     config:
       policies:
-        "*": ref-pin
+        '*': hash-pin
+  self-repository:
+    ignore:
+      - ci.yml
+      - coverage-mutation-nightly.yml
+      - coverage-ratchet-monthly.yml
+      - nightly-full-suite.yml
+      - order-dependence-audit.yml
+      - pbt-nightly.yml
+      - security-metrics.yml

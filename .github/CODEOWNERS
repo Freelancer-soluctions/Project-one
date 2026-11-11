@@ -38,3 +38,8 @@ scripts/ci/check-coverage.mjs @Freelancer-soluctions/devops-team
 .gitleaksignore            @Freelancer-soluctions/devops-team
 .gitleaks.toml             @Freelancer-soluctions/devops-team
 .github/workflows/         @Freelancer-soluctions/devops-team
+
+# Política de excepciones, SLA y métricas (change `security-exceptions-policy`).
+# AL FINAL por la misma razón (last-match-wins): cambiar una excepción, el SLA
+# o las métricas exige revisión del equipo devops.
+/security/                 @Freelancer-soluctions/devops-team

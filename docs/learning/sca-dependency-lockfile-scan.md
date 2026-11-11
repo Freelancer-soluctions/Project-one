@@ -253,7 +253,7 @@ lockfile-audit-weekly:
 ## 7. Decisiones para `project-one` (coherentes con cambios existentes)
 
 1. **D1 — No reemplazar `dependency-review` (L765):** manifest PR-time es rápido y bloqueante; se mantiene.
-2. **D2 — Añadir `lockfile-audit` PR-time (fase 1 advisory):** `npm audit --json` + artifact 14d; `continue-on-error: true`; no bloquea hasta fase 2.
+2. **D2 — Añadir `lockfile-audit` PR-time (fase 1 advisory):** `npm audit --json` + artifact 14d; `continue-on-error: true`; **FASE 2 blocking activa desde 2026-11-10** (sin COE a nivel job ni en el step de audit).
 3. **D3 — Extender `scheduled-security.yml` con `lockfile-audit-weekly`:** evidencia 90d; `npm audit` + `trivy fs` (SARIF); alinea con `scancode-license-audit`.
 4. **D4 — Ajustar `.github/dependabot.yml` existente (NO crear el archivo):** ya está activo (npm + github-actions + docker, `weekly` lunes 03:00 UTC, `groups.dev-dependencies`, `open-pull-requests-limit: 10` — ver §3.3); el ajuste se limita a añadir grupo `security-patches` (solo `patch`) + `cooldown`/`default-days`; prevención, no gate; complementario.
 5. **D5 — Pre-commit local (opcional, fase 1):** `npm audit --audit-level=moderate` en `.husky/pre-commit`; advisory; sin artifact.
@@ -306,3 +306,62 @@ lockfile-audit-weekly:
   | `storybook@9.1.20` (devDep) | 8 paquetes `@storybook/*` (moderate), `@vitest/mocker@3.2.4` elevado desde `storybook@9.1` (moderate)                                                          | 9 moderate                            | Fix solo en `storybook@10.x` (migración mayor futura; 9.2.0 stable no existe aún — solo alphas vulnerables). No corre en producción                                                                       |
 
   **Notas**: (1) Todas las waivers están en cadenas **devDependency/tooling** — con `fail-on-scopes: runtime` (default, `license-policy.md` §4) el gate FASE 2 no las evaluaría como runtime; el riesgo declarado ahí aplica. (2) Los 15 residuales vuelven a entrar al radar con: omniroute > 3.8.50, storybook 9.2.0 stable / 10.x, `@vitest/mocker` ≥ fix. (3) `dompurify@3.4.8` nested de monaco y `monaco-editor@0.56` no tienen fix (monaco 0.57 existe pero lo trae omniroute `^0.56`). (4) Lockfile reconciliado con `node_modules` vía `npx npm@12 install`; tests verdes post-fix: client 30/30, server unit 161/161. (5) Lección de ecosistema: la migration SB8→SB9 elimina `@storybook/addon-essentials` y `addon-interactions` (absorbidos por core), `@storybook/blocks` y `@storybook/test` (no existen @9; `addon-docs` expone `./blocks`), y exige `@chromatic-com/storybook@^4` + `@storybook/addon-styling-webpack@^2`. (6) MDX fix aplicado: `Configure.mdx` importa `Meta` desde `@storybook/addon-docs/blocks` (antes `@storybook/blocks`).
+
+---
+
+## 10. Promoción a blocking, OSV-Scanner PR-time y calibración (change `sca-lockfile-compliance`, 2026-11-10)
+
+- **Promoción**: `lockfile-audit` es **blocking** desde 2026-11-10 (`Security: Lockfile Audit`): sin job-COE ni step-COE, `npm audit --audit-level=moderate` sale 1 con hallazgos y el job tiñe el agregador `prebuild-security-complete` (una de las 9 entradas). Un fallo de red/registro también bloquea (fail-closed: no se distingue "sin hallazgos" de "no auditado").
+- **OSV-Scanner PR-time (advisory, FASE 1)** — task 1.3: step `scan -L package-lock.json --format=sarif --output-file=osv-scanner.sarif` con **binario pinneado v2.5.0 + SHA-256** (`edcfc41d…24e0c`, verificado contra el asset del release), gated a `needs.repo-discovery.outputs.lockfile == 'true'`, `continue-on-error: true`, SARIF subido con `category: osv-scanner` e incluido en el artifact `lockfile-audit-pr` (14d). Se evita `google/osv-scanner-action@v2.5.0`: su `action.yml` raíz no declara `runs:` y la action anidada cambia de CLI entre minors. Cobertura multi-ecosistema (npm/yarn/pnpm/bun) sobre el mismo lockfile; **complementa** `npm audit`, no lo sustituye.
+- **Lockfile obligatorio** — task 1.2: el job gana el step `Verify lockfile updated with manifest changes`; con `manifests == true` (raíz/sub-workspaces/e2e) y `lockfile != true` emite `::error::` y `exit 1` (remediación: `npm install --package-lock-only`). Los flags `manifests`/`lockfile` viven en `repo-discovery` (`dorny/paths-filter@v4`) y se propagan como outputs; en `merge_group`/`workflow_dispatch` resuelven `true` (contrato de suite completa). El job sigue corriendo en **todos** los PRs: el audit del lockfile commiteado es cobertura continua barata; lo diff-aware es el guard y el step OSV.
+- **Calibración (tasks 2.1-2.3)**: ventana advisory **2026-09-29 → 2026-11-10**, reconstruida con `gh api` sobre los 117 PR runs del workflow: **116/116** ejecuciones del job `Security: Lockfile Audit (advisory, FASE 1)` terminaron `success`; **0 fallos de job** y **0 falsos positivos** registrados en `security/exceptions.yml`. _Límite honesto_: en FASE 1 el step tenía COE, así que `success` de job no distingue "sin hallazgos" de "hallazgos no bloqueantes"; la clasificación por hallazgo es manual y, si aplica, se registra como excepción (≤ 90 días).
+- **Limitación OSV (task 5.2)**: OSV-Scanner consulta OSV DB (30+ fuentes) y emite SARIF con CVSS, pero **no** calcula EPSS, KEV ni reachability. El triaje de explotabilidad sigue siendo manual: cruzar con FIRST EPSS + CISA KEV (`docs/runbooks/security/cve-triage.md`); triaje completo = Snyk (comercial), fuera de alcance de este change.
+- **Rollback**: revertir el commit del job completo. `lockfile-audit` está en `prebuild-security-complete.needs`, así que el revert debe quitar también esa entrada (el agregador es estricto con `needs` desconocidos/saltados).
+- **Ventana de promoción del step OSV**: abierta el 2026-11-10 — bitácora, criterios y evidencia por run en **§11** de este documento.
+
+---
+
+## 11. Bitácora de calibración OSV-Scanner — ventana de promoción a blocking
+
+**Estado:** 🟡 ABIERTA · **Inicio:** 2026-11-10 · **Cierre objetivo:** 2026-11-24 (14 días) · **Gate afectado:** step `OSV-Scanner lockfile scan (advisory, SARIF)` del job `lockfile-audit` en `.github/workflows/ci.yml` (`continue-on-error: true` en el step y en el upload del SARIF).
+
+El step nace advisory por diseño (change `sca-lockfile-compliance`, FASE 1) y la promoción a blocking exige la ventana de calibración de 2–4 semanas de `docs/learning/quality-gates.md` §7, aplicada aquí con la misma disciplina: un run no se anota hasta que OSV **realmente se ejecuta** (PR que toca `package-lock.json`), no cuando el job se salta el step por el guard.
+
+### 11.1 Criterios de cierre (promoción a blocking)
+
+- [ ] Ventana de **≥ 14 días** desde 2026-11-10 y **≥ 5 runs con OSV ejecutado** (`lockfile` cambiado), no solo PRs abiertos.
+- [ ] **0 fallos de infraestructura** del step (checksum, descarga del binario, `--output-file`), con el artifact `lockfile-audit-pr` presente en todos esos runs.
+- [ ] **100 % de los hallazgos triados** con una de estas etiquetas: `sin hallazgos` · `corregido (PR #N)` · `waiver #N (≤ 90 días)` · `FP (motivo)`.
+- [ ] Ningún falso positivo reiterado sin clasificar en `security/exceptions.yml`; si lo hay, el cierre se pospone y se registra el motivo.
+- [ ] Decisión documentada en el PR que quita el `continue-on-error: true` del step (y del upload del SARIF), con enlace a esta bitácora.
+
+### 11.2 Registro de ejecuciones
+
+| Fecha      | Run ID | PR  | OSV ejecutado | Resultado del step | Hallazgos (crit/high/mod/low) | Triaje / acción                                                                                                                                                                                                      |
+| ---------- | ------ | --- | ------------- | ------------------ | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-10 | —      | —   | No            | —                  | —                             | **Apertura de la ventana.** El step solo existe en el árbol de trabajo (sin commit) → CI no lo ha ejecutado: 0 runs elegibles. La primera fila se anota en el primer PR que toque `package-lock.json` tras el merge. |
+
+**Límite honesto:** mientras el step tenga COE, el resultado del **job** no distingue "sin hallazgos" de "hallazgos no bloqueantes". La evidencia se toma del SARIF/artifact (`osv-scanner.sarif`), no del color del job ni del exit code del step.
+
+### 11.3 Cómo registrar un run
+
+```bash
+# 1) Runs de PR del workflow (id, fecha, rama, conclusión)
+gh api --paginate "repos/{owner}/{repo}/actions/workflows/ci.yml/runs?event=pull_request&per_page=100" \
+  --jq '.workflow_runs[] | [.id, .created_at, .head_branch, .conclusion] | @tsv'
+
+# 2) ¿Corrió OSV en ese run? (el step solo se ejecuta si el PR toca el lockfile)
+gh run view <run-id> --log --job "Security: Lockfile Audit" | grep -E "OSV|osv-scanner"
+
+# 3) Evidencia: SARIF del artifact (14d) — ausente si OSV no se ejecutó
+gh run download <run-id> -n lockfile-audit-pr -D .tmp/osv-evidence
+
+# 4) Hallazgos agregados (Code Scanning, categoría osv-scanner)
+gh api "repos/{owner}/{repo}/code-scanning/analyses?tool_name=OSV-Scanner&per_page=20" \
+  --jq '.[] | [.created_at, .results_count] | @tsv'
+```
+
+### 11.4 Promoción y rollback
+
+- **Promoción (al cerrar §11.1):** quitar `continue-on-error: true` del step `OSV-Scanner lockfile scan (advisory, SARIF)`, renombrar el step sin `(advisory, ...)`, actualizar las filas de `docs/learning/quality-gates.md` §2/§4.4 y §10 de este documento, y enlazar esta bitácora en el PR. Con el step bloqueante, cualquier hallazgo OSV (exit code 1) tiñe `lockfile-audit` y el agregador `prebuild-security-complete`. El `continue-on-error` del **upload** del SARIF se mantiene a propósito: un fallo de `security-events` (p. ej. PR desde fork) es de infraestructura y no debe bloquear un merge; la señal bloqueante es el scan, no la publicación.
+- **Rollback:** reponer `continue-on-error: true` en el step y en el upload **con causa registrada en esta bitácora** (fecha, run, motivo). No se toca `npm audit`, que ya es blocking: OSV es la capa complementaria, no la única.

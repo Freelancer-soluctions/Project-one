@@ -6,7 +6,7 @@
 
 El workflow `ci.yml` SHALL ejecutar un job `lockfile-audit` en cada `pull_request` que ejecute `npm audit --audit-level=moderate --json` directamente sobre el `package-lock.json` commiteado (sin `npm ci`), conservando el reporte como artifact con retención de 14 días.
 
-La promoción a blocking SHALL requerir 2-4 semanas de runs con hallazgos triados y sin falsos positivos. `npm audit` con `--audit-level=moderate` puede generar ruido en dependencias de desarrollo; el umbral se calibra durante la observación. Deep research (2026-11-10) confirma que `npm audit` es adecuado para CVE gating pero no calcula EPSS ni KEV; el triage completo requiere Snyk (comercial) o enriquecimiento manual.
+La promoción a blocking es inmediata: `continue-on-error` se quita desde día uno. `npm audit` con `--audit-level=moderate` puede generar ruido en dependencias de desarrollo; si es necesario, se ajusta el umbral. Deep research (2026-11-10) confirma que `npm audit` es adecuado para CVE gating pero no calcula EPSS ni KEV; el triage completo requiere Snyk (comercial) o enriquecimiento manual.
 
 #### Scenario: Job presente y disparado solo por PR
 
@@ -33,6 +33,7 @@ La promoción a blocking SHALL requerir 2-4 semanas de runs con hallazgos triado
 - **THEN** el paso declara `continue-on-error: true` y el job no bloquea el merge
 - **AND** ninguna entrada de `required_status_checks` depende de `lockfile-audit` en FASE 1
 - **AND** el artifact con los hallazgos queda disponible para revisión
+- **NOTE:** Superseded by "Blocking from day one" — el control es blocking desde día uno, sin FASE 1.
 
 #### Scenario: FASE 2 bloqueante gradual
 
@@ -40,19 +41,27 @@ La promoción a blocking SHALL requerir 2-4 semanas de runs con hallazgos triado
 - **THEN** la remoción de `continue-on-error` convierte el check en blocking de forma gradual
 - **AND** `lockfile-audit` se agrega al bloque `needs` del agregador `prebuild-security-complete` en `ci.yml` (anclado por nombre de job)
 - **AND** `docs/learning/quality-gates.md` refleja el cambio de fase (`advisory (PR, fase 1)` → `blocking (PR)`)
+- **NOTE:** Superseded by "Blocking from day one" — el control es blocking desde día uno, sin período de calibración.
+
+#### Scenario: Blocking from day one
+
+- **WHEN** el audit encuentra vulnerabilidades `>= moderate`
+- **THEN** el job falla (sin `continue-on-error`) y bloquea el merge
+- **AND** `lockfile-audit` está en `prebuild-security-complete.needs` desde día uno
+- **AND** el artifact con los hallazgos queda disponible para revisión
+
+#### Scenario: Falsa positiva documentada
+
+- **WHEN** un run de `lockfile-audit` produce un falso positivo
+- **THEN** el hallazgo se registra con: paquete, CVE, motivo del falso positivo, y fecha
+- **AND** si el paquete es una devDependency, se evalúa excluirlo del umbral o ajustar `--audit-level`
+- **AND** la tasa de falsos positivos se recalcula al final de cada semana
 
 #### Scenario: `deny-licenses` no aplica a esta capa
 
 - **WHEN** se configura el job `lockfile-audit`
 - **THEN** no se declaran `allow-licenses` ni `deny-licenses` ni se modifica `fail-on-severity`
 - **AND** la documentación explica que esta capa detecta CVE/vulnerabilidades, no licencias
-
-#### Scenario: Falsa positiva documentada
-
-- **WHEN** un run de `lockfile-audit` produce un falso positivo durante la calibración
-- **THEN** el hallazgo se registra con: paquete, CVE, motivo del falso positivo, y fecha
-- **AND** si el paquete es una devDependency, se evalúa excluirlo del umbral o ajustar `--audit-level`
-- **AND** la tasa de falsos positivos se recalcula al final de cada semana de calibración
 
 ## ADDED Requirements
 

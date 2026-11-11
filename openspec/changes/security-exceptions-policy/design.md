@@ -4,7 +4,7 @@
 
 1. **Formato de excepciones.** YAML versionado en `security/exceptions.yml` con schema fijo: `id`, `tool`, `finding`, `scope`, `reason`, `owner`, `created`, `expires`, `ticket`. Cada supresión (inline o en archivo) referencia un `id`. El archivo es la única fuente de verdad para riesgos aceptados.
 
-2. **Job de CI custom.** No existe un action de GitHub que valide expiración de excepciones. Se crea un script (bash + yq o python) que parsea `security/exceptions.yml` y falla si alguna excepción tiene `expires < today`, está mal formada, o tiene `expires > created + 90 días`. Se ejecuta en substage 2C como job advisory en FASE 1; en FASE 2 se cablea al agregador.
+2. **Job de CI custom.** No existe un action de GitHub que valide expiración de excepciones. Se crea un script (bash + yq o python) que parsea `security/exceptions.yml` y falla si alguna excepción tiene `expires < today`, está mal formada, o tiene `expires > created + 90 días`. Se ejecuta en substage 2C como job blocking, cableado a `prebuild-security-complete.needs` desde día uno.
 
 3. **SLA documentado, no automatizado (FASE 1).** El SLA se documenta en `security/SLA.md`. La medición automatizada (métrica "incumplimientos de SLA abiertos") se añade en el workflow de métricas mensual. Incluye: reassignment no reinicia el clock; evidencia de explotación activa → deadline acelerado + re-evaluación inmediata.
 
@@ -20,7 +20,7 @@
 
 9. **Emergency bypass governance.** Documentar en el runbook `urgent-fix-blocked.md` que el bypass se limita a un rol, se registra, y va seguido de una excepción formal. El check nunca se desactiva.
 
-10. **Aggregator reporting (FASE 2).** El agregador `prebuild-security-complete` deberá reportar el conteo de excepciones activas y la fecha de vencimiento más próxima. Se añade como task de FASE 2 (depende de `prebuild-security-aggregator-strict`).
+10. **Aggregator reporting.** El agregador `prebuild-security-complete` reporta el conteo de excepciones activas y la fecha de vencimiento más próxima. Cableado desde día uno (depende de `prebuild-security-aggregator-strict`).
 
 ## Artifacts a crear
 

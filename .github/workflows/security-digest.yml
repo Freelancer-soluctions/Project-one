@@ -2,7 +2,7 @@ name: Scheduled Security Digest
 
 on:
   schedule:
-    - cron: '0 3 * * 1'  # Monday 03:00 UTC
+    - cron: '0 3 * * 1' # Monday 03:00 UTC
   workflow_dispatch:
     inputs:
       pull_request_number:
@@ -19,15 +19,26 @@ jobs:
     name: Generate SBOM
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Job-level `contents: write` (no a nivel workflow — least privilege, change
+    # `sbom-dependency-snapshot`): requerido por la Dependency submission API que
+    # consume `dependency-snapshot: true`. Este workflow solo corre en schedule /
+    # workflow_dispatch (nunca forks), así que el token siempre es write-capable.
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@v0.24.0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           format: cyclonedx-json
           output-file: sbom-project-one.json
+          # Sube el SBOM al Dependency submission API para cobertura Dependabot de
+          # transitivas (github-token default = github.token; CycloneDX aceptado).
+          dependency-snapshot: true
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: sbom
           path: sbom-project-one.json
@@ -39,14 +50,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5.0.0
-      - name: Run OSV Scanner
-        uses: google/osv-scanner-action@v2.5.0
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
-          scan-args: --format=json --output=osv-report.json package-lock.json
+          persist-credentials: false
+      # Binario pinneado + SHA-256: `google/osv-scanner-action@v2.5.0` apunta a
+      # un `action.yml` raíz sin `runs:` (stub), y la action anidada cambia de
+      # CLI entre minors. Mismo patrón que `lockfile-audit` en `ci.yml`.
+      - name: Install OSV-Scanner (v2.5.0, checksum)
+        env:
+          OSV_SCANNER_URL: https://github.com/google/osv-scanner/releases/download/v2.5.0/osv-scanner_linux_amd64
+          OSV_SCANNER_SHA256: edcfc41d257db36148f065055655fe3fcfc434b0b423ea67468a84c207524e0c
+        run: |
+          set -euo pipefail
+          curl -fsSL -o "$RUNNER_TEMP/osv-scanner" "$OSV_SCANNER_URL"
+          echo "$OSV_SCANNER_SHA256  $RUNNER_TEMP/osv-scanner" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/osv-scanner"
+      - name: Run OSV Scanner
+        run: >
+          "$RUNNER_TEMP/osv-scanner" scan -L package-lock.json
+          --format=json --output-file=osv-report.json
       - name: Upload OSV Report artifact
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: osv-report
           path: osv-report.json
@@ -61,18 +86,18 @@ jobs:
       pull-requests: write
     steps:
       - name: Download SBOM artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: sbom
           path: artifacts/sbom
       - name: Download OSV Report artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: osv-report
           path: artifacts/osv-report
       - name: Find latest scheduled-security run
         id: sibling-run
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             const runs = await github.rest.actions.listWorkflowRuns({
@@ -89,7 +114,7 @@ jobs:
             core.setOutput('run_id', runs.data.workflow_runs[0].id.toString());
       - name: Download Gitleaks Report from sibling
         if: steps.sibling-run.outputs.run_id != ''
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: gitleaks-report
           path: artifacts/gitleaks
@@ -103,13 +128,17 @@ jobs:
             artifacts/gitleaks/gitleaks-report.json \
             security-digest.md
       - name: Upload Security Digest artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: security-digest
           path: security-digest.md
       - name: Post digest comment to PR
         if: inputs.pull_request_number != ''
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          # Nunca interpolar `${{ inputs.* }}` dentro de `script:` (zizmor
+          # `template-injection`): la entrada va por entorno.
+          PR_NUMBER: ${{ inputs.pull_request_number }}
         with:
           script: |
             const fs = require('fs');
@@ -123,8 +152,8 @@ jobs:
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: parseInt('${{ inputs.pull_request_number }}'),
-              body: `## Security Digest Summary\n\n${digest.split('\n').slice(0, 50).join('\n')}\n\n---\n*Full digest available in the [security-digest artifact](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) of this workflow run.*`
+              issue_number: parseInt(process.env.PR_NUMBER, 10),
+              body: `## Security Digest Summary\n\n${digest.split('\n').slice(0, 50).join('\n')}\n\n---\n*Full digest available in the [security-digest artifact](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) of this workflow run.*`
             });
 
   notify-failure:
@@ -135,7 +164,7 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: actions/github-script@v8
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             await github.rest.issues.create({

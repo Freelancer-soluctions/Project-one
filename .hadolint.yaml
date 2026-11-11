@@ -18,11 +18,11 @@
 # (failure-threshold, format, ignored, label-schema, no-color,
 #  no-fail, override, strict-labels, trustedRegistries).
 
-# FASE 1 (advisory): `info` = el job reporta todo pero nunca bloquea
-# (además lleva `continue-on-error: true` a nivel job).
-# FASE 2 (blocking, diferida): subir a `warning` — el umbral `info`
-# haría fallar DL3059 (capas RUN consecutivas, severidad info).
-failure-threshold: info
+# FASE 2 BLOCKING ACTIVA (2026-11-10): `warning`. DL3059 (capas RUN
+# consecutivas, severidad info) no tripia el umbral; DL3018 está cubierto por
+# el pragma inline justificado de apps/server/Dockerfile. El job ya no lleva
+# `continue-on-error`; el weekly conserva el suyo.
+failure-threshold: warning
 
 # Formato por defecto para ejecución local; el job PR fuerza SARIF
 # vía input `format: sarif` de hadolint-action (el weekly monta este

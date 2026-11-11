@@ -29,8 +29,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
 
@@ -38,10 +39,14 @@ jobs:
       # create signed commits through the API (required_signatures).
       - name: Create GitHub App Token
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          # Least-privilege (zizmor `github-app`): el token solo abre/actualiza
+          # el PR de ratchet (rama + PR), no necesita el resto de la instalación.
+          permission-contents: write
+          permission-pull-requests: write
 
       - name: Measure coverage and compute proposals
         run: >-
@@ -50,7 +55,7 @@ jobs:
           --summary reports/coverage-ratchet-proposal.md
 
       - name: Open or update ratchet PR
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
         with:
           token: ${{ steps.app-token.outputs.token }}
           branch: coverage-ratchet/monthly

@@ -2,46 +2,61 @@
 
 ## MODIFIED Requirements
 
-### Requirement: Transición FASE 1 → FASE 2 bloqueante gradual (diferida)
+### Requirement: Job PR-time `typosquat-guarddog` advisory (L2, FASE 1)
 
-La capa SHALL evolucionar de `advisory` a `blocking` solo tras 2-4 semanas de runs sin falsos positivos, momento en el que se quitará `continue-on-error: true`, se añadirá `typosquat-guarddog` al `needs` de `prebuild-security-complete` y se actualizará la fila en `docs/learning/quality-gates.md` (registro único de la taxonomía).
+El workflow `ci.yml` SHALL ejecutar en cada `pull_request` un job `typosquat-guarddog` que verifique `package.json` con `uvx guarddog==3.2.0 npm verify ... --output-format sarif`, con `needs: repo-discovery`, sin `continue-on-error` (blocking desde día uno), `permissions` de job `contents: read` + `security-events: write`, subida SARIF con `category: guarddog` (única) y artifact de evidencia de 14 días. El job SHALL formar parte del `needs` del agregador `prebuild-security-complete`.
 
-La calibración SHALL rastrear la tasa de falsos positivos por ecosistema. Investigación web (2026-11-10) confirma que GuardDog tiene una tasa de falsos positivos del 2.2% en npm (263/12.111 paquetes) y 6.7% en PyPI (1.002/15.001-30.000). El issue #898 (abierto, 2026-10) documenta bugs en la heurística de typosquatting (confused forms matching anywhere in term). La promoción a blocking SHALL requerir que la tasa de falsos positivos esté por debajo del umbral aceptable para el equipo (a definir en la calibración) y que los hallazgos ruidosos estén clasificados en `scripts/guarddog-verify.sh`.
+El job SHALL estar condicionado a cambios en manifiestos o lockfiles: `if: github.event_name == 'pull_request' && needs.repo-discovery.outputs.manifests == 'true'`. El output `manifests` SHALL ser publicado por `repo-discovery`.
 
-#### Scenario: Criterio de promoción (R6-FASE1/2)
+#### Scenario: Ejecución advisory en PR (R2-L2)
 
-- **WHEN** han pasado 2-4 semanas de runs de `typosquat-guarddog` sin falsos positivos y los ruidosos están clasificados en `scripts/guarddog-verify.sh`
-- **THEN** se puede quitar `continue-on-error: true` y añadir `typosquat-guarddog` al `needs` de `prebuild-security-complete` (anclado por nombre de job)
-- **AND** la fila en `quality-gates.md` pasa de `advisory (PR, fase 1)` a `blocking (PR)` y se añade/actualiza la fila del job semanal
+- **WHEN** corre `ci.yml` en un `pull_request` (FASE 1, antes del cambio)
+- **THEN** el job era advisory (`continue-on-error: true`) y no bloqueaba el merge
+- **NOTE:** Superseded — el control es blocking desde día uno.
 
-#### Scenario: Retroceso simple
+#### Scenario: Sin bloqueo en FASE 1
 
-- **WHEN** la FASE 2 produce un falso positivo en un PR
-- **THEN** se re-añade `continue-on-error: true` y se retira la línea del `needs` (un solo revert), sin rediseñar el job
-- **AND** la regresión queda anotada en `quality-gates.md` para revisar la política antes de re-promover
+- **WHEN** se inspeccionaba el bloque `needs` de `prebuild-security-complete` antes de este change
+- **THEN** `typosquat-guarddog` no aparecía en ese `needs`
+- **NOTE:** Superseded — el job está en `needs` desde día uno.
 
-#### Scenario: Falsa positiva documentada
+#### Scenario: Ejecución en PR con cambios en manifiestos
 
-- **WHEN** un run de `typosquat-guarddog` produce un falso positivo durante la calibración
-- **THEN** el hallazgo se registra con: paquete, regla disparada, motivo del falso positivo, y fecha
-- **AND** si la regla es recurrentemente ruidosa, se evalúa una exclusión justificada en `scripts/guarddog-verify.sh` (qué regla, por qué, hasta cuándo)
-- **AND** la tasa de falsos positivos se recalcula al final de cada semana de calibración
+- **WHEN** corre `ci.yml` en un `pull_request` con cambios en manifiestos o lockfiles
+- **THEN** existe el job `typosquat-guarddog` con `needs: repo-discovery`, condicionado a `needs.repo-discovery.outputs.manifests == 'true'`, en paralelo a `dependency-review`, `lockfile-audit` y `checkov-iac`
+- **AND** instala `uv` con `astral-sh/setup-uv` **SHA-pinned** y ejecuta `uvx guarddog==3.2.0` (versión pinneada)
+- **AND** genera `guarddog.sarif` y lo sube vía `github/codeql-action/upload-sarif@v4` con `category: guarddog`
+- **AND** publica el artifact `guarddog-report-pr` con `retention-days: 14`
+- **AND** el job bloquea el merge si GuardDog detecta un paquete sospechoso (`exit non-zero`, sin `continue-on-error`)
+
+#### Scenario: Sin bloqueo cuando no hay cambios en manifiestos
+
+- **WHEN** se inspecciona el bloque `needs` de `prebuild-security-complete`
+- **THEN** `typosquat-guarddog` está en ese `needs` (blocking desde día uno)
+- **AND** los jobs `dependency-review`, `secrets` y `scancode-license-pr-diff` permanecen intactos
+- **AND** si no hay cambios en manifiestos, el job se salta y el skip está autorizado por path (no falla el agregador)
+
+#### Scenario: Job id estable
+
+- **WHEN** el job se promueve a blocking
+- **THEN** el job id `typosquat-guarddog` permanece estable (solo el display `name:` cambia)
+- **AND** todos los `needs` y scenarios referencian el id, no el nombre
 
 ## ADDED Requirements
 
 ### Requirement: Evaluación de Socket como alternativa
 
-El equipo SHALL evaluar Socket (comercial) como alternativa a GuardDog si la tasa de falsos positivos de GuardDog sigue inaceptable después de la calibración. La evaluación SHALL comparar: tasa de falsos positivos, cobertura de señales (70+ en Socket vs metadata+YARA en GuardDog), costo, y compatibilidad con el flujo de CI existente. La decisión SHALL documentarse en el change antes de promover a blocking.
+El equipo SHALL evaluar Socket (comercial) como alternativa a GuardDog si la tasa de falsos positivos de GuardDog es inaceptable. La evaluación SHALL comparar: tasa de falsos positivos, cobertura de señales (70+ en Socket vs metadata+YARA en GuardDog), costo, y compatibilidad con el flujo de CI existente. La decisión SHALL documentarse.
 
 #### Scenario: Socket evaluado
 
-- **WHEN** la calibración de GuardDog concluye con tasa de falsos positivos inaceptable
-- **THEN** se documenta la comparación Socket vs GuardDog en el change
-- **AND** se decide si promover GuardDog (con exclusiones) o migrar a Socket
+- **WHEN** la tasa de falsos positivos de GuardDog es inaceptable en producción
+- **THEN** se documenta la comparación Socket vs GuardDog
+- **AND** se decide si mantener GuardDog (con exclusiones) o migrar a Socket
 - **AND** la decisión se registra en `docs/learning/quality-gates.md`
 
-#### Scenario: GuardDog promovido sin Socket
+#### Scenario: GuardDog mantenido sin Socket
 
-- **WHEN** la calibración de GuardDog concluye con tasa de falsos positivos aceptable
-- **THEN** se promueve GuardDog a blocking sin evaluar Socket
+- **WHEN** la tasa de falsos positivos de GuardDog es aceptable
+- **THEN** se mantiene GuardDog como herramienta de typosquatting
 - **AND** la decisión se registra en `docs/learning/quality-gates.md`

@@ -6,7 +6,7 @@ This is a small, low-risk change that improves the security posture without addi
 
 ## What Changes
 
-- Enable `dependency-snapshot: true` in the `anchore/sbom-action` step of `.github/workflows/security.yml` (and `scheduled-security.yml` if applicable).
+- Enable `dependency-snapshot: true` in the `anchore/sbom-action` step of `.github/workflows/security.yml` and `.github/workflows/security-digest.yml` (the two workflows that actually use `anchore/sbom-action`). `scheduled-security.yml` is out of scope: its SBOM uses `npm sbom` (no snapshot capability).
 - Verify that the `github-token` permission is available for the dependency submission API.
 - Update documentation to reflect the improved Dependabot coverage.
 
@@ -18,7 +18,7 @@ This is a small, low-risk change that improves the security posture without addi
 
 ## Impact
 
-- **Workflows:** `.github/workflows/security.yml` (SBOM job), `.github/workflows/scheduled-security.yml` (SBOM job).
+- **Workflows:** `.github/workflows/security.yml` (SBOM job), `.github/workflows/security-digest.yml` (SBOM job). `scheduled-security.yml` is out of scope (uses `npm sbom`, no snapshot capability).
 - **Docs:** `docs/CONTEXT-CICD.md` or `docs/learning/quality-gates.md`.
 - **Sin cambios en código de aplicación.** Sin cambios de schema ni API.
 - **Coordinación:** Independiente de todos los demás changes. Puede aplicarse en cualquier momento.

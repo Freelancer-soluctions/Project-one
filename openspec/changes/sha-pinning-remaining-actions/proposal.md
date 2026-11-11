@@ -11,10 +11,16 @@ The repo already pins most actions (setup-uv, gitleaks, etc.) but several remain
 
 ## What Changes
 
-- SHA-pin all remaining tag-pinned third-party actions in `.github/workflows/ci.yml`, `.github/workflows/security.yml`, and `.github/workflows/scheduled-security.yml`.
+- SHA-pin all remaining tag-pinned third-party **and first-party** actions across `.github/workflows/**` (repo-wide scope).
 - Add version comments next to each SHA for traceability.
 - Verify that Dependabot's github-actions ecosystem is configured to keep SHAs updated.
 - Enforce SHA pinning at the repo level via allowed-actions policy (documentation step).
+
+## Non-implementable / manual items
+
+- Maintenance cost: SHA pinning increases maintenance; mitigated by Dependabot github-actions ecosystem (§8.7).
+- Some actions (e.g., `checkov-action@v12`) may not publish release SHAs; use tag dereference via GitHub API as fallback.
+- Workflow dependency lockfiles (newer) supersede SHA pinning for full transitive pinning; documented as future option.
 
 ## Capabilities
 
@@ -24,7 +30,7 @@ The repo already pins most actions (setup-uv, gitleaks, etc.) but several remain
 
 ## Impact
 
-- **Workflows:** `.github/workflows/ci.yml`, `.github/workflows/security.yml`, `.github/workflows/scheduled-security.yml`.
+- **Workflows:** `.github/workflows/**` (all workflow files, repo-wide).
 - **Repo config:** `.github/dependabot.yml` (verify github-actions ecosystem is configured).
 - **Sin cambios en código de aplicación.** Sin cambios de schema ni API.
 - **Coordinación:** Puede aplicarse en paralelo con cualquier otro change. No depende de Phase 0.

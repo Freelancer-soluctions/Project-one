@@ -45,14 +45,21 @@ jobs:
       # package.json/lockfile/scripts y dispararía el lint de workflows en PRs
       # que no tocan ni un YAML de `.github/`.
       workflows: ${{ steps.scope.outputs.workflows }}
+      # change `sca-lockfile-compliance` (task 1.1/1.2): diff de manifiestos vs
+      # lockfile raíz para el guard de lockfile obligatorio y el gate del step
+      # OSV-Scanner (solo corre si el PR toca el lockfile).
+      lockfile: ${{ steps.scope.outputs.lockfile }}
+      manifests: ${{ steps.scope.outputs.manifests }}
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       # NOTE: app-token step removed — unused; paths-filter uses default GITHUB_TOKEN
       # El filtro de rutas SOLO tiene sentido con un diff de PR: en `merge_group`
       # no hay `pull_request.base.sha` y en `workflow_dispatch` no hay diff alguno.
       # El step `Resolve change detection` de abajo cubre esos dos eventos.
-      - uses: dorny/paths-filter@v4
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
         id: filter
         if: github.event_name == 'pull_request'
         with:
@@ -67,6 +74,15 @@ jobs:
               - '.github/workflows/**'
               - '.github/dependabot.yml'
               - '.yamllint.yml'
+            # Manifiestos que el lockfile raíz debe resolver (task 1.2 del
+            # change `sca-lockfile-compliance`): un cambio aquí sin cambio en
+            # `lockfile` falla el guard del job `lockfile-audit`.
+            manifests:
+              - 'package.json'
+              - 'apps/*/package.json'
+              - 'e2e/package.json'
+            lockfile:
+              - 'package-lock.json'
             shared:
               - 'package.json'
               - 'package-lock.json'
@@ -108,6 +124,8 @@ jobs:
           FILTER_E2E: ${{ steps.filter.outputs.e2e }}
           FILTER_SHARED: ${{ steps.filter.outputs.shared }}
           FILTER_WORKFLOWS: ${{ steps.filter.outputs.workflows }}
+          FILTER_LOCKFILE: ${{ steps.filter.outputs.lockfile }}
+          FILTER_MANIFESTS: ${{ steps.filter.outputs.manifests }}
         run: |
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             {
@@ -116,6 +134,8 @@ jobs:
               echo "e2e=true"
               echo "shared=true"
               echo "workflows=true"
+              echo "lockfile=true"
+              echo "manifests=true"
             } >> "$GITHUB_OUTPUT"
             echo "::notice::event '${{ github.event_name }}' has no PR diff — every workspace is treated as changed (full suite)."
             exit 0
@@ -126,6 +146,8 @@ jobs:
             echo "e2e=${FILTER_E2E:-false}"
             echo "shared=${FILTER_SHARED:-false}"
             echo "workflows=${FILTER_WORKFLOWS:-false}"
+            echo "lockfile=${FILTER_LOCKFILE:-false}"
+            echo "manifests=${FILTER_MANIFESTS:-false}"
           } >> "$GITHUB_OUTPUT"
         shell: bash
 
@@ -171,11 +193,15 @@ jobs:
       - name: Debug PR number
         if: steps.detect_event.outputs.event_type == 'pull_request'
         run: |
-          echo "PR number: ${{ steps.detect_event.outputs.pr_number }}"
+          echo "PR number: ${STEPS_DETECT_EVENT_OUTPUTS_PR_NUMBER}"
+        env:
+          STEPS_DETECT_EVENT_OUTPUTS_PR_NUMBER: ${{ steps.detect_event.outputs.pr_number }}
 
       - name: Fetch PR commits via compare endpoint
         if: steps.detect_event.outputs.event_type == 'pull_request'
         id: fetch_commits
+        env:
+          SIGNING_ROLLOUT_DATE: ${{ vars.SIGNING_ROLLOUT_DATE || '2026-08-01' }}
         run: |
           set -e
 
@@ -194,7 +220,7 @@ jobs:
           # Configurable via repo variable (Settings → Secrets and variables →
           # Actions → Variables); el fallback inline es el valor canónico mientras
           # la variable no esté definida.
-          ROLLOUT_DATE="${{ vars.SIGNING_ROLLOUT_DATE || '2026-08-01' }}"
+          ROLLOUT_DATE="${SIGNING_ROLLOUT_DATE}"
           echo "Signing rollout cutoff (effective): $ROLLOUT_DATE"
 
           # R1: Scoping base..head via compare endpoint
@@ -339,7 +365,7 @@ jobs:
       - name: Fetch single commit verification (merge_group fallback)
         if: steps.detect_event.outputs.event_type == 'merge_group'
         run: |
-          SHA="${{ steps.detect_event.outputs.single_sha }}"
+          SHA="${STEPS_DETECT_EVENT_OUTPUTS_SINGLE_SHA}"
           # REST API nests verification under .commit — top-level .verification does not exist
           VERIFIED=$(curl -s -H "Authorization: Bearer ${{ github.token }}" \
             "https://api.github.com/repos/${{ github.repository }}/commits/$SHA" | jq -r '.commit.verification.verified // false')
@@ -348,6 +374,8 @@ jobs:
           else
             echo "$SHA" >> failed_shas.txt
           fi
+        env:
+          STEPS_DETECT_EVENT_OUTPUTS_SINGLE_SHA: ${{ steps.detect_event.outputs.single_sha }}
 
       - name: Check verification results
         id: verify_results
@@ -399,10 +427,11 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -445,7 +474,7 @@ jobs:
       # PR events: validate Signed-off-by on all commits
       - name: DCO sign-off check
         if: github.event_name == 'pull_request'
-        uses: KineticCafe/actions-dco@v3.2.0
+        uses: KineticCafe/actions-dco@5f160e3ee086af8fc0fb567b8add0937d074123e # v3.2.0
         with:
           config: |
             [bot]
@@ -499,8 +528,9 @@ jobs:
     # FASE 2 (2026-10-20): blocking. El único hallazgo de la ventana de
     # calibración se trió como falso positivo y se remedió con `nosemgrep`.
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - name: Run diff-scoped Semgrep scan (shared script)
         env:
@@ -518,7 +548,7 @@ jobs:
       # `.tmp/` es un path OCULTO y upload-artifact@v4+ lo excluye por defecto.
       - name: Upload SAST report (14-day calibration evidence)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: sast-report
           path: .tmp/sast-report.json
@@ -563,8 +593,9 @@ jobs:
       contents: read
       checks: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
 
@@ -581,6 +612,7 @@ jobs:
         env:
           FULL_SUITE_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'ci:full-suite') }}
           FULL_SUITE_INPUT: ${{ inputs.full_suite || false }}
+          NEEDS_REPO_DISCOVERY_OUTPUTS_SHARED: ${{ needs.repo-discovery.outputs.shared }}
         run: |
           if [ "$FULL_SUITE_LABEL" = "true" ] || [ "$FULL_SUITE_INPUT" = "true" ]; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
@@ -588,7 +620,7 @@ jobs:
           elif [ "${{ github.event_name }}" = "merge_group" ]; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
             echo "::notice::merge queue — running the FULL client suite before integration."
-          elif [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+          elif [ "${NEEDS_REPO_DISCOVERY_OUTPUTS_SHARED}" = "true" ]; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
             echo "::notice::shared path changed (root manifest, lockfile, workflows or global configs) — running the FULL client suite."
           elif git rev-parse --verify --quiet origin/main > /dev/null; then
@@ -647,9 +679,9 @@ jobs:
       - name: Run Client Unit Tests (TIA / full suite)
         run: |
           mkdir -p apps/client/reports
-          echo "scope=${{ steps.tia.outputs.scope }}" > apps/client/reports/tia-scope.txt
-          if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
-            npm run test:changed:ci --workspace=apps/client -- ${{ steps.quarantine.outputs.args }}
+          echo "scope=${STEPS_TIA_OUTPUTS_SCOPE}" > apps/client/reports/tia-scope.txt
+          if [ "${STEPS_TIA_OUTPUTS_SCOPE}" = "changed" ]; then
+            npm run test:changed:ci --workspace=apps/client -- ${STEPS_QUARANTINE_OUTPUTS_ARGS}
             # Guard D7: un diff válido puede no tener NINGÚN test relacionado, y con
             # passWithNoTests (default en Vitest 4) eso sale "No test files found"
             # con exit 0 — un verde VACÍO que el agregador contaría como tests
@@ -659,12 +691,15 @@ jobs:
             if [ "${RAN:-0}" -eq 0 ]; then
               echo "::warning::TIA matched 0 tests for this diff (numTotalTests=${RAN:-0}); running the FULL client suite instead of reporting a vacuous green."
               echo "scope=full" > apps/client/reports/tia-scope.txt
-              npm run test:coverage:ci --workspace=apps/client -- ${{ steps.quarantine.outputs.args }}
+              npm run test:coverage:ci --workspace=apps/client -- ${STEPS_QUARANTINE_OUTPUTS_ARGS}
             fi
           else
-            npm run test:coverage:ci --workspace=apps/client -- ${{ steps.quarantine.outputs.args }}
+            npm run test:coverage:ci --workspace=apps/client -- ${STEPS_QUARANTINE_OUTPUTS_ARGS}
           fi
         shell: bash
+        env:
+          STEPS_TIA_OUTPUTS_SCOPE: ${{ steps.tia.outputs.scope }}
+          STEPS_QUARANTINE_OUTPUTS_ARGS: ${{ steps.quarantine.outputs.args }}
 
       # Duración del step de tests — G1.1 del change `test-sharding` (advisory:
       # `if: always()`, append-only al step summary, nunca gate ni exit 1).
@@ -783,7 +818,7 @@ jobs:
           echo "scope=${SCOPE}" >> "$GITHUB_OUTPUT"
         shell: bash
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always() && steps.coverage-map.outputs.scope == 'full'
         with:
           name: coverage-map-client-${{ github.sha }}
@@ -803,7 +838,7 @@ jobs:
       #   `upload-artifact@v4+` lo excluiría por defecto → el merge no tendría blobs.
       # - `retention-days: 3`: con N shards cada una genera su coverage parcial (casi
       #   siempre descartado); el merged es el único artefacto de verdad.
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: coverage-client-shard-1
@@ -815,7 +850,7 @@ jobs:
           if-no-files-found: warn
       # Evidencia de flakiness (retryCount/flaky por test) para la métrica
       # semanal — D8. El JUnit colapsa los retries, por eso este artifact.
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: flaky-evidence-client
@@ -838,7 +873,7 @@ jobs:
           node scripts/ci/tia-history.mjs apps/client --record --out apps/client/reports/tia-history.json || true
         shell: bash
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: tia-history-client
@@ -848,7 +883,7 @@ jobs:
 
       - name: Report Client Unit Tests
         if: success() || failure()
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3
         with:
           name: Client Unit Tests
           path: apps/client/reports/junit.xml
@@ -877,8 +912,9 @@ jobs:
       contents: read
       checks: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
 
@@ -893,6 +929,7 @@ jobs:
         env:
           FULL_SUITE_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'ci:full-suite') }}
           FULL_SUITE_INPUT: ${{ inputs.full_suite || false }}
+          NEEDS_REPO_DISCOVERY_OUTPUTS_SHARED: ${{ needs.repo-discovery.outputs.shared }}
         run: |
           if [ "$FULL_SUITE_LABEL" = "true" ] || [ "$FULL_SUITE_INPUT" = "true" ]; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
@@ -900,7 +937,7 @@ jobs:
           elif [ "${{ github.event_name }}" = "merge_group" ]; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
             echo "::notice::merge queue — running the FULL server suite before integration."
-          elif [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+          elif [ "${NEEDS_REPO_DISCOVERY_OUTPUTS_SHARED}" = "true" ]; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
             echo "::notice::shared path changed (root manifest, lockfile, workflows or global configs) — running the FULL server suite."
           elif git rev-parse --verify --quiet origin/main > /dev/null; then
@@ -954,9 +991,9 @@ jobs:
       - name: Run Server Unit Tests (TIA / full suite)
         run: |
           mkdir -p apps/server/reports
-          echo "scope=${{ steps.tia.outputs.scope }}" > apps/server/reports/tia-scope.txt
-          if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
-            npm run test:changed:ci --workspace=apps/server -- ${{ steps.quarantine.outputs.args }}
+          echo "scope=${STEPS_TIA_OUTPUTS_SCOPE}" > apps/server/reports/tia-scope.txt
+          if [ "${STEPS_TIA_OUTPUTS_SCOPE}" = "changed" ]; then
+            npm run test:changed:ci --workspace=apps/server -- ${STEPS_QUARANTINE_OUTPUTS_ARGS}
             # Guard D7: ver la nota del job client. Con passWithNoTests un diff sin
             # tests relacionados sale verde vacío; aquí se cae a la suite unit
             # completa y el scope se corrige a `full` para que D18 aplique umbral.
@@ -964,12 +1001,15 @@ jobs:
             if [ "${RAN:-0}" -eq 0 ]; then
               echo "::warning::TIA matched 0 tests for this diff (numTotalTests=${RAN:-0}); running the FULL server suite instead of reporting a vacuous green."
               echo "scope=full" > apps/server/reports/tia-scope.txt
-              npm run test:coverage:unit:ci --workspace=apps/server -- ${{ steps.quarantine.outputs.args }}
+              npm run test:coverage:unit:ci --workspace=apps/server -- ${STEPS_QUARANTINE_OUTPUTS_ARGS}
             fi
           else
-            npm run test:coverage:unit:ci --workspace=apps/server -- ${{ steps.quarantine.outputs.args }}
+            npm run test:coverage:unit:ci --workspace=apps/server -- ${STEPS_QUARANTINE_OUTPUTS_ARGS}
           fi
         shell: bash
+        env:
+          STEPS_TIA_OUTPUTS_SCOPE: ${{ steps.tia.outputs.scope }}
+          STEPS_QUARANTINE_OUTPUTS_ARGS: ${{ steps.quarantine.outputs.args }}
 
       # Duración del step de tests — G1.1 del change `test-sharding` (advisory:
       # `if: always()`, append-only al step summary, nunca gate ni exit 1).
@@ -1080,7 +1120,7 @@ jobs:
           echo "scope=${SCOPE}" >> "$GITHUB_OUTPUT"
         shell: bash
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always() && steps.coverage-map.outputs.scope == 'full'
         with:
           name: coverage-map-server-${{ github.sha }}
@@ -1092,7 +1132,7 @@ jobs:
       # contrato que el de client: índice de shard literal con N=1 (inmutabilidad de
       # `upload-artifact@v4+`), LCA `apps/server` para restaurar `tests/coverage/` y
       # `.vitest-reports/` en el puente, directorio oculto incluido y retención corta.
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: coverage-server-shard-1
@@ -1104,7 +1144,7 @@ jobs:
           if-no-files-found: warn
       # Evidencia de flakiness (retryCount/flaky por test) para la métrica
       # semanal — D8. El JUnit colapsa los retries, por eso este artifact.
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: flaky-evidence-server
@@ -1127,7 +1167,7 @@ jobs:
           node scripts/ci/tia-history.mjs apps/server --record --out apps/server/reports/tia-history.json || true
         shell: bash
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: tia-history-server
@@ -1136,7 +1176,7 @@ jobs:
           if-no-files-found: warn
       - name: Report Server Unit Tests
         if: success() || failure()
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3
         with:
           name: Server Unit Tests
           path: apps/server/reports/junit.xml
@@ -1170,8 +1210,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       # change `coverage-merge-gate` (D3): TODOS los artifacts de shard por patrón +
@@ -1179,12 +1220,12 @@ jobs:
       # y `coverage/` con sus rutas relativas intactas. Con N=1 el patrón captura el
       # único artifact ⇒ mismo camino que con matriz (sin rama condicional que pueda
       # divergir y romperse sólo al pasar a matriz).
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           pattern: coverage-client-shard-*
           merge-multiple: true
           path: apps/client/
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: flaky-evidence-client
           path: apps/client/reports/
@@ -1211,7 +1252,7 @@ jobs:
         run: npx vitest --merge-reports --coverage
       - name: Upload merged coverage (client)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: coverage-merged-client
           path: apps/client/coverage/
@@ -1274,18 +1315,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       # change `coverage-merge-gate` (D3): descarga por patrón + `merge-multiple`
       # hacia la LCA `apps/server/` (restaura `tests/coverage/` y `.vitest-reports/`).
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           pattern: coverage-server-shard-*
           merge-multiple: true
           path: apps/server/
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: flaky-evidence-server
           path: apps/server/reports/
@@ -1307,7 +1349,7 @@ jobs:
         run: npx vitest --merge-reports --coverage
       - name: Upload merged coverage (server)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: coverage-merged-server
           path: apps/server/coverage/
@@ -1355,8 +1397,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Run Property Tests
@@ -1373,7 +1416,7 @@ jobs:
         run: node scripts/ci/pbt-failure-summary.mjs apps/client/reports/vitest-results.json apps/server/reports/vitest-results.json >> "$GITHUB_STEP_SUMMARY"
       - name: Upload property test results
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: pbt-results
           path: '**/reports/vitest-results.json'
@@ -1399,7 +1442,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - name: Reject update flags in CI-consumed scripts and workflow steps
         run: node scripts/ci/snapshot-update-gate.mjs
 
@@ -1415,8 +1460,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Check snapshot size
@@ -1431,7 +1477,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup-monorepo
       - name: Validate versioned coverage baseline
         run: npm run coverage:baseline:check
@@ -1454,8 +1502,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Run Client full suite with coverage
@@ -1469,7 +1518,7 @@ jobs:
 
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog
-  # (bloqueantes en needs del agregador: dependency-review, secrets, scancode-license-pr-diff · advisory FASE 1: el resto)
+  # (los 9 cableados a prebuild-security-complete.needs desde Phase 0 — change `prebuild-security-aggregator-strict`; TODOS blocking desde 2026-11-10: sin job-COE y con gate propio cuando el tool no falla por exit code)
   # (sast es 2A GOVERNANCE standalone, no 2C — ver header 2A; change ci-security-substage-alignment 2026-09-30)
   # ═══════════════════════════════════════════════════════════════
   # ════════════════════════════════════════════════════════════════
@@ -1485,10 +1534,12 @@ jobs:
       pull-requests: write
       security-events: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Run dependency review
-        uses: actions/dependency-review-action@v5
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5
         with:
           # Fail on new vulnerabilities with severity >= moderate (governance intent)
           fail-on-severity: moderate
@@ -1539,8 +1590,9 @@ jobs:
     env:
       GIT_LEAKS: ${{ secrets.GIT_LEAKS }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - name: Scan PR diff for secrets (Gitleaks OSS)
         uses: docker://zricethezav/gitleaks:v8.30.1
@@ -1558,7 +1610,7 @@ jobs:
         # inválido/expirado no bloquee el gate (el OSS ya cubre el diff).
         if: ${{ env.GIT_LEAKS != '' && github.event_name == 'pull_request' }}
         continue-on-error: true
-        uses: gitleaks/gitleaks-action@v3
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
         env:
           GITLEAKS_LICENSE: ${{ secrets.GIT_LEAKS }}
           # gitleaks-action v3 exige GITHUB_TOKEN para escanear pull requests
@@ -1571,32 +1623,56 @@ jobs:
   # Job PR-diff de licencias por archivo (change `license-compliance`, capa L2b,
   # dual job con el audit semanal — D4 del design): ScanCode 32.5.0 sobre los
   # archivos ACMR (Added/Copied/Modified/Renamed) del diff del PR — cierra el gap
-  # de `dependency-review`, que solo evalúa manifiestos/lockfiles. FASE 1
-  # advisory: `continue-on-error: true` a nivel job → `prebuild-security-complete`
-  # ve needs.*.result = success (actions/toolkit#581, mismo patrón que dead-code)
-  # y el PR no se bloquea; la evidencia es el artifact `pr-license-report.json`
-  # (retención 14d ≠ 90d del audit semanal). FASE 2 (blocking gradual): remover
-  # `continue-on-error` de este job y actualizar `docs/learning/quality-gates.md`
-  # + `docs/learning/license-policy.md` tras 2-4 semanas de runs limpios con
-  # hallazgos triados. Deny-list única: se lee en runtime de la fuente de
-  # verdad ejecutable `.github/license-policy.yml` (fuente canónica:
-  # docs/learning/license-policy.md) — sin duplicar la lista aquí ni scrape
-  # del workflow; dependency-review la consume vía `config-file`.
-  # `LicenseRef-scancode-unknown*` = warning permanente (nunca bloquea, ni en
-  # FASE 2). Sin `scan-list.txt` estático: la lista vive en el diff. El scan
-  # corre sobre una copia de los archivos del diff (scope) → node_modules/dist/
-  # build/coverage/.git quedan fuera estructuralmente; `*.min.js` se excluye
-  # por paridad con el audit semanal.
+  # de `dependency-review`, que solo evalúa manifiestos/lockfiles.
+  # FIX 2026-11-10 (change `scancode-license`): la imagen Docker
+  # `aboutcode/scancode-toolkit:32.5.0` NO existe (ScanCode no publica imagen
+  # oficial; su doc indica buildear desde el Dockerfile del repo) — el scan moría
+  # con `pull access denied` (exit 125), el step-COE lo enmascaraba y el evaluate
+  # salía 0 con "Report not produced": el job fue un no-op verde desde su
+  # creación. Instalación ahora vía `uv tool install` con pin estricto (wheels
+  # puros cp310-cp314 en PyPI, verificado 2026-11-10) + verificación de versión.
+  # FASE 2 BLOCKING ACTIVA (2026-11-10, decisión del owner): sin job-COE ni
+  # step-COE; evaluate fail-closed (sin reporte → exit 1: no se puede distinguir
+  # "sin hallazgos" de "no escaneado", mismo criterio que lockfile-audit) y
+  # exit 1 con cualquier licencia de la deny-list. La evidencia es el artifact
+  # `pr-license-report.json` (retención 14d ≠ 90d del audit semanal). Deny-list
+  # única: se lee en runtime de la fuente de verdad ejecutable
+  # `.github/license-policy.yml` (fuente canónica: docs/learning/license-policy.md,
+  # deny-list confirmada contra el modelo de distribución SaaS del ERP) — sin
+  # duplicar la lista aquí ni scrape del workflow; dependency-review la consume
+  # vía `config-file`. `LicenseRef-scancode-unknown*` = warning + ticket con SLA
+  # de 30 días (template `unknown-license.yml`); escala a bloqueante SOLO si el
+  # unknown tiene una excepción vencida en `security/exceptions.yml` (spec
+  # `scancode-license`: "unresolved after 30 days"; el job es stateless — la edad
+  # del ticket se gobierna vía security/SLA.md §2-3 y el audit semanal). Cableado
+  # a `prebuild-security-complete.needs` desde Phase 0 (change
+  # `prebuild-security-aggregator-strict`) con skip-authorization ACMR. Sin
+  # `scan-list.txt` estático: la lista vive en el diff. El scan corre sobre una
+  # copia de los archivos del diff (scope) → node_modules/dist/build/coverage/.git
+  # quedan fuera estructuralmente; `*.min.js` se excluye por paridad con el audit
+  # semanal.
   scancode-license-pr-diff:
     if: github.event_name == 'pull_request'
-    name: 'Security: ScanCode License PR-Diff (advisory, FASE 1)'
+    name: 'Security: ScanCode License PR-Diff'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    continue-on-error: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
+
+      - name: Install ScanCode (pinned 32.5.0, nunca latest)
+        run: |
+          # Python 3.12 pinado (patrón guarddog-verify.sh): wheels puros
+          # cp310-cp314 verificados en PyPI (2026-11-10) — sin compilación.
+          uv tool install --python 3.12 "scancode-toolkit==32.5.0"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/scancode" --version | grep -q "32.5.0" \
+            || { echo "ERROR: scancode version mismatch (esperado 32.5.0)"; exit 1; }
+        shell: bash
 
       - name: List changed files (ACMR vs base)
         id: diff
@@ -1608,7 +1684,6 @@ jobs:
 
       - name: ScanCode license scan of changed files
         id: scan-json
-        continue-on-error: true
         run: |
           mkdir -p scancode-scope
           while IFS= read -r f; do
@@ -1622,17 +1697,22 @@ jobs:
             echo '{"files": []}' > scancode-scope/pr-license-report.json
             exit 0
           fi
-          docker run --rm -v "$PWD/scancode-scope:/project" aboutcode/scancode-toolkit:32.5.0 \
-            scancode --license --copyright --only-findings \
+          # Sin step-COE (FASE 2 fail-closed): si el scan muere, el job se tiñe
+          # directamente en vez de producir un verde falso. El índice de licencias
+          # se buildea en el primer run del binario (~1 min, runner efímero).
+          scancode --license --copyright --only-findings \
             --exclude '*.min.js' \
-            --json-pp /project/pr-license-report.json /project
+            --json-pp scancode-scope/pr-license-report.json scancode-scope
 
-      - name: Evaluate licenses against unified deny-list (FASE 1 advisory)
+      - name: Evaluate licenses against unified deny-list (FASE 2 blocking)
         run: |
           REPORT=scancode-scope/pr-license-report.json
           if [ ! -f "$REPORT" ]; then
-            echo "Report not produced (see scan step outcome); nothing to evaluate."
-            exit 0
+            # Fail-closed (FASE 2): "Report not produced" ya no es un pase verde
+            # (mismo criterio que lockfile-audit: sin reporte no se distingue
+            # "sin hallazgos" de "no escaneado").
+            echo "::error::pr-license-report.json no producido — el scan falló o no corrió (fail-closed, FASE 2 blocking)"
+            exit 1
           fi
           # Deny-list única: leída de la fuente de verdad ejecutable
           # .github/license-policy.yml (la misma que consume dependency-review
@@ -1657,37 +1737,60 @@ jobs:
             echo "::error::deny-licenses not parseable from .github/license-policy.yml"
             exit 1
           fi
-          DENY_LIST="$DENY_LIST" REPORT_PATH="$REPORT" node -e "
+          DENY_LIST="$DENY_LIST" REPORT_PATH="$REPORT" EXCEPTIONS_PATH="security/exceptions.yml" node -e "
             const fs = require('fs');
             const r = JSON.parse(fs.readFileSync(process.env.REPORT_PATH, 'utf8'));
             const denyList = process.env.DENY_LIST.split(',').map((s) => s.trim()).filter(Boolean);
             const denySet = new Set(denyList);
             const normalize = (k) => k.split('-or-later')[0].split('-only')[0];
             const unknownRe = /^LicenseRef-scancode-unknown/;
+            const today = new Date().toISOString().slice(0, 10);
+            // Excepciones (security/exceptions.yml): parseo lineal del esquema
+            // plano que ya valida security-exceptions-check. Un unknown con
+            // excepción VENCIDA (expires < hoy, tool scancode, scope = ruta del
+            // archivo) escala a bloqueante — spec scancode-license, scenario
+            // 'Unknown license unresolved after 30 days'. Sin fichero o sin
+            // entradas → cero escaladas.
+            const exc = [];
+            try {
+              let cur = null;
+              for (const line of fs.readFileSync(process.env.EXCEPTIONS_PATH, 'utf8').split(/\r?\n/)) {
+                if (/^\s*-\s+id:/.test(line)) { cur = {}; exc.push(cur); }
+                else if (cur) {
+                  const m = line.match(/^\s+(tool|scope|expires):\s*(.+?)\s*$/);
+                  if (m) cur[m[1]] = m[2].replace(/^['\"]|['\"]$/g, '');
+                }
+              }
+            } catch (e) { /* sin exceptions.yml legible → sin escaladas */ }
+            const escalated = (path) => exc.some((x) => x.tool === 'scancode' && x.scope === path && x.expires && x.expires < today);
             const violations = [];
             const warnings = [];
             for (const f of r.files || []) {
               for (const l of f.licenses || []) {
                 const k = l.spdx_license_key || l.key || 'unknown';
-                if (unknownRe.test(k)) warnings.push(k + ' @ ' + f.path);
-                else if (denySet.has(normalize(k))) violations.push(k + ' @ ' + f.path);
+                if (unknownRe.test(k)) {
+                  if (escalated(f.path)) violations.push('ESCALADO (excepción vencida en security/exceptions.yml): ' + k + ' @ ' + f.path);
+                  else warnings.push(k + ' @ ' + f.path);
+                } else if (denySet.has(normalize(k))) {
+                  violations.push(k + ' @ ' + f.path);
+                }
               }
             }
             console.log('Deny-list (from .github/license-policy.yml):', denyList.join(', '));
             console.log('Files with license findings:', (r.files || []).length);
-            console.log('Warnings (LicenseRef-scancode-unknown, nunca bloquea):', warnings.length);
-            for (const w of warnings) console.log('::warning::' + w);
+            console.log('Unknown licenses (warning; ticket 30d vía .github/ISSUE_TEMPLATE/unknown-license.yml):', warnings.length);
+            for (const w of warnings) console.log('::warning::' + w + ' — abrir ticket (SLA 30 días); extensión solo vía security/exceptions.yml');
             if (violations.length) {
-              console.log('::error::Licencias en deny-list (FASE 1 advisory, no bloquea): ' + violations.length);
+              console.log('::error::Licencias en deny-list o unknowns escalados (FASE 2 blocking): ' + violations.length);
               for (const v of violations) console.log('  - ' + v);
-            } else {
-              console.log('Sin licencias de la deny-list en el diff del PR.');
+              process.exit(1);
             }
+            console.log('Sin licencias de la deny-list en el diff del PR.');
           "
 
       - name: Upload PR license report artifact (retention 14d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: pr-license-report
           path: scancode-scope/pr-license-report.json
@@ -1698,25 +1801,56 @@ jobs:
   # `npm audit` lee package-lock.json directamente (sin `npm ci`: el audit no
   # necesita el árbol instalado y una instalación añadiría 1-3 min por PR).
   # Umbral moderate (coincide con dependency-review; fuente distinta: CVE del
-  # lockfile RESUELTO, incluidos transitivos — no manifiesto). FASE 1 advisory:
-  # continue-on-error a nivel JOB (patrón dead-code, actions/toolkit#581). Esta
-  # capa NO entra a prebuild-security-complete.needs en FASE 1 (spec); FASE 2
-  # (2-4 semanas de runs limpios) quita el flag y la añade al agregador.
-  # Evidencia: artifact `lockfile-audit-pr` 14d. Detecta CVE, no licencias —
-  # `deny-licenses` (clave del job dependency-review) NO aplica aquí.
+  # lockfile RESUELTO, incluidos transitivos — no manifiesto).
+  # FASE 2 BLOCKING ACTIVA (2026-11-10, task 3.1 del origin change): sin
+  # `continue-on-error` ni a nivel job ni en el step de audit → `npm audit` sale
+  # 1 con hallazgos >= moderate y el job tiñe el agregador. Un fallo de red o
+  # del registro también bloquea (fail-closed: no se puede distinguir "sin
+  # hallazgos" de "no auditado").
+  # Cableado a prebuild-security-complete.needs desde Phase 0 (change
+  # `prebuild-security-aggregator-strict`).
+  # Task 1.1-1.3 (change `sca-lockfile-compliance`): guard de lockfile
+  # obligatorio (diff-aware vía outputs `manifests`/`lockfile` de
+  # `repo-discovery`) + step OSV-Scanner advisory gated al lockfile (SARIF
+  # `category: osv-scanner`). El job en sí corre en TODOS los PRs: el audit del
+  # lockfile commiteado es cobertura continua barata (spec: "en cada
+  # pull_request"); lo diff-aware es el guard y el step OSV.
+  # Evidencia: artifact `lockfile-audit-pr` 14d (npm JSON + SARIF OSV). Detecta
+  # CVE, no licencias — `deny-licenses` (clave del job dependency-review) NO
+  # aplica aquí.
   lockfile-audit:
     if: github.event_name == 'pull_request'
-    name: 'Security: Lockfile Audit (advisory, FASE 1)'
+    name: 'Security: Lockfile Audit'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    continue-on-error: true
+    # `security-events: write` SOLO para subir el SARIF de OSV-Scanner (mismo
+    # patrón que actionlint/zizmor/guarddog); el audit npm no lo necesita.
+    permissions:
+      contents: read
+      security-events: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      # Task 1.2 del change: GitHub no enforcea el lockfile; un PR que toca un
+      # `package.json` sin actualizar `package-lock.json` dejaría el audit
+      # evaluando un árbol distinto al declarado. Blocking (FASE 2 activa).
+      - name: Verify lockfile updated with manifest changes
+        env:
+          MANIFESTS_CHANGED: ${{ needs.repo-discovery.outputs.manifests }}
+          LOCKFILE_CHANGED: ${{ needs.repo-discovery.outputs.lockfile }}
+        run: |
+          set -euo pipefail
+          echo "manifests changed: ${MANIFESTS_CHANGED:-false} | lockfile changed: ${LOCKFILE_CHANGED:-false}"
+          if [ "${MANIFESTS_CHANGED:-false}" = "true" ] && [ "${LOCKFILE_CHANGED:-false}" != "true" ]; then
+            echo "::error::Un manifiesto (package.json) cambió sin actualizar package-lock.json. Ejecuta 'npm install --package-lock-only' y commitea el lockfile."
+            exit 1
+          fi
 
       - name: Audit resolved lockfile (npm audit, threshold moderate)
         id: audit-json
-        continue-on-error: true
         run: |
           npm audit --audit-level=moderate --json > audit-report.json
 
@@ -1729,7 +1863,7 @@ jobs:
               const v = (r.metadata && r.metadata.vulnerabilities) || {};
               console.log('npm audit — vulnerabilities:', JSON.stringify(v));
               if ((v.moderate || 0) + (v.high || 0) + (v.critical || 0) > 0) {
-                console.log('::warning::Hallazgos >= moderate en lockfile (FASE 1 advisory, no bloquea)');
+                console.log('::error::Hallazgos >= moderate en lockfile (FASE 2 blocking: el step de auditoría falla)');
               } else {
                 console.log('Sin hallazgos >= moderate en el lockfile resuelto.');
               }
@@ -1738,47 +1872,89 @@ jobs:
             echo 'audit-report.json not produced (see step outcome)'
           fi
 
+      # Task 1.3: cobertura multi-ecosistema (npm/yarn/pnpm/bun) sobre el mismo
+      # lockfile. Advisory en FASE 1 (step-COE, no tiñe el job): OSV suma
+      # fuentes (GHSA/RustSec/PyPA…) a `npm audit`, pero NO calcula EPSS/KEV
+      # (solo CVSS) — ver `docs/learning/sca-dependency-lockfile-scan.md` §10.
+      # Gated: solo corre si el PR toca `package-lock.json` (task 1.3).
+      # Calibración: ventana 2026-11-10 → 2026-11-24 (bitácora y criterios de
+      # promoción en §11 del mismo doc); la promoción a blocking quita este COE.
+      # Binario pinneado + SHA-256 en vez de `google/osv-scanner-action`: el
+      # `action.yml` raíz de v2.5.0 no declara `runs:` y la action anidada
+      # cambia de CLI entre minors (la política vive aquí, no en un tag móvil).
+      - name: Install OSV-Scanner (v2.5.0, checksum)
+        if: needs.repo-discovery.outputs.lockfile == 'true'
+        env:
+          OSV_SCANNER_URL: https://github.com/google/osv-scanner/releases/download/v2.5.0/osv-scanner_linux_amd64
+          OSV_SCANNER_SHA256: edcfc41d257db36148f065055655fe3fcfc434b0b423ea67468a84c207524e0c
+        run: |
+          set -euo pipefail
+          curl -fsSL -o "$RUNNER_TEMP/osv-scanner" "$OSV_SCANNER_URL"
+          echo "$OSV_SCANNER_SHA256  $RUNNER_TEMP/osv-scanner" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/osv-scanner"
+
+      - name: OSV-Scanner lockfile scan (advisory, SARIF)
+        id: osv
+        if: needs.repo-discovery.outputs.lockfile == 'true'
+        continue-on-error: true
+        run: >
+          "$RUNNER_TEMP/osv-scanner" scan -L package-lock.json
+          --format=sarif --output-file=osv-scanner.sarif
+
+      - name: Upload OSV SARIF to Code Scanning
+        if: always() && hashFiles('osv-scanner.sarif') != ''
+        continue-on-error: true # un fallo de permisos no tiñe el gate (advisory)
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        with:
+          sarif_file: osv-scanner.sarif
+          category: osv-scanner
+
       - name: Upload npm audit report artifact (retention 14d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: lockfile-audit-pr
-          path: audit-report.json
+          path: |
+            audit-report.json
+            osv-scanner.sarif
           retention-days: 14
           if-no-files-found: warn
 
   # Job PR-time IaC — Policy as Code (change `sca-lockfile-compliance`, capa 4):
-  # Checkov sobre Dockerfile/terraform/kubernetes. `soft_fail: true` (FASE 1
-  # advisory: hallazgos con exit 0). Política versionada en `.checkov.yml`,
+  # Checkov sobre Dockerfile/terraform/kubernetes. `soft_fail: false` (gate
+  # blocking: hallazgos con exit != 0). Política versionada en `.checkov.yml`,
   # pasada explícita vía input `config_file` (la CLI además la auto-lee del
-  # cwd). NO entra a prebuild-security-complete.needs en FASE 1 (spec); FASE 2:
-  # baseline `.checkov.baseline` (fail-on-new) + quitar soft-fail tras 2-4
-  # semanas de runs limpios. Complementaria a SAST (código) y SCA
-  # (dependencias): configura infraestructura, no analiza licencias ni CVE.
+  # cwd). Cableado a prebuild-security-complete.needs desde Phase 0 (change
+  # `prebuild-security-aggregator-strict`): al saltarse en un PR solo se tolera
+  # si el diff no toca infra (Dockerfile/.tf/k8s). FASE 2 BLOCKING ACTIVA
+  # (2026-11-10): sin job-COE y con `soft_fail: false`; el Dockerfile cubre
+  # CKV_DOCKER_2 con HEALTHCHECK, así que no hace falta baseline que oculte
+  # deuda. Complementaria a SAST (código) y SCA (dependencias).
   checkov-iac:
     if: github.event_name == 'pull_request'
-    name: 'Security: Checkov IaC (advisory, FASE 1)'
+    name: 'Security: Checkov IaC'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    continue-on-error: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
-      - name: Run Checkov IaC scan (soft fail, SARIF)
+      - name: Run Checkov IaC scan (blocking, SARIF)
         id: checkov-sarif
-        uses: bridgecrewio/checkov-action@v12
+        uses: bridgecrewio/checkov-action@45edc9d8856b664db2ec251f5f8632361f0a67aa # v12
         with:
           directory: .
           framework: dockerfile terraform kubernetes
           config_file: .checkov.yml
           output_format: sarif
           output_file_path: checkov-report.sarif
-          soft_fail: true
+          soft_fail: false
 
       - name: Upload Checkov report artifact (retention 14d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: checkov-report-pr
           path: checkov-report.sarif
@@ -1791,42 +1967,45 @@ jobs:
   # lo cubre `checkov-iac` (CKV_DOCKER_*, política `.checkov.yml`) — separación
   # de capas documentada en `quality-gates.md` §2. Política versionada
   # `.hadolint.yaml` vía input `config` (nunca flags de ignore inline: el flag
-  # de CLI anula la lista del config). FASE 1 advisory: `continue-on-error:
-  # true` y NO entra en el `needs` del agregador; FASE 2 (tras 2-4 semanas sin
-  # falsos positivos): `failure-threshold: warning` + añadir al `needs`.
+  # de CLI anula la lista del config). FASE 2 BLOCKING ACTIVA (2026-11-10):
+  # sin job-COE y `failure-threshold: warning` (DL3059 es info; DL3018 está
+  # cubierto por el pragma inline justificado del Dockerfile). Cableado a
+  # prebuild-security-complete.needs desde Phase 0 (change
+  # `prebuild-security-aggregator-strict`).
   containerfile-lint:
     if: github.event_name == 'pull_request'
-    name: 'Security: Containerfile Lint (advisory, FASE 1)'
+    name: 'Security: Containerfile Lint'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true
     permissions:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Run Hadolint Containerfile lint (SARIF)
         id: hadolint-sarif
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@54c9adbab1582c2ef04b2016b760714a4bfde3cf # v3.1.0
         with:
           dockerfile: apps/server/Dockerfile
           config: .hadolint.yaml
           format: sarif
           output-file: hadolint.sarif
-          failure-threshold: info
+          failure-threshold: warning
 
       - name: Upload Hadolint SARIF to Code Scanning
         if: always() && hashFiles('hadolint.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: hadolint.sarif
           category: hadolint
 
       - name: Upload Hadolint report artifact (retention 14d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: hadolint-report-pr
           path: hadolint.sarif
@@ -1836,33 +2015,35 @@ jobs:
   # Job advisory de pipeline config scan (change `pipeline-config-scan`):
   # actionlint con salida SARIF para la Security tab. Único job de actionlint
   # por PR: consolida al ex-gate bloqueante de 2B (removido — su cobertura
-  # vive aquí vía SARIF + Code Scanning y en `zizmor-advisory`; la FASE 2 de
-  # pipeline-config-scan puede restablecer el bloqueo quitando
-  # `continue-on-error`). Ejecución vía imagen Docker pinneada
+  # vive aquí vía SARIF + Code Scanning y en `zizmor-advisory`).
+  # FASE 2 BLOCKING ACTIVA (2026-11-10, tasks 8.2/8.3): sin `continue-on-error`
+  # a nivel job; el bloqueo reside SOLO en el step `Enforce actionlint findings`
+  # (jq sobre el SARIF), y los uploads conservan `continue-on-error: true` a nivel
+  # step (un fallo de permisos en fork PR / Security tab no tiñe el job).
+  # Ejecución vía imagen Docker pinneada
   # `rhysd/actionlint:1.7.12` (sin curl|bash de scripts remotos; imagen
   # oficial del autor del binario). La plantilla SARIF oficial se versiona en
   # `.github/actionlint-sarif.tmpl` y se pasa como CONTENIDO de `-format` (la
   # pseudo-plantilla inline produce 0 bytes con exit 0 — verificado v1.7.12).
-  # El step lleva `|| true`: con hallazgos actionlint sale 1 y la evidencia
-  # debe generarse igual; el carácter advisory en FASE 1 lo aporta
-  # `continue-on-error: true` a nivel job. NO entra en los `needs` de los
-  # agregadores en FASE 1 (FASE 2: scope de bloqueo solo en este step, con
-  # uploads step-COE). Política `.github/actionlint.yaml` intacta (montada
+  # El step de scan lleva `|| true`: con hallazgos actionlint sale 1 y la
+  # evidencia debe generarse igual; el gate lo decide el step `jq` posterior.
+  # Cableado a `prebuild-security-complete.needs` desde Phase 0 (change
+  # `prebuild-security-aggregator-strict`). Política `.github/actionlint.yaml` intacta (montada
   # read-only en el contenedor, no se modifica).
   # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
   actionlint-advisory:
     if: github.event_name == 'pull_request'
-    name: 'Security: ActionLint Advisory (SARIF, FASE 1)'
+    name: 'Security: ActionLint (SARIF)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true
     permissions:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - name: Run actionlint (SARIF, advisory)
         run: |
@@ -1872,15 +2053,28 @@ jobs:
           test -s actionlint.sarif || { echo 'actionlint.sarif vacio'; exit 1; }
           jq -e . actionlint.sarif > /dev/null || { echo 'actionlint.sarif no parseable'; exit 1; }
         shell: bash
+      - name: Enforce actionlint findings (blocking)
+        # El exit code del scan no sirve: el step de arriba lleva `|| true` para
+        # generar siempre la evidencia. El gate real es este parseo del SARIF.
+        run: |
+          if ! jq -e '[(.runs[0].results // [])[]] | length == 0' actionlint.sarif > /dev/null; then
+            echo '::error::actionlint encontró hallazgos (FASE 2 blocking)'
+            jq -r '(.runs[0].results // [])[] | "\(.ruleId) — \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine)"' actionlint.sarif
+            exit 1
+          fi
+          echo 'Sin hallazgos de actionlint.'
+        shell: bash
       - name: Upload actionlint SARIF to Code Scanning
         if: always() && hashFiles('actionlint.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        continue-on-error: true # step-COE: un fallo de permisos no tiñe el gate
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: actionlint.sarif
           category: actionlint
       - name: Upload actionlint report artifact (retention 14d)
         if: always()
-        uses: actions/upload-artifact@v7
+        continue-on-error: true # step-COE (evidencia, no gate)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: actionlint-report-pr
           path: actionlint.sarif
@@ -1893,21 +2087,29 @@ jobs:
   # (versión exacta, no latest) + verificación de versión antes del scan.
   # `--format=sarif` SIEMPRE termina exit 0 → se valida el fichero (`test -s`
   # + `jq -e .`), nunca el exit code. Política `.github/zizmor.yml`
-  # referenciada incondicionalmente (A3). FASE 1 advisory; FASE 2: gating
-  # `jq -e '.runs[0].results | length == 0'` + `prebuild-security-complete.needs`.
+  # referenciada incondicionalmente (A3). FASE 2 BLOCKING ACTIVA (2026-11-10,
+  # tasks 8.1/8.3): sin job-COE, con gate sobre el SARIF scopeado a la regla
+  # `unpinned-uses` — el objetivo declarado de la capa y la única regla con
+  # política en `.github/zizmor.yml`. El resto de audits (artipacked×52,
+  # template-injection×19, self-repository×14, …) sigue advisory hasta triar esa
+  # deuda: un gate `results | length == 0` teñiría TODOS los PRs desde el primer
+  # run. Los uploads llevan step-COE. Cableado a
+  # `prebuild-security-complete.needs` desde Phase 0 (change
+  # `prebuild-security-aggregator-strict`).
   # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
   zizmor-advisory:
     if: github.event_name == 'pull_request'
-    name: 'Security: Zizmor Advisory (unpinned-uses, FASE 1)'
+    name: 'Security: Zizmor (unpinned-uses)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true
     permissions:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
       - name: Run zizmor (SARIF, advisory)
         run: |
@@ -1916,15 +2118,31 @@ jobs:
           test -s zizmor.sarif || { echo 'zizmor.sarif vacio'; exit 1; }
           jq -e . zizmor.sarif > /dev/null || { echo 'zizmor.sarif no parseable'; exit 1; }
         shell: bash
+      - name: Enforce zizmor findings (blocking, todas las reglas)
+        # `--format=sarif` SIEMPRE sale 0 → el gate parsea el fichero. Cubre
+        # TODAS las reglas: la deuda de `artipacked`/`template-injection`/
+        # `excessive-permissions`/`github-app` está remediada en origen y
+        # `self-repository` (help, sin impacto) se ignora por fichero en
+        # `.github/zizmor.yml`, no aquí.
+        run: |
+          if ! jq -e '[(.runs[0].results // [])[]] | length == 0' zizmor.sarif > /dev/null; then
+            echo '::error::zizmor encontró hallazgos (FASE 2 blocking: todas las reglas)'
+            jq -r '(.runs[0].results // [])[] | "\(.ruleId) — \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine)"' zizmor.sarif
+            exit 1
+          fi
+          echo 'Sin hallazgos de zizmor.'
+        shell: bash
       - name: Upload zizmor SARIF to Code Scanning
         if: always() && hashFiles('zizmor.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        continue-on-error: true # step-COE: un fallo de permisos no tiñe el gate
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: zizmor.sarif
           category: zizmor
       - name: Upload zizmor report artifact (retention 14d)
         if: always()
-        uses: actions/upload-artifact@v7
+        continue-on-error: true # step-COE (evidencia, no gate)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: zizmor-report-pr
           path: zizmor.sarif
@@ -1939,22 +2157,29 @@ jobs:
   # `scripts/guarddog-verify.sh` (GuardDog no soporta config files): pin 3.2.0
   # con verificación de versión, devDeps excluidas, sandbox obligatorio (nunca
   # --no-sandbox), exclusiones justificadas. `verify` requiere red y puede morir
-  # a medias → `|| true` + `test -s` + `jq -e .` antes de subir. FASE 1 advisory
-  # (`continue-on-error: true` a nivel job); NO entra en los `needs` de los
-  # agregadores (FASE 2 diferida: 2-4 semanas sin FP, luego gating + needs).
+  # a medias → `|| true` + `test -s` + `jq -e .` antes de subir. Cableado a
+  # `prebuild-security-complete.needs` desde Phase 0 (change
+  # `prebuild-security-aggregator-strict`): el condicionamiento por path
+  # (manifest/lockfile `package*.json`) vive en el skip-authorization del
+  # agregador (`(^|/)package(-lock)?\.json$`) — mismo patrón que los otros 5
+  # jobs condicionales de 2C (task 1.1 del change `typosquatting-detection`).
+  # FASE 2 BLOCKING ACTIVA (2026-11-10): sin job-COE; el gate parsea el SARIF
+  # porque el scan lleva `|| true` y su exit code no es señal. Calibración y
+  # decisión de promoción: docs/learning/quality-gates.md §7.3.
   # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
   typosquat-guarddog:
     if: github.event_name == 'pull_request'
-    name: 'Security: Typosquat GuardDog (advisory, FASE 1)'
+    name: 'Security: Typosquat GuardDog'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    continue-on-error: true
     permissions:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
       - name: Run GuardDog verify (SARIF, advisory)
         run: |
@@ -1962,20 +2187,57 @@ jobs:
           test -s guarddog.sarif || { echo 'guarddog.sarif vacio'; exit 1; }
           jq -e . guarddog.sarif > /dev/null || { echo 'guarddog.sarif no parseable'; exit 1; }
         shell: bash
+      - name: Enforce GuardDog findings (blocking)
+        # El scan lleva `|| true` (verify requiere red y puede morir a medias),
+        # así que el exit code no es señal: el gate parsea el SARIF y bloquea
+        # con cualquier `result` (reglas threat.*/heurísticas).
+        run: |
+          if ! jq -e '[(.runs[0].results // [])[]] | length == 0' guarddog.sarif > /dev/null; then
+            echo '::error::GuardDog detectó typosquatting/dependency-confusion (FASE 2 blocking)'
+            jq -r '(.runs[0].results // [])[] | "\(.ruleId) — \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine)"' guarddog.sarif
+            exit 1
+          fi
+          echo 'Sin hallazgos GuardDog.'
+        shell: bash
       - name: Upload GuardDog SARIF to Code Scanning
         if: always() && hashFiles('guarddog.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: guarddog.sarif
           category: guarddog
       - name: Upload GuardDog report artifact (retention 14d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: guarddog-report-pr
           path: guarddog.sarif
           retention-days: 14
           if-no-files-found: warn
+
+  # Job advisory de gobernanza de excepciones (change
+  # `security-exceptions-policy`, E6 del PRD): valida `security/exceptions.yml`
+  # (schema completo, ids únicos, fechas ISO, `expires <= created + 90` y
+  # ninguna excepción vencida). FASE 1 advisory (job-COE); FASE 2 lo cablea a
+  # `prebuild-security-complete.needs`. Dependencias vía el composite
+  # `setup-monorepo` (`npm ci` desde el lockfile; nada de ad-hoc packages:
+  # zizmor `adhoc-packages`).
+  security-exceptions-check:
+    if: github.event_name == 'pull_request'
+    name: 'Security: Exceptions Policy'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup-monorepo
+      - name: Validate security/exceptions.yml
+        run: node scripts/ci/security-exceptions.mjs
+        shell: bash
 
   # ═══════════════════════════════════════════════════════════════
   # SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, db-contract, validate-pipeline, api-contract, frontend-budgets, openspec-validate, docs-validation (advisory)
@@ -1988,8 +2250,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - run: npm run lint --workspace=apps/client
@@ -2000,8 +2263,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - run: npm run format:check --workspace=apps/client
@@ -2012,8 +2276,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       # Gate blocking real (change `quality-gates`): sin `|| echo` ni
@@ -2031,8 +2296,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       # Gate blocking (change `quality-gates`): sin `--rule` CLI override —
@@ -2048,8 +2314,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Detect dead code
@@ -2066,8 +2333,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       # Gate: corre desde la RAÍZ (config raíz + regex `^apps/...`);
@@ -2082,7 +2350,7 @@ jobs:
         continue-on-error: true
       - name: Upload dependency-cruiser report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: dependency-cruiser-report-client
           path: reports/dependency-cruiser.html
@@ -2106,8 +2374,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Build client
@@ -2120,7 +2389,7 @@ jobs:
           CI: 'true'
       - name: Upload Lighthouse reports (retention 14d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: lighthouse-report-pr
           path: apps/client/reports/lighthouse
@@ -2135,8 +2404,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - run: npm run lint --workspace=apps/server
@@ -2151,8 +2421,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - run: npm run format:check --workspace=apps/server
@@ -2164,8 +2435,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       # Gate blocking real (change `quality-gates`): `tsc --noEmit -p apps/server`
@@ -2185,8 +2457,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       # Gate blocking (change `quality-gates`): sin `--rule` CLI override —
@@ -2202,8 +2475,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Detect dead code
@@ -2219,8 +2493,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       # Activado por change `import-boundaries` (antes `if: false`). Gate desde
@@ -2233,7 +2508,7 @@ jobs:
         continue-on-error: true
       - name: Upload dependency-cruiser report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: dependency-cruiser-report-server
           path: reports/dependency-cruiser.html
@@ -2267,8 +2542,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       # La shadow DB debe EXISTIR antes del diff (Prisma la resetea, no la crea
@@ -2306,8 +2582,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       # El contrato versionado debe corresponder a las anotaciones: si alguien
@@ -2331,8 +2608,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - run: npm run lint --workspace=e2e
@@ -2357,8 +2635,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       # yamllint es una herramienta Python: venv local + versión FIJADA (las
       # imágenes ubuntu-latest tienen PEP 668 activo, `pip install` global falla).
@@ -2393,8 +2672,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .nvmrc
       - name: Validate root manifest inventory
@@ -2413,8 +2694,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Validate OpenSpec main specs (strict)
@@ -2452,7 +2734,9 @@ jobs:
     timeout-minutes: 5
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup-monorepo
       - name: Lint markdown structure (markdownlint)
         run: npm run docs:lint
@@ -2483,12 +2767,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - run: npm run build --workspace=apps/client
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: client-dist
           path: apps/client/dist/
@@ -2548,8 +2833,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Prisma Migrate Deploy
@@ -2575,6 +2861,7 @@ jobs:
         env:
           FULL_SUITE_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'ci:full-suite') }}
           FULL_SUITE_INPUT: ${{ inputs.full_suite || false }}
+          NEEDS_REPO_DISCOVERY_OUTPUTS_SHARED: ${{ needs.repo-discovery.outputs.shared }}
         run: |
           if [ "$FULL_SUITE_LABEL" = "true" ] || [ "$FULL_SUITE_INPUT" = "true" ]; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
@@ -2582,7 +2869,7 @@ jobs:
           elif [ "${{ github.event_name }}" = "merge_group" ]; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
             echo "::notice::merge queue — running the FULL integration suite before integration."
-          elif [ "${{ needs.repo-discovery.outputs.shared }}" = "true" ]; then
+          elif [ "${NEEDS_REPO_DISCOVERY_OUTPUTS_SHARED}" = "true" ]; then
             echo "scope=full" >> "$GITHUB_OUTPUT"
             echo "::notice::shared path changed (root manifest, lockfile, workflows or global configs) — running the FULL integration suite."
           elif ! git rev-parse --verify --quiet origin/main > /dev/null; then
@@ -2644,8 +2931,8 @@ jobs:
         # argv original byte a byte (task 6.1, `tia-hardening`).
         run: |
           mkdir -p apps/server/reports
-          echo "scope=${{ steps.tia.outputs.scope }}" > apps/server/reports/tia-scope.txt
-          if [ "${{ steps.tia.outputs.scope }}" = "changed" ]; then
+          echo "scope=${STEPS_TIA_OUTPUTS_SCOPE}" > apps/server/reports/tia-scope.txt
+          if [ "${STEPS_TIA_OUTPUTS_SCOPE}" = "changed" ]; then
             npm run test:integration:changed --workspace=apps/server -- --reporter=default --reporter=junit --reporter=json --outputFile.junit=reports/junit.xml --outputFile.json=reports/vitest-results.json
             # Guard D7: un diff valido puede no tener NINGUN test de integracion relacionado, y
             # con passWithNoTests (default en Vitest 4) eso sale "No test files found" con exit
@@ -2663,6 +2950,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/project_one_test
           NODE_ENV: test
+          STEPS_TIA_OUTPUTS_SCOPE: ${{ steps.tia.outputs.scope }}
         shell: bash
       # Historial de tests fallidos — task 3.1 del change `tia-enterprise-gaps`.
       # Cierra el bucle de la lane de integración: sus fallos se registran con el
@@ -2678,7 +2966,7 @@ jobs:
           node scripts/ci/tia-history.mjs apps/server --record --out apps/server/reports/tia-history.json || true
         shell: bash
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: tia-history-server-integration
@@ -2688,7 +2976,7 @@ jobs:
 
       - name: Report Integration Tests
         if: success() || failure()
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3
         with:
           name: Server Integration Tests
           path: apps/server/reports/junit.xml
@@ -2720,8 +3008,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Prisma Migrate Deploy
@@ -2743,7 +3032,7 @@ jobs:
         shell: bash
       - name: Report Smoke Tests
         if: success() || failure()
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3
         with:
           name: Server Smoke Tests
           path: apps/server/reports/junit.xml
@@ -2778,8 +3067,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Prisma Migrate Deploy
@@ -2790,7 +3080,7 @@ jobs:
         working-directory: apps/server
       - name: Cache Playwright Browsers
         id: cache-playwright
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -2807,7 +3097,7 @@ jobs:
         working-directory: e2e
       - name: Report E2E Tests
         if: success() || failure()
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3
         with:
           name: E2E Tests
           path: e2e/reports/junit-e2e.xml
@@ -2823,11 +3113,12 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: client-dist
           path: apps/client/dist/
@@ -2836,12 +3127,12 @@ jobs:
       # (hoy en `if: false`) se actualiza ya a patrón + `merge-multiple` hacia la
       # LCA `apps/client/` — evita una bomba de reactivación con el rename y deja
       # el patrón correcto para N>1.
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           pattern: coverage-client-shard-*
           merge-multiple: true
           path: apps/client/
-      - uses: SonarSource/sonarqube-scan-action@v4
+      - uses: SonarSource/sonarqube-scan-action@689fb39b34b9aa95ebc5f8f119343ddd51542402 # v4
         with:
           projectBaseDir: apps/client
         env:
@@ -2854,8 +3145,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Check unused/missing dependencies
@@ -2872,19 +3164,20 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       # change `coverage-merge-gate` (task 1.4): mismo tratamiento que el consumidor
       # client — patrón + `merge-multiple` hacia `apps/server/` (evita dejar un
       # consumidor roto por el rename, aunque el job esté en `if: false`).
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           pattern: coverage-server-shard-*
           merge-multiple: true
           path: apps/server/
-      - uses: SonarSource/sonarqube-scan-action@v4
+      - uses: SonarSource/sonarqube-scan-action@689fb39b34b9aa95ebc5f8f119343ddd51542402 # v4
         with:
           projectBaseDir: apps/server
           projectKey: project-one-server
@@ -2899,8 +3192,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Check unused/missing dependencies
@@ -3025,6 +3319,11 @@ jobs:
           fi
           echo "✅ Quality substage succeeded or was skipped"
 
+  # Agregador estricto del substage 2C (change `prebuild-security-aggregator-strict`, Phase 0/G7):
+  # los 9 jobs de security están cableados en `needs` y CUALQUIER resultado distinto de `success`
+  # (`failure`, `cancelled`, `skipped`) falla, salvo `skipped` autorizado por evento/diff. Sin esto,
+  # un job saltado o cancelado pasaba en verde y ningún bloqueo posterior protegía el merge.
+  # El `name:` es CONGELADO (`Prebuild Security Complete`): cambiarlo rompe el binding del ruleset.
   prebuild-security-complete:
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: Prebuild Security Complete
@@ -3033,27 +3332,108 @@ jobs:
       - dependency-review
       - secrets
       - scancode-license-pr-diff
+      - lockfile-audit
+      - checkov-iac
+      - containerfile-lint
+      - actionlint-advisory
+      - zizmor-advisory
+      - typosquat-guarddog
+      - security-exceptions-check
     steps:
-      - name: Check for failures
+      # Checkout SOLO para computar la autorización de skip en `pull_request`
+      # (design D8): la detección de paths vive dentro del step del agregador —sin un job extra
+      # en `needs`— para preservar el contrato de needs (PRD regla 3).
+      - name: Checkout (skip authorization needs the PR diff)
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Detect security-scope changes (skip authorization)
+        id: changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "❌ One or more security jobs failed"
+          set -euo pipefail
+          # Mismo rango y filtro que `scancode-license-pr-diff`. Los contextos `github.*`
+          # se pasan por `env`, nunca se interpolan en el script (PRD regla #5).
+          CHANGED="$(git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA")"
+          acmr=false
+          if [ -n "$CHANGED" ]; then acmr=true; fi
+          has() { [ -n "$CHANGED" ] && grep -Eq "$1" <<<"$CHANGED"; }
+          lockfile=false
+          if has '(^|/)package(-lock)?\.json$'; then lockfile=true; fi
+          iac=false
+          if has '(^|/)Dockerfile[^/]*$|\.dockerfile$|\.tf(vars)?$|(^|/)(k8s|kubernetes|helm|terraform|infra)/'; then iac=true; fi
+          containerfile=false
+          if has '^apps/server/Dockerfile$|^\.hadolint\.yaml$'; then containerfile=true; fi
+          workflows=false
+          if has '^\.github/workflows/[^/]+\.ya?ml$|^\.github/actionlint\.ya?ml$|^\.github/actionlint-sarif\.tmpl$|^\.github/zizmor\.yml$'; then workflows=true; fi
+          typosquat=false
+          if has '(^|/)package(-lock)?\.json$'; then typosquat=true; fi
+          # `true` = el cambio relevante ESTÁ en el diff → el skip NO está autorizado.
+          echo "changes=$(jq -cn \
+            --argjson acmr "$acmr" \
+            --argjson lockfile "$lockfile" \
+            --argjson iac "$iac" \
+            --argjson containerfile "$containerfile" \
+            --argjson workflows "$workflows" \
+            --argjson typosquat "$typosquat" \
+            '{
+              "scancode-license-pr-diff": $acmr,
+              "lockfile-audit": $lockfile,
+              "checkov-iac": $iac,
+              "containerfile-lint": $containerfile,
+              "actionlint-advisory": $workflows,
+              "zizmor-advisory": $workflows,
+              "typosquat-guarddog": $typosquat
+            }')" >> "$GITHUB_OUTPUT"
+
+      - name: 'Check for failures (strict: failure, cancelled, unauthorized skip)'
+        env:
+          # `needs` por `env`, nunca interpolado en el script (PRD regla #5).
+          NEEDS: ${{ toJSON(needs) }}
+          EVENT_NAME: ${{ github.event_name }}
+          CHANGES: ${{ steps.changes.outputs.changes || '{}' }}
+        run: |
+          set -euo pipefail
+          # Anti-skip scoped (design D3/D7/D8): un scanner saltado NO es un resultado limpio,
+          # pero el skip legítimo por tipo de evento o por path no debe teñir el agregador.
+          #  - `merge_group` / `workflow_dispatch`: los 8 jobs PR-only no tienen diff que escanear
+          #    → skip pre-autorizado por evento. `secrets` SÍ corre en `merge_group`: allí un skip
+          #    NO está autorizado (en `workflow_dispatch` no corre por diseño).
+          #  - `pull_request`: `secrets` y `dependency-review` deben correr siempre; los seis jobs
+          #    condicionales solo pueden saltarse si el cambio que los dispara NO está en el diff.
+          # Fail-closed: un job desconocido saltado en PR cuenta como no autorizado.
+          problematic="$(echo "$NEEDS" | jq -r \
+            --arg event "$EVENT_NAME" \
+            --argjson changes "$CHANGES" '
+              def skip_authorized($job):
+                if $event != "pull_request" then
+                  ($job != "secrets") or ($event != "merge_group")
+                elif $job == "secrets" or $job == "dependency-review" then
+                  false
+                else
+                  # `//` NO sirve aquí: en jq `false // true` = true (la alternativa
+                  # consume `false`). El default fail-closed es explícito.
+                  (($changes[$job] | if . == null then true else . end) | not)
+                end;
+              to_entries[]
+              | .key as $job
+              | .value.result as $res
+              | select($res != "success")
+              | select((($res == "skipped") and skip_authorized($job)) | not)
+              | "\($job): \($res)"
+            ')"
+          if [ -n "$problematic" ]; then
+            echo "❌ Entrada no-success en el substage SECURITY (failure, cancelled o skip no autorizado):"
+            printf '%s\n' "$problematic"
             exit 1
           fi
-          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "❌ One or more security jobs were cancelled"
-            exit 1
-          fi
-          # Anti-skip (change `secret-scanning-history-governance`, G8/A6): un
-          # scanner saltado NO es un resultado limpio. Se comprueba solo
-          # `secrets` — `dependency-review` y `scancode-license-pr-diff` tienen
-          # condiciones propias (scope intencional, ver delta spec) — y solo en
-          # PR, porque en `merge_group` el job corre por diseño.
-          if [[ "${{ github.event_name }}" == "pull_request" && "${{ needs.secrets.result }}" == "skipped" ]]; then
-            echo "❌ Secret Detection quedó skipped en un PR: un scanner saltado no es un scanner limpio"
-            exit 1
-          fi
-          echo "✅ Security substage succeeded (no job failed, cancelled or skipped-on-PR)"
+          echo "✅ Security substage succeeded: los 10 jobs terminaron en success o con skip autorizado por evento/diff"
 
   # Renamed by change `ci-stage-aggregator-topology` (D9): the aggregator carries the whole tier-1
   # testing surface, not only unit tests, so the `unit` wording became false and the id now mirrors
@@ -3212,7 +3592,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - name: Assert deleted workflows are absent
         run: |
           if test -f .github/workflows/pr-validation.yml; then

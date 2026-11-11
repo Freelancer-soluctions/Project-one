@@ -52,6 +52,12 @@ USER node
 # el Express corre en puerto 3000
 EXPOSE 3000
 
+# Salud del contenedor (CKV_DOCKER_2; gate `checkov-iac` blocking): el server
+# expone GET /health (apps/server/src/app.ts, 503 si la DB no responde).
+# BusyBox wget ya viene en alpine; nada que instalar.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1:3000/health || exit 1
+
 # tsx vive en node_modules/.bin (no en el PATH por defecto del exec-form CMD):
 ENV PATH="/app/node_modules/.bin:$PATH"
 

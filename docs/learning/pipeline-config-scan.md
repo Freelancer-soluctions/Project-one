@@ -326,11 +326,15 @@ actionlint -config-file .github/actionlint.yaml .github/workflows/ && zizmor -c 
 >   (nunca `zizmorcore/zizmor-action@v0.6.4` — es un tag, no SHA).
 > - **`.github/zizmor.yml` (A7)**: el sample de §5.4 con `policies` como lista, `output:` y
 >   `enabled:` es INVÁLIDO según `support/zizmor.schema.json` (`additionalProperties: false`).
->   Config mínimo válido: `rules.unpinned-uses.config.policies` como **mapa** `"*": ref-pin` (los
->   audits se activan por defecto; el mapa define qué cuenta como pinned). Format/severidad por CLI.
+>   Config mínimo válido: `rules.unpinned-uses.config.policies` como **mapa** (los audits se activan
+>   por defecto; el mapa define qué cuenta como pinned). Format/severidad por CLI.
 >   **Primer run real (2026-09-28, zizmor v1.30.1):** 90 hallazgos, exit 0 (SARIF siempre exit 0),
->   0 `unpinned-uses` bajo `ref-pin`; deuda: artipacked×52, template-injection×19,
+>   0 `unpinned-uses` bajo `ref-pin` (FASE 1); deuda: artipacked×52, template-injection×19,
 >   self-repository×14, excessive-permissions×4, github-app×1.
+>   **Endurecido a `"*": hash-pin` (2026-11-10, `sha-pinning-remaining-actions`):** con las 204 refs
+>   ya pineadas a SHA, la política pasa de aceptar `@v5` a exigir SHA completo → el pinning deja de
+>   ser convención y lo enforcea el gate bloqueante. Verificado con la sonda `@v5`: `hash-pin` la
+>   reporta, `ref-pin` la ignora; repo completo → 0 hallazgos.
 > - **Flags (iv)**: `actionlint -f` → `-config-file` (§5.5/§5.6/§7 D5); `zizmor.json` (nunca
 >   generado) → `zizmor.sarif`; política `opcional` → **mínimo obligatorio** (§5.4/§7 D4/§9, A3).
 > - **Premisa D1 (A5)**: `security.yml` SÍ tiene trigger `pull_request`; el rechazo de alojar la

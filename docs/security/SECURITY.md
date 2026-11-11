@@ -782,9 +782,9 @@ The workflow also supports manual execution via `workflow_dispatch` with an opti
 
 ### 2. Vulnerability & License Review (`vulnerability-review` job)
 
-- **Tool**: `google/osv-scanner-action@v2.5.0`
+- **Tool**: `osv-scanner` v2.5.0 — descarga del release oficial (`osv-scanner_linux_amd64`) con **verificación SHA-256** (`edcfc41d…24e0c`), no `google/osv-scanner-action@v2.5.0` (su `action.yml` raíz no declara `runs:` y la action anidada cambia de CLI entre minors)
 - **Target**: `package-lock.json` (root lockfile covering all workspaces)
-- **Output**: JSON report (`osv-report.json`) with vulnerability details and severity
+- **Output**: JSON report (`osv-report.json`) con vulnerabilidades y severidad (en la salida v2 la etiqueta vive en `database_specific.severity` y el score en `groups[].max_severity`)
 - **Mode**: Fail-closed — findings fail the run; report artifacts still uploaded (if: always())
 - **Artifact**: `osv-report` (default retention)
 
@@ -819,6 +819,8 @@ Vulnerabilities grouped by severity with badges:
 - 🟢 **LOW** — Minimal security risk
 
 Each entry shows: package name, version, vulnerability ID (CVE/GHSA), title, and CVSS score (if available).
+
+The parser (`parseOsVReport`) acepta las dos formas de severidad de OSV: el string de v1 y la salida real de **v2** (`severity` como array de vectores CVSS + `database_specific.severity`, con `MODERATE` normalizado a `MEDIUM`). Si no hay etiqueta, cae a `groups[].max_severity`; solo entonces queda `UNKNOWN`.
 
 ### ⚖️ License Summary
 
@@ -900,4 +902,39 @@ If a PR number is provided and the digest contains actionable findings (critical
 
 ---
 
-**Última actualización:** 2026-07-31
+## Política de excepciones de seguridad (E6)
+
+Los riesgos aceptados viven en `security/exceptions.yml` (versionado): cada
+entrada declara `id`, `tool`, `finding`, `scope`, `reason`, `owner`, `created`,
+`expires` y `ticket`, con caducidad máxima de **90 días**. Toda supresión
+(inline o en fichero de configuración) DEBE referenciar el `id` de una entrada.
+
+El job `security-exceptions-check` (substage 2C de `ci.yml`, advisory en FASE 1)
+valida el fichero con `scripts/ci/security-exceptions.mjs`: schema completo,
+ids únicos, fechas ISO, `expires <= created + 90` y ninguna excepción vencida.
+Los cambios en `/security/` exigen revisión del `devops-team` (CODEOWNERS).
+Procedimiento: `docs/runbooks/security/exception-expiry.md`.
+
+## SLA de remediación
+
+`security/SLA.md` define los deadlines por severidad (**crítica/KEV/exploit:
+7 días; alta: 30; media: 90; baja: best effort**), el inicio del reloj (fecha de
+detección), la escalación y la interacción con excepciones (una excepción
+pendiente no pausa el reloj; la reasignación no lo reinicia; la explotación
+activa acelera el deadline a 24–72 h y obliga a reevaluar el riesgo).
+
+## Riesgo aceptado: un solo mantenedor
+
+Este repositorio **no logra separación de funciones**: el mismo mantenedor
+puede autor y aprobar una excepción. Es un **riesgo aceptado** y se compensa
+con:
+
+- caducidad obligatoria (≤ 90 días) y gate que falla con excepciones vencidas;
+- CODEOWNERS sobre `/security/` (la revisión queda registrada);
+- conteo de excepciones activas y vencimiento más próximo visibles en el issue
+  mensual `[monthly-security-metrics]`.
+
+La resolución permanente es incorporar una segunda cuenta con permisos de
+aprobación (separación real de funciones).
+
+**Última actualización:** 2026-11-10

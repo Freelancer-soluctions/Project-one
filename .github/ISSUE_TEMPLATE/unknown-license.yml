@@ -1,0 +1,68 @@
+name: Licencia `unknown` detectada por ScanCode
+description: Triage de una licencia desconocida (LicenseRef-scancode-unknown*) reportada por scancode-license-pr-diff o el audit semanal. SLA 30 días — docs/learning/license-policy.md §3.1.
+title: '[license] unknown: <archivo o dependencia>'
+labels:
+  - security
+body:
+  - type: markdown
+    attributes:
+      value: |
+        El reloj de **30 días** arranca en la **primera detección** (fecha del run de CI que
+        reporta el hallazgo — criterio clock-start de `security/SLA.md` §2), no en la apertura
+        de este ticket ni en el triaje.
+
+        Extensión de plazo: SOLO vía entrada en `security/exceptions.yml` (`tool: scancode`,
+        `scope: <ruta>`, `expires` ≤ created + 90 días, este ticket como `ticket:`). Un unknown
+        con excepción **vencida** bloquea los PRs siguientes (evaluate step de
+        `scancode-license-pr-diff`).
+  - type: input
+    id: path
+    attributes:
+      label: Archivo / ruta (campo `path` del reporte ScanCode)
+      placeholder: apps/server/vendor/ejemplo.js
+    validations:
+      required: true
+  - type: input
+    id: license-key
+    attributes:
+      label: Clave detectada (`spdx_license_key` / `key`)
+      placeholder: LicenseRef-scancode-unknown
+    validations:
+      required: true
+  - type: input
+    id: first-detection
+    attributes:
+      label: Primera detección (run ID o URL + fecha)
+      description: Clock-start del SLA de 30 días.
+      placeholder: 'https://github.com/<org>/<repo>/actions/runs/<id> — 2026-11-10'
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: Origen del hallazgo
+      options:
+        - scancode-license-pr-diff (PR, blocking FASE 2)
+        - scancode-license-audit (weekly, advisory)
+        - Escaneo local (L1, docs/learning/license-policy.md §7)
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidencia / contexto
+      description: Fragmento del reporte JSON, origen del archivo (vendor, copiado, generado), por qué ScanCode no determina la licencia.
+    validations:
+      required: true
+  - type: textarea
+    id: resolution
+    attributes:
+      label: Resolución (rellenar en el triaje)
+      description: Licencia real identificada y acción — corregir cabecera/atribución, reemplazar dependencia, o excepción justificada en security/exceptions.yml.
+  - type: checkboxes
+    id: sla
+    attributes:
+      label: SLA
+      options:
+        - label: Entiendo que el plazo es de 30 días desde la primera detección y que la única extensión válida es una entrada en `security/exceptions.yml`.
+          required: true

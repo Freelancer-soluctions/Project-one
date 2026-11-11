@@ -4,7 +4,7 @@
 
 ### Requirement: prebuild-security-complete needs contract
 
-The `prebuild-security-complete` aggregator SHALL depend on exactly 9 jobs: `[dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog]`. All nine jobs of substage 2C SECURITY SHALL be part of its `needs`, so that no security job can fail or be skipped silently without failing the aggregator.
+The `prebuild-security-complete` aggregator SHALL depend on the 9 substage-2C SECURITY jobs plus `security-exceptions-check` (10 total): `[dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog, security-exceptions-check]`. All security jobs SHALL be part of its `needs`, so that no security job can fail or be skipped silently without failing the aggregator. The 10th entry was added by the `security-exceptions-policy` change (task 4.4), which wired `security-exceptions-check` to the aggregator with no `continue-on-error`.
 
 The aggregator SHALL fail on any result that is not `success` (`failure`, `cancelled`, `skipped`) using `if: always()` and an explicit evaluation over `needs`. The value of `needs` SHALL be passed through `env`, never interpolated into the script.
 
@@ -15,7 +15,7 @@ Anti-skip guards SHALL be scoped per job and per event:
   - `dependency-review`: fail the aggregator when skipped.
   - `scancode-license-pr-diff`: fail the aggregator when skipped AND the PR includes ACMR changes (authorization computed inside the aggregator step via `git diff`).
   - Conditional jobs (`lockfile-audit`, `checkov-iac`, `containerfile-lint`, `actionlint-advisory`, `zizmor-advisory`, `typosquat-guarddog`): the aggregator computes authorization inside its own step (checkout + path check). A skip is authorized only if the relevant change (manifest/lockfile/infra/workflow) is absent from the PR. A skip without authorization fails the aggregator.
-- On `merge_group` and `workflow_dispatch` events: skips of PR-only jobs (all except `secrets`) are pre-authorized by event type, because those jobs have no PR diff to scan. The `secrets` job (which runs on `merge_group`) remains subject to the strict rule.
+- On `merge_group` and `workflow_dispatch` events: skips of PR-only jobs (all except `secrets`) are pre-authorized by event type, because those jobs have no PR diff to scan. The `secrets` job remains subject to the strict rule on `merge_group` (it runs there). On `workflow_dispatch`, a skip of `secrets` is also pre-authorized, because the job is gated to `pull_request`/`merge_group` and has no diff to scan on manual runs.
 
 The authorization channel is computed inside the aggregator step, not via an additional job in `needs`, preserving the "exactly 9" contract (PRD rule 3).
 
@@ -24,8 +24,8 @@ Promotion to blocking of any individual job remains governed by its origin chang
 #### Scenario: Security aggregator needs resolution
 
 - **WHEN** `prebuild-security-complete` runs
-- **THEN** its `needs` array contains exactly `dependency-review`, `secrets`, `scancode-license-pr-diff`, `lockfile-audit`, `checkov-iac`, `containerfile-lint`, `actionlint-advisory`, `zizmor-advisory`, `typosquat-guarddog` — no more, no less
-- **AND** all 9 jobs are from Substage 2C SECURITY
+- **THEN** its `needs` array contains exactly `dependency-review`, `secrets`, `scancode-license-pr-diff`, `lockfile-audit`, `checkov-iac`, `containerfile-lint`, `actionlint-advisory`, `zizmor-advisory`, `typosquat-guarddog`, `security-exceptions-check` — no more, no less
+- **AND** the first 9 jobs are from Substage 2C SECURITY; `security-exceptions-check` is a governance job wired by `security-exceptions-policy` task 4.4
 
 #### Scenario: Advisory job failure does not affect security aggregator
 

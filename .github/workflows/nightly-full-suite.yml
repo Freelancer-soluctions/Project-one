@@ -26,12 +26,12 @@ on:
     - cron: '40 2 * * *'
   workflow_dispatch:
 
-# Least-privilege explícito (task 4.3): `checks: write` es lo que permite a
-# `dorny/test-reporter` publicar el check de test; `contents: read` para el
-# checkout. Nada de `security-events` (este workflow no sube SARIF).
+# Least-privilege (zizmor `excessive-permissions`): `checks: write` va en los
+# dos jobs que publican el check vía `dorny/test-reporter` (nightly-client y
+# nightly-server), no a nivel workflow. `contents: read` para el checkout.
+# Nada de `security-events` (este workflow no sube SARIF).
 permissions:
   contents: read
-  checks: write
 
 # Sin `cancel-in-progress`: un run nocturno debe completarse entero (si dos
 # runs se solapan, el segundo espera).
@@ -50,9 +50,13 @@ jobs:
     name: Nightly - Client Full Suite
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      checks: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
 
@@ -62,7 +66,7 @@ jobs:
         run: npm run test:coverage:ci --workspace=apps/client
         shell: bash
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: nightly-coverage-client
@@ -81,7 +85,7 @@ jobs:
           node scripts/ci/tia-history.mjs apps/client --record --out apps/client/reports/tia-history.json || true
         shell: bash
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: tia-history-client
@@ -101,7 +105,7 @@ jobs:
         run: node scripts/ci/tia-map.mjs apps/client --build || true
         shell: bash
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: coverage-map-client-${{ github.sha }}
@@ -123,7 +127,7 @@ jobs:
 
       - name: Report Client Unit Tests
         if: always()
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3
         with:
           name: Nightly Client Unit Tests
           path: apps/client/reports/junit.xml
@@ -137,9 +141,13 @@ jobs:
     name: Nightly - Server Full Suite
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      checks: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
 
@@ -149,7 +157,7 @@ jobs:
         run: npm run test:coverage:unit:ci --workspace=apps/server
         shell: bash
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: nightly-coverage-server
@@ -167,7 +175,7 @@ jobs:
           node scripts/ci/tia-history.mjs apps/server --record --out apps/server/reports/tia-history.json || true
         shell: bash
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: tia-history-server
@@ -185,7 +193,7 @@ jobs:
         run: node scripts/ci/tia-map.mjs apps/server --build || true
         shell: bash
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: coverage-map-server-${{ github.sha }}
@@ -205,7 +213,7 @@ jobs:
 
       - name: Report Server Unit Tests
         if: always()
-        uses: dorny/test-reporter@v3
+        uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3
         with:
           name: Nightly Server Unit Tests
           path: apps/server/reports/junit.xml
@@ -223,8 +231,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
 

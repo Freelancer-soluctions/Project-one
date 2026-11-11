@@ -12,7 +12,7 @@ These three gaps are the single highest-value missing controls for reaching leve
 
 - Create `security/exceptions.yml` — versioned file with schema: `id`, `tool`, `finding`, `scope`, `reason`, `owner`, `created`, `expires`, `ticket`. Every suppression (inline or file) references an exception id.
 - Create `security/SLA.md` — documented remediation SLAs (Critical/KEV/exploit: 7 days; High: 30 days; Medium: 90 days; Low: best effort), with clock-start rules, escalation, and exception interaction.
-- Create a CI job `security-exceptions-check` in `.github/workflows/ci.yml` (substage 2C, advisory in FASE 1) that parses `security/exceptions.yml` and fails if any exception is expired or malformed.
+- Create a CI job `security-exceptions-check` in `.github/workflows/ci.yml` (substage 2C, blocking from day one) that parses `security/exceptions.yml` and fails if any exception is expired or malformed. Wired to `prebuild-security-complete.needs`.
 - Create a monthly metrics workflow `.github/workflows/security-metrics.yml` that collects the seven PRD metrics and opens/updates an issue with results.
 - Create runbooks under `docs/runbooks/security/`: `exception-expiry.md`, `secret-incident-response.md` (if not already present), `cve-triage.md`.
 - Update `docs/learning/quality-gates.md` and `docs/CONTEXT-CICD.md` to reference the new artifacts.

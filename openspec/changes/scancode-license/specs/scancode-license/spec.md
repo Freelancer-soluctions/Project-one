@@ -26,14 +26,15 @@ The repository SHALL document the license deny-list decision in the existing can
 
 ### Requirement: Unknown license triage rule
 
-The system SHALL define a triage process for `unknown` licenses (`LicenseRef-scancode-unknown*`): each unknown license SHALL be tracked with a ticket and a 30-day deadline. In FASE 1 the job reports a warning (not a failure). The `license-compliance` main spec's invariant "unknown never blocks" SHALL be amended via a MODIFIED delta to reflect the escalation rule below.
+The system SHALL define a triage process for `unknown` licenses (`LicenseRef-scancode-unknown*`): each unknown license SHALL be tracked with a ticket and a 30-day deadline. The job reports a warning for unknown licenses in the initial rollout. The `license-compliance` main spec's invariant "unknown never blocks" SHALL be amended via a MODIFIED delta to reflect the escalation rule below.
 
 #### Scenario: Unknown license found
 
 - **WHEN** ScanCode detects an `unknown` license in a PR
-- **THEN** the job SHALL report a warning (not a failure in FASE 1)
+- **THEN** the job SHALL report a warning initially
 - **AND** a ticket SHALL be created (manual or via issue template) with a 30-day deadline
 - **AND** the finding SHALL appear in the job's artifact/log output (`pr-license-report.json`)
+- **AND** if the unknown remains unresolved after 30 days, it escalates to blocking
 
 #### Scenario: Unknown license unresolved after 30 days
 

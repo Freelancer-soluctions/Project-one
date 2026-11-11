@@ -63,11 +63,13 @@ jobs:
     steps:
       # 1. Checkout
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       # 2. Setup Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -182,7 +184,7 @@ jobs:
       # 10. Find existing preview comment (marker-based)
       - name: Find existing preview comment
         if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
-        uses: peter-evans/find-comment@v4
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4
         id: find-comment
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -193,7 +195,7 @@ jobs:
       # 11. Create or update PR comment with combined preview info
       - name: Create or update preview comment
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
-        uses: peter-evans/create-or-update-comment@v5
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
         continue-on-error: true
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -226,7 +228,7 @@ jobs:
       # 12. Report backend validation failure if smoke tests failed
       - name: Report backend failure
         if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
-        uses: peter-evans/create-or-update-comment@v5
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
         continue-on-error: true
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

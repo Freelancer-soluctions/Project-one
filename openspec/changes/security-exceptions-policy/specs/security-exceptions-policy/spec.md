@@ -25,13 +25,14 @@ The repository SHALL maintain a versioned file `security/exceptions.yml` contain
 
 ### Requirement: CI gate on expired exceptions
 
-The system SHALL run a job `security-exceptions-check` in substage 2C of `ci.yml` that parses `security/exceptions.yml` and fails if any exception has `expires` before the current date, is malformed, or has `expires` more than 90 days after `created`. In FASE 1 the job runs advisory (`continue-on-error: true`); in FASE 2 it is wired to `prebuild-security-complete.needs`.
+The system SHALL run a job `security-exceptions-check` in substage 2C of `ci.yml` that parses `security/exceptions.yml` and fails if any exception has `expires` before the current date, is malformed, or has `expires` more than 90 days after `created`. The job is blocking from day one: no `continue-on-error`, wired to `prebuild-security-complete.needs`.
 
 #### Scenario: Expired exception fails the gate
 
 - **WHEN** the current date is after an exception's `expires` date
 - **THEN** `security-exceptions-check` SHALL exit non-zero
 - **AND** the job output SHALL name the expired exception id and its expiry date
+- **AND** the failure blocks the merge (job is wired to `prebuild-security-complete.needs`, no `continue-on-error`)
 
 #### Scenario: Malformed exceptions file fails the gate
 
