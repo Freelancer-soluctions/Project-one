@@ -17,8 +17,8 @@
       — Verificado con equivalente Node (`js-yaml`): security.yml OK (6 jobs), security-digest.yml OK (4 jobs).
 - [x] 2.3 Ejecutar actionlint sobre los workflows modificados y confirmar sin errores (catches misspelled inputs).
       — Ejecutado actionlint v1.7.12 local (misma versión que el job CI `actionlint-advisory`) sobre ambos ficheros: exit 0, 0 hallazgos. El input `dependency-snapshot` está confirmado contra el action.yml del action (default "false", tipo boolean).
-- [ ] 2.4 (Post-merge) Disparar el workflow y verificar que el snapshot aparece en el GitHub Dependency graph sin errores de autenticación.
-      — **Pendiente por naturaleza**: requiere merge a `main` (el cron/dispatch corre el YAML del default branch). Verificación: log del step `Generate SBOM` debe contener "Uploading GitHub dependency snapshot…" sin el warning "Error uploading depdendency snapshot"; después, Insights → Dependency graph debe listar entradas enviadas por el correlator `Security Pipeline_sbom` / `Scheduled Security Digest_sbom`.
+- [~] 2.4 (Post-merge, requiere push) Disparar el workflow y verificar que el snapshot aparece en el GitHub Dependency graph sin errores de autenticación. No ejecutable localmente. Documentado en tasks.md.
+  — **Pendiente por naturaleza**: requiere merge a `main` (el cron/dispatch corre el YAML del default branch). Verificación: log del step `Generate SBOM` debe contener "Uploading GitHub dependency snapshot…" sin el warning "Error uploading depdendency snapshot"; después, Insights → Dependency graph debe listar entradas enviadas por el correlator `Security Pipeline_sbom` / `Scheduled Security Digest_sbom`.
 
 ## Documentación
 
