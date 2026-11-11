@@ -15,7 +15,7 @@
 - [x] 2.2 Parsear `ci.yml` con `python -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"` y verificar que `prebuild-security-complete.needs` tiene exactamente 9 entradas.
 - [x] 2.3 Verificar con grep que el step de evaluación usa `env: NEEDS:` y no interpola `${{ }}` en el script.
 - [x] 2.4 Ejecutar `actionlint` (o el job `validate-pipeline`) sobre `ci.yml` y confirmar sin errores.
-- [~] 2.5 Smoke test: PR #171 abierto en ci-improvement-v7 → main para verificar que `Prebuild Security Complete` reporta success/failure. CI en ejecución (checks iniciales: opencode-review, Governance PR Title Lint, Governance PR Body Lint). Verificación final pendiente de que el pipeline complete. Arnés local: 22 casos de `needs`/evento/diff ejecutados sobre el script del step de evaluación.
+- [x] 2.5 Smoke test: PR #171 (ci-improvement-v7 → main) verificado. CI completó: `Prebuild Security Complete` reporta **FAILURE** (correcto — 4 jobs fallaron: Secret Detection, ScanCode, Lockfile Audit, Exceptions Policy). El agregador es estricto y bloquea. Arnés local: 22 casos de `needs`/evento/diff ejecutados. ✅ Verificado via PR real.
 
 ## Documentación
 
