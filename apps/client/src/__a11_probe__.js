@@ -1,1 +1,2 @@
-export const __a11_probe__ = ;
+export const probeA11 = 1;
+const unusedVar = 2;
