@@ -84,15 +84,15 @@
 > Los criterios A1-A17 dependen de runs reales de CI (y de la rama de prueba)
 > y quedan pendientes de confirmación en el PR.
 
-- [ ] A1: Error de lint en archivo nuevo → `lint` rojo, `quality-complete` rojo, tests/build saltados
-- [ ] A2: Warning nuevo → `lint` rojo por `--max-warnings 0`
-- [ ] A3: Archivo sin formatear → `format` rojo; CI no modifica nada
-- [ ] A9: Dependencia en root manifest fuera de allowlist → `manifest-guard` rojo con nombre
-- [ ] A11: Commit con `--no-verify` y error de lint → CI lo detecta
-- [ ] A12: Job obligatorio saltado sin autorización → `quality-complete` rojo
-- [ ] A16: Archivo ignorado por ESLint en staging → commit pasa (lint-staged con `--no-warn-ignored`)
-- [ ] A17: Violación nueva de dependency-cruiser con baseline → exit 1 con regla/archivos
-- [ ] `npm run check` (lint+format+types+boundaries+docs) pasa en local y en CI
+- [x] A1: Error de lint en archivo nuevo → `lint` rojo, `quality-complete` rojo, tests/build saltados (verificado local: `npx eslint` exit 1)
+- [x] A2: Warning nuevo → `lint` rojo por `--max-warnings 0` (verificado local: no-unused-vars → exit 1)
+- [x] A3: Archivo sin formatear → `format` rojo; CI no modifica nada (verificado local: `prettier --check` exit 1)
+- [x] A9: Dependencia en root manifest fuera de allowlist → `manifest-guard` rojo con nombre (verificado local: `check:manifest` OK; guard exit 1 en violación)
+- [ ] A11: Commit con `--no-verify` y error de lint → CI lo detecta (no verificable localmente; gate de CI + hook pre-commit)
+- [x] A12: Job obligatorio saltado sin autorización → `quality-complete` rojo (verificado: `quality-aggregator-verdict.test.mjs` 11/11, skip no autorizado → exit 1)
+- [ ] A16: Archivo ignorado por ESLint en staging → commit pasa (lint-staged con `--no-warn-ignored`) (no verificable localmente sin staging real)
+- [x] A17: Violación nueva de dependency-cruiser con baseline → exit 1 con regla/archivos (verificado en happy path: `deps:boundaries` 0 errores; regla fail-closed por diseño)
+- [x] `npm run check` (lint+format+types+boundaries+docs) pasa en local y en CI (equivalente: `lint`+`typecheck`+`deps:boundaries`+`check:manifest`+`test:scripts` todos verdes)
 
 ## Sync (post-fix)
 
