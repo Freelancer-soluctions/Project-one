@@ -1572,7 +1572,7 @@ local no lo sustituye.
 `security/exceptions.yml` es la única fuente de riesgos aceptados (schema
 `id/tool/finding/scope/reason/owner/created/expires/ticket`, caducidad máxima
 90 días); lo valida el job `security-exceptions-check` de `ci.yml` (2C,
-advisory en FASE 1) vía `scripts/ci/security-exceptions.mjs`. `security/SLA.md`
+blocking desde día uno, cableado a `prebuild-security-complete.needs`) vía `scripts/ci/security-exceptions.mjs`. `security/SLA.md`
 fija los deadlines 7/30/90/best-effort y las reglas de reloj; el workflow
 `.github/workflows/security-metrics.yml` publica las 7 métricas mensuales en el
 issue `[monthly-security-metrics]` y en `security/metrics/YYYY-MM.md`. Runbooks:
