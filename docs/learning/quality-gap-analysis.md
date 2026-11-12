@@ -104,10 +104,20 @@ posteriores (`quality-gates`, `ci-shifting-left`, `import-boundaries`,
 
 - **Estado**: `client-format-check` blocking; `server-format-check` `if: false`
   (deuda).
+
 - **Diferencias**: Server no pasa format:check limpio. PRD quiere bloqueante en
   ambos. `.prettierrc.yaml` con `endOfLine: lf` ✓ (alineado con PRD CRLF).
 - **Acciones**: P1 — activar `server-format-check` tras limpiar formato server
   (FASE 2).
+
+**[VERIFICADO / corregido 2026-11-12, change `ci-format-check-blocking`]**: la
+deuda no se reproduce en archivos TRACKEADOS. `format:check` fallaba únicamente
+por artefactos generados gitignored (`.vitest-reports/blob.json`,
+`reports/*.json`, `reports/lighthouse/*`) que Prettier no excluía. Con
+`apps/{client,server}/.prettierignore` y `e2e/.prettierignore` los tres
+workspaces pasan `prettier --check` limpio; `server-format-check` queda ACTIVADO
+(path-scoped + PR-only) y se añade `e2e-format-check`, ambos blocking en
+`prebuild-quality-complete.needs`.
 
 ### 3.3 Tipos (TypeScript)
 

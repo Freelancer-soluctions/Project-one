@@ -59,7 +59,7 @@ const ALWAYS_RUNNING_JOBS = new Set(['openspec-validate']);
 function areaRan(job, areas) {
   if (CLIENT_JOBS.has(job)) return areas.client;
   if (SERVER_JOBS.has(job)) return areas.server;
-  if (job === 'e2e-lint') return areas.e2e;
+  if (job === 'e2e-lint' || job === 'e2e-format-check') return areas.e2e;
   if (job === 'validate-pipeline') return areas.workflows;
   if (job === 'root-manifest-guard') return areas.shared;
   if (ALWAYS_RUNNING_JOBS.has(job)) return 'true';

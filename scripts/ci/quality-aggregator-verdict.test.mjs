@@ -126,6 +126,24 @@ describe('quality-aggregator-verdict', () => {
     expect(problematic).toEqual(['openspec-validate: skipped']);
   });
 
+  it('maps e2e-format-check to the e2e area', () => {
+    expect(
+      evaluateQualityAggregator({
+        needs: { 'e2e-format-check': { result: 'skipped' } },
+        eventName: 'pull_request',
+        areas: { e2e: 'false' },
+      })
+    ).toEqual([]);
+
+    expect(
+      evaluateQualityAggregator({
+        needs: { 'e2e-format-check': { result: 'skipped' } },
+        eventName: 'pull_request',
+        areas: { e2e: 'true' },
+      })
+    ).toEqual(['e2e-format-check: skipped']);
+  });
+
   it('maps shape-specific areas (shared for root-manifest-guard, workflows for validate-pipeline)', () => {
     const problematic = evaluateQualityAggregator({
       needs: {

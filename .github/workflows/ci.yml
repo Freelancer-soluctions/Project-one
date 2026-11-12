@@ -2476,11 +2476,16 @@ jobs:
           sarif_file: apps/server/eslint-results.sarif
           category: eslint-server
 
-  # FASE 1 (diferido): server aún no pasa `npm run format:check` limpio.
-  # FASE 2: re-activar (`if: true`) cuando el workspace server pase el check —
-  # misma convención FASE 1/FASE 2 del bloque Security.
+  # ACTIVADO (change `ci-format-check-blocking`, 2026-11-12): la deuda que
+  # justificaba el `if: false` no se reproduce en archivos TRACKEADOS — el
+  # `format:check` solo fallaba por artefactos generados gitignored
+  # (`reports/`, `.vitest-reports/`), ahora excluidos vía
+  # `apps/server/.prettierignore`. Condición hermana de `server-lint` /
+  # `server-typecheck` (path-scoped + PR-only); en `merge_group` queda skipped y
+  # el agregador lo autoriza por evento. CI solo verifica (`--check`), nunca
+  # `--write`: el auto-fix vive en lint-staged (pre-commit).
   server-format-check:
-    if: false
+    if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
     name: 'Quality: Server Format'
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -2710,6 +2715,25 @@ jobs:
         with:
           sarif_file: e2e/eslint-results.sarif
           category: eslint-e2e
+
+  # Gate de formato del workspace e2e (change `ci-format-check-blocking`):
+  # espejo de `e2e-lint` con la misma condición path-scoped + PR-only. El
+  # `format:check` excluye artefactos de Playwright
+  # (`test-results/`, `playwright-report/`) vía `e2e/.prettierignore`. Blocking
+  # desde el día 1; entra en `prebuild-quality-complete.needs`.
+  e2e-format-check:
+    if: needs.repo-discovery.outputs.e2e == 'true' && github.event_name == 'pull_request'
+    name: 'Quality: E2E Format'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+      - run: npm run format:check --workspace=e2e
 
   # --- Pipeline Config Pre-Build ---
   # Validación estática de los workflows (change `ci-shifting-left`, capability
@@ -3420,6 +3444,7 @@ jobs:
       - server-dead-code
       - server-import-bounds
       - e2e-lint
+      - e2e-format-check
       # change `ci-shifting-left`: contrato de DB (drift schema↔migraciones) y
       # validación estática de workflows (yamllint + actionlint). Ambos
       # path-scoped: skipped fuera de PRs de server / de `.github/**`
