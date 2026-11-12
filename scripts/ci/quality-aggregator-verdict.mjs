@@ -8,7 +8,6 @@
 // `skipped`), salvo los skipped legítimos:
 //   - evento distinto de `pull_request` (merge queue / dispatch): los jobs
 //     PR-only se saltan por diseño;
-//   - `server-format-check`, que está desactivado con `if: false`;
 //   - en `pull_request`, un job cuyo área NO cambió según `repo-discovery`.
 // Fail-closed: un job desconocido saltado cuenta como no autorizado.
 //
@@ -74,7 +73,6 @@ function areaRan(job, areas) {
  */
 function isSkipAuthorized(job, eventName, areas) {
   if (eventName !== 'pull_request') return true;
-  if (job === 'server-format-check') return true;
   return areaRan(job, areas) === 'false';
 }
 

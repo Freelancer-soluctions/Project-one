@@ -106,14 +106,22 @@ describe('quality-aggregator-verdict', () => {
     expect(problematic).toEqual([]);
   });
 
-  it('always authorizes server-format-check (if: false)', () => {
-    const problematic = evaluateQualityAggregator({
-      needs: { 'server-format-check': { result: 'skipped' } },
-      eventName: 'pull_request',
-      areas: { server: 'true' },
-    });
+  it('authorizes server-format-check skip only when the server area did not change', () => {
+    expect(
+      evaluateQualityAggregator({
+        needs: { 'server-format-check': { result: 'skipped' } },
+        eventName: 'pull_request',
+        areas: { server: 'false' },
+      })
+    ).toEqual([]);
 
-    expect(problematic).toEqual([]);
+    expect(
+      evaluateQualityAggregator({
+        needs: { 'server-format-check': { result: 'skipped' } },
+        eventName: 'pull_request',
+        areas: { server: 'true' },
+      })
+    ).toEqual(['server-format-check: skipped']);
   });
 
   it('does not authorize skipping openspec-validate in a PR', () => {
