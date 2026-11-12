@@ -34,6 +34,9 @@ const relevant = changed.filter(
     !/\.config\.(js|mjs|ts)$/.test(f) &&
     !/^scripts\//.test(f) &&
     !/\/docs\//.test(f) &&
+    // Fixtures con errores de tipo deliberados (p. ej. tsc-exit-test/bad.ts)
+    // nunca se ejecutan ni pueden cubrirse, igual que los tests.
+    !/^tsc-exit-test\//.test(f) &&
     !/\/src\/components\/ui\//.test(f) &&
     !/\/src\/components\/.*Datatable\.jsx$/.test(f) &&
     !/\/src\/components\/.*Dialog\.jsx$/.test(f) &&
