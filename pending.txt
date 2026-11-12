@@ -208,3 +208,8 @@ ci-complete no incluye este check si lo sacas a otro workflow. No hay problema, 
 - Hueco real en el gate local: .husky/pre-push usa %G? contra allowed_signers, que valida criptografía pero no cruza el email del commit con el principal firmante. Por eso dio verde a los 9 commits inválidos. Recomiendo un change OpenSpec para endurecerlo (comparar %ae/%ce contra el principal del trust store o gh api user/emails). ¿Lo abro con /opsx-new?
 
 - Verifica si OpenCode reutiliza la sesión del subagente entre tareas; si no, es tu mayor desperdicio.
+
+
+ci-eslint-v10-upgrade	Mantener	v9 EOL verificado
+ci-type-check-strict	Fusionar con server-typescript-migration	strict ya activo en server; tsBuildInfo aporta poco
+ci-pr-review-automation

@@ -19,15 +19,15 @@
 set -u
 
 # ------------------------------------------------------------
-# Política: devDependencies EXCLUIDAS del escaneo (FASE 1).
+# Política: devDependencies EXCLUIDAS del escaneo (blocking desde día uno).
 # Para incluirlas: PR que cambie esto a `true` con justificación.
 # ------------------------------------------------------------
 export GUARDDOG_NPM_INCLUDE_DEV_DEPENDENCIES=false
 
 # ------------------------------------------------------------
 # Exclusiones de reglas (selectivas, justificadas por regla).
-# FASE 1: NINGUNA excluida — acumular runs advisory antes de
-# excluir nada (la promoción a FASE 2 exige clasificar el ruido).
+# Blocking desde día uno: NINGUNA excluida. Exclusiones (si se necesitan)
+# se añaden aquí con justificación (qué regla, por qué, hasta cuándo).
 #
 # Formato: --exclude-rules <regla> (repetible). Reglas npm reales
 # en v3.2.0 (RULES.md): threat.metadata.typosquatting,
@@ -82,4 +82,4 @@ rm -f "${guarddog_stderr}"
 # `guarddog-weekly` y el hook pre-commit redirigen stdout a un .sarif que
 # se sube a Code Scanning (upload-sarif valida el JSON). Sin el flag,
 # GuardDog imprime texto plano y el "SARIF" queda corrupto/invalido.
-exec uvx --python "${GUARDDOG_PYTHON}" "guarddog==${GUARDDOG_PIN}" npm verify package.json --output-format sarif "$@"
+exec uvx --python "${GUARDDOG_PYTHON}" "guarddog==${GUARDDOG_PIN}" npm verify . --output-format sarif "$@"

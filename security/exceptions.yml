@@ -19,7 +19,7 @@
 #   ticket   Issue/PR donde se justificó y se sigue el riesgo.
 #
 # Reglas verificadas por `scripts/ci/security-exceptions.mjs` en el job
-# `security-exceptions-check` (advisory en FASE 1):
+# `security-exceptions-check` (blocking desde día uno, cableado a `prebuild-security-complete.needs`):
 #   - schema completo y YAML válido;
 #   - `id` único;
 #   - fechas ISO válidas, `expires >= created` y `expires <= created + 90`;

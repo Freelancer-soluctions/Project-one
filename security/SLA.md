@@ -62,8 +62,8 @@ observado en logs):
 - Una excepción **no** cambia la severidad ni el SLA: solo documenta que el
   riesgo se acepta temporalmente. El conteo de excepciones activas y la
   fecha de vencimiento más próxima son visibles en el issue mensual.
-- Excepción vencida = fallo del job `security-exceptions-check` (advisory en
-  FASE 1; bloqueante en FASE 2).
+- Excepción vencida = fallo del job `security-exceptions-check` (blocking desde
+  día uno, cableado a `prebuild-security-complete.needs`).
 
 ## 6. Revisión
 
