@@ -79,3 +79,18 @@ La limpieza del manifiesto raíz SHALL dejar el árbol funcional: `npm ci` insta
 - **WHEN** se ejecutan build, tests unitarios y de integración de `client-react`, `server-express` y `e2e` tras la limpieza
 - **THEN** todos pasan sin modificaciones de código
 - **AND** los scripts raíz (`dev`, `test`, `build`, `lint`) siguen resolviendo sus binarios vía hoisting
+
+### Requirement: Externalized allowlist with reason/owner/issue
+
+The root manifest guard SHALL read the allowlist from a versioned `manifest-allowlist.json` file with schema `{ "allow": [...], "entries": [{ "name", "reason", "owner", "issue" }] }`. The script SHALL exit 2 if the file is missing and exit 1 on violations, naming each offending dependency.
+
+#### Scenario: Missing allowlist file
+
+- **WHEN** `manifest-allowlist.json` is absent
+- **THEN** the script exits with code 2
+
+#### Scenario: Violation
+
+- **WHEN** a root dependency is outside the allowlist and not a direct dependency of a workspace
+- **THEN** the script exits with code 1 and names the offending dependency
+  EOF

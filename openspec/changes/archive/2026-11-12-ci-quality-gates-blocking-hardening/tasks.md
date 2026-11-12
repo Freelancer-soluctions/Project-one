@@ -96,6 +96,6 @@
 
 ## Sync (post-fix)
 
-- [ ] `openspec sync ci-quality-gates-blocking-hardening` para propagar capabilities a main specs
-- [ ] `openspec validate --specs --strict` sin errores
-- [ ] Archivar el change tras completar tasks
+- [x] `openspec sync ci-quality-gates-blocking-hardening` para propagar capabilities a main specs (sync vía `openspec archive`)
+- [x] `openspec validate --specs --strict` sin errores (169/169 OK)
+- [x] Archivar el change tras completar tasks
