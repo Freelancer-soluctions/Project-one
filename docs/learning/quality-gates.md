@@ -31,7 +31,7 @@ Basado en patrones oficiales de GitHub (`docs.github.com/en/actions/reference/wo
 | **advisory (PR, fase 1)**                | `containerfile-lint`                  | Calidad del Containerfile (Hadolint): ShellCheck sobre `RUN`, pin de versiones, capas, registry allowlist — NO IaC policy                                                                                                                                                                                                                                                             | Activo en `ci.yml` (change `containerfile-lint`, FASE 1, 2026-09-28): `continue-on-error: true` a nivel job, política `.hadolint.yaml` vía input `config`, `format: sarif`, artifact `hadolint-report-pr` con `retention-days: 14` + SARIF `category: hadolint`                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | **Sí**                                                                                                                                                                                                                 | No          | Cableado a `prebuild-security-complete.needs` desde Phase 0 (change `prebuild-security-aggregator-strict`); advisory mientras conserve job-COE; FASE 2: `failure-threshold: warning` + quitar job-COE tras 2-4 semanas de runs limpios; capa COMPLEMENTARIA a `checkov-iac` (calidad Dockerfile ≠ policy IaC; solape CKV_DOCKER_2/4 ≈ DL3006/DL3057 aceptado)                                                                                                                                                   |
 | **blocking (PR, fase 2)**                | `actionlint-advisory`                 | Pipeline config scan (actionlint v1.7.12): sintaxis/semántica de workflows con salida SARIF                                                                                                                                                                                                                                                                                           | Activo en `ci.yml` bloque security 2C (reubicación `ci-security-substage-alignment`, 2026-09-30; change `pipeline-config-scan`, FASE 2 blocking 2026-11-10: sin job-COE (gate `jq` sobre el SARIF; uploads step-COE), imagen Docker pinneada `rhysd/actionlint:1.7.12` vía `docker run` (2026-09-30: sin curl                                                                                                                                                                                                                                                                                                                                                                                                                                 | bash; único job actionlint por PR — el bloqueante de 2B fue consolidado aquí), plantilla SARIF versionada `.github/actionlint-sarif.tmpl` como `-format`, artifact `actionlint-report-pr` 14d + `category: actionlint` | No          | No                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Cableado a `prebuild-security-complete.needs` desde Phase 0 (change `prebuild-security-aggregator-strict`); el gate bloqueante `actionlint` fue removido de 2B (2026-09-30, consolidación aquí — la cobertura de lint queda en SARIF/Code Scanning y `zizmor-advisory`); FASE 2 ACTIVA (2026-11-10): sin job-COE, bloqueo solo en el step lint (uploads step-COE) — restablece el gate bloqueante de workflows |
 | **blocking (PR, fase 2)**                | `zizmor-advisory`                     | Pipeline config scan (zizmor v1.30.1): `unpinned-uses` y audits que actionlint no cubre                                                                                                                                                                                                                                                                                               | Activo en `ci.yml` bloque security 2C (reubicación `ci-security-substage-alignment`, 2026-09-30; change `pipeline-config-scan`, FASE 1, 2026-09-28): sin job-COE (FASE 2 blocking 2026-11-10), instalación fijada (`setup-uv` SHA-pinned + `uvx zizmor@1.30.1` + version check), política `.github/zizmor.yml` incondicional, SARIF `category: zizmor` + artifact 14d. PRIMER RUN REAL: 90 hallazgos, exit 0 (SARIF siempre exit 0 — validar el fichero, nunca el exit code)                                                                                                                                                                                                                                                                  | No                                                                                                                                                                                                                     | No          | Cableado a `prebuild-security-complete.needs` desde Phase 0 (change `prebuild-security-aggregator-strict`); FASE 2 ACTIVA (2026-11-10): gate bloqueante sobre TODAS las reglas (`results                                                                                                                                                                                                                                                                                                                        | length == 0`, sin job-COE) con deuda remediada en origen; política `"\*": hash-pin`desde 2026-11-10 (change`sha-pinning-remaining-actions`) → cualquier `uses: owner/action@vX` rompe CI, y la única forma de pasar es SHA completo (mantenido por Dependabot)                                                                                                                                                 |
-| **advisory (PR, fase 1)**                | `typosquat-guarddog`                  | Typosquatting / dependency confusion (GuardDog v3.2.0): metadatos + YARA sobre `package.json` — 0-day sin CVE, exclusiva                                                                                                                                                                                                                                                              | Activo en `ci.yml` bloque security 2C (reubicación `ci-security-substage-alignment`, 2026-09-30; change `typosquatting-detection`, FASE 1, 2026-09-28): `continue-on-error: true` a nivel job, wrapper versionado `scripts/guarddog-verify.sh` (única política: pin `3.2.0` + verificación de versión, devDeps excluidas vía `GUARDDOG_NPM_INCLUDE_DEV_DEPENDENCIES=false`, sandbox obligatorio — nunca `--no-sandbox`), `setup-uv` SHA-pinned v6.7.0, SARIF `category: guarddog` + artifact 14d con guards (`\|\| true` + `test -s` + `jq -e .` + `hashFiles`)                                                                                                                                                                               | **Sí**                                                                                                                                                                                                                 | No          | Cableado a `prebuild-security-complete.needs` desde Phase 0 (change `prebuild-security-aggregator-strict`); advisory mientras conserve job-COE; FASE 2 (diferida): quitar job-COE tras 2-4 semanas sin FP y ruido clasificado en el wrapper; complementaria a Trivy/dependency-review/lockfile-audit (GuardDog = malicious-package metadata+YARA, no CVE ni licencias); Windows: solo Docker (L1 degrada silencioso)                                                                                            |
+| **blocking (PR)**                        | `typosquat-guarddog`                  | Typosquatting / dependency confusion (GuardDog v3.2.0): metadatos + YARA sobre `package.json` — 0-day sin CVE, exclusiva; condicionado a cambios en manifiestos/lockfiles via `repo-discovery.outputs.manifests`                                                                                                                                                                      | Activo en `ci.yml` bloque security 2C (reubicación `ci-security-substage-alignment`, 2026-09-30; change `typosquatting-detection`, **blocking desde 2026-11-10**): sin job-COE; gate `jq` sobre el SARIF (bloquea si hay CUALQUIER hallazgo, no solo typosquatting); wrapper versionado `scripts/guarddog-verify.sh` (única política: pin `3.2.0` + verificación de versión, devDeps excluidas vía `GUARDDOG_NPM_INCLUDE_DEV_DEPENDENCIES=false`, sandbox obligatorio — nunca `--no-sandbox`), `setup-uv` SHA-pinned v6.7.0, SARIF `category: guarddog` + artifact 14d con guards (`\|\| true` + `test -s` + `jq -e .` + `hashFiles`); condicionado a `needs.repo-discovery.outputs.manifests == 'true'`                                      | **No**                                                                                                                                                                                                                 | No          | Cableado a `prebuild-security-complete.needs` desde Phase 0 (change `prebuild-security-aggregator-strict`); blocking desde día uno (sin job-COE); complementaria a Trivy/dependency-review/lockfile-audit (GuardDog = malicious-package metadata+YARA, no CVE ni licencias); Windows: solo Docker (L1 degrada silencioso)                                                                                                                                                                                       |
 | **blocking (PR, fase 2)**                | `sast`                                | SAST diff-scoped (Semgrep) sobre el diff del PR: un hallazgo ERROR nuevo **deja el job y el agregador de governance en rojo** desde FASE 2 (enforcement duro del merge exige bindear el agregador al ruleset 21227644 — fuera de alcance; ver §7.2)                                                                                                                                   | Activo en `ci.yml` (change `sast-shift-left-hooks-parity`; FASE 1 desde 2026-10-19, **graduado a FASE 2 el 2026-10-20**, §7.2): el job **delega en `scripts/sast-diff.mjs`** con `SAST_MODE=ci` (mismo script, versión pineada, packs y exclusiones que el hook `pre-push` — paridad por construcción, sin `docker run` inline), **sin `continue-on-error`**, artifact `sast-report` (`.tmp/sast-report.json` con findings/modo/baseline, `retention-days: 14` + `if: always()` + `if-no-files-found: warn`)                                                                                                                                                                                                                                  | **Sí**                                                                                                                                                                                                                 | Sí          | Está en `prebuild-governance-complete.needs` (de 4 a 5 entradas) desde la graduación a FASE 2 (2026-10-20, §7.2) y NO en `ci-complete.needs`; el ruleset 21227644 y `ci-complete.needs` NO se tocan — `CI Complete` solo fallaría de forma transitiva, por diseño; gate local equivalente: etapa SAST del hook `pre-push` (fail-open ante herramienta rota)                                                                                                                                                     |
 | **blocking (PR, fase 2)**                | `coverage` (client/server)            | Fallo si cobertura < umbral (tripwire `check-coverage.mjs`)                                                                                                                                                                                                                                                                                                                           | **FASE 2 ACTIVA** (change `ci-testing-gate-promotion`, 2026-10-29): sin `continue-on-error`; guard strict verde sobre coverage fresca en ambos workspaces y `check-coverage.mjs` como único enforcer per-file (todos los globs matchean archivos instrumentados). **Gate post-merge** (change `coverage-merge-gate`, 2026-10-13): descarga por patrón `coverage-<ws>-shard-*` + `merge-multiple`, validación de blobs y summary, `vitest --merge-reports --coverage` y **entonces** `check-coverage.mjs`                                                                                                                                                                                                                                      | No                                                                                                                                                                                                                     | No          | `client-coverage` / `server-coverage` siguen entre los 5 `needs` de `prebuild-tests-complete`, con ids y `name:` sin cambios (Regla 8); un rojo tiñe el agregador y `ci-complete`. Rollback: reponer el flag por job con causa registrada (design D9)                                                                                                                                                                                                                                                           |
 
@@ -131,35 +131,35 @@ Nota: el snippet del usuario incluía `|| echo` con `docs-validation` excluido d
 
 ### 4.4 Tabla resumen (estado tras `quality-gates`, 2026-09-26)
 
-| Gate                        | Estado actual                                                                                                                                                                                                                                                                     | Tipo                                            |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| `lint` (client/server)      | Activo                                                                                                                                                                                                                                                                            | blocking                                        |
-| `format-check`              | Client activo; server `if: false` (fuera de alcance)                                                                                                                                                                                                                              | blocking (client)                               |
-| `typecheck`                 | **Activado** (tsconfigs mínimos + script `type-check`, sin máscara de exit code)                                                                                                                                                                                                  | blocking                                        |
-| `complexity`                | **Activado** sin `--rule` (client ya lo estaba); umbrales desde `eslint.config.js`                                                                                                                                                                                                | blocking                                        |
-| `import-bounds`             | Activo en ambos workspaces (change `import-boundaries`) con baseline                                                                                                                                                                                                              | blocking                                        |
-| `dead-code`                 | Activo con `continue-on-error: true`                                                                                                                                                                                                                                              | advisory                                        |
-| `docs-validation`           | **Nuevo**: `continue-on-error: true` + reporte en step summary; fuera de `needs`                                                                                                                                                                                                  | advisory                                        |
-| `secrets`                   | Activo en `ci.yml` 2C, wireado a `prebuild-security-complete` (change `secret-scanning`)                                                                                                                                                                                          | blocking                                        |
-| `dependency-review`         | Activo en `ci.yml` 2C con `deny-licenses` + `comment-summary-in-pr: on-failure` (change `dependency-review`, 2026-09-25)                                                                                                                                                          | blocking (PR)                                   |
-| `scancode-license-pr-diff`  | Activo en `ci.yml` 2C, **FASE 2 blocking ACTIVA (2026-11-10, change `scancode-license`)**: sin COE, fix instalación (`uv tool install scancode-toolkit==32.5.0` — la imagen Docker no existía), evaluate fail-closed, unknown = warning + SLA 30d, artifact 14d                   | **blocking (PR)** desde 2026-11-10 (§7.4)       |
-| `scancode-license-audit`    | Activo en `scheduled-security.yml` (cron semanal, change `license-compliance`; FIX 2026-11-10 docker→uv, sigue advisory), artifact 90d, audit mode                                                                                                                                | advisory (scheduled)                            |
-| `lockfile-audit`            | Activo en `ci.yml` 2C, **blocking desde 2026-11-10** (sin job-COE ni step-COE), artifact 14d (npm JSON + SARIF OSV), guard de lockfile obligatorio + OSV advisory gated al diff (change `sca-lockfile-compliance`)                                                                | blocking (PR)                                   |
-| `lockfile-audit-weekly`     | Activo en `scheduled-security.yml`, audit mode, artifacts 90d (npm audit JSON + SBOM) (change `sca-lockfile-compliance`)                                                                                                                                                          | advisory (scheduled)                            |
-| `checkov-iac`               | Activo en `ci.yml` 2C, **blocking desde 2026-11-10** (sin job-COE; `soft_fail: false`), política `.checkov.yml`, artifact 14d (change `sca-lockfile-compliance`)                                                                                                                  | blocking (PR)                                   |
-| `checkov-iac-weekly`        | Activo en `scheduled-security.yml`, audit mode, SARIF `category: checkov-iac` + artifact 90d (change `sca-lockfile-compliance`)                                                                                                                                                   | advisory (scheduled), sin ruta blocking         |
-| `containerfile-lint`        | Activo en `ci.yml` 2C, **blocking desde 2026-11-10** (sin job-COE; `failure-threshold: warning`), política `.hadolint.yaml`, artifact 14d (change `containerfile-lint`)                                                                                                           | blocking (PR)                                   |
-| `containerfile-lint-weekly` | Activo en `scheduled-security.yml`, audit mode, SARIF `category: hadolint-weekly` + artifact 90d (change `containerfile-lint`)                                                                                                                                                    | advisory (scheduled), sin ruta blocking         |
-| `actionlint-advisory`       | Activo en `ci.yml` bloque security 2C (reubicación 2026-09-30), FASE 2 blocking (sin job-COE; uploads step-COE), plantilla `.github/actionlint-sarif.tmpl`, artifact 14d (change `pipeline-config-scan`)                                                                          | blocking (PR)                                   |
-| `zizmor-advisory`           | Activo en `ci.yml` bloque security 2C (reubicación 2026-09-30), **blocking desde 2026-11-10 en TODAS las reglas** (sin job-COE; uploads step-COE), deuda remediada y `self-repository` ignorado por fichero en `.github/zizmor.yml`, artifact 14d (change `pipeline-config-scan`) | blocking (PR)                                   |
-| `zizmor-weekly`             | Activo en `scheduled-security.yml`, audit mode, SARIF `category: zizmor-weekly` + artifact 90d (change `pipeline-config-scan`)                                                                                                                                                    | advisory (scheduled), sin ruta blocking         |
-| `typosquat-guarddog`        | Activo en `ci.yml` bloque security 2C (reubicación 2026-09-30), **blocking desde 2026-11-10** (sin job-COE; gate `jq` sobre el SARIF), wrapper `scripts/guarddog-verify.sh`, artifact 14d (change `typosquatting-detection`)                                                      | blocking (PR)                                   |
-| `security-exceptions-check` | Activo en `ci.yml` 2C (change `security-exceptions-policy`), advisory FASE 1 (job-COE), valida `security/exceptions.yml` (schema, ids únicos, 90 días, vencidas)                                                                                                                  | advisory (PR, fase 1) → blocking (PR) en FASE 2 |
-| `guarddog-weekly`           | Activo en `scheduled-security.yml`, audit mode, SARIF `category: guarddog-weekly` + artifact 90d (change `typosquatting-detection`)                                                                                                                                               | advisory (scheduled), sin ruta blocking         |
-| `.github/dependabot.yml`    | Activo (ajustado por change `sca-lockfile-compliance`: grupo `security-patches` + cooldown)                                                                                                                                                                                       | prevención (no gate)                            |
-| `gitleaks-full-scan`        | `scheduled-security.yml` activo, audit mode (change `secret-scanning`)                                                                                                                                                                                                            | advisory                                        |
-| `sonarqube`                 | `if: false` — sin credenciales (`SONAR_TOKEN` no existe en el repo, verificado por API)                                                                                                                                                                                           | inactivo                                        |
-| `coverage`                  | `if: false` (lo reclama `coverage-baselines`)                                                                                                                                                                                                                                     | inactivo                                        |
+| Gate                        | Estado actual                                                                                                                                                                                                                                                                     | Tipo                                      |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `lint` (client/server)      | Activo                                                                                                                                                                                                                                                                            | blocking                                  |
+| `format-check`              | Client activo; server `if: false` (fuera de alcance)                                                                                                                                                                                                                              | blocking (client)                         |
+| `typecheck`                 | **Activado** (tsconfigs mínimos + script `type-check`, sin máscara de exit code)                                                                                                                                                                                                  | blocking                                  |
+| `complexity`                | **Activado** sin `--rule` (client ya lo estaba); umbrales desde `eslint.config.js`                                                                                                                                                                                                | blocking                                  |
+| `import-bounds`             | Activo en ambos workspaces (change `import-boundaries`) con baseline                                                                                                                                                                                                              | blocking                                  |
+| `dead-code`                 | Activo con `continue-on-error: true`                                                                                                                                                                                                                                              | advisory                                  |
+| `docs-validation`           | **Nuevo**: `continue-on-error: true` + reporte en step summary; fuera de `needs`                                                                                                                                                                                                  | advisory                                  |
+| `secrets`                   | Activo en `ci.yml` 2C, wireado a `prebuild-security-complete` (change `secret-scanning`)                                                                                                                                                                                          | blocking                                  |
+| `dependency-review`         | Activo en `ci.yml` 2C con `deny-licenses` + `comment-summary-in-pr: on-failure` (change `dependency-review`, 2026-09-25)                                                                                                                                                          | blocking (PR)                             |
+| `scancode-license-pr-diff`  | Activo en `ci.yml` 2C, **FASE 2 blocking ACTIVA (2026-11-10, change `scancode-license`)**: sin COE, fix instalación (`uv tool install scancode-toolkit==32.5.0` — la imagen Docker no existía), evaluate fail-closed, unknown = warning + SLA 30d, artifact 14d                   | **blocking (PR)** desde 2026-11-10 (§7.4) |
+| `scancode-license-audit`    | Activo en `scheduled-security.yml` (cron semanal, change `license-compliance`; FIX 2026-11-10 docker→uv, sigue advisory), artifact 90d, audit mode                                                                                                                                | advisory (scheduled)                      |
+| `lockfile-audit`            | Activo en `ci.yml` 2C, **blocking desde 2026-11-10** (sin job-COE ni step-COE), artifact 14d (npm JSON + SARIF OSV), guard de lockfile obligatorio + OSV advisory gated al diff (change `sca-lockfile-compliance`)                                                                | blocking (PR)                             |
+| `lockfile-audit-weekly`     | Activo en `scheduled-security.yml`, audit mode, artifacts 90d (npm audit JSON + SBOM) (change `sca-lockfile-compliance`)                                                                                                                                                          | advisory (scheduled)                      |
+| `checkov-iac`               | Activo en `ci.yml` 2C, **blocking desde 2026-11-10** (sin job-COE; `soft_fail: false`), política `.checkov.yml`, artifact 14d (change `sca-lockfile-compliance`)                                                                                                                  | blocking (PR)                             |
+| `checkov-iac-weekly`        | Activo en `scheduled-security.yml`, audit mode, SARIF `category: checkov-iac` + artifact 90d (change `sca-lockfile-compliance`)                                                                                                                                                   | advisory (scheduled), sin ruta blocking   |
+| `containerfile-lint`        | Activo en `ci.yml` 2C, **blocking desde 2026-11-10** (sin job-COE; `failure-threshold: warning`), política `.hadolint.yaml`, artifact 14d (change `containerfile-lint`)                                                                                                           | blocking (PR)                             |
+| `containerfile-lint-weekly` | Activo en `scheduled-security.yml`, audit mode, SARIF `category: hadolint-weekly` + artifact 90d (change `containerfile-lint`)                                                                                                                                                    | advisory (scheduled), sin ruta blocking   |
+| `actionlint-advisory`       | Activo en `ci.yml` bloque security 2C (reubicación 2026-09-30), FASE 2 blocking (sin job-COE; uploads step-COE), plantilla `.github/actionlint-sarif.tmpl`, artifact 14d (change `pipeline-config-scan`)                                                                          | blocking (PR)                             |
+| `zizmor-advisory`           | Activo en `ci.yml` bloque security 2C (reubicación 2026-09-30), **blocking desde 2026-11-10 en TODAS las reglas** (sin job-COE; uploads step-COE), deuda remediada y `self-repository` ignorado por fichero en `.github/zizmor.yml`, artifact 14d (change `pipeline-config-scan`) | blocking (PR)                             |
+| `zizmor-weekly`             | Activo en `scheduled-security.yml`, audit mode, SARIF `category: zizmor-weekly` + artifact 90d (change `pipeline-config-scan`)                                                                                                                                                    | advisory (scheduled), sin ruta blocking   |
+| `typosquat-guarddog`        | Activo en `ci.yml` bloque security 2C (reubicación 2026-09-30), **blocking desde 2026-11-10** (sin job-COE; gate `jq` sobre el SARIF), wrapper `scripts/guarddog-verify.sh`, artifact 14d (change `typosquatting-detection`)                                                      | blocking (PR)                             |
+| `security-exceptions-check` | Activo en `ci.yml` 2C (change `security-exceptions-policy`), blocking desde día uno (sin job-COE), cableado a `prebuild-security-complete.needs` (10 jobs); valida `security/exceptions.yml` (schema, ids únicos, 90 días, vencidas)                                              | blocking (PR) desde día uno               |
+| `guarddog-weekly`           | Activo en `scheduled-security.yml`, audit mode, SARIF `category: guarddog-weekly` + artifact 90d (change `typosquatting-detection`)                                                                                                                                               | advisory (scheduled), sin ruta blocking   |
+| `.github/dependabot.yml`    | Activo (ajustado por change `sca-lockfile-compliance`: grupo `security-patches` + cooldown)                                                                                                                                                                                       | prevención (no gate)                      |
+| `gitleaks-full-scan`        | `scheduled-security.yml` activo, audit mode (change `secret-scanning`)                                                                                                                                                                                                            | advisory                                  |
+| `sonarqube`                 | `if: false` — sin credenciales (`SONAR_TOKEN` no existe en el repo, verificado por API)                                                                                                                                                                                           | inactivo                                  |
+| `coverage`                  | `if: false` (lo reclama `coverage-baselines`)                                                                                                                                                                                                                                     | inactivo                                  |
 
 La tabla de la sección 2 es la única canónica; esta sección es un resumen operativo con fecha.
 
@@ -335,3 +335,137 @@ unknown presente. El job es stateless: la vigilancia de la edad de los tickets v
 a nivel job y en el scan step, y restaurar el evaluate step advisory (exit 0 en deny-list). El job
 NO se retira de `prebuild-security-complete.needs` (el agregador exige exactly 9 y tolera
 `success` con COE, actions/toolkit#581). La regresión se anota en esta sección antes de re-promover.
+
+## 8. Runbook de operación (change `ci-quality-gates-blocking-hardening`)
+
+Acciones **inmediatas** (desbloquear) y de **fondo** (causa raíz) para cada
+situación. Regla general: el gate no se apaga con un interruptor sin PR
+revisado; primero se revierte, después se diagnostica. Registro de estado y
+excepciones: `docs/learning/quality-policy.md` y `docs/learning/quality-exceptions.md`.
+
+### 8.1 `main` en rojo
+
+```bash
+# 1) Ver el último run de main y el job rojo
+gh run list --branch main --limit 5
+gh run view <run-id> --log-failed
+# 2) Revertir el commit culpable (PR de revert, firmado y con DCO)
+git revert <sha> && git commit -S -s --amend --no-edit && git push
+# 3) Confirmar el verde y abrir issue de causa raíz
+gh run watch <run-id-revert>
+```
+
+Inmediato: revertir primero. De fondo: reproducir local con el script del gate
+(`npm run lint`, `npm run depcruise:ci`, `npm run typecheck`, `npm run check:manifest`).
+No se desactiva el job; si hace falta tiempo, se abre una excepción EX-3 con
+caducidad.
+
+### 8.2 Herramienta rota tras una actualización
+
+```bash
+# Reproducir con la versión fijada del lockfile
+npm ci --ignore-scripts
+npx eslint --version && npm run lint
+# Si la versión nueva cambió el formato/salida, ver el job concreto
+gh run view <run-id> --job <job-id> --log
+```
+
+Inmediato: revertir el PR de herramientas (nunca el código de producto). De
+fondo: ejecutar la versión nueva en un job advisory paralelo, regenerar baseline
+en el PR de herramientas y anotarlo en `quality-exceptions.md`.
+
+### 8.3 Falso positivo bloqueante
+
+```bash
+# Ver la regla y el fichero exactos
+npm run lint 2>&1 | head -40
+npx eslint --print-config apps/client/src/<fichero>.jsx | head -40
+# Acotar por config (files/ignores), no por --rule en CI
+git diff eslint.config.js
+```
+
+Inmediato: desbloquear con la supresión **mínima y documentada**
+(`// eslint-disable-next-line <regla> -- motivo`), en un PR separado (EX-2).
+De fondo: ajustar la regla en `eslint.config.js` (bajo CODEOWNERS), añadir la
+entrada EX-3 con caducidad y podar la supresión al corregir.
+
+### 8.4 Vuelta a advisory (rollback de promoción)
+
+1. Re-añadir `continue-on-error: true` **al job concreto** (no al agregador) y
+   dejar constancia en el PR + `quality-policy.md` (estado y fecha).
+2. Mantener el job en `prebuild-quality-complete.needs`: con COE su `failure`
+   normaliza a `success` en `needs.*.result` (actions/toolkit#581).
+3. Abrir issue con criterio de salida (2-4 semanas sin FP / deuda a cero) y
+   fecha de re-promoción.
+
+```bash
+git revert <sha-de-promocion>
+gh run watch <run-id>
+```
+
+### 8.5 Supresiones sin podar
+
+```bash
+# Una directiva que ya no suprime nada falla el lint (reportUnusedDisableDirectives: error)
+npm run lint
+# Localizar y borrar la directiva obsoleta
+grep -rn "eslint-disable" apps/ e2e/ | head -50
+```
+
+De fondo: podar el baseline de dependency-cruiser
+(`npx depcruise apps/client/src apps/server/src e2e/tests --config .dependency-cruiser.cjs --output-type err`) y
+revisar `quality-exceptions.md` para eliminar entradas vencidas.
+
+### 8.6 Caché sospechosa (resultados que no cuadran)
+
+```bash
+# Invalidar caché local de ESLint (content-hash: cambiar un fichero basta en CI)
+rm -rf apps/client/.cache apps/server/.cache e2e/.cache
+npm run lint
+```
+
+En CI: re-ejecutar el job con `gh run rerun <run-id> --failed`; si persiste,
+borrar la entrada de caché desde la UI/API (`gh api -X DELETE
+repos/{owner}/{repo}/actions/caches?key=eslint-...`) y volver a correr. La
+caché es una optimización, nunca la fuente de verdad.
+
+### 8.7 Check requerido en `Pending`
+
+`Pending` significa que el workflow no se ejecutó (filtro de paths/rama) o que el
+job quedó esperando `needs`. Un job **omitido por condición** reporta `Success`;
+un workflow **omitido por filtro** queda `Pending` y bloquea el merge.
+
+```bash
+gh pr checks <pr>
+gh run list --branch <rama> --limit 10
+# Si es el agregador: comprobar el veredicto estricto
+gh run view <run-id> --job <prebuild-quality-complete-job-id> --log
+```
+
+Inmediato: `gh run rerun <run-id> --failed`. De fondo: revisar el `if:` del
+workflow/job (el agregador ya distingue skipped autorizado por `repo-discovery`).
+
+### 8.8 Fallo de infraestructura (red, runner, service container)
+
+```bash
+gh run view <run-id> --log-failed | grep -Ei "timeout|ECONNRESET|rate limit|docker"
+gh run rerun <run-id> --failed
+```
+
+Inmediato: re-ejecutar el job. De fondo: si es recurrente, subir `timeout-minutes`
+o fijar la acción/imagen por SHA; un fallo de red del audit SCA es fail-closed a
+propósito (se reintenta, no se enmascara).
+
+### 8.9 Fallo determinista (el mismo error siempre)
+
+```bash
+# Reproducir exactamente lo que corre CI (desde la raíz)
+npm ci --ignore-scripts
+npx prisma generate --schema apps/server/prisma/schema.prisma
+npm run typecheck && npm run deps:boundaries && npm run lint
+npm run test:scripts
+```
+
+Inmediato: no re-ejecutar en bucle; leer el primer error del log. De fondo:
+corregir la causa, añadir/ajustar el test que lo cubra y anotar la lección en
+esta sección si el diagnóstico fue costoso.

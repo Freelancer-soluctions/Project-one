@@ -12,7 +12,7 @@
   },
   "scripts": {
     "test": "playwright test",
-    "lint": "eslint \"tests/**/*.js\" playwright.config.js --max-warnings 0",
+    "lint": "eslint \"tests/**/*.js\" playwright.config.js --max-warnings 0 --cache --cache-location .cache/eslint/ --cache-strategy content",
     "format": "prettier --write \"**/*.{js,json,md}\" \"!test-results/**\" \"!playwright-report/**\"",
     "format:check": "prettier --check \"**/*.{js,json,md}\" \"!test-results/**\" \"!playwright-report/**\""
   },

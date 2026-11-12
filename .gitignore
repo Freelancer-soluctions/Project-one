@@ -75,6 +75,8 @@ opencode copy.jsonc
 
 # Test output artifacts
 test-results/
+# ESLint cache (`--cache-location .cache/eslint/` en los scripts de workspace)
+.cache/
 
 # Runtime session artifacts
 output-contract.json

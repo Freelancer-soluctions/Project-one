@@ -1,5 +1,10 @@
 name: 'Setup Monorepo'
-description: 'Setup Node.js, install dependencies, and cache Vitest (requires prior actions/checkout with fetch-depth: 0 in the calling job)'
+description: 'Setup Node.js, install dependencies with --ignore-scripts, optionally generate the Prisma client, and cache Vitest (requires prior actions/checkout with fetch-depth: 0 in the calling job)'
+inputs:
+  prisma:
+    description: "Run 'npx prisma generate' in apps/server (required by jobs that import @prisma/client)"
+    required: false
+    default: 'false'
 runs:
   using: 'composite'
   steps:
@@ -10,8 +15,19 @@ runs:
         cache: 'npm'
         cache-dependency-path: package-lock.json
 
+    # `--ignore-scripts` (change `ci-quality-gates-blocking-hardening`, P0.1):
+    # `npm ci` sin el flag ejecuta lifecycle scripts (`preinstall`/`postinstall`/
+    # `prepare`) de cada dependencia en el runner de CI — superficie de ataque
+    # innecesaria. Los jobs que necesitan el cliente Prisma lo generan
+    # explícitamente con el input `prisma: 'true'`.
     - name: Install Dependencies
-      run: npm ci
+      run: npm ci --ignore-scripts
+      shell: bash
+
+    - name: Generate Prisma client
+      if: inputs.prisma == 'true'
+      run: npx prisma generate
+      working-directory: apps/server
       shell: bash
 
     - name: Cache Vitest

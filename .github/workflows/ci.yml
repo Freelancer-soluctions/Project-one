@@ -92,6 +92,10 @@ jobs:
               # disparar los jobs shared (p. ej. el lockstep plantilla↔política
               # que corre en `openspec-validate` vía `npm run test:scripts`).
               - 'scripts/**'
+              # Allowlist del guard del manifest raíz (change
+              # `ci-quality-gates-blocking-hardening`, P2.1): un cambio aquí debe
+              # re-ejecutar `root-manifest-guard`.
+              - 'manifest-allowlist.json'
               # Configs de import boundaries (dependency-cruiser): cambiarlos
               # dispara los jobs `*-import-bounds` de ambos workspaces.
               - '.dependency-cruiser.cjs'
@@ -917,6 +921,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+        with:
+          prisma: 'true'
 
       # TIA — spec ci-test-impact-analysis (D7). Misma política que el job client:
       # diff-scoped si origin/main resuelve, suite completa si `shared == 'true'`
@@ -1320,6 +1326,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+        with:
+          prisma: 'true'
       # change `coverage-merge-gate` (D3): descarga por patrón + `merge-multiple`
       # hacia la LCA `apps/server/` (restaura `tests/coverage/` y `.vitest-reports/`).
       - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
@@ -1402,6 +1410,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+        with:
+          prisma: 'true'
       - name: Run Property Tests
         run: npm run test:pbt
         env:
@@ -1507,6 +1517,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+        with:
+          prisma: 'true'
       - name: Run Client full suite with coverage
         run: npm run test:coverage:ci --workspace=apps/client
       - name: Run Server full unit suite with coverage
@@ -1517,8 +1529,8 @@ jobs:
         run: node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage --type unit
 
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog
-  # (los 9 cableados a prebuild-security-complete.needs desde Phase 0 — change `prebuild-security-aggregator-strict`; TODOS blocking desde 2026-11-10: sin job-COE y con gate propio cuando el tool no falla por exit code)
+  # SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog, security-exceptions-check
+  # (los 10 cableados a prebuild-security-complete.needs — 9 de security + security-exceptions-check; TODOS blocking desde 2026-11-10: sin job-COE y con gate propio cuando el tool no falla por exit code)
   # (sast es 2A GOVERNANCE standalone, no 2C — ver header 2A; change ci-security-substage-alignment 2026-09-30)
   # ═══════════════════════════════════════════════════════════════
   # ════════════════════════════════════════════════════════════════
@@ -1811,7 +1823,7 @@ jobs:
   # `prebuild-security-aggregator-strict`).
   # Task 1.1-1.3 (change `sca-lockfile-compliance`): guard de lockfile
   # obligatorio (diff-aware vía outputs `manifests`/`lockfile` de
-  # `repo-discovery`) + step OSV-Scanner advisory gated al lockfile (SARIF
+  # `repo-discovery`) + step OSV-Scanner blocking gated al lockfile (SARIF
   # `category: osv-scanner`). El job en sí corre en TODOS los PRs: el audit del
   # lockfile commiteado es cobertura continua barata (spec: "en cada
   # pull_request"); lo diff-aware es el guard y el step OSV.
@@ -1873,7 +1885,7 @@ jobs:
           fi
 
       # Task 1.3: cobertura multi-ecosistema (npm/yarn/pnpm/bun) sobre el mismo
-      # lockfile. Advisory en FASE 1 (step-COE, no tiñe el job): OSV suma
+      # lockfile. Blocking desde día uno (sin step-COE): OSV suma
       # fuentes (GHSA/RustSec/PyPA…) a `npm audit`, pero NO calcula EPSS/KEV
       # (solo CVSS) — ver `docs/learning/sca-dependency-lockfile-scan.md` §10.
       # Gated: solo corre si el PR toca `package-lock.json` (task 1.3).
@@ -1893,17 +1905,15 @@ jobs:
           echo "$OSV_SCANNER_SHA256  $RUNNER_TEMP/osv-scanner" | sha256sum -c -
           chmod +x "$RUNNER_TEMP/osv-scanner"
 
-      - name: OSV-Scanner lockfile scan (advisory, SARIF)
+      - name: OSV-Scanner lockfile scan (SARIF)
         id: osv
-        if: needs.repo-discovery.outputs.lockfile == 'true'
-        continue-on-error: true
+        if: needs.repo-discovery.outputs.lockfile == 'true' && hashFiles('$RUNNER_TEMP/osv-scanner') != ''
         run: >
           "$RUNNER_TEMP/osv-scanner" scan -L package-lock.json
           --format=sarif --output-file=osv-scanner.sarif
 
       - name: Upload OSV SARIF to Code Scanning
         if: always() && hashFiles('osv-scanner.sarif') != ''
-        continue-on-error: true # un fallo de permisos no tiñe el gate (advisory)
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: osv-scanner.sarif
@@ -2168,7 +2178,7 @@ jobs:
   # decisión de promoción: docs/learning/quality-gates.md §7.3.
   # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
   typosquat-guarddog:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && needs.repo-discovery.outputs.manifests == 'true'
     name: 'Security: Typosquat GuardDog'
     needs: repo-discovery
     runs-on: ubuntu-latest
@@ -2217,7 +2227,7 @@ jobs:
   # Job advisory de gobernanza de excepciones (change
   # `security-exceptions-policy`, E6 del PRD): valida `security/exceptions.yml`
   # (schema completo, ids únicos, fechas ISO, `expires <= created + 90` y
-  # ninguna excepción vencida). FASE 1 advisory (job-COE); FASE 2 lo cablea a
+  # ninguna excepción vencida). Blocking desde día uno (sin job-COE), cableado a
   # `prebuild-security-complete.needs`. Dependencias vía el composite
   # `setup-monorepo` (`npm ci` desde el lockfile; nada de ad-hoc packages:
   # zizmor `adhoc-packages`).
@@ -2249,13 +2259,41 @@ jobs:
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      # SARIF upload (change `ci-quality-gates-blocking-hardening`, P2.2). En PRs
+      # de forks el token es de solo lectura: el upload va con COE y no tiñe el job.
+      security-events: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - run: npm run lint --workspace=apps/client
+      # Caché de ESLint (P1.1): `content` invalida por contenido, no por mtime.
+      - name: Restore ESLint cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: apps/client/.cache/eslint
+          key: eslint-client-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js') }}
+          restore-keys: |
+            eslint-client-${{ runner.os }}-
+      - name: Lint (ESLint, JSON report for SARIF)
+        run: |
+          set +e
+          npm run lint --workspace=apps/client -- --format json --output-file eslint-report.json
+          status=$?
+          exit "$status"
+      - name: Convert ESLint report to SARIF
+        if: always() && hashFiles('apps/client/eslint-report.json') != ''
+        run: node scripts/ci/eslint-sarif.mjs apps/client/eslint-report.json apps/client/eslint-results.sarif
+      - name: Upload ESLint SARIF
+        if: always() && hashFiles('apps/client/eslint-results.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        with:
+          sarif_file: apps/client/eslint-results.sarif
+          category: eslint-client
   client-format-check:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
     name: 'Quality: Client Format'
@@ -2403,13 +2441,40 @@ jobs:
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - run: npm run lint --workspace=apps/server
+        with:
+          prisma: 'true'
+      - name: Restore ESLint cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: apps/server/.cache/eslint
+          key: eslint-server-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js') }}
+          restore-keys: |
+            eslint-server-${{ runner.os }}-
+      - name: Lint (ESLint, JSON report for SARIF)
+        run: |
+          set +e
+          npm run lint --workspace=apps/server -- --format json --output-file eslint-report.json
+          status=$?
+          exit "$status"
+      - name: Convert ESLint report to SARIF
+        if: always() && hashFiles('apps/server/eslint-report.json') != ''
+        run: node scripts/ci/eslint-sarif.mjs apps/server/eslint-report.json apps/server/eslint-results.sarif
+      - name: Upload ESLint SARIF
+        if: always() && hashFiles('apps/server/eslint-results.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        with:
+          sarif_file: apps/server/eslint-results.sarif
+          category: eslint-server
 
   # FASE 1 (diferido): server aún no pasa `npm run format:check` limpio.
   # FASE 2: re-activar (`if: true`) cuando el workspace server pase el check —
@@ -2440,6 +2505,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+        with:
+          prisma: 'true'
       # Gate blocking real (change `quality-gates`): `tsc --noEmit -p apps/server`
       # contra apps/server/tsconfig.json (allowJs, checkJs off — código 100% JS;
       # flags strict vía server-typescript-migration Fase 4). Sin `|| echo` que enmascare.
@@ -2547,6 +2614,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+        with:
+          prisma: 'true'
       # La shadow DB debe EXISTIR antes del diff (Prisma la resetea, no la crea
       # cuando se le pasa --shadow-database-url explícito).
       - name: Create shadow database
@@ -2587,6 +2656,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+        with:
+          prisma: 'true'
       # El contrato versionado debe corresponder a las anotaciones: si alguien
       # edita una ruta sin regenerar, el diff lo delata aquí.
       - name: Verify generated contract is committed
@@ -2607,13 +2678,38 @@ jobs:
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - run: npm run lint --workspace=e2e
+      - name: Restore ESLint cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: e2e/.cache/eslint
+          key: eslint-e2e-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js') }}
+          restore-keys: |
+            eslint-e2e-${{ runner.os }}-
+      - name: Lint (ESLint, JSON report for SARIF)
+        run: |
+          set +e
+          npm run lint --workspace=e2e -- --format json --output-file eslint-report.json
+          status=$?
+          exit "$status"
+      - name: Convert ESLint report to SARIF
+        if: always() && hashFiles('e2e/eslint-report.json') != ''
+        run: node scripts/ci/eslint-sarif.mjs e2e/eslint-report.json e2e/eslint-results.sarif
+      - name: Upload ESLint SARIF
+        if: always() && hashFiles('e2e/eslint-results.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        with:
+          sarif_file: e2e/eslint-results.sarif
+          category: eslint-e2e
 
   # --- Pipeline Config Pre-Build ---
   # Validación estática de los workflows (change `ci-shifting-left`, capability
@@ -2740,6 +2836,26 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
       - name: Lint markdown structure (markdownlint)
         run: npm run docs:lint
+      # Vale advisory (change `ci-quality-gates-blocking-hardening`, P1.5):
+      # prosa/ortografía sobre `docs/`. Se instala la release PINNEADA desde
+      # GitHub (el paquete npm `vale` está huérfano). El job entero es advisory
+      # (`continue-on-error: true`), así que un fallo de descarga o un hallazgo
+      # no bloquean el PR; el objetivo es visibilizar la deuda antes de la
+      # fase 2 (ver docs/learning/docs-changelog-validation.md §6.3).
+      - name: Install Vale (pinned)
+        continue-on-error: true
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/vale.tar.gz" \
+            https://github.com/errata-ai/vale/releases/download/v3.22.0/vale_3.22.0_Linux_x86_64.tar.gz
+          tar -xzf "$RUNNER_TEMP/vale.tar.gz" -C "$RUNNER_TEMP" vale
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+        shell: bash
+      - name: Lint prose (vale, advisory)
+        continue-on-error: true
+        run: npm run docs:vale
+        env:
+          VALE_CONFIG_PATH: .
+        shell: bash
       - name: Publish docs lint summary
         if: always()
         run: |
@@ -2747,7 +2863,7 @@ jobs:
           echo "## Docs Validation (advisory, fase 1)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "markdownlint violations: ${COUNT##* } (fase 1: NO bloquea el PR)" >> $GITHUB_STEP_SUMMARY
-          echo "Config: .markdownlint.json (JSON estricto) + .markdownlintignore (grandfathering del inventario legacy, 2026-09-29) · vale fase 2 (ver docs/learning/docs-changelog-validation.md)" >> $GITHUB_STEP_SUMMARY
+          echo "Config: .markdownlint.json (JSON estricto) + .markdownlintignore (grandfathering del inventario legacy, 2026-09-29) · vale v3.22.0 advisory (fase 1, ver docs/learning/docs-changelog-validation.md)" >> $GITHUB_STEP_SUMMARY
 
   # ═══════════════════════════════════════════════════════════════
   # STAGE 3: BUILD (compilación, empaquetado, artifact)
@@ -2838,6 +2954,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+        with:
+          prisma: 'true'
       - name: Prisma Migrate Deploy
         run: npx prisma migrate deploy
         env:
@@ -3013,6 +3131,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+        with:
+          prisma: 'true'
       - name: Prisma Migrate Deploy
         run: npx prisma migrate deploy
         env:
@@ -3274,11 +3394,19 @@ jobs:
           fi
           echo "✅ Governance substage succeeded or was skipped"
 
+  # Agregador estricto del substage 2B (change `ci-quality-gates-blocking-hardening`,
+  # capability `quality-gate-aggregator-strict`): CUALQUIER resultado distinto de
+  # `success` (`failure`, `cancelled`, `skipped`) falla, salvo los skipped legítimos
+  # autorizados por evento o por la change detection de `repo-discovery`. Los
+  # `needs` se pasan por `env` (nunca interpolados en `run:`, PRD regla #5).
+  # El `name:` es CONGELADO (`Prebuild Quality Complete`): cambiarlo rompe el binding
+  # del ruleset de `main`.
   prebuild-quality-complete:
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: Prebuild Quality Complete
     runs-on: ubuntu-latest
     needs:
+      - repo-discovery
       - client-lint
       - client-format-check
       - client-typecheck
@@ -3295,7 +3423,7 @@ jobs:
       # change `ci-shifting-left`: contrato de DB (drift schema↔migraciones) y
       # validación estática de workflows (yamllint + actionlint). Ambos
       # path-scoped: skipped fuera de PRs de server / de `.github/**`
-      # (el agregador tolera skipped; un rojo sí lo falla).
+      # (el agregador los tolera; un rojo sí lo falla).
       - db-contract
       - validate-pipeline
       # Contrato OpenAPI: regeneración determinista + Spectral sin errores
@@ -3307,20 +3435,33 @@ jobs:
       - root-manifest-guard
       - openspec-validate
     steps:
-      - name: Check for failures
-        run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "❌ One or more quality jobs failed"
-            exit 1
-          fi
-          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "❌ One or more quality jobs were cancelled"
-            exit 1
-          fi
-          echo "✅ Quality substage succeeded or was skipped"
+      # Checkout necesario para ejecutar el veredicto versionado
+      # (`scripts/ci/quality-aggregator-verdict.mjs`), cubierto por su test en
+      # `npm run test:scripts`. No se usa el código del PR antes de fusionar:
+      # el veredicto solo lee `needs` (dato del runner) y los outputs de
+      # `repo-discovery`, no el código. `persist-credentials: false` (zizmor).
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: 'Check for failures (strict: failure, cancelled, unauthorized skip)'
+        env:
+          # `needs` por `env`, nunca interpolado en el script (PRD regla #5).
+          NEEDS: ${{ toJSON(needs) }}
+          EVENT_NAME: ${{ github.event_name }}
+          # Autorización de skipped: qué ámbitos cambió el PR según `repo-discovery`.
+          # En `merge_group`/`workflow_dispatch` los jobs PR-only se saltan por
+          # diseño (autorizado por evento); en `pull_request` un skip solo se
+          # tolera si su área quedó fuera del diff.
+          CLIENT: ${{ needs.repo-discovery.outputs.client }}
+          SERVER: ${{ needs.repo-discovery.outputs.server }}
+          E2E: ${{ needs.repo-discovery.outputs.e2e }}
+          SHARED: ${{ needs.repo-discovery.outputs.shared }}
+          WORKFLOWS: ${{ needs.repo-discovery.outputs.workflows }}
+        run: node scripts/ci/quality-aggregator-verdict.mjs
 
   # Agregador estricto del substage 2C (change `prebuild-security-aggregator-strict`, Phase 0/G7):
-  # los 9 jobs de security están cableados en `needs` y CUALQUIER resultado distinto de `success`
+  # los 10 jobs de security están cableados en `needs` y CUALQUIER resultado distinto de `success`
   # (`failure`, `cancelled`, `skipped`) falla, salvo `skipped` autorizado por evento/diff. Sin esto,
   # un job saltado o cancelado pasaba en verde y ningún bloqueo posterior protegía el merge.
   # El `name:` es CONGELADO (`Prebuild Security Complete`): cambiarlo rompe el binding del ruleset.
@@ -3373,7 +3514,7 @@ jobs:
           workflows=false
           if has '^\.github/workflows/[^/]+\.ya?ml$|^\.github/actionlint\.ya?ml$|^\.github/actionlint-sarif\.tmpl$|^\.github/zizmor\.yml$'; then workflows=true; fi
           typosquat=false
-          if has '(^|/)package(-lock)?\.json$'; then typosquat=true; fi
+          if has '(^|/)package\.json$|^apps/[^/]+/package\.json$|^e2e/package\.json$'; then typosquat=true; fi
           # `true` = el cambio relevante ESTÁ en el diff → el skip NO está autorizado.
           echo "changes=$(jq -cn \
             --argjson acmr "$acmr" \
@@ -3402,11 +3543,12 @@ jobs:
           set -euo pipefail
           # Anti-skip scoped (design D3/D7/D8): un scanner saltado NO es un resultado limpio,
           # pero el skip legítimo por tipo de evento o por path no debe teñir el agregador.
-          #  - `merge_group` / `workflow_dispatch`: los 8 jobs PR-only no tienen diff que escanear
+          #  - `merge_group` / `workflow_dispatch`: los 9 jobs PR-only no tienen diff que escanear
           #    → skip pre-autorizado por evento. `secrets` SÍ corre en `merge_group`: allí un skip
           #    NO está autorizado (en `workflow_dispatch` no corre por diseño).
           #  - `pull_request`: `secrets` y `dependency-review` deben correr siempre; los seis jobs
           #    condicionales solo pueden saltarse si el cambio que los dispara NO está en el diff.
+          #    `security-exceptions-check` corre en cada PR (sin condición de path).
           # Fail-closed: un job desconocido saltado en PR cuenta como no autorizado.
           problematic="$(echo "$NEEDS" | jq -r \
             --arg event "$EVENT_NAME" \
