@@ -6,7 +6,12 @@ El workflow de build del PRD (dos jobs: `build` que compila con permisos mínimo
 
 ## What Changes
 
-- Crear `.github/workflows/build.yml` con jobs `build` (tsc -b, timeout 15min, permisos read) e `image` (needs: build, push solo en main, provenance mode=max, sbom, cache gha con scope, attestations).
+- Crear `.github/workflows/build.yml` con jobs `build` (tsc -b, timeout 15min, permisos `contents: read`) e `image` (needs: build, timeout 30min, permisos `contents: read`/`packages: write`/`id-token: write`/`attestations: write`; push solo en main con `push: ${{ github.event_name != 'pull_request' }}`).
+- **Permisos:** `permissions: {}` global + permisos por job (PRD §Workflow: el job que solo compila no escribe paquetes ni pide OIDC).
+- **Atestación por digest:** `subject-name` = nombre completo de la imagen sin tag; `subject-digest` de la salida `digest` de build-push-action; `push-to-registry: true` (PRD §Supply chain).
+- **Trivy:** fijado por SHA (no `@master`), `exit-code: 1`, `--severity CRITICAL,HIGH`, `--ignore-unfixed` (PRD §Escaneo).
+- **Forks:** no publicar ni atestar desde forks; nunca `pull_request_target` (PRD §Pull requests de forks).
+- **Decisión D5 (registro):** GHCR por defecto (PRD §Decisiones D5); coexistencia con `deploy.yml` (ECR/ECS) se resuelve en el change de deploy correspondiente.
 - Fijar todas las actions por SHA (checkout, setup-node, setup-buildx, login, metadata, build-push, attest).
 - Añadir job de escaneo de imagen con Trivy (CRITICAL+HIGH con fix, advisory inicial).
 - Añadir `merge_group` trigger y `concurrency` con cancelación en PRs.

@@ -19,9 +19,11 @@
 
 ## 4. Gates y documentación
 
-- [ ] 4.1 Documentar G1-G7 con niveles inicial en `docs/learning/quality-gates.md`.
+- [ ] 4.1 Documentar G1-G7 con niveles inicial en `docs/learning/quality-gates.md` (criterio, código de salida/resultado de job, consecuencia, nivel inicial — PRD §Gates tabla).
 - [ ] 4.2 Definir el umbral de tamaño de imagen (G7) y de duración (G6) tras medir.
-- [ ] 4.3 Documentar el proceso de excepciones (vulnerabilidades aceptadas con fecha de caducidad).
+- [ ] 4.3 Documentar el proceso de excepciones (vulnerabilidades aceptadas con fecha de caducidad, motivo y responsable).
+- [ ] 4.4 Documentar las 3 reglas de "Comportamiento ante fallo" (PRD §Gates): orden de ejecución (build antes de image), sin reintentos automáticos, publicar ≠ promover.
+- [ ] 4.5 Documentar la semántica Pending vs job omitido por `if` (PRD §Gates "Check obligatorio") — razón de ser de `if: always()`.
 
 ## 5. Gaps del reviewer (2026-11-12)
 

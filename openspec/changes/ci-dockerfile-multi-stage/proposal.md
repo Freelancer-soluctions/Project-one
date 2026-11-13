@@ -7,7 +7,8 @@ El pipeline no valida que la imagen de contenedor arranque: `deploy.yml` (`docke
 ## What Changes
 
 - Reescribir `apps/server/Dockerfile` como multi-stage (base, deps, build, runtime) según el PRD: base fijada por digest, `npm ci --ignore-scripts`, `tsc -b`, `npm prune --omit=dev`, usuario no root (UID 1001), `HEALTHCHECK` contra `/health`.
-- Añadir `.dockerignore` (node_modules, **/dist, .git, .env*).
+- Añadir `.dockerignore` (node_modules, \*_/dist, .git, .env_).
+- **Sin secretos en `ARG` ni `ENV`** (PRD §"Dockerfile": los argumentos de build quedan en el provenance; los secretos van por montajes de secretos de BuildKit). Revisar el Dockerfile para que ningún secreto viaje como build arg.
 - Añadir init de procesos (`dumb-init`) para señales y apagado ordenado.
 - Validar el build localmente con `docker build` (primer build real) y smoke del contenedor como UID 1001.
 - Documentar en `docs/` el tamaño de imagen y los módulos nativos probados con `--ignore-scripts`.

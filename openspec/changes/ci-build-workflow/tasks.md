@@ -3,8 +3,9 @@
 ## 1. Workflow build.yml
 
 - [ ] 1.1 Crear `.github/workflows/build.yml` con triggers pull_request/push main/merge_group.
-- [ ] 1.2 Job `build`: checkout (persist-credentials false), setup-node (.nvmrc, cache npm), `npm ci --ignore-scripts`, `npx tsc -b`, timeout 15min, permisos contents: read.
-- [ ] 1.3 Job `image`: needs build, setup-buildx, login (solo main), metadata (tags type=sha format=long), build-push (push condicional, provenance mode=max, sbom true, cache gha scope), attest (solo main).
+- [ ] 1.2 Job `build`: checkout (persist-credentials false), setup-node (.nvmrc, cache npm), `npm ci --ignore-scripts`, `npx tsc -b`, timeout 15min, permisos `contents: read`.
+- [ ] 1.3 Job `image`: needs build, timeout 30min, permisos `contents: read`/`packages: write`/`id-token: write`/`attestations: write`; setup-buildx, login (solo main), metadata (tags type=sha format=long), build-push (push: `github.event_name != 'pull_request'`, provenance mode=max, sbom true, cache gha scope), attest (solo main, `subject-name` sin tag, `subject-digest` de build-push, `push-to-registry: true`).
+- [ ] 1.7 `permissions: {}` global en el workflow + permisos por job (PRD §Workflow: mínimo privilegio).
 - [ ] 1.4 Fijar todas las actions por SHA con comentario de versión.
 
 ## 2. Escaneo y gates

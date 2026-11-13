@@ -210,6 +210,13 @@ ci-complete no incluye este check si lo sacas a otro workflow. No hay problema, 
 - Verifica si OpenCode reutiliza la sesión del subagente entre tareas; si no, es tu mayor desperdicio.
 
 
-ci-eslint-v10-upgrade	Mantener	v9 EOL verificado
-ci-type-check-strict	Fusionar con server-typescript-migration	strict ya activo en server; tsBuildInfo aporta poco
+ci-import-boundaries-enforcement
+ci-eslint-v10-upgrade
+ci-type-check-strict
 ci-pr-review-automation
+
+ci-typescript-strict-config
+ci-dockerfile-multi-stage
+ci-build-workflow
+ci-build-gates
+

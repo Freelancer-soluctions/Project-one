@@ -2,7 +2,7 @@
 
 ## Context
 
-ESLint 9 llegó a EOL el 2026-08-06. El repo usa `eslint ^9.39.2`. ESLint 10.14.0 está disponible y compatible con Node ≥20.19 (repo engines ≥22.11). La política de actualización de herramientas exige: actualización mayor probada primero en job advisory paralelo, nunca en el mismo PR que código de producto, y regeneración/creación de baseline si cambian los hallazgos. No existe `eslint-suppressions.json` en el repo (verificación F26/B1); CODEOWNERS no cubre `eslint.config.*` ni `eslint-suppressions.json`.
+ESLint 9 llegó a EOL el 2026-08-06. El repo usa `eslint ^9.39.2`. ESLint 10.14.0 está disponible y compatible con Node ≥20.19 (repo `.nvmrc` 22.23.1). La política de actualización de herramientas exige: actualización mayor probada primero en job advisory paralelo, nunca en el mismo PR que código de producto, y regeneración/creación de baseline si cambian los hallazgos. No existe `eslint-suppressions.json` en el repo (verificación F26/B1); CODEOWNERS **ya cubre** `/eslint.config.*` (:55) y `/eslint-suppressions.json` (:60) tras `ci-quality-gates-blocking-hardening` P1.3 — este change no añade líneas (verificación no-op, evita duplicados last-match-wins).
 
 ## Goals / Non-Goals
 
@@ -16,9 +16,10 @@ ESLint 9 llegó a EOL el 2026-08-06. El repo usa `eslint ^9.39.2`. ESLint 10.14.
 2. **Mecanismo de instalación del advisory:** `npx --package eslint@10 eslint …` (no devDependency separada, porque el root manifest guard bloquearía un segundo `eslint` en el manifiesto raíz). La descarga se cachea vía `setup-monorepo` (que cachea `node_modules/.cache`). Los plugins del árbol instalado (v9) se resuelven contra eslint 10 en runtime; la incompatibilidad se detecta en el advisory.
 3. Promoción solo cuando el advisory pase; versión fijada sin caret (sin `^`).
 4. Crear o regenerar `eslint-suppressions.json` en el mismo PR de herramientas si cambian los hallazgos o si no existe (`npx eslint . --suppress-all` por workspace).
-5. CODEOWNERS: añadir patrón `eslint-suppressions.json` (y verificar `eslint.config.*`) en `.github/CODEOWNERS`.
+5. CODEOWNERS: los patrones `/eslint-suppressions.json` (:60) y `/eslint.config.*` (:55) **ya existen** (hardening P1.3); este change solo verifica cobertura, no añade líneas (evita duplicados last-match-wins).
 6. `quality-policy.md`: actualizar con la fecha de promoción (crear plantilla mínima si hardening no aterrizó).
 7. El advisory NO entra en `needs` del agregador `prebuild-quality-complete` (queda exento de skipped=fail) para no bloquear merges por un gate advisory.
+8. **Resultado empírico (2026-11-12, eslint@10.14.0):** la config flat es compatible (`--print-config` exit 0, 511 reglas; v10 no removió reglas core) y `server`/`e2e` lintean limpio (exit 0), pero `client` **crashea** (exit 2): `eslint-plugin-react@7.37.5` llama `context.getFilename()` (removido en v10) al cargar `react/display-name`. `eslint-plugin-react` (7.37.5) y `eslint-plugin-jsx-a11y` (6.10.2) son las últimas publicadas en npm y no declaran peer `^10`; no hay release compatible al que actualizar. **Promoción (Fase 2) BLOQUEADA** hasta que upstream publique soporte de ESLint 10 (design D3: promover solo cuando el advisory pase). Se implementa la Fase 1 (advisory) y se documenta el bloqueo en `quality-policy.md` §4.1. No es un defecto de config ni de umbrales (Non-Goal preservado).
 
 ## Risks / Trade-offs
 

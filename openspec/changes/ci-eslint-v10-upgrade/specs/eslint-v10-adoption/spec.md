@@ -15,11 +15,18 @@ El repositorio SHALL tener un job `eslint-v10-advisory` en CI que ejecuta lint c
 - **WHEN** el job advisory de ESLint 10 pasa
 - **THEN** se puede proceder a la promoción en un PR de herramientas
 
-#### Scenario: Advisory falla
+#### Scenario: Advisory falla por configuración
 
-- **WHEN** el job advisory de ESLint 10 falla por reglas renombradas/removidas o por incompatibilidad de plugins
+- **WHEN** el job advisory de ESLint 10 falla por reglas renombradas/removidas o por errores de configuración flat
 - **THEN** se corrige la config flat en el mismo PR de herramientas
 - **AND** no se promueve hasta que el advisory pase
+
+#### Scenario: Advisory falla por plugin upstream sin release compatible
+
+- **WHEN** el job advisory de ESLint 10 falla porque un plugin usa una API removida en ESLint 10 (p. ej. `context.getFilename()`) y no existe una release del plugin compatible (peer `^10`)
+- **THEN** no se promueve, porque la config flat no puede corregir código upstream del plugin
+- **AND** el advisory permanece con `continue-on-error: true` sin bloquear merges
+- **AND** se documentan el bloqueo y el criterio de salida de la ventana advisory en `quality-policy.md`
 
 ### Requirement: Validación de config flat
 
