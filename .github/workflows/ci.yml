@@ -1706,6 +1706,18 @@ jobs:
         run: |
           mkdir -p scancode-scope
           while IFS= read -r f; do
+            # Lockfiles fuera del scope: metadata generada (no código), su
+            # licencia no aporta al gate y escanear el lockfile completo agotaba
+            # el timeout por archivo. Ya los cubren dependency-review y
+            # lockfile-audit.
+            case "$f" in
+              package-lock.json | */package-lock.json | \
+                npm-shrinkwrap.json | */npm-shrinkwrap.json | \
+                yarn.lock | */yarn.lock | pnpm-lock.yaml | */pnpm-lock.yaml)
+                echo "skip lockfile: $f"
+                continue
+                ;;
+            esac
             if [ -f "$f" ]; then
               mkdir -p "scancode-scope/$(dirname "$f")"
               cp "$f" "scancode-scope/$f"
@@ -1723,8 +1735,9 @@ jobs:
           # scan moría con "No such option '--exclude'" antes de escribir el
           # reporte, que el evaluate fail-closed convertía en rojo permanente).
           # `--ignore` matchea la ruta relativa completa, así que van los dos
-          # patrones (raíz y subdirectorios).
-          scancode --license --copyright --only-findings \
+          # patrones (raíz y subdirectorios). `--timeout` sube el margen para
+          # diffs con archivos grandes.
+          scancode --license --copyright --only-findings --timeout 300 \
             --ignore '*.min.js' --ignore '**/*.min.js' \
             --json-pp scancode-scope/pr-license-report.json scancode-scope
 
