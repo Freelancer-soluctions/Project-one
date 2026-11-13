@@ -1,0 +1,358 @@
+# ============================================================
+# Build workflow — change `ci-build-workflow` (PRD stages 2 + 6)
+#
+# Flujo: build (G1, compilación) → image (G2-G5: imagen + SBOM +
+# provenance + atestación) → {trivy (escaneo), validate (boot +
+# health + smoke contra stack emulado)}. Si no compila, no se
+# construye ni escanea la imagen (PRD §Gates: orden de ejecución).
+#
+# Registro: GHCR (PRD decisión D5). La coexistencia con deploy.yml
+# (ECR/ECS) se resuelve en el change de deploy correspondiente.
+#
+# Forks: el trigger es `pull_request` (NUNCA `pull_request_target`).
+# En PRs la imagen se construye pero NO se publica, atesta ni escanea
+# (`push: github.event_name != 'pull_request'`); el GITHUB_TOKEN de
+# un fork es read-only y ningún step de publicación se ejecuta.
+#
+# Agregador: el verdict `build-complete` vive en ci.yml (change
+# `ci-stage-aggregator-topology`); este workflow NO duplica ese
+# nombre de check. El gate estricto y el binding al ruleset son del
+# change `ci-build-gates`.
+# ============================================================
+
+name: Build
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  # Merge queue: sin este trigger los checks de este workflow quedarían
+  # pending en la cola (task 4.3). Mismo patrón que ci.yml.
+  merge_group: {}
+
+# Mínimo privilegio (PRD §Workflow): nada a nivel global; cada job
+# declara solo lo que necesita. El job que solo compila no escribe
+# paquetes ni pide OIDC.
+permissions: {}
+
+concurrency:
+  group: build-${{ github.event_name == 'merge_group' && format('merge-group-{0}', github.event.merge_group.head_ref) || github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
+  # Cancelación solo en PRs: un push a main o un entry de merge queue
+  # no debe cancelar la publicación de una imagen en curso.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════
+  # G1 — Compilación (gate previo a la imagen)
+  # ═══════════════════════════════════════════════════════════════
+  build:
+    name: 'Build: Compile Server'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      # --ignore-scripts: no ejecutar lifecycle scripts de dependencias
+      # en el runner (superficie de ataque). El postinstall del server
+      # (prisma generate) se reemplaza por el step explícito de abajo.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      # tsc del server importa @prisma/client: sin el cliente generado
+      # la compilación falla. Mismo orden que la etapa deps del Dockerfile.
+      - name: Generate Prisma client
+        working-directory: apps/server
+        run: npx prisma generate
+
+      # El repo ahora SÍ tiene project references/composite (change
+      # ci-typescript-strict-config), pero el build sigue usando `tsc -p
+      # tsconfig.build.json` para mantener paridad con la etapa build del
+      # Dockerfile (noEmit false + rewriteRelativeImportExtensions).
+      # El bundle del client se valida en ci.yml (client-build, task 4.2).
+      - name: Compile server (tsc emit)
+        run: npx tsc -p apps/server/tsconfig.build.json
+
+  # ═══════════════════════════════════════════════════════════════
+  # G2-G5 — Imagen: build + publish (solo main/merge queue) + SBOM +
+  # provenance + atestación por digest
+  # ═══════════════════════════════════════════════════════════════
+  image:
+    name: 'Build: Server Image'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    outputs:
+      image: ${{ steps.image-name.outputs.name }}
+      digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      # GHCR rechaza mayúsculas en el nombre del repositorio de imagen;
+      # github.repository = Freelancer-soluctions/Project-one.
+      - name: Lowercase image name
+        id: image-name
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      # Login solo cuando se publica (main push / merge queue). En PRs
+      # (incluidos forks) no hay login ni push.
+      - name: Login to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ steps.image-name.outputs.name }}
+          tags: |
+            type=sha,format=long
+
+      - name: Build and push
+        id: push
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: apps/server/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha,scope=server-image
+          cache-to: type=gha,mode=max,scope=server-image
+
+      # Atestación SOLO en push a main: la atestación vincula el commit
+      # que aterrizó en main, no el commit efímero de la merge queue
+      # (que puede ser eyectado). subject-name SIN tag; el digest viene
+      # de la salida del build-push (PRD §Supply chain).
+      - name: Attest build provenance
+        if: github.event_name == 'push'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ${{ steps.image-name.outputs.name }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+  # ═══════════════════════════════════════════════════════════════
+  # Escaneo de la imagen publicada (task 2.1)
+  # CRITICAL+HIGH con fix → fail; resto advisory (SARIF completo).
+  # Nivel inicial: el workflow aún no es required check del ruleset,
+  # así que el gate es advisory a nivel de merge hasta que
+  # `ci-build-gates` lo vincule (G4 advisory 2-4 semanas).
+  # ═══════════════════════════════════════════════════════════════
+  trivy:
+    name: 'Security: Image Scan (Trivy)'
+    needs: image
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+    steps:
+      - name: Trivy scan (blocking — CRITICAL+HIGH con fix)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ needs.image.outputs.image }}@${{ needs.image.outputs.digest }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: 'true'
+          exit-code: '1'
+          format: sarif
+          output: trivy-image-blocking.sarif
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+      # Inventario completo (incluye lo que el gate bloqueante ignora:
+      # severidades bajas y CVEs sin fix). Nunca falla el job.
+      - name: Trivy scan (advisory — todas las severidades)
+        if: always()
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: ${{ needs.image.outputs.image }}@${{ needs.image.outputs.digest }}
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          exit-code: '0'
+          format: sarif
+          output: trivy-image-advisory.sarif
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload blocking SARIF to Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        with:
+          sarif_file: trivy-image-blocking.sarif
+          category: trivy-image-blocking
+
+      - name: Upload advisory SARIF to Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        with:
+          sarif_file: trivy-image-advisory.sarif
+          category: trivy-image-advisory
+
+  # ═══════════════════════════════════════════════════════════════
+  # Validación de la imagen publicada: boot + health + smoke contra
+  # stack emulado (Floci + Postgres). Reemplaza al docker-build de
+  # deploy.yml (disabled_manually) para que la validación corra en CI
+  # activo (task 4.1, opción "reemplazar"). Mismos env/servicios que
+  # deploy.yml docker-build; la imagen se PULL por digest (no se
+  # reconstruye): se valida exactamente lo que se publicó.
+  # ═══════════════════════════════════════════════════════════════
+  validate:
+    name: 'Build: Validate Image (Emulated Stack)'
+    needs: image
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    services:
+      floci:
+        image: floci/floci:1.5.31
+        ports:
+          - 4566:4566
+        env:
+          FLOCI_STORAGE_MODE: memory
+          FLOCI_HOSTNAME: floci
+        options: >-
+          --health-cmd "curl -f http://localhost:4566/_floci/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 10s
+      db:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: project_one_cd
+        options: >-
+          --health-cmd "pg_isready -U test -d project_one_cd"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 5s
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      # Migraciones (prisma CLI) y smoke tests (vitest) corren en el
+      # host contra el contenedor publicado. --ignore-scripts + generate
+      # explícito: mismo patrón que .github/actions/setup-monorepo.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Generate Prisma client
+        working-directory: apps/server
+        run: npx prisma generate
+
+      - name: Login to GHCR
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull published image
+        run: docker pull "$IMAGE_REF"
+        env:
+          IMAGE_REF: ${{ needs.image.outputs.image }}@${{ needs.image.outputs.digest }}
+
+      - name: Run Prisma migrations
+        working-directory: apps/server
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/project_one_cd
+
+      # NODE_ENV=development (NO production): la dummy AES_GCM_KEY solo
+      # es válida en stacks emulados — encription-prisma-middleware la
+      # rechaza bajo NODE_ENV=production (ver Dockerfile). La dummy key
+      # (32 cero bytes en base64) es segura aquí: el validador emulado
+      # nunca persiste ni descifra datos reales.
+      - name: Start server container
+        run: |
+          docker run -d \
+            --name build-server \
+            --network host \
+            -e DATABASE_URL=postgresql://test:test@localhost:5432/project_one_cd \
+            -e AWS_ENDPOINT_URL=http://localhost:4566 \
+            -e AWS_ACCESS_KEY_ID=test \
+            -e AWS_SECRET_ACCESS_KEY=test \
+            -e AWS_REGION=us-east-1 \
+            -e PORT=3000 \
+            -e NODE_ENV=development \
+            -e FRONTEND_URL=http://localhost:5173 \
+            -e AES_GCM_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+            -e ALGORITHM=aes-256-gcm \
+            "$IMAGE_REF"
+        env:
+          IMAGE_REF: ${{ needs.image.outputs.image }}@${{ needs.image.outputs.digest }}
+
+      # 200 = sano; 503 = vivo con DB degradada (misma política que
+      # deploy.yml y preview.yml).
+      - name: Wait for server health
+        run: |
+          for i in {1..30}; do
+            http_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/health)
+            if [[ "$http_code" == "200" || "$http_code" == "503" ]]; then
+              echo "✅ Server health check passed (HTTP $http_code)"
+              exit 0
+            fi
+            echo "⏳ Waiting for server... ($i/30) [HTTP $http_code]"
+            sleep 2
+          done
+          echo "❌ Server health check failed after 60s"
+          exit 1
+
+      - name: Run smoke tests (emulated)
+        working-directory: apps/server
+        run: npm run test:smoke
+        env:
+          AWS_ENDPOINT_URL: http://localhost:4566
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_REGION: us-east-1
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: docker logs build-server

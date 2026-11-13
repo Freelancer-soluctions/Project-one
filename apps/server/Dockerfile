@@ -56,15 +56,16 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # --- build: emisión JS con tsc + poda de devDeps ---
 FROM deps AS build
-# NO existe `tsconfig.base.json` en este repo: la base es `tsconfig.json` (raíz).
-#   tsconfig.build.json extiende al de type-check (noEmit) y SÍ emite:
-#   noEmit:false + rewriteRelativeImportExtensions (TS 5.7+) reescribe los imports
-#   relativos `.ts` → `.js`, permitiendo `node dist/bin/index.js` sin tsx.
+# `tsconfig.base.json` (raíz) es la base compartida (strict, target, module...).
+#   tsconfig.build.json extiende apps/server/tsconfig.json → tsconfig.base.json y SÍ
+#   emite: noEmit:false + rewriteRelativeImportExtensions (TS 5.7+) reescribe los
+#   imports relativos `.ts` → `.js`, permitiendo `node dist/bin/index.js` sin tsx.
+COPY tsconfig.base.json ./
 COPY tsconfig.json ./
 COPY apps/server/tsconfig.json apps/server/tsconfig.build.json ./apps/server/
 COPY apps/server/src ./apps/server/src
 
-# `tsc -p` (no `tsc -b`: no hay project references/composite). outDir/include se
+# `tsc -p` (project references existen pero build.json no es composite). outDir/include se
 #   resuelven relativos al config → emite en apps/server/dist. prune DESPUÉS de tsc
 #   (typescript es devDep). Una sola capa (hadolint DL3059). Sin `cd` (DL3003).
 RUN npx tsc -p apps/server/tsconfig.build.json \

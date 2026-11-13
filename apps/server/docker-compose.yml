@@ -31,7 +31,9 @@ services:
       - app-network
 
   api:
-    build: .
+    build:
+      context: ../..
+      dockerfile: apps/server/Dockerfile
     container_name: project_one_api
     restart: always
     depends_on:
