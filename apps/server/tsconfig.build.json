@@ -1,0 +1,19 @@
+{
+  // Config de BUILD (emisión JS) para la etapa `build` del Dockerfile multi-stage
+  // (change `ci-dockerfile-multi-stage`). El `tsconfig.json` del server es de
+  // TYPE-CHECK (`noEmit: true` + `allowImportingTsExtensions`, gate `server-typecheck`);
+  // este config lo extiende y SÍ emite: `noEmit: false` + `rewriteRelativeImportExtensions`
+  // (TS 5.7+) reescribe los imports relativos `.ts` → `.js` en la salida, permitiendo
+  // `node dist/bin/index.js` en runtime sin tsx. Solo `src/` producción (sin tests).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "rewriteRelativeImportExtensions": true,
+    "outDir": "dist",
+    "declaration": false,
+    "incremental": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/**/*.spec.ts"]
+}

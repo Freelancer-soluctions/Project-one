@@ -33,13 +33,19 @@ Thumbs.db
 *.crt
 *.p12
 *.pfx
-dist
+# dist: el build multi-stage genera dist DENTRO de la imagen (tsc); excluir cualquier
+#   dist del contexto evita arrastrar artefactos stale del host (ci-dockerfile-multi-stage).
+**/dist
 coverage
 
 # Tests (from apps/server/.dockerignore)
 tests
 **/*.test.js
 **/*.spec.js
+# Filtros .ts (migración TS del server): el build excluye tests de la emisión, pero
+#   mantenerlos fuera del contexto evita shippearlos en src/ (ci-dockerfile-multi-stage).
+**/*.test.ts
+**/*.spec.ts
 
 # Build outputs (from apps/server/.dockerignore)
 build
