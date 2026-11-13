@@ -212,7 +212,12 @@ module.exports = {
     // options.webpackConfig en apps/client/.dependency-cruiser.cjs.
     enhancedResolveOptions: {
       exportsFields: ['exports'],
-      conditionNames: ['import', 'require', 'node', 'default'],
+      // `types`: los paquetes de DefinitelyTyped (`@types/*`) traen `exports`
+      // condicionados a `types`; sin esta condición un import runtime cuyo
+      // paquete sólo exista como `@types` en un `node_modules` anidado
+      // (p. ej. `apps/client/node_modules/@types/react` con la 18 y la 19
+      // hoisteada) queda `not-to-unresolvable`.
+      conditionNames: ['import', 'require', 'node', 'default', 'types'],
       mainFields: ['main', 'types', 'typings', 'browser', 'module'],
     },
     reporterOptions: {

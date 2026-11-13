@@ -32,7 +32,6 @@ describe('AlertDialog - UI snapshot', () => {
     expect(container.firstChild).toMatchInlineSnapshot(
       `
       <button
-        aria-controls="radix-:r0:"
         aria-expanded="false"
         aria-haspopup="dialog"
         data-state="closed"
