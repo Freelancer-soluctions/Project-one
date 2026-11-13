@@ -10,10 +10,13 @@ export function DebouncedInput({
   ...props
 }) {
   const [value, setValue] = useState(initialValue);
+  const [syncedInitialValue, setSyncedInitialValue] = useState(initialValue);
 
-  useEffect(() => {
+  // Ajuste en render (no en efecto): evita el render en cascada.
+  if (initialValue !== syncedInitialValue) {
+    setSyncedInitialValue(initialValue);
     setValue(initialValue);
-  }, [initialValue]);
+  }
 
   useEffect(() => {
     const timeout = setTimeout(() => {
