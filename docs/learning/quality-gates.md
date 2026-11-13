@@ -285,6 +285,17 @@ del paquete, no typosquatting, y bloqueaban el gate sin hallazgo real de la capa
 siguen siendo repo-relativas (el espejo conserva la forma del árbol). Si un manifiesto de agente
 pasa a ser dependencia de producto, basta con declararlo como workspace.
 
+**Reglas bloqueantes (2026-11-12):** el wrapper ejecuta `verify` con `--rules` limitado a los
+detectores de cadena de suministro npm (`typosquatting`, `threat-npm-dependency-confusion`,
+`deceptive_author`, `unclaimed_maintainer_email_domain`, `potentially_compromised_email_domain`,
+`direct_url_dependency`, `threat-npm-http-dependency`, `threat-npm-preinstall-script`,
+`threat-setup-network-in-install`). Sin ese filtro, las 63 reglas incluyen heurísticas de código
+fuente (`capability-*`, `threat-runtime-*`, `metadata_mismatch`, `provenance_regression`,
+`risky_new_dependency`, `bundled_binary`) que disparan 144 hallazgos sobre paquetes legítimos
+pinnados (`@reduxjs/toolkit`, `@tanstack/react-table`, tiptap, `bcrypt`…) y bloqueaban el gate sin
+señal de typosquatting. Esas heurísticas quedan para análisis ad hoc con
+`guarddog npm scan <paquete>` sobre un paquete concreto.
+
 **Decisión (2026-11-10): promover GuardDog a blocking SIN evaluar Socket** — scenario de la spec
 "GuardDog promovido sin Socket": la tasa de FP observada en el periodo advisory es aceptable (único
 incidente con causa raíz en datos del manifest, no en la heurística de typosquatting; 0 hallazgos en

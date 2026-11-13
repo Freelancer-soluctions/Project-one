@@ -99,6 +99,12 @@ Basado en gaps **reales y verificables en código**, no en el PRD abstracto:
 - Verificación directa: los jobs `client-dead-code`/`server-dead-code` **ya NO tienen `continue-on-error`** (grep sin resultados). La fase 2 ya está satisfecha en el código actual.
 - `ci-dead-code-advisory-calibration` propone lo contrario: mantener blocking con `--no-exit-code` (advisory) hasta calibrar la config, porque knip 6.32.2 (desactualizado) y la config con `ignore` masivo generan falsos positivos.
 - **Recomendación:** `ci-prebuild-substage-structure-phase2` está **superseded** (su objetivo ya se cumplió en código). `ci-dead-code-advisory-calibration` gana: revertir a advisory con `--no-exit-code` hasta calibrar la config (upgrade a 6.45.1 + revisión de ignore), luego promoción a blocking estricto documentada en `quality-policy.md`. Reconciliar antes de implementar.
+- **Reconciliación IMPLEMENTADA (2026-11-12, change `ci-dead-code-advisory-calibration`):**
+  - knip actualizado a 6.45.1; `$schema` pineado a 6.45.1; flags `--production`/`--cache`/`--no-exit-code`/`--max-issues` validados en la versión instalada.
+  - `client-dead-code`/`server-dead-code` (PR) invocan el script root `knip:ci` (`--production --cache --no-exit-code --max-issues 0 --reporter json`) → **advisory** durante calibración. Reporter json unificado (server antes no lo usaba).
+  - Nuevo job scheduled `dead-code-triage` (`.github/workflows/scheduled-quality.yml`, lunes 05:00 UTC) en modo **default** vía `knip:ci:scheduled`, advisory permanente, reporte artifact + triage humano; no toca `ci-complete`.
+  - Ratchet configurado en `knip.jsonc` `rules`: `warn` para tipos con hallazgos en production (`files`/`dependencies`/`exports`/`types`), `error` para tipos en cero, `duplicates: off`. Baseline production 2026-11-12: client 10 / server 6 (assets de dev-time, no dead code confirmado). Promoción por tipo documentada en `quality-policy.md` §3.1.
+  - Tasks 6.1/6.2 de `ci-prebuild-substage-structure-phase2` **cerrados por supersesión** (la promoción a blocking la gobierna el ratchet de este change, no el merge de phase2).
 
 ## 6. Próximos pasos:
 

@@ -2,8 +2,11 @@
 // Nota: entry/paths/plugins no se usan a nivel raiz, Knip usa defaults + plugins auto-detectados;
 // en repos con workspaces, `entry`/`project` de nivel superior se ignoran: van en `workspaces["."]`
 {
-  // Esquema oficial Knip v6 para autocompletado y validación
-  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
+  // Esquema oficial Knip pineado a la versión instalada (6.45.1) — change
+  // `ci-dead-code-advisory-calibration`: la spec `knip-config-single-source` exige
+  // que el $schema matchee la versión instalada (no solo el major). Al subir knip,
+  // actualizar este pin en el mismo PR de herramientas.
+  "$schema": "https://unpkg.com/knip@6.45.1/schema-jsonc.json",
   // Excepción acotada al archivo real (review M-4): `ignoreExportsUsedInFile` es
   // por TIPO de issue (interface/type/class/enum/member), no por archivo, así que
   // la granularidad correcta aquí es `ignoreIssues`. Los 3 exports de
@@ -41,8 +44,12 @@
         "lint-staged",
         "omniroute",
         "depcheck",
-        // ESLint plugins consumed via eslint.config.js (knip can't detect)
+        // ESLint plugins consumidos por el eslint.config.js raíz (compartido) pero
+        // declarados en manifests de workspace — knip no los atribuye al raíz:
+        // jsx-a11y en apps/client, security en apps/server (change
+        // `ci-dead-code-advisory-calibration`: evita el FP `unlisted` del job scheduled).
         "eslint-plugin-jsx-a11y",
+        "eslint-plugin-security",
       ],
       // ren (Windows rename), gitleaks y vale: binarios standalone llamados
       // directamente en scripts npm — no son paquetes npm declarables.
@@ -51,8 +58,13 @@
     // Workspace frontend React (Vite)
     "apps/client": {
       // Archivos que Knip analiza en client (widened: tests/.storybook/config atribuyen sus deps)
+      // (change `ci-dead-code-advisory-calibration`): el sufijo `!` en el glob de `src/`
+      // lo marca como PRODUCCIÓN (WorkspaceWorker.getProductionProjectFilePatterns).
+      // En modo `--production` knip NIEGA los project patterns sin `!`; solo `src/**!`
+      // se analiza. Los globs de tests/.storybook/config (sin `!`) quedan excluidos en
+      // production pero se analizan en modo default (el sufijo se ignora ahí).
       "project": [
-        "src/**/*.{js,jsx}",
+        "src/**/*.{js,jsx}!",
         "tests/**/*.{js,jsx}",
         ".storybook/**/*.{js,jsx}",
         "*.config.{js,mjs}",
@@ -61,7 +73,14 @@
       // y `test:tia` vía `--config vitest.scoped.config.js`; el plugin vitest solo declara
       // `vitest.config.*` / `vitest.{workspace,projects}.*` como config, así que knip la ve
       // como archivo sin uso. Declararla como entry es el modelado correcto (no es un ignore).
-      "entry": ["vitest.scoped.config.js"],
+      // (change `ci-dead-code-advisory-calibration`): el sufijo `!` marca el pattern
+      // como de PRODUCCIÓN. knip v6 (WorkspaceWorker.getProductionEntryFilePatterns)
+      // en modo `--production` SOLO usa los entries con sufijo `!` y NIEGA el resto;
+      // sin él, production no analiza ningún src y reporta las 52 deps runtime como
+      // `unused` (falso positivo masivo). `src/main.jsx!` = entry de producción
+      // (referenciado por index.html); en modo default el sufijo se ignora. El entry
+      // de test `vitest.scoped.config.js` (sin `!`) queda excluido en production.
+      "entry": ["src/main.jsx!", "vitest.scoped.config.js"],
       // Alias `@/` -> `src/` de Vite (sin esto, imports `@/...` se reportan como `unresolved`)
       "paths": {
         "@": ["./src"],
@@ -140,10 +159,20 @@
     },
     // Workspace backend Express
     "apps/server": {
+      // (change `ci-dead-code-advisory-calibration`): entry de PRODUCCIÓN explícito.
+      // `src/bin/index.ts` es el entry real (package.json#main + scripts.dev `tsx watch`).
+      // El sufijo `!` lo marca como de PRODUCCIÓN: knip v6 en modo `--production` SOLO
+      // usa los entries con `!` y NIEGA el resto (WorkspaceWorker.getProductionEntryFilePatterns).
+      // Sin el sufijo, production no analiza ningún src y reporta las 23 deps runtime
+      // como `unused` (falso positivo masivo). En modo default el sufijo se ignora.
+      "entry": ["src/bin/index.ts!"],
       // Archivos que Knip analiza en server (widened: prisma/tests atribuyen sus deps;
       // cobertura `.ts` añadida en Fase 0 — task 1.2 — antes de la primera conversión)
+      // (change `ci-dead-code-advisory-calibration`): el sufijo `!` en el glob de `src/`
+      // lo marca como PRODUCCIÓN; en modo `--production` solo se analiza `src/**!`,
+      // los globs de prisma/tests (sin `!`) quedan excluidos ahí pero se analizan en default.
       "project": [
-        "src/**/*.{js,ts}",
+        "src/**/*.{js,ts}!",
         "prisma/**/*.{js,ts}",
         "tests/**/*.{js,ts}",
       ],
@@ -246,10 +275,38 @@
       "project": ["tests/**/*.js"],
     },
   },
-  // Reglas de severidad de Knip (gradación profesional: `files` y `dependencies` como `error`, `exports` y `duplicates` como `warn`/`off` para adopción gradual)
-  // Estrategia: empezar con `warn` para `exports` y `cycles`; graduar a `error` cuando el baseline llegue a cero.
+  // Ratchet de severidad por tipo (change `ci-dead-code-advisory-calibration`).
+  // Mecánica (knip 6.45.1, run-cli.js): el exit 1 solo cuenta los tipos con
+  // rules[type]==='error' (totalErrorCount) y falla si totalErrorCount > --max-issues.
+  // `--no-exit-code` (Fase 1 advisory) anula el exit mientras se calibra.
+  //
+  // Baseline production 2026-11-12 (client 10 / server 6 hallazgos): los tipos con
+  // hallazgos arrancan en `warn` (advisory, visibles para triage); los tipos en CERO
+  // arrancan en `error` (cualquier regresión bloquea al promover el gate). Promoción
+  // warn→error por tipo cuando llega a cero, documentada con fecha en
+  // docs/learning/quality-policy.md. `--max-issues 0` = tolerancia cero para los
+  // tipos ya lockeados en error.
+  //
+  // NOTA: los hallazgos de production son en su mayoría assets de dev-time que el
+  // lente `--production` expone y default oculta (componentes shadcn solo usados en
+  // stories/tests, tailwindcss-animate en config, tsx/vite de build, rsvp-fixtures de
+  // tests). Requieren triage humano antes de promover; NO se silencian con ignore
+  // (aumentaría puntos ciegos). En modo default (scheduled) el baseline es 0.
   "rules": {
-    // Desactiva reporte de archivos duplicados
+    // Tipos con hallazgos en production → warn (calibración / triage pendiente)
+    "files": "warn", // prod: client 4, server 1
+    "dependencies": "warn", // prod: client 4, server 2
+    "exports": "warn", // prod: client 2, server 2
+    "types": "warn", // prod: server 1
+    // Tipos en cero en ambos modos → error (lockeados; regresión bloquea al promover)
+    "devDependencies": "error",
+    "binaries": "error",
+    "enumMembers": "error",
+    "namespaceMembers": "error",
+    "optionalPeerDependencies": "error",
+    "unlisted": "error",
+    "unresolved": "error",
+    // Desactiva reporte de archivos duplicados (ruido estructural)
     "duplicates": "off",
   },
 }

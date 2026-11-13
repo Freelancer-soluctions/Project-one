@@ -28,8 +28,9 @@ El job de dead code en PR SHALL ejecutar `knip --production --cache --no-exit-co
 #### Scenario: Scheduled mode
 
 - **WHEN** el job scheduled corre
-- **THEN** usa modo default (sin `--production`)
-- **AND** reporta más hallazgos para triage
+- **THEN** corre modo default (`knip:ci:scheduled`) y modo production (`knip:ci`) por separado
+- **AND** el modo default reporta el alcance default (devDependencies, tests, stories); el modo production expone los 16 hallazgos de deuda real (assets dev-time)
+- **AND** publica ambos reportes para triage humano
 
 ### Requirement: Ratchet y promoción documentada
 

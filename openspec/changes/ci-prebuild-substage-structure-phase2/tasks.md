@@ -172,5 +172,7 @@ SUCCESS). No regressions in ruleset status checks.
 
 ## 6. Merge and Closure
 
-- [ ] 6.1 Merge the Phase 2 PR after all verifications (Tasks 4–5) pass. Verify merge commit is signed and CI is green on the PR.
-- [ ] 6.2 Verify post-merge CI on main passes (aggregators, `ci-complete`, rulesets) and close the change. Verify no follow-up items remain open.
+- [x] 6.1 Merge the Phase 2 PR after all verifications (Tasks 4–5) pass. Verify merge commit is signed and CI is green on the PR.
+  - CERRADO POR SUPERSESIÓN (2026-11-12, change `ci-dead-code-advisory-calibration`): la promoción a blocking de dead-code ya no se completa mergendo phase2 como blocking. El cambio de código de phase2 (quitar `continue-on-error`, tasks 2.1/2.2) ya aterrizó en `ci.yml`; el estado advisory→blocking lo gobierna ahora el ratchet de `ci-dead-code-advisory-calibration` (`--no-exit-code` durante calibración, promoción por tipo documentada en `docs/learning/quality-policy.md` §3.1). Ver `docs/learning/quality-changes-decision.md` §5b.
+- [x] 6.2 Verify post-merge CI on main passes (aggregators, `ci-complete`, rulesets) and close the change. Verify no follow-up items remain open.
+  - CERRADO POR SUPERSESIÓN (2026-11-12): el cierre y la promoción a blocking estricto se rastrean en `ci-dead-code-advisory-calibration` (ratchet warn→error por tipo + `--max-issues 0`, quality-policy.md §3.1). No quedan follow-ups de phase2; la deuda de calibración (baseline production 2026-11-12: client 10 / server 6, assets de dev-time) se triagea en el job scheduled `dead-code-triage` (`scheduled-quality.yml`).

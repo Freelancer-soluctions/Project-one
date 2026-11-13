@@ -1719,8 +1719,13 @@ jobs:
           # Sin step-COE (FASE 2 fail-closed): si el scan muere, el job se tiñe
           # directamente en vez de producir un verde falso. El índice de licencias
           # se buildea en el primer run del binario (~1 min, runner efímero).
+          # `--ignore` (no `--exclude`: ScanCode 32.5.0 eliminó esa opción y el
+          # scan moría con "No such option '--exclude'" antes de escribir el
+          # reporte, que el evaluate fail-closed convertía en rojo permanente).
+          # `--ignore` matchea la ruta relativa completa, así que van los dos
+          # patrones (raíz y subdirectorios).
           scancode --license --copyright --only-findings \
-            --exclude '*.min.js' \
+            --ignore '*.min.js' --ignore '**/*.min.js' \
             --json-pp scancode-scope/pr-license-report.json scancode-scope
 
       - name: Evaluate licenses against unified deny-list (FASE 2 blocking)
@@ -2369,7 +2374,11 @@ jobs:
         # se resuelve relativo al cwd (con cwd=apps/client buscaría
         # apps/client/apps/client → exit 2), y correr desde el workspace eludiría
         # la config raíz knip.jsonc. Selector explícito por workspace.
-        run: npx knip --workspace=apps/client --no-progress --reporter json
+        # Single-source (change `ci-dead-code-advisory-calibration`): los flags de PR
+        # (--production --cache --no-exit-code --max-issues 0 --reporter json) viven en
+        # el script root `knip:ci`; aquí solo se añade el selector de workspace.
+        # Fase 1 advisory: --no-exit-code no bloquea el merge mientras se calibra.
+        run: npm run knip:ci -- --workspace=apps/client
 
   client-import-bounds:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
@@ -2563,7 +2572,10 @@ jobs:
         # DESDE LA RAÍZ (mismo motivo que client-dead-code): knip lee la config
         # raíz knip.jsonc (con los falsos positivos justificados en ignoreIssues)
         # y el selector se resuelve correctamente.
-        run: npx knip --workspace=apps/server --no-progress
+        # Single-source (change `ci-dead-code-advisory-calibration`): flags de PR en el
+        # script root `knip:ci` (--production --cache --no-exit-code --max-issues 0),
+        # reporter json unificado con client. Fase 1 advisory: no bloquea el merge.
+        run: npm run knip:ci -- --workspace=apps/server
 
   server-import-bounds:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'

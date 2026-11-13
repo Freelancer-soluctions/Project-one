@@ -1,0 +1,139 @@
+name: Weekly Dead Code Triage
+
+# Triage semanal de código muerto — change `ci-dead-code-advisory-calibration`
+# (spec `ci-dead-code-advisory-calibration`, requirement "Modo production en PR,
+# default en scheduled").
+#
+# CÓMO FUNCIONA:
+#   1. Corre knip en modo DEFAULT (sin `--production`) y en modo PRODUCTION sobre
+#      todo el monorepo. El modo default analiza tests/stories/config/devDependencies;
+#      el modo production expone los hallazgos de deuda real (assets dev-time) que
+#      el modo default oculta. Ambos reportes se publican para triage humano.
+#   2. Genera un reporte markdown + JSON y lo publica como step summary + artifact.
+#
+# RESTRICCIONES DURAS:
+#   - Totalmente ADVISORY: `--no-exit-code` (exit 0 siempre). NO es un required
+#     status check, no toca `ci-complete` ni el merge gate. El gate de PR
+#     (client-dead-code/server-dead-code en ci.yml) es el que ratchetean a blocking.
+#   - El triage es HUMANO: cada hallazgo se clasifica como dead code real (borrar
+#     en un PR) o asset de dev-time / FP de config (modelar con justificación en
+#     knip.jsonc). Este workflow NO edita knip.jsonc ni borra código.
+#   - `permissions` least-privilege: `contents: read` para el checkout. La subida
+#     de artifact usa el GITHUB_TOKEN por defecto (no requiere permiso extra).
+
+on:
+  schedule:
+    # Lunes 05:00 UTC — después de scheduled-security (03:00), nightly (02:40) y
+    # flaky-weekly (04:20), para repartir la carga de los jobs scheduled del lunes.
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dead-code-weekly-triage
+  cancel-in-progress: false
+
+jobs:
+  dead-code-triage:
+    name: Weekly Dead Code Triage (default mode)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      # setup-monorepo instala deps y cachea node_modules/.cache → el `--cache` de
+      # knip (default node_modules/.cache/knip) es efectivo entre corridas.
+      - uses: ./.github/actions/setup-monorepo
+
+      - name: Run knip (default mode, advisory)
+        # --silent evita que el banner de `npm run` contamine el JSON del reporte.
+        # El script root knip:ci:scheduled lleva --cache --no-exit-code --reporter json.
+        run: npm run --silent knip:ci:scheduled > dead-code-report-default.json
+        shell: bash
+
+      - name: Run knip (production mode, advisory)
+        # Modo production: expone los hallazgos de deuda real (assets dev-time) que
+        # el modo default oculta. Corre también en PR (client-dead-code/server-dead-code).
+        run: npm run --silent knip:ci > dead-code-report-production.json
+        shell: bash
+
+      - name: Generate triage report
+        run: |
+          node <<'EOF'
+          const fs = require('fs');
+          const types = ['files','dependencies','devDependencies','exports','types','duplicates','binaries','enumMembers','namespaceMembers','optionalPeerDependencies','unlisted','unresolved'];
+          function parse(file) {
+            const d = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const rows = [];
+            const byType = {};
+            for (const f of d.issues || []) {
+              for (const t of types) {
+                for (const it of (f[t] || [])) {
+                  rows.push({ type: t, file: f.file, name: it.name || it.filePath || '' });
+                  byType[t] = (byType[t] || 0) + 1;
+                }
+              }
+            }
+            return { total: rows.length, byType, rows };
+          }
+          const def = parse('dead-code-report-default.json');
+          const prod = parse('dead-code-report-production.json');
+          let md = '# Weekly Dead Code Triage (knip)\n\n';
+          md += '## Modo default (devDependencies, tests, stories)\n\n';
+          md += `**Total findings: ${def.total}** — advisory, no bloquea merge.\n\n`;
+          if (def.total === 0) {
+            md += 'Sin hallazgos en modo default.\n\n';
+          } else {
+            md += '| Tipo | Cantidad |\n| --- | --- |\n';
+            for (const [t, n] of Object.entries(def.byType)) md += `| ${t} | ${n} |\n`;
+            md += '\n| Tipo | Archivo | Símbolo |\n| --- | --- | --- |\n';
+            for (const r of def.rows) md += `| ${r.type} | ${r.file} | ${r.name} |\n`;
+            md += '\n';
+          }
+          md += '## Modo production (deuda real: assets dev-time)\n\n';
+          md += `**Total findings: ${prod.total}** — advisory, no bloquea merge.\n\n`;
+          if (prod.total === 0) {
+            md += 'Sin hallazgos en modo production.\n\n';
+          } else {
+            md += '| Tipo | Cantidad |\n| --- | --- |\n';
+            for (const [t, n] of Object.entries(prod.byType)) md += `| ${t} | ${n} |\n`;
+            md += '\n| Tipo | Archivo | Símbolo |\n| --- | --- | --- |\n';
+            for (const r of prod.rows) md += `| ${r.type} | ${r.file} | ${r.name} |\n`;
+            md += '\n';
+          }
+          md += '## Triage (humano)\n\n';
+          md += 'Cada hallazgo se clasifica en un PR: **dead code real** → borrar; ';
+          md += '**asset de dev-time / FP de config** (tests, stories, plugins de build) → ';
+          md += 'modelar con justificación por entrada en `knip.jsonc` (no `ignore` masivo). ';
+          md += 'La promoción de un tipo a `error` (ratchet) se documenta en ';
+          md += '`docs/learning/quality-policy.md` cuando llega a cero en el gate de PR.\n';
+          fs.writeFileSync('dead-code-report.md', md);
+          console.log(md);
+          EOF
+          cat dead-code-report.md >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
+      - name: Publish advisory note (non-blocking)
+        if: always()
+        run: |
+          echo "::group::Triage semanal de código muerto (advisory)"
+          echo "Workflow advisory: no es required check ni toca ci-complete."
+          echo "El triage y la promoción del ratchet son PRs humanos (quality-policy.md)."
+          echo "::endgroup::"
+        shell: bash
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: dead-code-weekly-report
+          path: |
+            dead-code-report.md
+            dead-code-report-default.json
+            dead-code-report-production.json
+          retention-days: 90
+          if-no-files-found: warn

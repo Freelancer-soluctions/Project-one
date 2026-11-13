@@ -1,0 +1,30 @@
+# Tasks: ci-dead-code-advisory-calibration
+
+## Fase 1: Advisory (calibración)
+
+- [x] Validar flags `--production`, `--cache`, `--no-exit-code`, `--max-issues` en knip 6.45.1 instalado (verificación A3)
+  - Verificado 2026-11-12 en knip 6.45.1: `--production`/`--cache`/`--no-exit-code`/`--max-issues` existen (`util/cli-arguments.js`). Mecánica del exit confirmada en `run-cli.js:32-58`: `totalErrorCount` suma solo tipos con `rules[type]==='error'`; exit 1 si `totalErrorCount > maxIssues` y no `--no-exit-code`. `--cache` usa `node_modules/.cache/knip` (cacheado por `setup-monorepo`). Corridas empíricas: default exit 0; production `--no-exit-code --max-issues 0` exit 0; production `--max-issues 0` sin `--no-exit-code` (simula promoción) exit 0.
+- [x] Upgrade knip 6.32.2 → 6.45.1 en package.json + lockfile (PR único con flags + upgrade, para no dejar CI rojo)
+  - `package.json` knip pineado a `6.45.1`; lockfile actualizado con `npm install`. `npx knip --version` → 6.45.1.
+- [x] Actualizar `$schema` en knip.jsonc (si se pinnea versión exacta; hoy es major-only)
+  - `knip.jsonc` `$schema` = `https://unpkg.com/knip@6.45.1/schema-jsonc.json` (spec `knip-config-single-source`: matchea la versión instalada, no solo el major).
+- [x] Añadir `--production --cache --no-exit-code` a client-dead-code/server-dead-code (PR mode); unificar reporter (client usa json, server no)
+  - Flags en el script root `knip:ci` = `knip --production --cache --no-exit-code --max-issues 0 --no-progress --reporter json`. Ambos jobs (`ci.yml` client-dead-code / server-dead-code) lo invocan; reporter json unificado (server antes no lo usaba).
+- [x] Invocar vía scripts root (`npm run knip:ci`) en vez de `npx knip` inline para single-source
+  - `ci.yml`: `run: npm run knip:ci -- --workspace=apps/client` y `... --workspace=apps/server` (desde la raíz, sin working-directory). Verificado: `npm run --silent knip:ci -- --workspace=apps/<ws>` exit 0, JSON limpio, hallazgos reportados (client 10 / server 6).
+- [x] Crear job scheduled con modo default (definir trigger, cadencia, severidad advisory, mecanismo de triage)
+  - `.github/workflows/scheduled-quality.yml`, job `dead-code-triage`: `schedule` lunes 05:00 UTC (`0 5 * * 1`) + `workflow_dispatch`; corre ambos modos: default (`knip:ci:scheduled`) y production (`knip:ci`), publicando ambos reportes en el step summary + artifact `dead-code-weekly-report` (md+json, 90 días). Advisory permanente (no required check, no toca `ci-complete`). Parser inline verificado. YAML + actionlint exit 0. Nota: el modo default reporta 0 hallazgos (alcance default); el modo production expone los 16 hallazgos de deuda real (assets dev-time) — por eso se corre ambos.
+- [x] Revisar `ignore`/`ignoreDependencies`/`ignoreIssues` para reducir puntos ciegos (criterio: reducir `ignore`/`ignoreIssues` con justificación por entrada)
+  - Config hints de knip (default y production): ningún `ignore`/`ignoreDependencies`/`ignoreIssues` reducible (bloques ya auditados y tight). El hint "Remove redundant pattern" de los entries `src/main.jsx!`/`src/bin/index.ts!` aparece solo en default (plugin vite); en production son load-bearing (`WorkspaceWorker.getProductionEntryFilePatterns` solo usa patterns con `!`) → se mantienen. FP cross-workspace modelado: `eslint-plugin-security` añadido al `ignoreDependencies` raíz (declarado en `apps/server/package.json:94`, consumido por el `eslint.config.js` raíz compartido; mismo patrón que `eslint-plugin-jsx-a11y`) → baseline scheduled default pasa de 1 a 0.
+- [x] Regenerar baseline de ignores si el upgrade cambia hallazgos (CODEOWNERS aprueba)
+  - Baseline 2026-11-12 (knip 6.45.1): default = 0 (client/server/whole-repo); production = client 10 (files 4, deps 4, exports 2) / server 6 (files 1, deps 2, exports 2, types 1). Hallazgos production clasificados como assets de dev-time (stories/tests/config/build), no dead code confirmado → triage en `dead-code-triage`. CODEOWNERS:61 `/knip.json* @Freelancer-soluctions/devops-team` cubre la aprobación.
+- [x] Configurar ratchet: severidades por tipo (warn→error al llegar a cero) + `--max-issues N` en los jobs
+  - `knip.jsonc` `rules`: `warn` para tipos con hallazgos en production (`files`/`dependencies`/`exports`/`types`); `error` para tipos en cero (`devDependencies`/`binaries`/`enumMembers`/`namespaceMembers`/`optionalPeerDependencies`/`unlisted`/`unresolved`); `duplicates: off`. `--max-issues 0` en `knip:ci`. Mecánica verificada: los `warn` se reportan pero no bloquean; los `error` en cero → exit 0 al promover; cualquier regresión de un tipo `error` bloquearía. Promoción por tipo documentada en `quality-policy.md` §3.1.
+- [x] Cross-reference: CODEOWNERS para `knip.json*` se cubre en hardening P1.3 (mientras tanto, `knip.jsonc` editable sin revisión de owner)
+  - Verificado: `.github/CODEOWNERS:61` `/knip.json* @Freelancer-soluctions/devops-team` (hardening P1.3 ya aterrizó).
+- [x] Documentar ratchet y promoción en `quality-policy.md` (crear plantilla mínima si hardening no aterrizó)
+  - `quality-policy.md` (ya existía por hardening): §2 fila del gate → knip 6.45.1 / advisory (PR, calibración) 2026-11-12 + fila `dead-code-triage` scheduled; §3 fila "Severidad de hallazgos de knip"; §3.1 nueva (mecánica del ratchet, baseline production clasificado, estado de rules, procedimiento de promoción por tipo con fecha); §4 upgrade a 6.45.1 completado.
+- [x] Reconciliar con `ci-prebuild-substage-structure-phase2` (superseded) y cerrar sus tasks 6.1/6.2
+  - `ci-prebuild-substage-structure-phase2/tasks.md` 6.1/6.2 marcados cerrados por supersesión (2026-11-12): la promoción a blocking la gobierna el ratchet de este change, no el merge de phase2. `docs/learning/quality-changes-decision.md` §5b actualizado con la reconciliación implementada.
+- [x] `openspec validate --specs --strict`
+  - `npx openspec validate ci-dead-code-advisory-calibration --type change` → valid. `npx openspec validate --specs --strict` → 172 passed, 0 failed. actionlint (ci.yml + scheduled-quality.yml) exit 0. YAML parse OK.

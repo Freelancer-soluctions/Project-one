@@ -130,4 +130,30 @@ for (const dir of dirs) {
 }
 NODE
 
-( cd "${GUARDDOG_SCOPE}" && uvx --python "${GUARDDOG_PYTHON}" "guarddog==${GUARDDOG_PIN}" npm verify . --output-format sarif "$@" )
+# ------------------------------------------------------------
+# Reglas BLOQUEANTES: cadena de suministro npm/typosquatting (metadata).
+#
+# `verify` sin `--rules` ejecuta las 63 reglas e incluye las heurísticas de
+# código fuente (`capability-*`: red, spawn, filesystem; `threat-runtime-*`,
+# `metadata_mismatch`, `provenance_regression`, `risky_new_dependency`,
+# `bundled_binary`). Sobre un árbol de dependencias legítimo y pinnado esas
+# reglas disparan 144 hallazgos en paquetes mainstream (`@reduxjs/toolkit`,
+# `@tanstack/react-table`, `tiptap`, `bcrypt`…) y bloquean el gate sin señal de
+# typosquatting. Esas heurísticas se reservan para `guarddog npm scan <pkg>`
+# sobre un paquete concreto (análisis ad hoc), no para el gate de PR.
+# Bloquean solo los detectores de cadena de suministro:
+GUARDDOG_RULES=(
+  typosquatting
+  threat-npm-dependency-confusion
+  deceptive_author
+  unclaimed_maintainer_email_domain
+  potentially_compromised_email_domain
+  direct_url_dependency
+  threat-npm-http-dependency
+  threat-npm-preinstall-script
+  threat-setup-network-in-install
+)
+RULE_ARGS=()
+for rule in "${GUARDDOG_RULES[@]}"; do RULE_ARGS+=(--rules "${rule}"); done
+
+( cd "${GUARDDOG_SCOPE}" && uvx --python "${GUARDDOG_PYTHON}" "guarddog==${GUARDDOG_PIN}" npm verify . --output-format sarif "${RULE_ARGS[@]}" "$@" )
