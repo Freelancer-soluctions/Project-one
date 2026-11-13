@@ -45,4 +45,5 @@ rules:
       - nightly-full-suite.yml
       - order-dependence-audit.yml
       - pbt-nightly.yml
+      - scheduled-quality.yml
       - security-metrics.yml
