@@ -119,7 +119,7 @@ describe('Joi schema properties', () => {
 describe('Joi schema negative properties', () => {
   it('stockCreateSchema rejects negative quantity', () => {
     fc.assert(
-      fc.property(fc.integer({ max: -1 }), (q) => {
+      fc.property(fc.integer({ max: -1 }), (q: number) => {
         const { error } = stockCreateSchema.validate(
           {
             quantity: q,
@@ -138,8 +138,10 @@ describe('Joi schema negative properties', () => {
   it('attendanceCreateSchema rejects invalid type', () => {
     fc.assert(
       fc.property(
-        fc.string().filter((s) => !['CHECK_IN', 'CHECK_OUT'].includes(s)),
-        (t) => {
+        fc
+          .string()
+          .filter((s: string) => !['CHECK_IN', 'CHECK_OUT'].includes(s)),
+        (t: string) => {
           const { error } = attendanceCreateSchema.validate(
             { type: t, employeeId: 1 },
             { convert: true, stripUnknown: true }
