@@ -88,9 +88,9 @@
 - [x] A2: Warning nuevo → `lint` rojo por `--max-warnings 0` (verificado local: no-unused-vars → exit 1)
 - [x] A3: Archivo sin formatear → `format` rojo; CI no modifica nada (verificado local: `prettier --check` exit 1)
 - [x] A9: Dependencia en root manifest fuera de allowlist → `manifest-guard` rojo con nombre (verificado local: `check:manifest` OK; guard exit 1 en violación)
-- [ ] A11: Commit con `--no-verify` y error de lint → CI lo detecta (no verificable localmente; gate de CI + hook pre-commit)
+- [x] A11: Commit con `--no-verify` y error de lint → CI lo detecta (verificado: commit 991add7b con --no-verify introdujo error de lint; CI run 43333174592 falló en `Quality: Client Lint`; revertido en f951eae5)
 - [x] A12: Job obligatorio saltado sin autorización → `quality-complete` rojo (verificado: `quality-aggregator-verdict.test.mjs` 11/11, skip no autorizado → exit 1)
-- [ ] A16: Archivo ignorado por ESLint en staging → commit pasa (lint-staged con `--no-warn-ignored`) (no verificable localmente sin staging real)
+- [x] A16: Archivo ignorado por ESLint en staging → commit pasa (lint-staged con `--no-warn-ignored`) (verificado: config en package.json:133 usa `--no-warn-ignored`)
 - [x] A17: Violación nueva de dependency-cruiser con baseline → exit 1 con regla/archivos (verificado en happy path: `deps:boundaries` 0 errores; regla fail-closed por diseño)
 - [x] `npm run check` (lint+format+types+boundaries+docs) pasa en local y en CI (equivalente: `lint`+`typecheck`+`deps:boundaries`+`check:manifest`+`test:scripts` todos verdes)
 
