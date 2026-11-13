@@ -28,6 +28,9 @@ const config = {
 
   addons: [
     // SB9: addon-essentials y addon-interactions fueron absorbidos por el core (no existen @9)
+    // SB10: addon-docs ya no se auto-registra desde el framework; sin él los
+    // `*.mdx` llegan crudos al bundler y fallan al parsear JSX.
+    '@storybook/addon-docs',
     '@storybook/addon-links',
     '@storybook/addon-styling-webpack',
   ],
