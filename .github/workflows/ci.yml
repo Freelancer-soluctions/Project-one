@@ -2344,12 +2344,26 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
+      # Caché del tsBuildInfo (change `ci-type-check-strict`): persiste el estado
+      # incremental de tsc entre corridas. Clave = lockfile + tsconfigs + fuentes;
+      # `restore-keys` permite hit parcial (tsc re-chequea solo lo que cambió).
+      # Sin promesa de speedup: con `--noEmit` el beneficio es marginal (A2).
+      - name: Restore tsc cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: apps/client/.cache/tsc
+          key: tsc-client-${{ runner.os }}-${{ hashFiles('package-lock.json', 'tsconfig.json', 'apps/client/tsconfig.json', 'apps/client/src/**', 'apps/client/tests/**') }}
+          restore-keys: |
+            tsc-client-${{ runner.os }}-
       # Gate blocking real (change `quality-gates`): sin `|| echo` ni
       # `2>/dev/null` que enmascaren el exit code — un error de compilación
       # falla el job. El client es 100% JS: compila vía tsconfig base
       # (allowJs + checkJs off); flags strict llegan con server-typescript-migration (Fase 4).
+      # `--tsBuildInfoFile` (change `ci-type-check-strict`): ruta relativa al
+      # `working-directory` (apps/client) → apps/client/.cache/tsc/app.tsbuildinfo.
+      # `--incremental` NO se añade: ya está en tsconfig (redundante, design D3).
       - name: TypeCheck
-        run: npx tsc --noEmit
+        run: npx tsc --noEmit --tsBuildInfoFile .cache/tsc/app.tsbuildinfo
         working-directory: apps/client
 
   client-complexity:
@@ -2541,14 +2555,27 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
         with:
           prisma: 'true'
+      # Caché del tsBuildInfo (change `ci-type-check-strict`): espejo de
+      # client-typecheck. Clave = lockfile + tsconfigs + fuentes (src + tests,
+      # los `include` de apps/server/tsconfig.json); `restore-keys` = hit parcial.
+      - name: Restore tsc cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: apps/server/.cache/tsc
+          key: tsc-server-${{ runner.os }}-${{ hashFiles('package-lock.json', 'tsconfig.json', 'apps/server/tsconfig.json', 'apps/server/src/**', 'apps/server/tests/**') }}
+          restore-keys: |
+            tsc-server-${{ runner.os }}-
       # Gate blocking real (change `quality-gates`): `tsc --noEmit -p apps/server`
       # contra apps/server/tsconfig.json (allowJs, checkJs off — código 100% JS;
       # flags strict vía server-typescript-migration Fase 4). Sin `|| echo` que enmascare.
       # Corrección 2026-09-29: `npx tsc --noEmit` con working-directory (patrón
       # client-typecheck) — `npm run type-check` fallaba porque ese script vive
       # solo en el manifest RAÍZ, no en apps/server (Missing script: "type-check").
+      # `--tsBuildInfoFile` (change `ci-type-check-strict`): ruta relativa al
+      # `working-directory` (apps/server) → apps/server/.cache/tsc/app.tsbuildinfo.
+      # `--incremental` NO se añade: ya está en tsconfig (redundante, design D3).
       - name: TypeCheck
-        run: npx tsc --noEmit
+        run: npx tsc --noEmit --tsBuildInfoFile .cache/tsc/app.tsbuildinfo
         working-directory: apps/server
 
   server-complexity:
@@ -2766,6 +2793,61 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - run: npm run format:check --workspace=e2e
+
+  # Advisory de ESLint 10 (change `ci-eslint-v10-upgrade`, FASE 1). Corre en
+  # paralelo al lint blocking de v9 sobre client/server/e2e con el motor
+  # eslint@10 vía `npx --package eslint@10` (sin devDependency separada: el
+  # root-manifest-guard bloquea un segundo `eslint` en el manifiesto raíz). Los
+  # plugins del árbol instalado (v9) se resuelven contra eslint 10 en runtime;
+  # la incompatibilidad (p. ej. eslint-plugin-react usa context.getFilename(),
+  # removido en v10) se detecta aquí sin bloquear el merge.
+  # `continue-on-error: true` + FUERA de `prebuild-quality-complete.needs`
+  # (design D7): exento de skipped=fail, no tiñe el agregador. `--no-cache`
+  # evita contaminar la caché de v9 (.cache/eslint) con resultados de v10.
+  # Condición: unión de los ámbitos de lint (client/server/e2e) + `shared`
+  # (package.json/lockfile/configs): un bump de dependencias es justo cuando
+  # cambia la compatibilidad de plugins. Promoción a blocking = FASE 2, solo
+  # cuando este advisory pase (hoy BLOQUEADA: eslint-plugin-react 7.37.5 y
+  # eslint-plugin-jsx-a11y 6.10.2 no publican peer ^10; ver quality-policy.md).
+  eslint-v10-advisory:
+    if: github.event_name == 'pull_request' && (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.e2e == 'true' || needs.repo-discovery.outputs.shared == 'true')
+    name: 'Quality: ESLint 10 Advisory'
+    needs: repo-discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+        with:
+          prisma: 'true'
+      # Un solo step recorre los tres workspaces (set +e) para reportar el
+      # estado de TODOS aunque uno falle: el crash de plugin en client no debe
+      # ocultar el resultado de server/e2e. Exit != 0 si alguno falla; el
+      # continue-on-error del job evita que tiña el merge.
+      - name: Lint con ESLint 10 (advisory, client/server/e2e)
+        shell: bash
+        run: |
+          set +e
+          fail=0
+          run_ws() {
+            ws="$1"; shift
+            echo "::group::ESLint 10 — $ws"
+            npx --yes --package eslint@10 eslint "$@" --no-cache --max-warnings 0
+            status=$?
+            echo "exit=$status"
+            if [ "$status" -ne 0 ]; then fail=1; fi
+            echo "::endgroup::"
+          }
+          run_ws client "apps/client/**/*.{js,jsx}"
+          run_ws server "apps/server/**/*.{js,ts}"
+          run_ws e2e "e2e/tests/**/*.js" "e2e/playwright.config.js"
+          exit "$fail"
 
   # --- Pipeline Config Pre-Build ---
   # Validación estática de los workflows (change `ci-shifting-left`, capability

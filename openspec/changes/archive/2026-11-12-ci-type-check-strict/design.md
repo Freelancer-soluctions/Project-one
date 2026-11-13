@@ -15,7 +15,7 @@ Los jobs `client-typecheck` y `server-typecheck` corren `npx tsc --noEmit` sin `
 1. Añadir `--tsBuildInfoFile` al step `TypeCheck` de `ci.yml` (client y server), con ruta resuelta explícita.
 2. Cachear el directorio del tsBuildInfo con `actions/cache` (clave: lockfile + fuentes).
 3. No añadir `--incremental` (redundante con `tsconfig`).
-4. Ruta del tsBuildInfo: `apps/<workspace>/.cache/tsc/app.tsbuildinfo` (relativa al `working-directory` del job), cache path `apps/<workspace>/.cache/tsc`.
+4. Ruta del tsBuildInfo: el archivo queda en `apps/<workspace>/.cache/tsc/app.tsbuildinfo` (ruta desde la raíz del repo). Como el job corre con `working-directory: apps/<workspace>`, el flag CLI es la ruta **relativa al cwd** `.cache/tsc/app.tsbuildinfo` — NO `apps/<workspace>/…`, que bajo ese `working-directory` anidaría `apps/<workspace>/apps/<workspace>/…` e invalidaría la cache (riesgo "ruta mal resuelta"). Cache path (desde la raíz): `apps/<workspace>/.cache/tsc`. Verificado empíricamente: tsc crea el directorio y escribe el archivo con `--noEmit` (client 516 KB / server 285 KB, exit 0).
 5. No prometer speedup; objetivo = cache reutilizable.
 
 ## Risks / Trade-offs

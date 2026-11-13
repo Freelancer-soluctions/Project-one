@@ -30,25 +30,26 @@
 
 ## 2. Registro de gates (estado actual)
 
-| Gate (job id)                                   | Herramienta                                      | Estado                       | Promoción  | Dueño         | Umbral / ajuste                                                                                     |
-| ----------------------------------------------- | ------------------------------------------------ | ---------------------------- | ---------- | ------------- | --------------------------------------------------------------------------------------------------- |
-| `client-lint` / `server-lint` / `e2e-lint`      | ESLint 9 (`--max-warnings 0 --cache`)            | blocking (PR)                | 2026-09-26 | devops-team   | 0 warnings; `reportUnusedDisableDirectives: 'error'`; `@typescript-eslint/ban-ts-comment`           |
-| `client-format-check`                           | Prettier `--check`                               | blocking (PR)                | 2026-09-26 | frontend-team | 0 diferencias (globs del script `format:check`)                                                     |
-| `server-format-check`                           | Prettier `--check`                               | blocking (PR)                | 2026-11-12 | backend-team  | 0 diferencias; deuda previa = artefactos generados, ahora en `.prettierignore`                      |
-| `e2e-format-check`                              | Prettier `--check`                               | blocking (PR)                | 2026-11-12 | qa-team       | 0 diferencias; artefactos de Playwright ignorados                                                   |
-| `client-typecheck` / `server-typecheck`         | `tsc --noEmit`                                   | blocking (PR)                | 2026-09-26 | devops-team   | 0 errores; `strict` gradual por `server-typescript-migration`                                       |
-| `client-complexity` / `server-complexity`       | ESLint `complexity` / `max-lines-per-function`   | blocking (PR)                | 2026-09-26 | devops-team   | 15 core / 10 utils / off tests; 80 líneas por función                                               |
-| `client-import-bounds` / `server-import-bounds` | dependency-cruiser 18.7.2 (`err --ignore-known`) | blocking (PR)                | 2026-09-28 | architects    | 0 violaciones `error` nuevas vs baseline; ratchet `--baseline-mode shrink-only` (§3.2)              |
-| `client-dead-code` / `server-dead-code`         | knip 6.45.1 (`--production --cache`)             | advisory (PR, calibración)   | 2026-11-12 | devops-team   | `--no-exit-code --max-issues 0`; ratchet warn→error por tipo (§3.1); promoción a blocking pendiente |
-| `dead-code-triage` (`scheduled-quality.yml`)    | knip 6.45.1 (modo default)                       | advisory (scheduled)         | —          | devops-team   | Semanal (lun 05:00 UTC); triage humano; reporte artifact 90 días; no toca `ci-complete`             |
-| `db-contract`                                   | `prisma migrate diff` + shadow DB                | blocking (PR)                | 2026-10-01 | backend-team  | 0 drift schema↔migraciones                                                                          |
-| `api-contract`                                  | Generación OpenAPI + Spectral                    | blocking (PR)                | 2026-10-01 | backend-team  | 0 errores (`spectral:oas`)                                                                          |
-| `frontend-budgets`                              | size-limit + Lighthouse CI                       | blocking (PR)                | 2026-10-19 | frontend-team | 204 800 B total; LCP/TBT según presupuesto                                                          |
-| `root-manifest-guard`                           | `scripts/check-root-manifest.mjs`                | blocking (PR)                | 2026-09-29 | devops-team   | `dependencies ⊆` directos ∪ `manifest-allowlist.json`                                               |
-| `validate-pipeline`                             | yamllint 1.38.0 + actionlint 1.7.12              | blocking (PR)                | 2026-09-30 | devops-team   | 0 hallazgos en `.github/workflows/**`                                                               |
-| `openspec-validate`                             | OpenSpec CLI (strict) + `test:scripts`           | blocking (PR)                | 2026-09-26 | architects    | 0 errores; `## Purpose` no-placeholder                                                              |
-| `docs-validation`                               | markdownlint 0.49 + vale 3.22.0                  | advisory (PR)                | —          | core-team     | Reporte en Step Summary; fase 2 pendiente                                                           |
-| `sonarqube` (client/server)                     | SonarQube                                        | **inactivo** (sin token, D2) | —          | devops-team   | Quality Gate "Sonar way" si se activa                                                               |
+| Gate (job id)                                   | Herramienta                                      | Estado                     | Promoción  | Dueño         | Umbral / ajuste                                                                                                               |
+| ----------------------------------------------- | ------------------------------------------------ | -------------------------- | ---------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `client-lint` / `server-lint` / `e2e-lint`      | ESLint 9 (`--max-warnings 0 --cache`)            | blocking (PR)              | 2026-09-26 | devops-team   | 0 warnings; `reportUnusedDisableDirectives: 'error'`; `@typescript-eslint/ban-ts-comment`                                     |
+| `eslint-v10-advisory`                           | ESLint 10 (`npx --package eslint@10 --no-cache`) | advisory (PR, calibración) | —          | devops-team   | `continue-on-error`; fuera de `prebuild-quality-complete.needs`; promoción bloqueada por plugins upstream (§4.1)              |
+| `client-format-check`                           | Prettier `--check`                               | blocking (PR)              | 2026-09-26 | frontend-team | 0 diferencias (globs del script `format:check`)                                                                               |
+| `server-format-check`                           | Prettier `--check`                               | blocking (PR)              | 2026-11-12 | backend-team  | 0 diferencias; deuda previa = artefactos generados, ahora en `.prettierignore`                                                |
+| `e2e-format-check`                              | Prettier `--check`                               | blocking (PR)              | 2026-11-12 | qa-team       | 0 diferencias; artefactos de Playwright ignorados                                                                             |
+| `client-typecheck` / `server-typecheck`         | `tsc --noEmit --tsBuildInfoFile` (+cache)        | blocking (PR)              | 2026-09-26 | devops-team   | 0 errores; tsBuildInfo persistido + cacheado (2026-11-12, §4); `strict` gradual por `server-typescript-migration`             |
+| `client-complexity` / `server-complexity`       | ESLint `complexity` / `max-lines-per-function`   | blocking (PR)              | 2026-09-26 | devops-team   | 15 core / 10 utils / off tests; 80 líneas por función                                                                         |
+| `client-import-bounds` / `server-import-bounds` | dependency-cruiser 18.7.2 (`err --ignore-known`) | blocking (PR)              | 2026-09-28 | architects    | 0 violaciones `error` nuevas vs baseline; ratchet `--baseline-mode shrink-only` (§3.2)                                        |
+| `client-dead-code` / `server-dead-code`         | knip 6.45.1 (`--production --cache`)             | advisory (PR, calibración) | 2026-11-12 | devops-team   | `--no-exit-code --max-issues 0`; ratchet warn→error por tipo (§3.1); promoción a blocking pendiente                           |
+| `dead-code-triage` (`scheduled-quality.yml`)    | knip 6.45.1 (modo default)                       | advisory (scheduled)       | —          | devops-team   | Semanal (lun 05:00 UTC); triage humano; reporte artifact 90 días; no toca `ci-complete`                                       |
+| `db-contract`                                   | `prisma migrate diff` + shadow DB                | blocking (PR)              | 2026-10-01 | backend-team  | 0 drift schema↔migraciones                                                                                                    |
+| `api-contract`                                  | Generación OpenAPI + Spectral                    | blocking (PR)              | 2026-10-01 | backend-team  | 0 errores (`spectral:oas`)                                                                                                    |
+| `frontend-budgets`                              | size-limit + Lighthouse CI                       | blocking (PR)              | 2026-10-19 | frontend-team | 204 800 B total; LCP/TBT según presupuesto                                                                                    |
+| `root-manifest-guard`                           | `scripts/check-root-manifest.mjs`                | blocking (PR)              | 2026-09-29 | devops-team   | `dependencies ⊆` directos ∪ `manifest-allowlist.json`                                                                         |
+| `validate-pipeline`                             | yamllint 1.38.0 + actionlint 1.7.12              | blocking (PR)              | 2026-09-30 | devops-team   | 0 hallazgos en `.github/workflows/**`                                                                                         |
+| `openspec-validate`                             | OpenSpec CLI (strict) + `test:scripts`           | blocking (PR)              | 2026-09-26 | architects    | 0 errores; `## Purpose` no-placeholder                                                                                        |
+| `docs-validation`                               | markdownlint 0.49 + vale 3.22.0                  | advisory (PR)              | —          | core-team     | Reporte en Step Summary; fase 2 pendiente                                                                                     |
+| `sonarqube` (client/server)                     | SonarQube                                        | **inactivo** (D2 diferido) | —          | devops-team   | D2 = diferido (2026-11-12, §4.2); QG "Sonar way" si se activa; parámetros de futura activación: required directo + skip forks |
 
 ## 3. Ratchet (solo se baja)
 
@@ -179,6 +180,116 @@ inmediatamente (el reporter `err` cuenta sus violaciones).
   migrado a `depcruise --baseline --baseline-mode shrink-only`; exit code fiable
   vía reporter `err` (el CLI principal no tiene `--exit-code`). Ratchet y
   gobernanza del baseline en §3.2.
+- Typecheck con tsBuildInfo cacheado (change `ci-type-check-strict`, 2026-11-12):
+  los jobs `client-typecheck`/`server-typecheck` añaden
+  `--tsBuildInfoFile .cache/tsc/app.tsbuildinfo` (relativo al `working-directory`)
+  y `actions/cache` (clave: lockfile + tsconfigs + fuentes; `restore-keys` parcial).
+  `--incremental` no se añade (ya en tsconfig). Sin promesa de speedup: con
+  `--noEmit` el tsBuildInfo se escribe pero no acelera (verificación A2); el
+  objetivo es cache reutilizable. `strict` ya activo en server (no se toca);
+  client fuera de alcance (100% JS sin `checkJs`).
+
+## 4.1 Adopción de ESLint 10 (advisory → promoción)
+
+Change `ci-eslint-v10-upgrade` (2026-11-12). ESLint 9.39.x llegó a EOL el
+2026-08-06; el repo sigue en `eslint ^9.39.2` (blocking). Se añade el job
+`eslint-v10-advisory` (**FASE 1**) que corre el motor **ESLint 10.14.0** vía
+`npx --package eslint@10` sobre client/server/e2e, en paralelo al lint blocking de
+v9, con `continue-on-error: true` y **fuera** de `prebuild-quality-complete.needs`
+(exento de skipped=fail; no bloquea merges).
+
+**Mecanismo:** `npx --package eslint@10` usa el motor v10 pero resuelve los plugins
+del árbol instalado (v9) en runtime — sin devDependency separada (el
+`root-manifest-guard` bloquea un segundo `eslint` en el manifiesto raíz).
+`--no-cache` evita contaminar la caché de v9 (`.cache/eslint`). Node del repo
+(`.nvmrc` 22.23.1) satisface el requisito de v10 (`^20.19 || ^22.13 || >=24`).
+
+**Validación empírica (2026-11-12, eslint@10.14.0):**
+
+- Config flat **compatible**: `eslint --print-config` exit 0 (511 reglas resueltas,
+  incl. `react/display-name`); ESLint 10 no removió reglas core.
+- `server` (260 archivos) y `e2e` (7): lint **limpio** (exit 0).
+- `client`: **crash** (exit 2) — `eslint-plugin-react@7.37.5` llama
+  `context.getFilename()`, removido en ESLint 10 (`TypeError … react/display-name`,
+  `eslint-plugin-react/lib/util/version.js:31`). No es un defecto de config.
+
+**Promoción BLOQUEADA (FASE 2):** no se promueve hasta que el advisory pase (design
+D3). El bloqueo es upstream, no de config ni de umbrales:
+
+- `eslint-plugin-react@7.37.5` (última publicada en npm) peer `eslint … || ^9.7` —
+  sin `^10`; usa la API removida `context.getFilename()`.
+- `eslint-plugin-jsx-a11y@6.10.2` (última publicada) peer `… || ^9` — sin `^10`.
+- `eslint-plugin-react-hooks@7.1.1` ya declara `^10.0.0` (instalado 7.0.1,
+  actualizable), pero no desbloquea mientras react/jsx-a11y no soporten v10.
+
+**Criterio de salida de la ventana advisory (§1 regla 1):** cuando
+`eslint-plugin-react` y `eslint-plugin-jsx-a11y` publiquen releases compatibles con
+ESLint 10 (peer `^10` + uso de `context.filename`), re-correr el advisory; si pasa,
+promover en un PR de herramientas: `eslint`/`@eslint/js` a 10.x exacto (sin caret),
+`typescript-eslint` compatible, lockfile, crear/regenerar `eslint-suppressions.json`
+si cambian los hallazgos (CODEOWNERS ya cubre `/eslint-suppressions.json:60` y
+`/eslint.config.*:55`), actualizar la fila de §2 a `blocking` con fecha y retirar el
+job advisory. **No se crea baseline de supresiones mientras la promoción esté
+bloqueada** (los hallazgos de v10 no son accionables sin los plugins).
+
+## 4.2 Decisión D2 — SonarQube PR analysis (diferido)
+
+Change `ci-pr-review-automation` (2026-11-12). **D2 = mantener SonarQube inactivo
+(diferido).** Los jobs `client-sonarqube`/`server-sonarqube` siguen con `if: false`
+en `ci.yml`; no existe `SONAR_TOKEN`/`SONAR_HOST_URL` en los secrets del repo
+(verificado por API 2026-09-26). No se activa sin credenciales ni instancia Sonar
+(Non-Goal del change).
+
+**Justificación (D2, mitad 1 — valor):** las capas blocking actuales ya cubren el
+merge gate: ESLint (lint + complexity + `ban-ts-comment`), Prettier, typecheck,
+import-bounds, cobertura per-file (`check-coverage.mjs`) y security
+(dependency-review, lockfile-audit, ScanCode, Semgrep SAST, GuardDog, gitleaks).
+Sonar aportaría cobertura sobre código nuevo, duplicación, security hotspots y
+rating de mantenibilidad como capa unificada, pero hoy no hay presupuesto/infra
+para una instancia Sonar ni token. Se difiere hasta que exista infraestructura;
+reevaluar cuando se provisione SonarCloud o SonarQube propio.
+
+**D2 mitad 2 — nube vs propio:** sin decidir (diferido). Cuando se active, elegir
+SonarCloud (nube, `SONAR_HOST_URL=https://sonarcloud.io`) o SonarQube self-hosted
+(`SONAR_HOST_URL` propio); afecta el secret `SONAR_HOST_URL` y el provisioning.
+
+**Parámetros elegidos para una futura activación** (decididos ahora, no se aplican
+hasta que D2 = activar + credenciales presentes):
+
+- **Enforcement: required directo** (blocking desde día 1 con pre-flight), no
+  advisory-first. El PRD recomienda advisory, pero se elige required directo (doc
+  de decisión). Requiere un PR de prueba que confirme el nombre del check
+  `SonarQube Code Analysis` antes de bindear al ruleset.
+- **Forks: skip con guard** `if: github.event.pull_request.head.repo.full_name ==
+github.repository` (patrón de `archive/2026-09-21-ci-quality-dag`). El job no
+  corre en PRs de fork (no reciben secretos) → nunca rojo/no-reportado.
+- **Mecanismo del check:** action `SonarSource/sonar-quality-gate-check` sobre el
+  scan existente (`sonarqube-scan-action`), **sin** `continue-on-error` para
+  required directo. Reconcilia con `quality-gates.md:29` (que documenta el enfoque
+  advisory con action + COE): al activar en required directo se quita el COE. Un
+  check por workspace (client/server), consistente con los jobs actuales.
+- **Reportería en merge queue:** el check `SonarQube Code Analysis` lo emite la
+  integración Sonar↔GitHub ligada al PR; en el commit sintético de `merge_group`
+  no hay PR → no reporta. Por eso el required check del ruleset sigue siendo el
+  agregador existente (`CI Complete` / `Postbuild Analysis Complete`), **no** el
+  check de Sonar directo. Los jobs Sonar serían PR-only y se saltan en
+  `merge_group` (skip autorizado por evento, §1 regla 3).
+
+**Quality Gate (si se activa):** "Sonar way" sobre código nuevo — 0 issues nuevos,
+80% cobertura, 3% duplicación, security hotspots revisados. Matices: modo MQR
+(Multi-Quality Rule), fudge factor ≥20 líneas, y el solape cobertura-QG vs stage de
+testing debe vivir en un solo lugar (que la condición de cobertura no se duplique
+entre Sonar y `check-coverage.mjs`).
+
+**Revisores IA (CodeRabbit/DeepSource): NO instalados.** No hay `.coderabbit.yaml`
+ni `.deepsource.toml` en el repo; solo aparecen como candidatos en el PRD.
+`quality-gap-analysis.md:319` (D12) ya los registra como no-required. Si se
+instalan en el futuro, permanecerán como asesores (comentarios, warning, sin check
+requerido); sus checks no se añaden al ruleset.
+
+**Estado:** diferido. La fila `sonarqube` de §2 permanece `inactivo`. La activación
+(Fase 2 del change) requiere D2 = activar + credenciales presentes; hasta entonces
+no se ejecuta. Fecha de la decisión: **2026-11-12**.
 
 ## 5. Referencias
 
