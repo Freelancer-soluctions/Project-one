@@ -3007,12 +3007,17 @@ jobs:
   # STAGE 3: BUILD (compilación, empaquetado, artifact)
   # ═══════════════════════════════════════════════════════════════
   client-build:
-    # The four prebuild verdicts are composed INTO the condition (not documented in a comment):
-    # activation is the single-token edit `false` → `true` and the gate is already present.
-    if: false && needs.prebuild-governance-complete.result == 'success' && needs.prebuild-quality-complete.result == 'success' && needs.prebuild-security-complete.result == 'success' && needs.prebuild-tests-complete.result == 'success' # Disabled for incremental CI — change to true to re-enable
+    # Path-scoping (change `ci-build-gates`, tasks 1.1/1.2): el skip SOLO está
+    # autorizado si repo-discovery dice que el client no cambió; `build-complete`
+    # (estricto) verifica esa autorización con sus outputs. El gate compuesto de
+    # los 4 veredictos prebuild se conserva intacto.
+    # ACTIVADO (change `ci-build-workflow`, task 4.2): el bundle del client se
+    # compila en CI y `build-complete` consume un veredicto real, no un skipped.
+    if: (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true') && needs.prebuild-governance-complete.result == 'success' && needs.prebuild-quality-complete.result == 'success' && needs.prebuild-security-complete.result == 'success' && needs.prebuild-tests-complete.result == 'success'
     name: 'Build: Client'
     needs:
       [
+        repo-discovery,
         prebuild-governance-complete,
         prebuild-quality-complete,
         prebuild-security-complete,
@@ -3033,20 +3038,35 @@ jobs:
           path: apps/client/dist/
 
   server-build:
-    # Same composed gate as client-build: `false` short-circuits the whole conjunction.
-    if: false && needs.prebuild-governance-complete.result == 'success' && needs.prebuild-quality-complete.result == 'success' && needs.prebuild-security-complete.result == 'success' && needs.prebuild-tests-complete.result == 'success' # Disabled for incremental CI — change to true to re-enable
+    # ACTIVADO (change `ci-build-gates`, task 5.2): el no-op "source-level (D8)"
+    # quedó obsoleto — el server EMITE JS (`tsconfig.build.json`, migración TS +
+    # Dockerfile multi-stage). Este job valida la emisión en el pipeline de checks
+    # obligatorios; el job `build` de build.yml hace lo propio para el carril de
+    # imagen. Mismo path-scoping + gate compuesto que client-build.
+    if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && needs.prebuild-governance-complete.result == 'success' && needs.prebuild-quality-complete.result == 'success' && needs.prebuild-security-complete.result == 'success' && needs.prebuild-tests-complete.result == 'success'
     name: 'Build: Server'
     needs:
       [
+        repo-discovery,
         prebuild-governance-complete,
         prebuild-quality-complete,
         prebuild-security-complete,
         prebuild-tests-complete,
       ]
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - run: 'echo "server-build: no-op (source-level, D8)"'
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-monorepo
+        with:
+          prisma: 'true'
+      # Mismo comando de emisión que la etapa build del Dockerfile y que el job
+      # `build` de build.yml (no `tsc -b`: el repo no tiene project references).
+      - name: Compile server (tsc emit)
+        run: npx tsc -p apps/server/tsconfig.build.json
 
   # ═══════════════════════════════════════════════════════════════
   # STAGE 4: POST-BUILD — INTEGRATE (requieren artifact compilado)
@@ -3765,25 +3785,55 @@ jobs:
   # not allowed in compact mappings"); these three names contain no `:`, hence unquoted.
   # ═══════════════════════════════════════════════════════════════
   build-complete:
+    # ESTRICTO (change `ci-build-gates`, tasks 1.1/5.1): el verde "succeeded or
+    # skipped" anterior era un verde vacío — un job saltado sin autorización pasaba
+    # en verde. Ahora falla ante `failure`, `cancelled` y `skipped` NO autorizado.
+    # Regla (task 1.2): un `skipped` solo se acepta si una salida de detección de
+    # cambios (repo-discovery) lo autoriza — el path que dispara el job NO está en
+    # el diff. Fail-closed: output ausente/nulo cuenta como en-ámbito.
+    # `name:` CONGELADO (`Build Complete`): es el contexto que se bindeará al
+    # ruleset 21227644 (task 3.2, tras ≥1 run real); renombrarlo rompe el binding.
+    # Sin cláusula CI_MINIMAL a propósito (P2-3, docs/CONTEXT-CICD.md).
     if: ${{ always() }}
     name: Build Complete
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs:
+      - repo-discovery
       - client-build
       - server-build
     steps:
-      - name: Check for failures
+      - name: 'Check for failures (strict: failure, cancelled, unauthorized skip)'
+        env:
+          # `needs` por `env`, nunca interpolado en el script (patrón canónico de
+          # prebuild-security-complete, PRD regla #5).
+          NEEDS: ${{ toJSON(needs) }}
         run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "❌ One or more build jobs failed"
+          set -euo pipefail
+          problematic="$(echo "$NEEDS" | jq -r '
+            .["repo-discovery"].outputs as $scope
+            | def in_scope($v): if $v == null then true else $v == "true" end;
+              def skip_authorized($job):
+                if $job == "client-build" then
+                  ((in_scope($scope.client) or in_scope($scope.shared)) | not)
+                elif $job == "server-build" then
+                  ((in_scope($scope.server) or in_scope($scope.shared)) | not)
+                else
+                  false
+                end;
+              to_entries[]
+              | .key as $job
+              | .value.result as $res
+              | select($res != "success")
+              | select((($res == "skipped") and skip_authorized($job)) | not)
+              | "\($job): \($res)"
+          ')"
+          if [ -n "$problematic" ]; then
+            echo "❌ Entrada no-success en el stage BUILD (failure, cancelled o skip no autorizado):"
+            printf '%s\n' "$problematic"
             exit 1
           fi
-          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "❌ One or more build jobs were cancelled"
-            exit 1
-          fi
-          echo "✅ Build stage succeeded or was skipped"
+          echo "✅ Build stage succeeded: jobs en success o skip autorizado por repo-discovery"
 
   postbuild-tests-complete:
     if: ${{ always() }}
@@ -3834,8 +3884,10 @@ jobs:
 
   # ═══════════════════════════════════════════════════════════════
   # AGGREGATOR — CI Complete — Root verdict over every stage
-  # NOT a ruleset-required check: ruleset 21227644 binds exactly two contexts
-  # (`Governance: PR Body Lint`, `Prebuild Governance Complete`).
+  # NOT a ruleset-required check: ruleset 21227644 binds three contexts
+  # (`Governance: PR Body Lint`, `Prebuild Governance Complete`,
+  # `Prebuild Security Complete`) — verificado vía API de GitHub 2026-11-13
+  # (change `ci-build-gates`). `Build Complete` se añadirá tras ≥1 run real.
   # ═══════════════════════════════════════════════════════════════
   ci-complete:
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}

@@ -66,9 +66,9 @@ Referencia oficial: `docs.github.com/en/actions/reference/workflows-and-actions/
 
 - `client-lint`: `npm run lint` sobre `apps/client`; `eslint.config.js`; `max-warnings: 0`; bloquea si errores.
 - `client-format-check`: `npm run format:check`; bloquea si `prettier --check` falla.
-- `client-build`: `npm run build`; bloquea si compilación falla.
+- `client-build`: `npm run build --workspace=apps/client` (Vite); path-scoped (`repo-discovery.client || shared`) + verdict de los 4 prebuild; alimenta `build-complete` estricto. Bloquea si el bundle falla. Ver §9 (G1).
 - `server-lint`: `npm run lint`; `eslint.config.js`; bloquea.
-- `server-build`: bloquea.
+- `server-build`: `npx tsc -p apps/server/tsconfig.build.json` (emisión JS real — change `ci-build-gates`, el no-op D8 quedó obsoleto tras la migración TS); path-scoped (`server || shared`) + verdict de los 4 prebuild; alimenta `build-complete`. Bloquea si la compilación falla. Ver §9 (G1).
 - `e2e`: bloquea (si `repo-discovery` activa).
 - `actionlint`: bloquea por `actionlint.yaml`.
 - `client-dead-code`: `continue-on-error: true`; resultado `success` para agregador aunque falle; **advisory**.
@@ -489,3 +489,186 @@ npm run test:scripts
 Inmediato: no re-ejecutar en bucle; leer el primer error del log. De fondo:
 corregir la causa, añadir/ajustar el test que lo cubra y anotar la lección en
 esta sección si el diagnóstico fue costoso.
+
+## 9. Gates del stage BUILD (G1-G7) — change `ci-build-gates`
+
+> Fuente: PRD §Gates (tabla G1-G7 + "Comportamiento ante fallo" + "Check
+> obligatorio"). Implementación: `.github/workflows/ci.yml` (tier de compilación
+>
+> - agregador estricto `build-complete`) y `.github/workflows/build.yml` (tier de
+>   imagen, change `ci-build-workflow`). Última revisión: 2026-11-13.
+
+### 9.1 Topología: dos workflows, un solo required check de build
+
+El stage BUILD se reparte en dos workflows porque GHA **no permite `needs` entre
+workflows distintos** (desviación documentada en `ci-build-workflow` task 2.3):
+
+- **`ci.yml` — tier de compilación (G1).** `client-build` (Vite bundle,
+  [ci.yml:3009](file:///C:/Users/user/Desktop/Programacion/Node-express-nest/project-one/.github/workflows/ci.yml#L3009))
+  y `server-build` (emisión `tsc`,
+  [ci.yml:3040](file:///C:/Users/user/Desktop/Programacion/Node-express-nest/project-one/.github/workflows/ci.yml#L3040))
+  alimentan el agregador estricto `build-complete`
+  ([ci.yml:3787](file:///C:/Users/user/Desktop/Programacion/Node-express-nest/project-one/.github/workflows/ci.yml#L3787)),
+  cuyo `name:` **congelado** `Build Complete` es el contexto que se bindeará al
+  ruleset (§9.7). `build-complete` → `postbuild-tests-complete` → `ci-complete`.
+- **`build.yml` — tier de imagen (G2-G7).** `build` → `image` → {`trivy`,
+  `validate`}. Este workflow **todavía no es required check** del ruleset: sus
+  gates son bloqueantes _dentro_ de su grafo de jobs (un `image` rojo falla el
+  run), pero a nivel de merge son advisory hasta que `build.yml` se vincule como
+  required check (paso posterior a este change, que solo bindea `Build Complete`).
+
+Consecuencia práctica: hoy el único gate de build **bloqueante en el merge** es
+G1 vía `Build Complete` (tras el binding de §9.7). G2-G7 se ejecutan y reportan,
+pero su promoción a merge-blocking es un paso de gobernanza separado.
+
+### 9.2 Tabla G1-G7 (criterio · señal · consecuencia · nivel inicial)
+
+| Gate                          | Criterio                                                                  | Job / workflow                                                          | Señal (exit code / `needs.*.result`)                                                  | Consecuencia si falla                                       | Nivel inicial            |
+| ----------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------ |
+| **G1** Compilación            | `tsc` del server emite JS sin error; Vite del client produce bundle       | `server-build` / `client-build` (ci.yml) + `build` (build.yml)          | exit 0 del compile → `result: success`; error → `failure`                             | `image` no corre (`needs: build`); `build-complete` rojo    | **blocking**             |
+| **G2** Construcción de imagen | `docker build` de `apps/server/Dockerfile` termina sin error              | `image` (build.yml)                                                     | build-push exit 0 → `success`; fallo → `failure`                                      | sin imagen no hay `trivy` ni `validate` (`needs: image`)    | **blocking**             |
+| **G3** Atestaciones           | SBOM + provenance (`mode=max`) generados; atestación por digest publicada | `image` (build.yml), steps `Build and push` + `Attest build provenance` | attest exit 0 (solo `push` a main) → `success`                                        | imagen sin cadena de suministro verificable; no se promueve | **blocking**             |
+| **G4** Escaneo                | Trivy: CRITICAL+HIGH **con fix** → fail; resto inventario advisory        | `trivy` (build.yml)                                                     | step bloqueante `exit-code: 1` → `failure`; advisory `exit-code: 0` + COE             | CVE con fix bloquea (tras promoción); SARIF a Security tab  | **advisory 2-4 semanas** |
+| **G5** Arranque               | `/health` responde 200\|503 en ≤60 s + smoke tests verdes                 | `validate` (build.yml)                                                  | health loop exit 0 + `npm run test:smoke` exit 0 → `success`                          | imagen que no arranca no se promueve                        | **advisory**             |
+| **G6** Presupuesto de tiempo  | Duración del build/validate bajo un umbral **pendiente de medir** (§9.8)  | `build`/`image`/`validate` (build.yml)                                  | hoy solo techo duro `timeout-minutes` (15/30/20); sin gate de duración explícito      | Timeout → `failure`; umbral fino TBD                        | **advisory hasta medir** |
+| **G7** Tamaño                 | Tamaño de la imagen bajo un umbral **pendiente de medir** (§9.8)          | `image` (build.yml)                                                     | sin step de medición aún; se medirá con `docker image inspect` / salida de build-push | imagen sobredimensionada se revisa; umbral TBD              | **advisory hasta medir** |
+
+Notas:
+
+- G3 se atesta **solo en `push` a main** (no en `merge_group`): la atestación
+  vincula el commit que aterrizó en main, no el efímero de la cola (que puede ser
+  eyectado). `subject-name` sin tag; `subject-digest` de la salida de build-push.
+- G4 tiene dos pasadas: la bloqueante (`severity: CRITICAL,HIGH`,
+  `ignore-unfixed: true`, `exit-code: 1`) y la advisory (todas las severidades,
+  `exit-code: 0`, `continue-on-error: true`). El inventario completo nunca falla
+  el job; solo la pasante bloqueante decide el verdict.
+- En PRs (incluidos forks) la imagen se construye pero **no se publica, atesta ni
+  escanea** (`push: github.event_name != 'pull_request'`); G2-G7 solo se ejercitan
+  en `push` a main / `merge_group`.
+
+### 9.3 Regla de skip autorizado (task 1.2)
+
+`build-complete` usa `if: ${{ always() }}` y evalúa `toJSON(needs)` con `jq`
+(patrón canónico de `prebuild-security-complete`; `needs` pasa por `env`, nunca se
+interpola en el script — PRD regla #5). Un resultado `skipped` **solo se acepta**
+si una salida de detección de cambios (`repo-discovery`) lo autoriza:
+
+- `client-build` saltado ⇔ autorizado si `repo-discovery.outputs.client != 'true'`
+  **y** `shared != 'true'` (el path que lo dispara no está en el diff).
+- `server-build` saltado ⇔ autorizado si `server != 'true'` **y** `shared != 'true'`.
+- **Fail-closed:** un output ausente/nulo cuenta como **en-ámbito** (`in_scope($v):
+if $v == null then true else $v == "true" end`). En `merge_group` /
+  `workflow_dispatch` `repo-discovery` resuelve todos los scopes a `true` (suite
+  completa), así que ningún skip de build está autorizado allí.
+- `failure` y `cancelled` **siempre** tiñen el agregador de rojo, sin excepción.
+- Un skip **no autorizado** (p. ej. el path sí está en el diff pero el job saltó
+  porque un prebuild falló) → rojo. El verde "succeeded or skipped" anterior era
+  un verde vacío: un job saltado sin autorización pasaba en verde.
+
+El programa jq se verificó localmente con jq 1.8.2 contra 11 escenarios de
+veredicto (all-success, failure, cancelled, docs-only PR, client/server PR mixto,
+prebuild-rojo con skip no autorizado, merge_group, outputs ausentes fail-closed,
+repo-discovery failure, shared=true): 11/11 verdes/rojos esperados.
+
+### 9.4 Semántica del check obligatorio: Pending vs job omitido por `if` (task 4.5)
+
+Dos omisiones con consecuencias opuestas (PRD §Gates "Check obligatorio"; ver
+también §8.7):
+
+- **Workflow omitido por filtro de paths/rama** → el check queda en **Pending** y
+  **bloquea** el merge (GitHub espera un reporte que nunca llega). Por eso
+  `ci.yml` y `build.yml` declaran `merge_group` (task 2.1): sin ese trigger los
+  checks obligatorios quedarían pending en la cola.
+- **Job omitido por su `if:`** → se reporta como **Success** (un skip no es un
+  fallo para GitHub). Por eso el agregador **no puede** confiar en el verde
+  implícito: usa `if: always()` y evalúa cada `needs.*.result` explícitamente,
+  distinguiendo el skip autorizado (§9.3) del que no lo está.
+
+`if: always()` garantiza que `build-complete` corre **aunque sus needs fallen o se
+salten**, y sea él quien emita el veredicto rojo/verde — nunca un verde vacío por
+omisión.
+
+### 9.5 Comportamiento ante fallo — 3 reglas (task 4.4, PRD §Gates)
+
+1. **Orden de ejecución: `build` (G1) antes de `image` (G2-G5).** Si no compila,
+   no se construye ni escanea la imagen (`image: needs: build`; `trivy`/`validate:
+needs: image`). Un fallo de compilación corta la cadena aguas arriba.
+2. **Sin reintentos automáticos que oculten fallos reales.** El pipeline no
+   reintenta un job rojo para "ver si pasa". El reintento es **manual** y solo
+   para infraestructura (`gh run rerun <run-id> --failed`, §8.8); un fallo
+   determinista se corrige en la causa (§8.9), no se enmascara con re-ejecuciones.
+3. **Publicar ≠ promover.** Una imagen puede existir en GHCR con atestaciones
+   (G3) pero escaneo pendiente (G4) bajo un tag provisional (`type=sha`). La
+   **promoción** a un tag de release exige G3 **+** G4 en verde (y, cuando se
+   promuevan, G5/G7). Publicar no implica que la imagen sea apta para producción.
+
+### 9.6 Proceso de excepciones (task 4.3)
+
+Una vulnerabilidad aceptada (G4) o cualquier supresión de un gate de build entra
+por el registro canónico, **nunca** como un `|| echo` o un `continue-on-error`
+silencioso:
+
+- **Registro de seguridad:** `security/exceptions.yml` (schema
+  `id/tool/finding/scope/reason/owner/created/expires/ticket`). Para Trivy,
+  `tool: trivy`; `expires <= created + 90 días`. Lo valida el job
+  `security-exceptions-check` (`scripts/ci/security-exceptions.mjs`). Hoy
+  `exceptions: []`.
+- **Allowlist de CVEs de imagen:** `.trivyignore` (o `trivyignores` en el step)
+  para CVEs concretos con justificación. **Cableado pendiente de la promoción de
+  G4** a bloqueante: mientras G4 sea advisory, el inventario completo ya queda en
+  el SARIF advisory y la excepción se documenta en el registro EX-3; al promover
+  G4 se conecta `.trivyignore` al step bloqueante y se exige entrada EX-3 por cada
+  CVE ignorado.
+- **Registro EX-3:** [docs/learning/quality-exceptions.md](file:///C:/Users/user/Desktop/Programacion/Node-express-nest/project-one/docs/learning/quality-exceptions.md)
+  — una fila por excepción con **motivo, responsable y caducidad** (fecha real,
+  ≤90 días para seguridad), issue vinculado y plan de salida. Una excepción por
+  PR (EX-2). Al vencer: se poda la supresión o el gate falla. El owner poda su
+  entrada al resolver la causa raíz; nunca se renueva por inercia.
+
+### 9.7 Binding al ruleset y rollback (tasks 3.1/3.2/3.3/5.3)
+
+**Contexto a bindear:** el `name:` del job, **`Build Complete`** (no el id
+`build-complete`). Los required checks se ligan por nombre de job; renombrarlo
+rompe el binding. Ruleset **21227644** (`main`), `integration_id` **15368**
+(GitHub Actions). Contextos actuales (verificado vía API 2026-11-13):
+`Governance: PR Body Lint`, `Prebuild Governance Complete`,
+`Prebuild Security Complete`.
+
+**Procedimiento (tras ≥1 run real que reporte `Build Complete`):**
+
+```bash
+# 1. GET del ruleset completo (nunca PATCH: GitHub no lo soporta para rulesets)
+gh api repos/Freelancer-soluctions/Project-one/rulesets/21227644 > /tmp/ruleset.json
+# 2. Modificar el JSON: añadir el contexto a required_status_checks
+#    (integration_id 15368, context "Build Complete")
+# 3. PUT del ruleset completo modificado
+gh api --method PUT repos/Freelancer-soluctions/Project-one/rulesets/21227644 \
+  --input /tmp/ruleset.json
+```
+
+> ⏳ **BLOQUEADO (tasks 3.1/3.2/5.3):** requiere (a) ≥1 run real en una rama de
+> prueba para que `Build Complete` se reporte al menos una vez — un contexto que
+> nunca se ha reportado no puede exigirse sin dejar el check en Pending
+> permanente; y (b) confirmación del usuario: es una escritura sobre estado
+> compartido (el ruleset de `main`). No se ejecuta en este entorno.
+
+**Rollback (task 3.3):** mismo procedimiento GET → modify → PUT, **eliminando** el
+contexto `Build Complete` de `required_status_checks`. Efecto: el merge deja de
+exigir el check de build; `build-complete` sigue corriendo y reportando (advisory
+a nivel de merge). El rollback es reversible y no toca el workflow — solo el
+binding. Si el binding causa Pending permanente (p. ej. el workflow no se ejecuta
+por un filtro), el rollback inmediato desbloquea la cola mientras se corrige el
+trigger (§9.4).
+
+### 9.8 Umbrales G6/G7 pendientes de medición (task 4.2 — BLOQUEADO)
+
+Los umbrales de **duración (G6)** y **tamaño de imagen (G7)** no se fijan a ojo:
+se definen **tras medir** en el primer build real con Docker daemon.
+
+- ⏳ **BLOQUEADO:** el daemon Docker no está disponible en este entorno y no hay
+  aún un run real de `build.yml`. Sin medición, cualquier umbral sería arbitrario.
+- **Dónde se medirá:** G7 con `docker image inspect <digest> --format '{{.Size}}'`
+  (o la salida de build-push) en el job `image`; G6 con la duración de los jobs
+  `build`/`validate` (techo duro actual: `timeout-minutes` 15/30/20). Tras reunir
+  una línea base (p. ej. mediana de N builds), se fija el umbral y se documenta
+  aquí, promoviendo G6/G7 de advisory a blocking si se justifica.
