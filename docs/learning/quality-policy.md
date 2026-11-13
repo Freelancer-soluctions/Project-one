@@ -270,10 +270,16 @@ github.repository` (patrón de `archive/2026-09-21-ci-quality-dag`). El job no
   check por workspace (client/server), consistente con los jobs actuales.
 - **Reportería en merge queue:** el check `SonarQube Code Analysis` lo emite la
   integración Sonar↔GitHub ligada al PR; en el commit sintético de `merge_group`
-  no hay PR → no reporta. Por eso el required check del ruleset sigue siendo el
-  agregador existente (`CI Complete` / `Postbuild Analysis Complete`), **no** el
-  check de Sonar directo. Los jobs Sonar serían PR-only y se saltan en
-  `merge_group` (skip autorizado por evento, §1 regla 3).
+  no hay PR → no reporta. Por eso los jobs Sonar serían PR-only y se saltan en
+  `merge_group` (skip autorizado por evento, §1 regla 3). **El required check
+  actual del ruleset (verificado por API, ruleset 21227644) son 3 contextos:
+  `Governance: PR Body Lint`, `Prebuild Governance Complete` y `Prebuild Security
+Complete` — ni `CI Complete` ni `Postbuild Analysis Complete` están vinculados
+  (CONTEXT-CICD.md §3.2). Consecuencia: si se activa Sonar con el wiring actual
+  (jobs → `postbuild-analysis-complete` → `ci-complete`), un Quality Gate en rojo
+  NO bloquearía el merge; para que "required directo" se materialice habría que
+  añadir un contexto nuevo al ruleset (p. ej. `Postbuild Analysis Complete` o un
+  check Sonar dedicado).**
 
 **Quality Gate (si se activa):** "Sonar way" sobre código nuevo — 0 issues nuevos,
 80% cobertura, 3% duplicación, security hotspots revisados. Matices: modo MQR

@@ -194,10 +194,11 @@ undefined`, verificado con `--debug`) — usar siempre los scripts raíz `npm ru
 
 ### 3.2 Los status checks del ruleset (nombres EXACTOS)
 
-**2 vinculados hoy (API re-verificada 2026-10-23):**
+**3 vinculados hoy (API re-verificada 2026-11-12):**
 
 1. `Governance: PR Body Lint` (emitido por `.github/workflows/pr-metadata.yml`)
 2. `Prebuild Governance Complete` (job agregador de 2A en `ci.yml`)
+3. `Prebuild Security Complete` (job agregador de 2C en `ci.yml`)
 
 - `CI Complete` NO está vinculado al ruleset 21227644 (job saltaba mientras CI_MINIMAL=true; CI_MINIMAL=false desde
   2026-09-17 → corre y será añadible tras ≥1 run).
