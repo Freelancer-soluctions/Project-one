@@ -1683,7 +1683,11 @@ jobs:
         run: |
           # Python 3.12 pinado (patrón guarddog-verify.sh): wheels puros
           # cp310-cp314 verificados en PyPI (2026-11-10) — sin compilación.
-          uv tool install --python 3.12 "scancode-toolkit==32.5.0"
+          # pluggy PINADO <1.7: plugincode 32.0.0 (dependencia de ScanCode)
+          # declara sus hookspecs con un decorador sobre clase y pluggy 1.7.0
+          # (2026-10-15) dejó de detectarlas → el binario moría al arrancar con
+          # "did not find any 'pre_scan' hooks" antes de escanear nada.
+          uv tool install --python 3.12 --with "pluggy==1.6.0" "scancode-toolkit==32.5.0"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           "$HOME/.local/bin/scancode" --version | grep -q "32.5.0" \
             || { echo "ERROR: scancode version mismatch (esperado 32.5.0)"; exit 1; }

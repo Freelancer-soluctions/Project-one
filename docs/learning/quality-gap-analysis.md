@@ -64,18 +64,18 @@ posteriores (`quality-gates`, `ci-shifting-left`, `import-boundaries`,
 
 ## 2. Tabla resumen por job del PRD
 
-| Job PRD                     | Herramienta        | Estado en repo                                   | Gate actual                     | Diferencia vs PRD                                                                                                                      | Prioridad         |
-| --------------------------- | ------------------ | ------------------------------------------------ | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Lint                        | ESLint             | ✅ Implementado (client/server/e2e)              | Blocking                        | `--max-warnings` no visible en CI (delega a workspace scripts); sin `--cache`/`--cache-strategy content`; sin SARIF                    | P1                |
-| Formato                     | Prettier           | ✅ Parcial (client blocking, server `if: false`) | Mixto                           | Server format-check desactivado (deuda); PRD quiere bloqueante                                                                         | P1                |
-| Tipos                       | tsc                | ✅ Implementado (sin strict)                     | Blocking                        | `strict` ausente en tsconfig; no incremental/tsBuildInfo; solo compile, no tipos reales                                                | P0 (TS migration) |
-| Compile-check multilenguaje | go vet/cargo check | ➖ N/A (repo TS/JS)                              | —                               | Correctamente omitido                                                                                                                  | —                 |
-| Complejidad                 | ESLint rules       | ✅ Implementado                                  | Blocking                        | PRD quiere advisory→blocking; repo ya blocking. OK pero sin ratchet documentado                                                        | P2                |
-| Dead code                   | knip               | ✅ Implementado                                  | Blocking (debería ser advisory) | PRD: advisory + `--production --cache --no-exit-code`; repo: blocking, default mode, sin cache                                         | P0                |
-| Import boundaries           | dependency-cruiser | ✅ Implementado (ambos workspaces)               | Blocking                        | Baseline `.dependency-cruiser-known-violations.json` (nombre difiere del PRD `.known-violations.json`); CODEOWNERS no protege baseline | P1                |
-| Root manifest guard         | Script propio      | ✅ Implementado                                  | Blocking (path-scoped)          | Allowlist en código (ALLOWLIST array vacío), no archivo versionado separado; PRD quiere archivo + CODEOWNERS                           | P2                |
-| PR review automation        | SonarQube          | ❌ Inactivo (`if: false`)                        | —                               | Sin credenciales (D2)                                                                                                                  | P2                |
-| Docs y CHANGELOG            | markdownlint/vale  | ✅ Parcial (advisory)                            | Advisory                        | Solo markdownlint, no vale; no en aggregator needs                                                                                     | P1                |
+| Job PRD                     | Herramienta        | Estado en repo                               | Gate actual                     | Diferencia vs PRD                                                                                                                              | Prioridad         |
+| --------------------------- | ------------------ | -------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Lint                        | ESLint             | ✅ Implementado (client/server/e2e)          | Blocking                        | `--max-warnings` no visible en CI (delega a workspace scripts); sin `--cache`/`--cache-strategy content`; sin SARIF                            | P1                |
+| Formato                     | Prettier           | ✅ Implementado (client/server/e2e blocking) | Blocking                        | Antes `server-format-check` estaba `if: false` (deuda); activado por change `ci-format-check-blocking` (2026-11-12) + `e2e-format-check` nuevo | P1 (resuelto)     |
+| Tipos                       | tsc                | ✅ Implementado (sin strict)                 | Blocking                        | `strict` ausente en tsconfig; no incremental/tsBuildInfo; solo compile, no tipos reales                                                        | P0 (TS migration) |
+| Compile-check multilenguaje | go vet/cargo check | ➖ N/A (repo TS/JS)                          | —                               | Correctamente omitido                                                                                                                          | —                 |
+| Complejidad                 | ESLint rules       | ✅ Implementado                              | Blocking                        | PRD quiere advisory→blocking; repo ya blocking. OK pero sin ratchet documentado                                                                | P2                |
+| Dead code                   | knip               | ✅ Implementado                              | Blocking (debería ser advisory) | PRD: advisory + `--production --cache --no-exit-code`; repo: blocking, default mode, sin cache                                                 | P0                |
+| Import boundaries           | dependency-cruiser | ✅ Implementado (ambos workspaces)           | Blocking                        | Baseline `.dependency-cruiser-known-violations.json` (nombre difiere del PRD `.known-violations.json`); CODEOWNERS no protege baseline         | P1                |
+| Root manifest guard         | Script propio      | ✅ Implementado                              | Blocking (path-scoped)          | Allowlist en código (ALLOWLIST array vacío), no archivo versionado separado; PRD quiere archivo + CODEOWNERS                                   | P2                |
+| PR review automation        | SonarQube          | ❌ Inactivo (`if: false`)                    | —                               | Sin credenciales (D2)                                                                                                                          | P2                |
+| Docs y CHANGELOG            | markdownlint/vale  | ✅ Parcial (advisory)                        | Advisory                        | Solo markdownlint, no vale; no en aggregator needs                                                                                             | P1                |
 
 ---
 
@@ -102,13 +102,14 @@ posteriores (`quality-gates`, `ci-shifting-left`, `import-boundaries`,
 
 ### 3.2 Formato (Prettier)
 
-- **Estado**: `client-format-check` blocking; `server-format-check` `if: false`
-  (deuda).
+- **Estado**: `client-format-check`, `server-format-check` y `e2e-format-check`
+  blocking (path-scoped + PR-only), activados por change
+  `ci-format-check-blocking` (2026-11-12).
 
-- **Diferencias**: Server no pasa format:check limpio. PRD quiere bloqueante en
-  ambos. `.prettierrc.yaml` con `endOfLine: lf` ✓ (alineado con PRD CRLF).
-- **Acciones**: P1 — activar `server-format-check` tras limpiar formato server
-  (FASE 2).
+- **Diferencias**: Resuelta la deuda. `format:check` fallaba únicamente por
+  artefactos generados gitignored; `.prettierignore` por workspace (client/server/e2e)
+  los excluye. `.prettierrc.yaml` con `endOfLine: lf` ✓ (alineado con PRD CRLF).
+- **Acciones**: Ninguna pendiente. Ver nota `[VERIFICADO / corregido ...]` abajo.
 
 **[VERIFICADO / corregido 2026-11-12, change `ci-format-check-blocking`]**: la
 deuda no se reproduce en archivos TRACKEADOS. `format:check` fallaba únicamente
@@ -345,7 +346,8 @@ workspaces pasan `prettier --check` limpio; `server-format-check` queda ACTIVADO
    `lint` de workspaces y cachear en CI.
 3. **`linterOptions.reportUnusedDisableDirectives: 'error'`** en
    `eslint.config.js`.
-4. **Activar `server-format-check`** tras limpiar formato server.
+4. **`server-format-check` activado** (change `ci-format-check-blocking`, 2026-11-12);
+   `e2e-format-check` añadido. Ambos blocking.
 5. **Añadir vale en advisory** en `docs-validation`.
 6. **CODEOWNERS**: añadir patrones para `eslint.config.*`,
    `.dependency-cruiser.*`, `knip.json*`,

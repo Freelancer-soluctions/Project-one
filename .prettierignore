@@ -19,6 +19,7 @@ reports/
 .vitest-reports/
 test-results/
 playwright-report/
+blob-report/
 
 # Generated Prisma migrations
 apps/server/prisma/migrations

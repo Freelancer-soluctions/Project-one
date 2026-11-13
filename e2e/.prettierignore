@@ -6,4 +6,8 @@ test-results/
 playwright-report/
 blob-report/
 reports/
+coverage/
+dist/
+build/
+.vitest-reports/
 *.log
