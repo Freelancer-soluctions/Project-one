@@ -36,6 +36,7 @@ Thumbs.db
 # dist: el build multi-stage genera dist DENTRO de la imagen (tsc); excluir cualquier
 #   dist del contexto evita arrastrar artefactos stale del host (ci-dockerfile-multi-stage).
 **/dist
+*.tsbuildinfo
 coverage
 
 # Tests (from apps/server/.dockerignore)

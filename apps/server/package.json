@@ -14,7 +14,8 @@
   },
   "scripts": {
     "dev": "tsx watch src/bin/index.ts",
-    "build": "echo 'No build step needed for Express'",
+    "start": "node dist/bin/index.js",
+    "build": "tsc -b",
     "postinstall": "prisma generate ",
     "prisma-migration": "prisma migrate dev",
     "prisma-seed": "prisma db seed",

@@ -2,7 +2,7 @@
 .kiro
 
 # compiled output
-/dist
+**/dist/
 node_modules/
 e2e/node_modules
 /build

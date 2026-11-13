@@ -7,7 +7,7 @@
 ## What Changes
 
 - Añadir `tsconfig.base.json` en la raíz con la base estricta del PRD: `target: ES2023`, `lib: ["ES2023"]`, `types: ["node"]`, `module`/`moduleResolution: nodenext`, `strict: true`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, `noPropertyAccessFromIndexSignature`, `useUnknownInCatchVariables`, `verbatimModuleSyntax`, `isolatedModules`, `erasableSyntaxOnly`, `rewriteRelativeImportExtensions`, `forceConsistentCasingInFileNames`, `skipLibCheck`, `resolveJsonModule`, `sourceMap`, `declaration`, `declarationMap`, `composite`, `incremental`. (Lista completa de los 25 flags del PRD §1.)
-- Reescribir `apps/server/tsconfig.json` extendiendo la base: `outDir: dist`, `rootDir: src`, `tsBuildInfoFile`, `include: ["src", "scripts", "prisma", "tests"]`, `exclude: node_modules`, sin `allowJs`/`checkJs`.
+- Reescribir `apps/server/tsconfig.json` extendiendo la base: `outDir: dist`, `rootDir: src`, `tsBuildInfoFile`, `include: ["src"]`, `exclude: node_modules`, sin `allowJs`/`checkJs` (acotado a `src` para evitar TS6059 con `rootDir: "src"`).
 - Añadir `tsconfig.json` de solución en `apps/server` con `files: []` y `references` (cuando existan paquetes). Para el monorepo actual (un solo paquete) documentar el patrón para futuros paquetes.
 - Fijar una sola versión de TypeScript en `devDependencies` raíz y `apps/server`, y `@types/node` en devDeps.
 - Sustituir el script `build` no-op por `tsc -b` (y `type-check` sigue siendo `tsc --noEmit`).

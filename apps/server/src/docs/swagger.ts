@@ -4,7 +4,7 @@ import swaggerUi from 'swagger-ui-express';
 // Opciones compartidas con el generador del contrato versionado
 // (`scripts/generate-openapi.ts` → `openapi.yaml`): una sola fuente para los
 // globs de anotaciones (change `ci-shifting-left`, capability api-contract-linting).
-import { swaggerOptions } from './swagger-options.ts';
+import { swaggerOptions } from './swagger-options.js';
 
 // Docs in JSON format
 const swaggerSpec = swaggerJSDoc(swaggerOptions);

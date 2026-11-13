@@ -52,7 +52,7 @@ export const leaveUserRoom = (socket: Socket, userId: number | string) => {
 export const getActiveUserSockets = async (
   io: Server,
   userId: number | string
-) => {
+): Promise<any[]> => {
   const roomName = `user:${userId}`;
   // fetchSockets() reemplaza a in() + clients() de versiones anteriores.
   // Devuelve sockets reales (no solo IDs) — permite inspeccionar data, handshake, etc.
