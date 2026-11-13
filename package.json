@@ -83,7 +83,7 @@
     "depcruise:server": "depcruise apps/server/src --config .dependency-cruiser.cjs",
     "depcruise:ci": "npm run depcruise -- --output-type err --ignore-known",
     "depcruise:report": "npm run depcruise -- --output-type err-html -f reports/dependency-cruiser.html --ignore-known",
-    "depcruise:baseline": "depcruise-baseline apps/client/src apps/server/src e2e/tests --config .dependency-cruiser.cjs",
+    "depcruise:baseline": "depcruise apps/client/src apps/server/src e2e/tests --config .dependency-cruiser.cjs --baseline .dependency-cruiser-known-violations.json --baseline-mode shrink-only",
     "type-check": "tsc --noEmit -p apps/server",
     "typecheck": "tsc --noEmit -p apps/client && tsc --noEmit -p apps/server",
     "deps:boundaries": "npm run depcruise:ci",

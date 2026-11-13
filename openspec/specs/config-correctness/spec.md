@@ -208,7 +208,7 @@ The `e2e` workspace SHALL define a `lint` script in `e2e/package.json`, SHALL be
 2. La configuración MUST ser única fuente de verdad en raíz (`.dependency-cruiser.cjs`) con `extends`, `$schema`, `exclude` global, `doNotFollow`, `enhancedResolveOptions`, `tsPreCompilationDeps` y resolución del alias `@` del client vía `webpackConfig` (config dedicado `apps/client/webpack.depcruise.config.cjs` — el mecanismo `--ts-config apps/client/jsconfig.json` NO es viable desde root: TypeScript resuelve los globs del jsconfig contra el CWD y con CWD=raíz matchea 0 archivos).
 3. Los paths de reglas (`^apps/client`/`^apps/server`/`^e2e`) MUST matchear al ejecutar desde root (`npm run depcruise:*`), arreglando la dead-rule actual.
 4. El pipeline de enforcement MUST tener 4 capas (pre-commit `lint-staged` `--output-type err-long` + baseline; CI gate `--output-type err`; report `err-html`; docs `docs/learning/import-boundaries.md` ES).
-5. Los scripts `package.json` MUST incluir `depcruise`, `depcruise:client`, `depcruise:server`, `depcruise:ci` (`--output-type err --ignore-known`), `depcruise:report` (`err-html`) y `depcruise:baseline`.
+5. Los scripts `package.json` MUST incluir `depcruise`, `depcruise:client`, `depcruise:server`, `depcruise:ci` (`--output-type err --ignore-known`), `depcruise:report` (`err-html`) y `depcruise:baseline` (`depcruise --baseline --baseline-mode shrink-only`: ratchet mecánico, solo poda; el CLI principal no expone `--exit-code`, el bloqueo fiable lo da el exit code del reporter `err` = nº de violaciones `error`).
 6. `docs/learning/import-boundaries.md` MUST documentar implementación profesional (reglas por capa, severidades, CI, shifting-left, comparación con `knip.jsonc`, referencias `dependency-cruiser` docs).
 7. `eslint-plugin-import` MUST permanecer desinstalado (ownership = dependency-cruiser).
 8. `server-typescript-migration` MUST coordinarse (regex `\.js$` → `\.(js|ts)$`, `tsconfig.json` server; `import-boundaries` amplía regex raíz; server pasa `extends` raíz).
@@ -223,7 +223,7 @@ The `e2e` workspace SHALL define a `lint` script in `e2e/package.json`, SHALL be
 
 #### Scenario: Baseline gradual (fase 1 → fase 2)
 
-- Dado `.dependency-cruiser-known-violations.json` (generado por `npm run depcruise:baseline`) con las 58 violaciones conocidas (50 client: 24 ciclos `no-circular` + 26 `no-cross-module-client`/`no-orphans`; 8 server: orphans de código muerto knip-ignorado)
+- Dado `.dependency-cruiser-known-violations.json` (generado por `npm run depcruise:baseline` con `--baseline-mode shrink-only`) con las 59 entradas conocidas (50 client: 26 ciclos `no-circular` + 24 `no-cross-module-client`; 8 server: `no-orphans` de código muerto knip-ignorado; 1 `not-to-unresolvable` `error` stale fuera del scope `apps/e2e`)
 - Cuando `npm run depcruise:ci` ejecuta con `--ignore-known`
 - Entonces conocidas no bloquean (fase 1 `warn` + gates verdes con exit 0)
 - Y nuevas violaciones cross-workspace (`error`) sí bloquean (verificado: un import client→server temporal produce `error no-client-to-server` y exit 1 incluso con `--ignore-known`)
