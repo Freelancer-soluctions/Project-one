@@ -82,4 +82,52 @@ rm -f "${guarddog_stderr}"
 # `guarddog-weekly` y el hook pre-commit redirigen stdout a un .sarif que
 # se sube a Code Scanning (upload-sarif valida el JSON). Sin el flag,
 # GuardDog imprime texto plano y el "SARIF" queda corrupto/invalido.
-exec uvx --python "${GUARDDOG_PYTHON}" "guarddog==${GUARDDOG_PIN}" npm verify . --output-format sarif "$@"
+
+# ------------------------------------------------------------
+# Alcance del escaneo: manifiestos de PRODUCTO (raíz + workspaces declarados
+# en `package.json`). GuardDog `npm verify` recorre el árbol completo y NO
+# tiene flag de exclusión, así que se monta un espejo temporal con solo esos
+# manifiestos. Se conserva la ruta relativa (misma forma de árbol) para que
+# las URIs del SARIF sigan siendo repo-relativas y Code Scanning no marque
+# rutas inexistentes.
+#
+# Quedan fuera `.opencode/**` y `docs/opencode/**`: son manifiestos de
+# tooling de agentes, no dependencias que se distribuyan con el producto, y
+# sus paquetes (plugins/SDK) disparan heurísticas `capability-*`
+# (network-outbound, process-spawn) que no describen un typosquat. Si en el
+# futuro alguno pasa a ser dependencia de producto, basta con declararlo como
+# workspace y entra automáticamente.
+# ------------------------------------------------------------
+GUARDDOG_SCOPE="$(mktemp -d)"
+trap 'rm -rf "${GUARDDOG_SCOPE}"' EXIT
+
+node - "${GUARDDOG_SCOPE}" <<'NODE'
+const fs = require('node:fs');
+const path = require('node:path');
+
+const out = process.argv[2];
+const root = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+const dirs = ['.'];
+
+for (const pattern of root.workspaces || []) {
+  if (pattern.endsWith('/*')) {
+    const base = pattern.slice(0, -2);
+    for (const entry of fs.readdirSync(base)) {
+      const dir = path.join(base, entry);
+      if (fs.existsSync(path.join(dir, 'package.json'))) dirs.push(dir);
+    }
+  } else if (fs.existsSync(path.join(pattern, 'package.json'))) {
+    dirs.push(pattern);
+  }
+}
+
+for (const dir of dirs) {
+  fs.mkdirSync(path.join(out, dir), { recursive: true });
+  fs.copyFileSync(
+    path.join(dir, 'package.json'),
+    path.join(out, dir, 'package.json')
+  );
+}
+NODE
+
+( cd "${GUARDDOG_SCOPE}" && uvx --python "${GUARDDOG_PYTHON}" "guarddog==${GUARDDOG_PIN}" npm verify . --output-format sarif "$@" )

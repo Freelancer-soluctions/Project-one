@@ -276,6 +276,15 @@ heurística de typosquatting (confused forms matching anywhere in term).
 | 2026-11-09 · runs `42576367623` / `42576339550` / `42575160236` (PRs dependabot con `package-lock.json` → scan real) | 0                  | 0          | Todos los steps `success` (el scan no fue enmascarado por COE: el step de verify terminó limpio)                                                                                                                                                                                                                                                                                    | 14 d                          |
 | 2026-11-10 · run `42781229033` (PR `test/secret-detection-probe`)                                                    | 0                  | 0          | Steps `success`; job verde en rama de pruebas                                                                                                                                                                                                                                                                                                                                       | 14 d                          |
 
+**Alcance (2026-11-12):** el wrapper escanea solo los manifiestos de **producto** (raíz +
+workspaces declarados en `package.json`): monta un espejo temporal con esos `package.json` y ejecuta
+`npm verify` ahí, porque GuardDog no tiene flag de exclusión y recorría también `.opencode/**` y
+`docs/opencode/**` (tooling de agentes). Sus paquetes (plugins/SDK) disparan heurísticas
+`capability-*` (`network-outbound`, `process-spawn`, `filesystem-read`) que describen capacidades
+del paquete, no typosquatting, y bloqueaban el gate sin hallazgo real de la capa. Las URIs del SARIF
+siguen siendo repo-relativas (el espejo conserva la forma del árbol). Si un manifiesto de agente
+pasa a ser dependencia de producto, basta con declararlo como workspace.
+
 **Decisión (2026-11-10): promover GuardDog a blocking SIN evaluar Socket** — scenario de la spec
 "GuardDog promovido sin Socket": la tasa de FP observada en el periodo advisory es aceptable (único
 incidente con causa raíz en datos del manifest, no en la heurística de typosquatting; 0 hallazgos en
