@@ -7,7 +7,7 @@ echo "🔍 Running pre-commit checks..."
 
 # 1. lint-staged first (fast, may modify files via autofix)
 echo "🔧 Running lint-staged..."
-npm exec lint-staged || { echo "❌ lint-staged failed"; exit 1; }
+NODE_OPTIONS="--max-old-space-size=4096" npm exec lint-staged -- --concurrent=false || { echo "❌ lint-staged failed"; exit 1; }
 
 # 2. Secret detection staged-only (RF-SEC-01..05): escanea SOLO lo staged
 #    (commiteado => reescribir historia + rotar credenciales, por eso el punto

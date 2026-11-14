@@ -248,6 +248,16 @@ export default defineConfig([
           minimumDescriptionLength: 3,
         },
       ],
+      // Workaround for @typescript-eslint/no-unused-expressions crash on eslint 9.x
+      // (rule options default to undefined). See: typescript-eslint issue.
+      '@typescript-eslint/no-unused-expressions': [
+        'error',
+        {
+          allowShortCircuit: true,
+          allowTernary: true,
+          allowTaggedTemplates: true,
+        },
+      ],
     },
   },
 
