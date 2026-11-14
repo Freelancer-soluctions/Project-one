@@ -4,9 +4,11 @@ on:
   push:
     branches: [main]
 
+# Least-privilege (zizmor `excessive-permissions`): write solo en el job
+# `release`, que es el único que crea el PR de versión y publica. El resto
+# (secrets-full-history, verificación) corre con `contents: read`.
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: release
@@ -24,8 +26,9 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       # Un checkout shallow convertiría el "full history" en el último commit.
@@ -63,12 +66,16 @@ jobs:
     needs: secrets-full-history
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          persist-credentials: false
           fetch-depth: 0
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -78,10 +85,14 @@ jobs:
 
       - name: Create GitHub App Token
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          # Least-privilege (zizmor `github-app`): sin estos inputs el token
+          # hereda TODOS los permisos de la instalación de la App.
+          permission-contents: write
+          permission-pull-requests: write
 
       - name: Create Release PR or Publish
         id: changesets
@@ -99,7 +110,7 @@ jobs:
         # GITHUB_TOKEN is rejected when it differs from the input).
         # Do NOT re-add runner-side SSH signing config (see
         # openspec/specs/commit-signing-release-migration + release-workflow-compatibility).
-        uses: changesets/action@v2.1.2
+        uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           version-script: npm run version:packages

@@ -7,7 +7,7 @@
 
 ## 1. Implementación actual
 
-`dependency-cruiser` 18.2.0 (devDependency raíz, pin exacto) valida el grafo de imports del
+`dependency-cruiser` 18.7.2 (devDependency raíz, pin exacto) valida el grafo de imports del
 monorepo con **una sola configuración fuente de verdad**:
 
 | Archivo                                     | Rol                                                                                                                                       |
@@ -91,24 +91,39 @@ Notas de implementación:
 
 ## 4. Scripts npm (siempre desde la raíz)
 
-| Script                       | Qué hace                                                                                       |
-| ---------------------------- | ---------------------------------------------------------------------------------------------- |
-| `npm run depcruise`          | Grafo combinado (client + server + e2e) con el config raíz — diagnóstico                       |
-| `npm run depcruise:client`   | Solo `apps/client/src`                                                                         |
-| `npm run depcruise:server`   | Solo `apps/server/src`                                                                         |
-| `npm run depcruise:ci`       | Gate CI: `--output-type err --ignore-known` (exit = nº de errores **nuevos**)                  |
-| `npm run depcruise:report`   | Reporte standalone: `--output-type err-html -f reports/dependency-cruiser.html --ignore-known` |
-| `npm run depcruise:baseline` | Regenera `.dependency-cruiser-known-violations.json` (alias de `depcruise-baseline`)           |
+| Script                       | Qué hace                                                                                                                         |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run depcruise`          | Grafo combinado (client + server + e2e) con el config raíz — diagnóstico                                                         |
+| `npm run depcruise:client`   | Solo `apps/client/src`                                                                                                           |
+| `npm run depcruise:server`   | Solo `apps/server/src`                                                                                                           |
+| `npm run depcruise:ci`       | Gate CI: `--output-type err --ignore-known` (exit = nº de violaciones `error` **nuevas**)                                        |
+| `npm run depcruise:report`   | Reporte standalone: `--output-type err-html -f reports/dependency-cruiser.html --ignore-known`                                   |
+| `npm run depcruise:baseline` | Regenera `.dependency-cruiser-known-violations.json` con `depcruise --baseline --baseline-mode shrink-only` (ratchet: solo poda) |
 
 El alias `@` se resuelve vía `options.webpackConfig` (config raíz), así que **no hay flags
 `--ts-config` ni `working-directory`**: todos los comandos funcionan idénticos en local y CI.
 
-Baseline fase 1: el baseline contiene las 58 violaciones conocidas (50 client: 24 ciclos
-`no-circular` + cross-module/orphans; 8 server: orphans de código muerto knip-ignorado).
-`--ignore-known` las descuenta; **las violaciones `error` nuevas sí bloquean** (verificado: un
-import temporal client→server produce `error no-client-to-server` y exit 1 incluso con
-`--ignore-known`). Cuando la deuda se limpie, quitar `--ignore-known` de `depcruise:ci` y
-regenerar/eliminar el baseline (fase 2).
+Baseline fase 1: el baseline contiene **59 entradas** (50 client: 26 ciclos `no-circular` +
+24 `no-cross-module-client`; 8 server: `no-orphans` de código muerto knip-ignorado; 1
+`not-to-unresolvable` `error` stale de `.opencode/plugins/`, fuera del scope `apps/e2e` que se
+cruisea). `--ignore-known` descuenta las conocidas; **las violaciones `error` nuevas sí
+bloquean** (verificado: un import temporal client→server produce `error no-client-to-server` y
+exit ≠ 0 incluso con `--ignore-known`).
+
+**Exit code real (sin flag inexistente):** el CLI principal `depcruise` NO expone
+`--exit-code`/`-e` (ese flag solo existe en el binario `depcruise-fmt`). El bloqueo fiable lo
+da el reporter `err`/`err-long`: su exit code es el número de violaciones de severidad `error`
+(`advisedExitCode`, obligatorio desde 18.4.0). Las violaciones `warn` no bloquean por diseño.
+Por eso `depcruise:ci`, los jobs CI y lint-staged usan `--output-type err`/`err-long` +
+`--ignore-known` y ya bloquean correctamente — no requieren ningún flag adicional.
+
+**Ratchet mecánico:** `depcruise:baseline` usa `--baseline-mode shrink-only`: la regeneración
+elimina las violaciones corregidas y **nunca añade nuevas** (el baseline solo baja). El scan
+actual produce solo `warn` (0 `error`): 51 known ignoradas + 7 warn nuevas que `shrink-only` no
+añade + 8 stale podables. El baseline está bajo CODEOWNERS (`.github/CODEOWNERS:59`) y solo se
+regenera en un PR dedicado. Cuando la deuda `warn` se limpie, quitar `--ignore-known` de
+`depcruise:ci` y regenerar/eliminar el baseline (fase 2). Ver gobernanza completa en
+`docs/learning/quality-policy.md` §3.2.
 
 ## 5. Integración profesional (4 capas)
 
@@ -219,7 +234,10 @@ npm run depcruise:report && start reports/dependency-cruiser.html
 # crear apps/client/src/tmp.js con: import x from '../../server/src/config/db.js';
 npm run depcruise:client -- --output-type err --ignore-known   # → exit 1, error no-client-to-server
 
-# Tras limpiar deuda (fase 2):
+# Podar el baseline tras corregir deuda (ratchet mecánico, solo en PR dedicado):
+npm run depcruise:baseline   # --baseline-mode shrink-only: elimina violaciones corregidas, nunca añade nuevas
+
+# Tras limpiar TODA la deuda (fase 2):
 rm .dependency-cruiser-known-violations.json
 # y quitar --ignore-known del script depcruise:ci en package.json
 ```

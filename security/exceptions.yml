@@ -1,0 +1,49 @@
+# ============================================================
+# Excepciones de seguridad — riesgo aceptado, versionado
+# (change `security-exceptions-policy`)
+# ============================================================
+# ÚNICA fuente de verdad de los riesgos de seguridad aceptados. Toda
+# supresión (inline `# zizmor: ignore[...]`, `# hadolint ignore=...`,
+# `skip-check` de Checkov, `.gitleaksignore`, allowlist de dependabot,
+# etc.) DEBE referenciar el `id` de una entrada de este fichero.
+#
+# Schema (todos los campos obligatorios, strings no vacíos):
+#   id       Identificador único y estable (p. ej. EXC-2026-001).
+#   tool     Herramienta/regla que produce el hallazgo (zizmor, hadolint, ...).
+#   finding  Hallazgo o regla concreta suprimida.
+#   scope    Ruta/glob o alcance exacto donde aplica la supresión.
+#   reason   Por qué es un falso positivo o un riesgo aceptado.
+#   owner    Persona/equipo responsable de revisar la excepción.
+#   created  Fecha de alta (YYYY-MM-DD).
+#   expires  Fecha de caducidad (YYYY-MM-DD). Máximo: created + 90 días.
+#   ticket   Issue/PR donde se justificó y se sigue el riesgo.
+#
+# Reglas verificadas por `scripts/ci/security-exceptions.mjs` en el job
+# `security-exceptions-check` (blocking desde día uno, cableado a `prebuild-security-complete.needs`):
+#   - schema completo y YAML válido;
+#   - `id` único;
+#   - fechas ISO válidas, `expires >= created` y `expires <= created + 90`;
+#   - ninguna excepción vencida (expires < hoy).
+#
+# Fin de excepción: se elimina la entrada Y la supresión que la referenciaba
+# en el mismo PR. Una excepción permanente NO es válida salvo que sea un
+# falso positivo estructural documentado (y aun así se renueva cada 90 días).
+# Procedimiento: docs/runbooks/security/exception-expiry.md.
+#
+# FASE 1: sin riesgos aceptados. Alta de una excepción = PR que añade la
+# entrada + la supresión + revisión de `/security/` (CODEOWNERS).
+exceptions: []
+
+# Ejemplo de entrada (mantener comentado hasta que exista un caso real):
+# exceptions:
+#   - id: EXC-2026-001
+#     tool: zizmor
+#     finding: self-repository
+#     scope: .github/workflows/ci.yml
+#     reason: >-
+#       Regla help-severity que sugiere la sintaxis `$/`; actionlint 1.7.12
+#       no la reconoce y el runner aún no la soporta de forma verificable.
+#     owner: devops-team
+#     created: '2026-11-10'
+#     expires: '2027-02-08'
+#     ticket: https://github.com/Freelancer-soluctions/Project-one/issues/0

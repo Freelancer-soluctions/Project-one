@@ -7,15 +7,19 @@ on:
   # task 2.2 (change sast-weekly-scan): compatibilidad futura con merge queue
   merge_group:
 
+# Least-privilege (zizmor `excessive-permissions`): `security-events: write`
+# solo en los jobs que suben SARIF.
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   gitleaks-full-scan:
     name: Gitleaks Full History Scan
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
     # Outcomes de los scan steps propagados a nivel de job: con
     # continue-on-error: true el JOB siempre acaba en success, así que
     # notify-failure no puede usar needs.*.result (siempre 'success' — dead
@@ -26,8 +30,9 @@ jobs:
       scan-sarif-outcome: ${{ steps.scan-sarif.outcome }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       # Guard A5 (change `secret-scanning-history-governance`): un checkout
@@ -63,7 +68,7 @@ jobs:
 
       - name: Upload Gitleaks JSON report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: gitleaks-report
           path: gitleaks-report.json
@@ -81,7 +86,7 @@ jobs:
 
       - name: Upload SARIF to Security tab
         if: always()
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: gitleaks.sarif
           category: gitleaks
@@ -105,7 +110,7 @@ jobs:
       - name: Download Gitleaks JSON report
         if: needs.gitleaks-full-scan.outputs.scan-json-outcome == 'failure' || needs.gitleaks-full-scan.outputs.scan-sarif-outcome == 'failure'
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: gitleaks-report
           path: gitleaks-report
@@ -115,7 +120,7 @@ jobs:
       # gitleaks ya lo redacta y aquí solo se leen RuleID/File/Commit/StartLine.
       - name: Create failure issue when a scan step failed
         if: needs.gitleaks-full-scan.outputs.scan-json-outcome == 'failure' || needs.gitleaks-full-scan.outputs.scan-sarif-outcome == 'failure'
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             const fs = require('fs');
@@ -208,27 +213,43 @@ jobs:
   # mode igual que gitleaks-full-scan arriba); la evidencia es el
   # artifact JSON con retención 90d. Sin `needs` de agregadores ni
   # required_status_checks; findings → issues manuales (D3 del design).
+  # FIX 2026-11-10 (change `scancode-license`): la imagen Docker
+  # `aboutcode/scancode-toolkit:32.5.0` NO existe (ScanCode no publica
+  # imagen oficial) — el scan moría con `pull access denied` y el audit
+  # era un no-op verde. Instalación vía `uv tool install` con pin
+  # estricto 32.5.0 (mismo fix que el job PR); sigue advisory.
   scancode-license-audit:
     name: ScanCode License Audit (Weekly)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
+
+      - name: Install ScanCode (pinned 32.5.0, nunca latest)
+        run: |
+          uv tool install --python 3.12 "scancode-toolkit==32.5.0"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/scancode" --version | grep -q "32.5.0" \
+            || { echo "ERROR: scancode version mismatch (esperado 32.5.0)"; exit 1; }
+        shell: bash
 
       - name: Run ScanCode license audit (JSON report)
         id: scan-json
         continue-on-error: true
         run: |
-          docker run --rm -v ${{ github.workspace }}:/project aboutcode/scancode-toolkit:32.5.0 \
-            scancode --license --copyright --only-findings \
+          scancode --license --copyright --only-findings \
             --exclude node_modules --exclude dist --exclude build \
             --exclude coverage --exclude .git --exclude reports \
             --exclude '*.min.js' \
-            --json-pp /project/scancode-report.json /project
+            --json-pp scancode-report.json .
 
       - name: Upload ScanCode report artifact (retention 90d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: scancode-report
           path: scancode-report.json
@@ -267,7 +288,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Audit resolved lockfile (npm audit, threshold moderate)
         id: audit-json
@@ -277,7 +300,7 @@ jobs:
 
       - name: Upload npm audit report artifact (retention 90d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: lockfile-audit-weekly
           path: audit-weekly.json
@@ -307,7 +330,7 @@ jobs:
 
       - name: Upload SBOM artifact (retention 90d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: sbom-lockfile-weekly
           path: sbom-lockfile-weekly.json
@@ -323,8 +346,13 @@ jobs:
     name: Checkov IaC (Weekly)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Run Checkov IaC scan (soft fail, SARIF)
         id: checkov-sarif
@@ -341,14 +369,14 @@ jobs:
 
       - name: Upload Checkov SARIF to Code Scanning
         if: always() && hashFiles('checkov-weekly.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: checkov-weekly.sarif
           category: checkov-iac
 
       - name: Upload Checkov report artifact (retention 90d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: checkov-iac-weekly
           path: checkov-weekly.sarif
@@ -365,9 +393,14 @@ jobs:
     name: Containerfile Lint (Weekly)
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      security-events: write
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Run Hadolint Containerfile lint (SARIF)
         id: hadolint-sarif
@@ -382,14 +415,14 @@ jobs:
 
       - name: Upload Hadolint SARIF to Code Scanning
         if: always() && hashFiles('hadolint-weekly.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: hadolint-weekly.sarif
           category: hadolint-weekly
 
       - name: Upload Hadolint report artifact (retention 90d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: hadolint-report-weekly
           path: hadolint-weekly.sarif
@@ -408,9 +441,14 @@ jobs:
     name: Pipeline Config Scan (Weekly)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
       - name: Run zizmor (SARIF, advisory)
         run: |
@@ -421,13 +459,13 @@ jobs:
         shell: bash
       - name: Upload zizmor SARIF to Code Scanning
         if: always() && hashFiles('zizmor-weekly.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: zizmor-weekly.sarif
           category: zizmor-weekly
       - name: Upload zizmor report artifact (retention 90d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: zizmor-weekly
           path: zizmor-weekly.sarif
@@ -447,9 +485,14 @@ jobs:
     name: Typosquat GuardDog (Weekly)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
       - name: Run GuardDog verify (SARIF, advisory)
         run: |
@@ -459,13 +502,13 @@ jobs:
         shell: bash
       - name: Upload GuardDog SARIF to Code Scanning
         if: always() && hashFiles('guarddog-weekly.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: guarddog-weekly.sarif
           category: guarddog-weekly
       - name: Upload GuardDog report artifact (retention 90d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: guarddog-weekly
           path: guarddog-weekly.sarif

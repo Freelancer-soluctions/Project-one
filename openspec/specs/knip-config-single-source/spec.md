@@ -8,7 +8,7 @@ Defines a single-source-of-truth knip configuration for the monorepo: exactly on
 
 ### Requirement: Single root configuration file
 
-The repository SHALL contain exactly one knip configuration file, `/knip.jsonc`, with `$schema: "https://unpkg.com/knip@6/schema-jsonc.json"` (the JSONC variant of the official schema) matching the installed knip major version (6.32.2). No knip configuration files SHALL exist under `apps/*`, `e2e/`, or any other nested directory.
+The repository SHALL contain exactly one knip configuration file, `/knip.jsonc`, with `$schema` referencing knip@6 at version 6.45.1 (or a compatible 6.x release) matching the installed knip version. No knip configuration files SHALL exist under `apps/*`, `e2e/`, or any other nested directory.
 
 #### Scenario: Nested config files absent
 
@@ -19,7 +19,12 @@ The repository SHALL contain exactly one knip configuration file, `/knip.jsonc`,
 #### Scenario: Schema matches installed version
 
 - **WHEN** the `$schema` field of `/knip.jsonc` is checked against the installed knip version
-- **THEN** it references `knip@6`, not `knip@5` or a different major
+- **THEN** it references `knip@6` at version 6.45.1 or compatible, not `knip@5` or a different major
+
+#### Scenario: Version installed
+
+- **WHEN** `npx knip --version` runs
+- **THEN** it reports 6.45.1 or a compatible 6.x release
 
 ### Requirement: All workspaces declared in root config
 

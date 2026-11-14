@@ -35,9 +35,9 @@
 
 ## 3. Transición FASE 1 → FASE 2 (este change, gated por 2.1/2.2 + 2-4 semanas sin falsos positivos)
 
-- [ ] 3.1 Quitar `soft_fail: true` del job `checkov-iac` en `ci.yml`.
-- [ ] 3.2 Añadir `checkov-iac` al `needs` del agregador `prebuild-security-complete` (anclado por nombre de job; el agregador ya interpreta `needs.*.result` con `always()`) y activar `--baseline .checkov.baseline` en el step del job (`fail-on-new`).
-- [ ] 3.3 Rollback documentado: un solo revert re-añade `soft_fail: true` y quita la línea del `needs`; `checkov-iac-weekly` permanece advisory siempre.
+- [x] 3.1 Quitar `soft_fail: true` del job `checkov-iac` en `ci.yml`. — ✅ 2026-11-10: `soft_fail: false`, job-COE eliminado y `.checkov.yml` con `soft-fail: false` (el weekly conserva su COE y el pre-commit pasa `--soft-fail`).
+- [x] 3.2 Añadir `checkov-iac` al `needs` del agregador `prebuild-security-complete` (anclado por nombre de job; el agregador ya interpreta `needs.*.result` con `always()`) y activar `--baseline .checkov.baseline` en el step del job (`fail-on-new`). — ✅ 2026-11-10: el wiring ya existía (Phase 0). Desviación justificada: SIN baseline — el único hallazgo previsible en el repo (CKV_DOCKER_2, falta de HEALTHCHECK) se remedió en `apps/server/Dockerfile`, así que el gate bloquea de verdad en vez de absorber deuda histórica.
+- [x] 3.3 Rollback documentado: un solo revert re-añade `soft_fail: true` y quita la línea del `needs`; `checkov-iac-weekly` permanece advisory siempre. — ✅ documentado en el comentario del job y en `quality-gates.md` §2.
 - [ ] 3.4 Validación del gate: PR de prueba que introduce una misconfig nueva (p. ej. Dockerfile sin usuario no-root) → el gate falla; PR solo-deuda-histórica → pasa por baseline.
 
 ## 4. Política de tooling y validación (este change)

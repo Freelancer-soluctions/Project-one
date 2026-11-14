@@ -91,6 +91,19 @@ export default defineConfig([
   },
 
   // ---------------------------------------------------------------------------
+  // (1b) Supresiones sin costo prohibido (change `ci-quality-gates-blocking-hardening`).
+  // ---------------------------------------------------------------------------
+  // Un `eslint-disable` que ya no suprime ninguna violación es deuda invisible:
+  // `reportUnusedDisableDirectives: 'error'` la convierte en un fallo de lint
+  // (y `--max-warnings 0` en CI no la deja escapar como warning). Default de
+  // ESLint 9 es `'warn'`.
+  {
+    linterOptions: {
+      reportUnusedDisableDirectives: 'error',
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // (2) Base JavaScript oficial (@eslint/js recommended).
   // ---------------------------------------------------------------------------
   // Punto de partida común a todos los workspaces. Aporta las reglas
@@ -220,6 +233,22 @@ export default defineConfig([
   {
     files: ['apps/server/**/*.{ts,cts,mts}'],
     extends: [tseslint.configs.recommended],
+    rules: {
+      // `@ts-ignore` prohibido; `@ts-expect-error` solo con descripción
+      // (>=3 caracteres) para que la supresión documente POR QUÉ existe.
+      // `ts-nocheck`/`ts-check` también quedan bajo el gate: un fichero entero
+      // fuera del compilador exige la misma justificación visible.
+      '@typescript-eslint/ban-ts-comment': [
+        'error',
+        {
+          'ts-expect-error': 'allow-with-description',
+          'ts-ignore': true,
+          'ts-nocheck': true,
+          'ts-check': false,
+          minimumDescriptionLength: 3,
+        },
+      ],
+    },
   },
 
   // ---------------------------------------------------------------------------

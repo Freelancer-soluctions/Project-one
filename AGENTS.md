@@ -45,7 +45,7 @@ cd apps/server && npm run test:unit         # Unit tests
 cd apps/server && npm run test:integration  # Integration tests
 ```
 
-> **Migración TS en curso** (2026-10-14): `apps/server` aún **0 `.ts`** (236 `.js`/`.cjs`/`.mjs`; alcance total: 0 al final). Runtime endgame `tsx` (`dev` deja de ser `nodemon src/bin/index.js` al convertirse el entry); filtros de test ganan `.ts` en Fase 0. Fuente: `docs/server-typescript-migration-research.md`.
+> **Migración TS completada** (2026-11-13): `apps/server` es 100% `.ts` (230 archivos, 0 `.js`/`.cjs`/`.mjs`). Runtime: `tsx` (`dev: tsx watch src/bin/index.ts`, `start: node dist/bin/index.js` via `tsc -b`). Strict activo en `tsconfig.base.json` + `apps/server/tsconfig.json` (composite, outDir dist). Fuente: `docs/server-typescript-migration-research.md`.
 
 ### E2E
 

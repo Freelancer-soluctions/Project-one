@@ -14,7 +14,8 @@
   },
   "scripts": {
     "dev": "tsx watch src/bin/index.ts",
-    "build": "echo 'No build step needed for Express'",
+    "start": "node dist/bin/index.js",
+    "build": "tsc -b",
     "postinstall": "prisma generate ",
     "prisma-migration": "prisma migrate dev",
     "prisma-seed": "prisma db seed",
@@ -41,7 +42,7 @@
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"**/*.{js,ts,json,md}\"",
     "format:check": "prettier --check \"**/*.{js,ts,json,md}\"",
-    "lint": "eslint \"**/*.{js,ts}\" --max-warnings 0",
+    "lint": "eslint \"**/*.{js,ts}\" --max-warnings 0 --cache --cache-location .cache/eslint/ --cache-strategy content",
     "lint:fix": "eslint \"**/*.{js,ts}\" --fix",
     "test:tia": "node ../../scripts/ci/tia-select.mjs apps/server -- vitest run \".unit.test\" --coverage --coverage.changed=origin/main --changed origin/main --config vitest.scoped.config.ts",
     "test:tia:audit": "vitest list \".unit.test\" --changed origin/main --filesOnly"

@@ -230,9 +230,12 @@ export function HashtagsSelector({
     onSelectionChange?.(newSelected);
   };
 
-  React.useEffect(() => {
+  // Sincronizar la selección externa sin efecto: ajuste durante el render.
+  const [syncedSelectedIds, setSyncedSelectedIds] = React.useState(selectedIds);
+  if (selectedIds !== syncedSelectedIds) {
+    setSyncedSelectedIds(selectedIds);
     setSelected(selectedIds);
-  }, [selectedIds]);
+  }
 
   return (
     <div

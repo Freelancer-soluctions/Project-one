@@ -2,6 +2,12 @@
 
 > **Guía 04 de 5 del nivel Fundamentos** | Prerequisitos: [`03-secrets-variables.md`](03-secrets-variables.md) completada | Siguiente: Volver al **[fundamentos-README.md](./fundamentos-README.md)** (última guía del nivel)
 
+> ⚠️ **Actualización (change `ci-dockerfile-multi-stage`, 2026-11-12):** el `apps/server/Dockerfile`
+> del proyecto ahora es **multi-stage** con runtime de JS compilado (`node dist/bin/index.js`) y
+> base `node:22-alpine` fijada por digest. Esta guía conserva la explicación conceptual del
+> single-stage original (y la discrepancia `.nvmrc`/`node:20-alpine` ya histórica); para el diseño
+> real vigente ver [`04c-docker-multistage-build.md`](04c-docker-multistage-build.md).
+
 ---
 
 ## 🎯 Objetivos de aprendizaje

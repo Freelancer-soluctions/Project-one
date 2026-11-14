@@ -27,23 +27,43 @@ El repo SHALL proveer una capa local de typosquatting en `.husky/pre-commit` que
 
 ### Requirement: Job PR-time `typosquat-guarddog` advisory (L2, FASE 1)
 
-El workflow `ci.yml` SHALL ejecutar en cada `pull_request` un job `typosquat-guarddog` que verifique `package.json` con `uvx guarddog==3.2.0 npm verify ... --output-format sarif`, con `needs: repo-discovery`, `continue-on-error: true` a nivel job, `permissions` de job `contents: read` + `security-events: write`, subida SARIF con `category: guarddog` (única) y artifact de evidencia de 14 días; en FASE 1 dicho job NO SHALL formar parte del `needs` del agregador `prebuild-security-complete`.
+El workflow `ci.yml` SHALL ejecutar en cada `pull_request` un job `typosquat-guarddog` que verifique `package.json` con `uvx guarddog==3.2.0 npm verify ... --output-format sarif`, con `needs: repo-discovery`, sin `continue-on-error` (blocking desde día uno), `permissions` de job `contents: read` + `security-events: write`, subida SARIF con `category: guarddog` (única) y artifact de evidencia de 14 días. El job SHALL formar parte del `needs` del agregador `prebuild-security-complete`.
+
+El job SHALL estar condicionado a cambios en manifiestos o lockfiles: `if: github.event_name == 'pull_request' && needs.repo-discovery.outputs.manifests == 'true'`. El output `manifests` SHALL ser publicado por `repo-discovery`.
 
 #### Scenario: Ejecución advisory en PR (R2-L2)
 
-- **WHEN** corre `ci.yml` en un `pull_request`
-- **THEN** existe el job `typosquat-guarddog` con `needs: repo-discovery`, en paralelo a `dependency-review`, `lockfile-audit` y `checkov-iac` (sin dependencia de `build`)
-- **AND** instala `uv` con `astral-sh/setup-uv` **SHA-pinned** (`b75a909f75acd358c2196fb9a5f1299a9a8868a4`, v6.7.0 — nunca `@main`/`@v*`, mismo criterio que los jobs zizmor hermanos) y ejecuta `uvx guarddog==3.2.0` (versión pinneada, nunca `latest`) tras verificarla (`guarddog --version` contiene `3.2.0`; si difiere → fallo del paso)
-- **AND** genera `guarddog.sarif` vía el wrapper (`|| true` en el step de scan, `test -s` y `jq -e .` antes de subirlo) y lo sube vía `github/codeql-action/upload-sarif@v4` con `category: guarddog` bajo `if: always() && hashFiles('guarddog.sarif') != ''` (sin colisionar con `trivy`, `codeql`, `semgrep`, `gitleaks`, `checkov-iac`, `hadolint[-weekly]`, `actionlint` ni `zizmor[-weekly]`)
-- **AND** publica el artifact `guarddog-report-pr` con `retention-days: 14`, `if: always()` e `if-no-files-found: warn`
-- **AND** el job termina en éxito aunque haya hallazgos (advisory vía `continue-on-error: true`)
+- **WHEN** corre `ci.yml` en un `pull_request` (FASE 1, antes del cambio)
+- **THEN** el job era advisory (`continue-on-error: true`) y no bloqueaba el merge
+- **NOTE:** Superseded — el control es blocking desde día uno.
 
 #### Scenario: Sin bloqueo en FASE 1
 
-- **WHEN** se inspecciona el bloque `needs` de `prebuild-security-complete` (anclado por nombre de job)
-- **THEN** `typosquat-guarddog` no aparece en ese `needs`
+- **WHEN** se inspeccionaba el bloque `needs` de `prebuild-security-complete` antes de este change
+- **THEN** `typosquat-guarddog` no aparecía en ese `needs`
+- **NOTE:** Superseded — el job está en `needs` desde día uno.
+
+#### Scenario: Ejecución en PR con cambios en manifiestos
+
+- **WHEN** corre `ci.yml` en un `pull_request` con cambios en manifiestos o lockfiles
+- **THEN** existe el job `typosquat-guarddog` con `needs: repo-discovery`, condicionado a `needs.repo-discovery.outputs.manifests == 'true'`, en paralelo a `dependency-review`, `lockfile-audit` y `checkov-iac`
+- **AND** instala `uv` con `astral-sh/setup-uv` **SHA-pinned** y ejecuta `uvx guarddog==3.2.0` (versión pinneada)
+- **AND** genera `guarddog.sarif` y lo sube vía `github/codeql-action/upload-sarif@v4` con `category: guarddog`
+- **AND** publica el artifact `guarddog-report-pr` con `retention-days: 14`
+- **AND** el job bloquea el merge si GuardDog detecta un paquete sospechoso (`exit non-zero`, sin `continue-on-error`)
+
+#### Scenario: Sin bloqueo cuando no hay cambios en manifiestos
+
+- **WHEN** se inspecciona el bloque `needs` de `prebuild-security-complete`
+- **THEN** `typosquat-guarddog` está en ese `needs` (blocking desde día uno)
 - **AND** los jobs `dependency-review`, `secrets` y `scancode-license-pr-diff` permanecen intactos
-- **AND** ningún `required_status_checks` depende de `typosquat-guarddog` en FASE 1
+- **AND** si no hay cambios en manifiestos, el job se salta y el skip está autorizado por path (no falla el agregador)
+
+#### Scenario: Job id estable
+
+- **WHEN** el job se promueve a blocking
+- **THEN** el job id `typosquat-guarddog` permanece estable (solo el display `name:` cambia)
+- **AND** todos los `needs` y scenarios referencian el id, no el nombre
 
 ### Requirement: Job semanal `guarddog-weekly` (L3)
 
@@ -135,3 +155,20 @@ La capa de typosquatting SHALL complementar, nunca reemplazar, las capas existen
 - **THEN** existe exactamente un job `typosquat-guarddog` en `ci.yml` y un job `guarddog-weekly` en `scheduled-security.yml`
 - **AND** ningún otro change define o duplica esos jobs (dueño único: este change)
 - **AND** las categorías SARIF `guarddog` y `guarddog-weekly` son únicas en el repo
+
+### Requirement: Evaluación de Socket como alternativa
+
+El equipo SHALL evaluar Socket (comercial) como alternativa a GuardDog si la tasa de falsos positivos de GuardDog es inaceptable. La evaluación SHALL comparar: tasa de falsos positivos, cobertura de señales (70+ en Socket vs metadata+YARA en GuardDog), costo, y compatibilidad con el flujo de CI existente. La decisión SHALL documentarse.
+
+#### Scenario: Socket evaluado
+
+- **WHEN** la tasa de falsos positivos de GuardDog es inaceptable en producción
+- **THEN** se documenta la comparación Socket vs GuardDog
+- **AND** se decide si mantener GuardDog (con exclusiones) o migrar a Socket
+- **AND** la decisión se registra en `docs/learning/quality-gates.md`
+
+#### Scenario: GuardDog mantenido sin Socket
+
+- **WHEN** la tasa de falsos positivos de GuardDog es aceptable
+- **THEN** se mantiene GuardDog como herramienta de typosquatting
+- **AND** la decisión se registra en `docs/learning/quality-gates.md`

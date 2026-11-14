@@ -12,6 +12,15 @@ storybook-static
 # Test coverage
 coverage
 
+# Artefactos generados por tests/CI (change `ci-format-check-blocking`):
+# existen en local y en runners intermedios, pero no son fuente y no deben
+# hacer fallar `prettier --check` (los ignoraba el gate solo por checkout limpio).
+reports/
+.vitest-reports/
+test-results/
+playwright-report/
+blob-report/
+
 # Generated Prisma migrations
 apps/server/prisma/migrations
 

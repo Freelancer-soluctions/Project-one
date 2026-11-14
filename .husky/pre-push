@@ -106,6 +106,27 @@ if [ "$SIGNATURE_GATE" -eq 1 ]; then
   echo "✅ Commit signatures verified."
 fi
 
+# --- Typecheck + import boundaries (shift-left, change
+# `ci-quality-gates-blocking-hardening` P0.3) ---------------------------
+# Mismos gates que el CI (`client-typecheck`/`server-typecheck` y
+# `*-import-bounds`), pero ejecutados ANTES de abrir el PR. Se mantiene el
+# presupuesto local (<60 s): los dos workspaces compilan con `noEmit` y
+# dependency-cruiser corre con el baseline versionado (`--ignore-known`).
+# Escape explícito y visible: git push --no-verify / HUSKY=0 git push
+echo "🧠 Typechecking client + server..."
+if ! npm run typecheck; then
+  echo "❌ Typecheck failed. Fix the errors above (o usa git push --no-verify en una emergencia)."
+  exit 1
+fi
+echo "✅ Typecheck passed."
+
+echo "🧱 Checking import boundaries..."
+if ! npm run deps:boundaries; then
+  echo "❌ Import boundary violation. Run 'npm run depcruise' for the full graph report."
+  exit 1
+fi
+echo "✅ Import boundaries passed."
+
 # --- SAST diff-scoped stage ------------------------------------------------
 # Diff-scoped SAST via the SHARED script (capability sast-diff-scanning):
 # mismo script, versión pineada, packs y exclusiones que el job `sast` del CI

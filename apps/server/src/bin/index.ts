@@ -1,8 +1,8 @@
 import { createServer } from 'http';
-import app from '../app.ts';
-import { swaggerDocs as V1SwaggerDocs } from '../docs/swagger.ts';
-import dotenv from '../config/dotenv.ts';
-import { attachSocketServer } from '../socket/levels/level-02-server.ts';
+import app from '../app.js';
+import { swaggerDocs as V1SwaggerDocs } from '../docs/swagger.js';
+import dotenv from '../config/dotenv.js';
+import { attachSocketServer } from '../socket/levels/level-02-server.js';
 
 async function bootstrap() {
   const PORT = dotenv('PORT') || 3000;

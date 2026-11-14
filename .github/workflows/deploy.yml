@@ -66,11 +66,13 @@ jobs:
     steps:
       # 1. Checkout
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       # 2. Setup Node.js (needed for test:smoke if running in-process)
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -182,15 +184,17 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2
         with:
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
@@ -198,18 +202,19 @@ jobs:
           role-duration-seconds: 900
 
       - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2
 
       - name: Build and push image to ECR
         run: |
           docker build -t project-one-server:${GITHUB_SHA} -t project-one-server:latest -f apps/server/Dockerfile .
-          docker tag project-one-server:${GITHUB_SHA} ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com/project-one-server:${GITHUB_SHA}
-          docker tag project-one-server:latest ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com/project-one-server:latest
-          docker push ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com/project-one-server:${GITHUB_SHA}
-          docker push ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com/project-one-server:latest
+          docker tag project-one-server:${GITHUB_SHA} "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/project-one-server:${GITHUB_SHA}"
+          docker tag project-one-server:latest "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/project-one-server:latest"
+          docker push "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/project-one-server:${GITHUB_SHA}"
+          docker push "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/project-one-server:latest"
         env:
           GITHUB_SHA: ${{ github.sha }}
           AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
 
   # ============================================================
   # JOB 3: deploy-staging (Fase 2 - gated por AWS_ROLE_ARN)
@@ -231,12 +236,12 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2
         with:
           egress-policy: audit
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
@@ -246,6 +251,17 @@ jobs:
       # 1. Register new task definition with SHA-tagged image (NEW revision)
       - name: Register task definition (staging)
         id: task-def-staging
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+          EXECUTION_ROLE_ARN: ${{ secrets.STAGING_TASK_EXECUTION_ROLE_ARN }}
+          TASK_ROLE_ARN: ${{ secrets.STAGING_TASK_ROLE_ARN }}
+          DATABASE_URL_ARN: ${{ secrets.STAGING_DATABASE_URL_SECRET_ARN }}
+          JWT_SECRET_ARN: ${{ secrets.STAGING_JWT_SECRET_SECRET_ARN }}
+          REFRESH_SECRET_ARN: ${{ secrets.STAGING_REFRESH_SECRETKEY_SECRET_ARN }}
+          AES_GCM_KEY_ARN: ${{ secrets.STAGING_AES_GCM_KEY_SECRET_ARN }}
+          AWS_REGION_SECRET_ARN: ${{ secrets.STAGING_AWS_REGION_SECRET_ARN }}
         run: |
           TASK_DEF=$(aws ecs register-task-definition \
             --family project-one-staging-api \
@@ -253,12 +269,12 @@ jobs:
             --requires-compatibilities FARGATE \
             --cpu "256" \
             --memory "512" \
-            --execution-role-arn ${{ secrets.STAGING_TASK_EXECUTION_ROLE_ARN }} \
-            --task-role-arn ${{ secrets.STAGING_TASK_ROLE_ARN }} \
+            --execution-role-arn "${EXECUTION_ROLE_ARN}" \
+            --task-role-arn "${TASK_ROLE_ARN}" \
             --container-definitions '[
               {
                 "name": "api",
-                "image": "'${{ vars.AWS_ACCOUNT_ID }}'.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com/project-one-server:'${{ github.sha }}'",
+                "image": "'"${AWS_ACCOUNT_ID}"'.dkr.ecr.'"${AWS_REGION}"'.amazonaws.com/project-one-server:'"${GITHUB_SHA}"'",
                 "portMappings": [{"containerPort": 3000, "protocol": "tcp"}],
                 "environment": [
                   {"name": "NODE_ENV", "value": "staging"},
@@ -266,17 +282,17 @@ jobs:
                   {"name": "ALGORITHM", "value": "aes-256-gcm"}
                 ],
                 "secrets": [
-                  {"name": "DATABASE_URL", "valueFrom": "'${{ secrets.STAGING_DATABASE_URL_SECRET_ARN }}'"},
-                  {"name": "SECRETKEY", "valueFrom": "'${{ secrets.STAGING_JWT_SECRET_SECRET_ARN }}'"},
-                  {"name": "REFRESHSECRETKEY", "valueFrom": "'${{ secrets.STAGING_REFRESH_SECRETKEY_SECRET_ARN }}'"},
-                  {"name": "AES_GCM_KEY", "valueFrom": "'${{ secrets.STAGING_AES_GCM_KEY_SECRET_ARN }}'"},
-                  {"name": "AWS_REGION", "valueFrom": "'${{ secrets.STAGING_AWS_REGION_SECRET_ARN }}'"}
+                  {"name": "DATABASE_URL", "valueFrom": "'"${DATABASE_URL_ARN}"'"},
+                  {"name": "SECRETKEY", "valueFrom": "'"${JWT_SECRET_ARN}"'"},
+                  {"name": "REFRESHSECRETKEY", "valueFrom": "'"${REFRESH_SECRET_ARN}"'"},
+                  {"name": "AES_GCM_KEY", "valueFrom": "'"${AES_GCM_KEY_ARN}"'"},
+                  {"name": "AWS_REGION", "valueFrom": "'"${AWS_REGION_SECRET_ARN}"'"}
                 ],
                 "logConfiguration": {
                   "logDriver": "awslogs",
                   "options": {
                     "awslogs-group": "/ecs/project-one-staging",
-                    "awslogs-region": "${{ vars.AWS_REGION || 'us-east-1' }}",
+                    "awslogs-region": "'"${AWS_REGION}"'",
                     "awslogs-stream-prefix": "api"
                   }
                 },
@@ -292,17 +308,16 @@ jobs:
             --query 'taskDefinition.taskDefinitionArn' \
             --output text)
           echo "task_definition_arn=$TASK_DEF" >> $GITHUB_OUTPUT
-        env:
-          GITHUB_SHA: ${{ github.sha }}
-          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
 
       # 2. Update service with force-new-deployment + circuit breaker
       - name: Update ECS service (staging)
+        env:
+          TASK_DEF_ARN: ${{ steps.task-def-staging.outputs.task_definition_arn }}
         run: |
           aws ecs update-service \
             --cluster project-one-staging \
             --service api \
-            --task-definition ${{ steps.task-def-staging.outputs.task_definition_arn }} \
+            --task-definition "${TASK_DEF_ARN}" \
             --force-new-deployment \
             --deployment-configuration "deploymentCircuitBreaker={enable=true,rollback=true}"
 
@@ -315,9 +330,11 @@ jobs:
 
       # 4. Smoke test post-deploy: health endpoint + remote smoke suite
       - name: Post-deploy health check (staging)
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
         run: |
           for i in {1..30}; do
-            if curl -sf "${{ secrets.STAGING_URL }}/health" > /dev/null; then
+            if curl -sf "${STAGING_URL}/health" > /dev/null; then
               echo "✅ Staging health check passed"
               exit 0
             fi
@@ -330,8 +347,7 @@ jobs:
       # 5. Run remote smoke tests against deployed staging (requires BASE_URL support)
       - name: Run remote smoke tests (staging)
         working-directory: apps/server
-        run: |
-          BASE_URL="${{ secrets.STAGING_URL }}" npm run test:smoke
+        run: npm run test:smoke
         env:
           BASE_URL: ${{ secrets.STAGING_URL }}
 
@@ -355,12 +371,12 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2
         with:
           egress-policy: audit
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
@@ -370,6 +386,17 @@ jobs:
       # 1. Register new task definition with SHA-tagged image (NEW revision)
       - name: Register task definition (production)
         id: task-def-production
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+          EXECUTION_ROLE_ARN: ${{ secrets.PROD_TASK_EXECUTION_ROLE_ARN }}
+          TASK_ROLE_ARN: ${{ secrets.PROD_TASK_ROLE_ARN }}
+          DATABASE_URL_ARN: ${{ secrets.PROD_DATABASE_URL_SECRET_ARN }}
+          JWT_SECRET_ARN: ${{ secrets.PROD_JWT_SECRET_SECRET_ARN }}
+          REFRESH_SECRET_ARN: ${{ secrets.PROD_REFRESH_SECRETKEY_SECRET_ARN }}
+          AES_GCM_KEY_ARN: ${{ secrets.PROD_AES_GCM_KEY_SECRET_ARN }}
+          AWS_REGION_SECRET_ARN: ${{ secrets.PROD_AWS_REGION_SECRET_ARN }}
         run: |
           TASK_DEF=$(aws ecs register-task-definition \
             --family project-one-prod-api \
@@ -377,12 +404,12 @@ jobs:
             --requires-compatibilities FARGATE \
             --cpu "512" \
             --memory "1024" \
-            --execution-role-arn ${{ secrets.PROD_TASK_EXECUTION_ROLE_ARN }} \
-            --task-role-arn ${{ secrets.PROD_TASK_ROLE_ARN }} \
+            --execution-role-arn "${EXECUTION_ROLE_ARN}" \
+            --task-role-arn "${TASK_ROLE_ARN}" \
             --container-definitions '[
               {
                 "name": "api",
-                "image": "'${{ vars.AWS_ACCOUNT_ID }}'.dkr.ecr.${{ vars.AWS_REGION || 'us-east-1' }}.amazonaws.com/project-one-server:'${{ github.sha }}'",
+                "image": "'"${AWS_ACCOUNT_ID}"'.dkr.ecr.'"${AWS_REGION}"'.amazonaws.com/project-one-server:'"${GITHUB_SHA}"'",
                 "portMappings": [{"containerPort": 3000, "protocol": "tcp"}],
                 "environment": [
                   {"name": "NODE_ENV", "value": "production"},
@@ -390,17 +417,17 @@ jobs:
                   {"name": "ALGORITHM", "value": "aes-256-gcm"}
                 ],
                 "secrets": [
-                  {"name": "DATABASE_URL", "valueFrom": "'${{ secrets.PROD_DATABASE_URL_SECRET_ARN }}'"},
-                  {"name": "SECRETKEY", "valueFrom": "'${{ secrets.PROD_JWT_SECRET_SECRET_ARN }}'"},
-                  {"name": "REFRESHSECRETKEY", "valueFrom": "'${{ secrets.PROD_REFRESH_SECRETKEY_SECRET_ARN }}'"},
-                  {"name": "AES_GCM_KEY", "valueFrom": "'${{ secrets.PROD_AES_GCM_KEY_SECRET_ARN }}'"},
-                  {"name": "AWS_REGION", "valueFrom": "'${{ secrets.PROD_AWS_REGION_SECRET_ARN }}'"}
+                  {"name": "DATABASE_URL", "valueFrom": "'"${DATABASE_URL_ARN}"'"},
+                  {"name": "SECRETKEY", "valueFrom": "'"${JWT_SECRET_ARN}"'"},
+                  {"name": "REFRESHSECRETKEY", "valueFrom": "'"${REFRESH_SECRET_ARN}"'"},
+                  {"name": "AES_GCM_KEY", "valueFrom": "'"${AES_GCM_KEY_ARN}"'"},
+                  {"name": "AWS_REGION", "valueFrom": "'"${AWS_REGION_SECRET_ARN}"'"}
                 ],
                 "logConfiguration": {
                   "logDriver": "awslogs",
                   "options": {
                     "awslogs-group": "/ecs/project-one-prod",
-                    "awslogs-region": "${{ vars.AWS_REGION || 'us-east-1' }}",
+                    "awslogs-region": "'"${AWS_REGION}"'",
                     "awslogs-stream-prefix": "api"
                   }
                 },
@@ -416,17 +443,16 @@ jobs:
             --query 'taskDefinition.taskDefinitionArn' \
             --output text)
           echo "task_definition_arn=$TASK_DEF" >> $GITHUB_OUTPUT
-        env:
-          GITHUB_SHA: ${{ github.sha }}
-          AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
 
       # 2. Update service with force-new-deployment + circuit breaker
       - name: Update ECS service (production)
+        env:
+          TASK_DEF_ARN: ${{ steps.task-def-production.outputs.task_definition_arn }}
         run: |
           aws ecs update-service \
             --cluster project-one-prod \
             --service api \
-            --task-definition ${{ steps.task-def-production.outputs.task_definition_arn }} \
+            --task-definition "${TASK_DEF_ARN}" \
             --force-new-deployment \
             --deployment-configuration "deploymentCircuitBreaker={enable=true,rollback=true}"
 
@@ -439,10 +465,12 @@ jobs:
 
       # 4. Health check post-deploy: poll /health for up to 5 minutes
       - name: Post-deploy health check (production)
+        env:
+          PROD_URL: ${{ secrets.PROD_URL }}
         run: |
           echo "🔍 Polling production health for up to 5 minutes..."
           for i in {1..30}; do
-            if curl -sf "${{ secrets.PROD_URL }}/health" > /dev/null; then
+            if curl -sf "${PROD_URL}/health" > /dev/null; then
               echo "✅ Production health check passed"
               exit 0
             fi
@@ -455,8 +483,7 @@ jobs:
       # 5. Run remote smoke tests against deployed production
       - name: Run remote smoke tests (production)
         working-directory: apps/server
-        run: |
-          BASE_URL="${{ secrets.PROD_URL }}" npm run test:smoke
+        run: npm run test:smoke
         env:
           BASE_URL: ${{ secrets.PROD_URL }}
 

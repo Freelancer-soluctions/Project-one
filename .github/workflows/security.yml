@@ -14,9 +14,10 @@ on:
     - cron: '0 3 * * 1' # Monday 03:00 UTC — weekly full-history audit
   workflow_dispatch:
 
+# Least-privilege (zizmor `excessive-permissions`): `security-events: write`
+# solo en los jobs que suben SARIF, no a nivel workflow.
 permissions:
   contents: read
-  security-events: write
 
 concurrency:
   group: security-${{ github.ref }}
@@ -27,6 +28,9 @@ jobs:
     name: Dependency Scan (SCA)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
     # D1 (change sast-weekly-scan): con continue-on-error: true el step puede
     # fallar por hallazgos sin que el job acabe en failure (audit mode). La
     # señal real para notify-failure es steps.<id>.outcome, que SOLO es legible
@@ -36,10 +40,12 @@ jobs:
       scan-sarif-outcome: ${{ steps.scan-sarif.outcome }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -51,7 +57,7 @@ jobs:
       - name: Run Trivy filesystem scan
         id: scan-sarif
         continue-on-error: true # L3 audit mode: hallazgos (exit 1) no fallan el job
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -69,7 +75,7 @@ jobs:
 
       - name: Upload Trivy SARIF artifact (retention 90d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: trivy-results-sarif
           path: trivy-results.sarif
@@ -78,7 +84,7 @@ jobs:
 
       - name: Upload Trivy SARIF to Security tab
         if: always()
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: trivy-results.sarif
           category: trivy
@@ -102,8 +108,9 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
+          persist-credentials: false
           fetch-depth: 0
       - name: Run TruffleHog (verified results only)
         run: |
@@ -123,19 +130,24 @@ jobs:
     name: SAST - CodeQL
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
     outputs:
       sast-outcome: ${{ steps.analyze.outcome }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           languages: javascript,actions
 
       # - name: Autobuild
-      #   uses: github/codeql-action/autobuild@v4
+      #   uses: github/codeql-action/autobuild@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
 
       - name: Install dependencies
         run: npm ci
@@ -143,7 +155,7 @@ jobs:
       - name: Analyze
         id: analyze
         continue-on-error: true # L3 audit mode (change sast-weekly-scan, task 2.4)
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           # Subida SARIF integrada del action (task 3.1): NO añadir un paso
           # upload-sarif separado para CodeQL — crearía categoría duplicada.
@@ -160,12 +172,17 @@ jobs:
     name: SAST - Semgrep Full Scan (Weekly Audit)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
     outputs:
       scan-json-outcome: ${{ steps.scan-json.outcome }}
       scan-sarif-outcome: ${{ steps.scan-sarif.outcome }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Run Semgrep full scan (JSON report)
         id: scan-json
@@ -174,7 +191,7 @@ jobs:
 
       - name: Upload Semgrep JSON report artifact (retention 30d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: semgrep-report
           path: semgrep-report.json
@@ -188,7 +205,7 @@ jobs:
 
       - name: Upload Semgrep SARIF artifact (retention 90d)
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: semgrep-sarif
           path: semgrep.sarif
@@ -197,7 +214,7 @@ jobs:
 
       - name: Upload Semgrep SARIF to Security tab
         if: always()
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
         with:
           sarif_file: semgrep.sarif
           category: semgrep
@@ -209,21 +226,34 @@ jobs:
     name: Generate SBOM
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # `contents: write` SOLO para la Dependency submission API (change
+    # `sbom-dependency-snapshot`): `dependency-snapshot: true` sube el SBOM al
+    # Dependency Graph de GitHub vía POST /repos/{owner}/{repo}/dependency-graph/snapshots,
+    # que exige write (el upload del artifact NO lo requiere). En PRs de forks el
+    # token es read-only → la submission falla con warning (catch en el action, nunca
+    # rompe el step — esperado, no es un error; el artifact SBOM sí se genera).
     permissions:
-      contents: read
+      contents: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Generate SBOM
-        uses: anchore/sbom-action@v0.24.0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           format: cyclonedx-json
           output-file: sbom-project-one.json
+          # Habilita la subida al Dependency submission API para que Dependabot
+          # vea las dependencias transitivas del árbol resuelto (mejora de cobertura
+          # SCA sin coste extra). El token (`github-token`) default = github.token;
+          # CycloneDX es aceptado por la API (no se cambia el formato — design D3/D5).
+          dependency-snapshot: true
 
       - name: Upload SBOM artifact
         if: always() # task 5.0: evidencia SBOM aunque otro step falle
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: sbom
           path: sbom-project-one.json
@@ -256,7 +286,7 @@ jobs:
           needs.sast.outputs.sast-outcome == 'failure' ||
           needs.semgrep-full-scan.outputs.scan-json-outcome == 'failure' ||
           needs.semgrep-full-scan.outputs.scan-sarif-outcome == 'failure'
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           EVENT_NAME: ${{ github.event_name }}
         with:

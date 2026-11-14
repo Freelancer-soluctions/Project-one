@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* global console, process */
+ 
 /**
  * generate-security-digest.mjs
  *
@@ -146,6 +146,29 @@ function parseSbom(sbom) {
 // ============================================================================
 // OSV Scanner JSON Parsing
 // ============================================================================
+// OSV-Scanner v1 emitía `severity` como etiqueta string; v2 lo emite como
+// array de vectores CVSS y deja la etiqueta normalizada en
+// `database_specific.severity` (MODERATE, HIGH…). La puntuación numérica por
+// grupo de ids vive en `packages[].groups[].max_severity`. Sin este mapeo el
+// digest etiquetaba todo como UNKNOWN y `severity.toUpperCase()` reventaba
+// (`TypeError`) con la salida real de v2.
+const OSV_SEVERITY_ALIASES = { MODERATE: 'MEDIUM' };
+
+function normalizeOsvSeverity(raw) {
+  if (typeof raw !== 'string' || !raw.trim()) return null;
+  const normalized = raw.trim().toUpperCase();
+  return OSV_SEVERITY_ALIASES[normalized] || normalized;
+}
+
+function severityFromScore(score) {
+  if (!Number.isFinite(score)) return null;
+  if (score >= 9) return 'CRITICAL';
+  if (score >= 7) return 'HIGH';
+  if (score >= 4) return 'MEDIUM';
+  if (score > 0) return 'LOW';
+  return null;
+}
+
 function parseOsVReport(osvReport) {
   if (!osvReport || !osvReport.results) {
     return { vulnerabilities: [], bySeverity: {} };
@@ -161,14 +184,31 @@ function parseOsVReport(osvReport) {
       if (!pkg.vulnerabilities) continue;
 
       for (const vuln of pkg.vulnerabilities) {
-        const severity = vuln.severity?.toUpperCase() || 'UNKNOWN';
+        const group = (pkg.groups || []).find(
+          (candidate) =>
+            Array.isArray(candidate.ids) && candidate.ids.includes(vuln.id)
+        );
+        const groupScore =
+          group?.max_severity != null ? Number(group.max_severity) : NaN;
+        // v2: score del grupo; v1: `cvss.score` en la propia vulnerabilidad.
+        let cvss;
+        if (Number.isFinite(groupScore)) {
+          cvss = groupScore;
+        } else if (typeof vuln.cvss?.score === 'number') {
+          cvss = vuln.cvss.score;
+        }
+        const severity =
+          normalizeOsvSeverity(vuln.database_specific?.severity) ||
+          normalizeOsvSeverity(vuln.severity) ||
+          severityFromScore(groupScore) ||
+          'UNKNOWN';
         const entry = {
           package: pkg.package?.name || pkg.package?.path || 'unknown',
           version: pkg.package?.version || 'unknown',
           vulnerability: vuln.id || 'unknown',
           title: vuln.summary || vuln.details || '',
           severity,
-          cvss: vuln.cvss?.score,
+          cvss,
         };
 
         vulnerabilities.push(entry);

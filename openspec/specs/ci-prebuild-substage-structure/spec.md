@@ -225,17 +225,31 @@ The system SHALL NOT use `continue-on-error: true` on dead-code jobs in Phase 2.
 
 ### Requirement: Phase 2 blocking promotion
 
-The system SHALL remove `continue-on-error` from dead-code jobs, making knip dead-code findings blocking quality gates that prevent PR merge on failure. The promotion SHALL occur only after baseline metrics are documented and the team confirms knip stability.
+During the calibration period defined by `ci-dead-code-advisory-calibration`, the `client-dead-code` and `server-dead-code` jobs SHALL run with `--no-exit-code` (advisory) until the knip configuration is calibrated (upgrade to 6.45.1, `--production`/`--cache` flags, reduction of `ignore`/`ignoreIssues`). Once calibrated, the jobs SHALL be promoted to blocking (`--no-exit-code` removed) and the promotion documented in `docs/learning/quality-policy.md` with date and rationale. This supersedes the previous Phase 2 intent of removing `continue-on-error` (already satisfied in code) by establishing the advisory→blocking transition explicitly.
+
+#### Scenario: Calibration period
+
+- **WHEN** knip runs in a PR during calibration
+- **THEN** it uses `--production --cache --no-exit-code`
+- **AND** findings do not block the merge
+- **AND** the job reports findings for triage
+
+#### Scenario: Promotion to blocking
+
+- **WHEN** a dead-code issue type reaches zero
+- **THEN** its severity is set to `error` in `knip.jsonc` rules
+- **AND** `--no-exit-code` is removed from the job
+- **AND** the promotion is recorded in `quality-policy.md`
 
 #### Scenario: Phase 2 promotion
 
 - **WHEN** the team confirms knip stability (false positive rate acceptable, ignores calibrated)
-- **THEN** `continue-on-error: true` is removed from `client-dead-code` and `server-dead-code`
+- **THEN** `continue-on-error: true` is removed from `client-dead-code` and `server-dead-code` (already satisfied in code)
 - **AND** knip failures block the merge (same pattern as pr-title-lint/dco per §9.3.3/§9.3.4)
 
 #### Scenario: knip failure blocks PR
 
-- **WHEN** a PR targets `main` and `client-dead-code` (or `server-dead-code`) reports knip findings
+- **WHEN** a PR targets `main` and `client-dead-code` (or `server-dead-code`) reports knip findings (after promotion)
 - **THEN** the job exits with non-zero status
 - **AND** the aggregator `prebuild-quality-complete` propagates the failure
 - **AND** `ci-complete` reports failure, blocking the merge
@@ -337,18 +351,79 @@ The substage 2C security block of `ci.yml` SHALL contain exactly the 9 jobs of t
 
 ### Requirement: prebuild-security-complete needs contract
 
-The `prebuild-security-complete` aggregator SHALL depend on exactly 3 jobs: `[dependency-review, secrets, scancode-license-pr-diff]`. The advisory jobs of the substage (`lockfile-audit`, `checkov-iac`, `containerfile-lint`, `actionlint-advisory`, `zizmor-advisory`, `typosquat-guarddog`) SHALL NOT be part of its `needs` in FASE 1; their promotion to FASE 2 blocking is governed by their origin changes (`sca-lockfile-compliance`, `iac-scanning`, `containerfile-lint`, `pipeline-config-scan`, `typosquatting-detection`), not by this capability.
+The `prebuild-security-complete` aggregator SHALL depend on the 9 substage-2C SECURITY jobs plus `security-exceptions-check` (10 total): `[dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog, security-exceptions-check]`. All security jobs SHALL be part of its `needs`, so that no security job can fail or be skipped silently without failing the aggregator. The 10th entry was added by the `security-exceptions-policy` change (task 4.4), which wired `security-exceptions-check` to the aggregator with no `continue-on-error`.
+
+The aggregator SHALL fail on any result that is not `success` (`failure`, `cancelled`, `skipped`) using `if: always()` and an explicit evaluation over `needs`. The value of `needs` SHALL be passed through `env`, never interpolated into the script.
+
+Anti-skip guards SHALL be scoped per job and per event:
+
+- On `pull_request` events:
+  - `secrets`: fail the aggregator when skipped (already implemented by `secret-scanning-history-governance`).
+  - `dependency-review`: fail the aggregator when skipped.
+  - `scancode-license-pr-diff`: fail the aggregator when skipped AND the PR includes ACMR changes (authorization computed inside the aggregator step via `git diff`).
+  - Conditional jobs (`lockfile-audit`, `checkov-iac`, `containerfile-lint`, `actionlint-advisory`, `zizmor-advisory`, `typosquat-guarddog`): the aggregator computes authorization inside its own step (checkout + path check). A skip is authorized only if the relevant change (manifest/lockfile/infra/workflow) is absent from the PR. A skip without authorization fails the aggregator.
+- On `merge_group` and `workflow_dispatch` events: skips of PR-only jobs (all except `secrets`) are pre-authorized by event type, because those jobs have no PR diff to scan. The `secrets` job remains subject to the strict rule on `merge_group` (it runs there). On `workflow_dispatch`, a skip of `secrets` is also pre-authorized, because the job is gated to `pull_request`/`merge_group` and has no diff to scan on manual runs.
+
+The authorization channel is computed inside the aggregator step, not via an additional job in `needs`, preserving the "exactly 9" contract (PRD rule 3).
+
+Promotion to blocking of any individual job remains governed by its origin change (`sca-lockfile-compliance`, `iac-scanning`, `containerfile-lint`, `pipeline-config-scan`, `typosquatting-detection`, `scancode-license`); this requirement only makes the aggregator strict and wires all jobs into it. Note: while a job retains `continue-on-error: true`, its `needs.*.result` normalizes to `success` (quality-gates.md L26, actions/toolkit#581), so advisory failures pass the aggregator by design until the origin change removes COE.
 
 #### Scenario: Security aggregator needs resolution
 
-- **When** `prebuild-security-complete` runs
-- **Then** its `needs` array contains exactly `dependency-review`, `secrets`, `scancode-license-pr-diff` — no more, no less
+- **WHEN** `prebuild-security-complete` runs
+- **THEN** its `needs` array contains exactly `dependency-review`, `secrets`, `scancode-license-pr-diff`, `lockfile-audit`, `checkov-iac`, `containerfile-lint`, `actionlint-advisory`, `zizmor-advisory`, `typosquat-guarddog`, `security-exceptions-check` — no more, no less
+- **AND** the first 9 jobs are from Substage 2C SECURITY; `security-exceptions-check` is a governance job wired by `security-exceptions-policy` task 4.4
 
 #### Scenario: Advisory job failure does not affect security aggregator
 
-- **When** any advisory job of substage 2C fails on a PR
-- **Then** `prebuild-security-complete` does not report that failure (the job is not in its `needs` and the job-level `continue-on-error: true` absorbs it)
-- **And** the finding remains visible via the job's SARIF upload and artifact
+- **WHEN** any advisory job of substage 2C failed on a PR before this change (FASE 1)
+- **THEN** `prebuild-security-complete` did not report that failure (the job was not in its `needs` and `continue-on-error: true` absorbed it)
+- **AND** the finding remained visible via the job's SARIF upload and artifact
+- **NOTE:** This scenario documents the pre-Phase-0 behavior and is retained for traceability of the FASE 1 → Phase 0 transition. After this change, every security job is in `needs`. However, while a job retains `continue-on-error: true`, its failure normalizes to `success` in `needs.*.result` (quality-gates.md L26), so advisory failures still pass the aggregator by design. The scenario "Advisory job failure fails the security aggregator" becomes live only after the origin change removes COE.
+
+#### Scenario: Advisory job failure fails the security aggregator
+
+- **WHEN** any of the 9 security jobs finalizes with `failure` on a PR (and the job does not have `continue-on-error: true`)
+- **THEN** `prebuild-security-complete` finalizes with failure
+- **AND** the finding remains visible via the job's SARIF upload and artifact
+
+#### Scenario: dependency-review skipped on PR fails the aggregator
+
+- **WHEN** `dependency-review` is skipped during a `pull_request` event
+- **THEN** `prebuild-security-complete` finalizes with failure
+- **AND** the merge remains blocked once `Prebuild Security Complete` is bound to the ruleset
+
+#### Scenario: scancode skipped on PR with ACMR changes fails the aggregator
+
+- **WHEN** `scancode-license-pr-diff` is skipped during a `pull_request` event that includes ACMR changes
+- **THEN** `prebuild-security-complete` finalizes with failure
+
+#### Scenario: scancode skipped on PR without ACMR changes is tolerated
+
+- **WHEN** `scancode-license-pr-diff` is skipped during a `pull_request` event that does NOT include ACMR changes
+- **THEN** `prebuild-security-complete` treats the skipped entry as passing
+
+#### Scenario: Conditional job skipped without authorization fails the aggregator
+
+- **WHEN** a conditional security job (`lockfile-audit`, `checkov-iac`, `containerfile-lint`, `actionlint-advisory`, `zizmor-advisory`, `typosquat-guarddog`) is skipped on a PR and the aggregator's path check shows the relevant change IS present
+- **THEN** `prebuild-security-complete` finalizes with failure
+
+#### Scenario: Conditional job skipped with authorization is tolerated
+
+- **WHEN** a conditional security job is skipped on a PR and the aggregator's path check shows the relevant change is ABSENT
+- **THEN** `prebuild-security-complete` treats the skipped entry as passing
+- **AND** the aggregator finalizes with success if every other entry passed
+
+#### Scenario: PR-only jobs skipped on merge_group is tolerated
+
+- **WHEN** `prebuild-security-complete` runs on a `merge_group` or `workflow_dispatch` event
+- **THEN** skips of jobs gated `if: github.event_name == 'pull_request'` are pre-authorized by event type
+- **AND** the aggregator finalizes with success if every running entry passed
+
+#### Scenario: Cancelled job fails the aggregator
+
+- **WHEN** any of the 9 security jobs finalizes with `cancelled`
+- **THEN** `prebuild-security-complete` finalizes with failure (cancelled is not a success)
 
 ### Requirement: Job display names identify their block
 
@@ -745,6 +820,28 @@ The system SHALL verify that all 4 existing ruleset status checks (`verify-signa
 - **WHEN** a test PR violates any ruleset rule (missing signature, non-conventional commit, invalid PR title, missing DCO)
 - **THEN** the corresponding check fails
 - **AND** the failure is independent of any dead-code or aggregator changes
+
+### Requirement: Strict aggregator with skip-authorization
+
+The `prebuild-quality-complete` aggregator SHALL pass `needs` via environment variable (`env: NEEDS: ${{ toJSON(needs) }}`) and evaluate the verdict with `jq`/node, never interpolating `${{ }}` inside `run:`. It SHALL fail on `failure`, `cancelled`, or unauthorized `skipped`; authorized skips (via `repo-discovery` change detection) SHALL be tolerated. It SHALL include the `merge_group` trigger.
+
+#### Scenario: Unauthorized skip
+
+- **WHEN** a mandatory quality job is skipped without `repo-discovery` authorization
+- **THEN** the aggregator fails with exit 1
+
+#### Scenario: Authorized skip
+
+- **WHEN** `repo-discovery` indicates an area did not change
+- **THEN** the corresponding job is skipped and tolerated
+- **AND** the aggregator reports success if the rest pass
+
+#### Scenario: Merge queue
+
+- **WHEN** a PR enters the merge queue
+- **THEN** quality workflows re-run with `merge_group`
+- **AND** the aggregator re-evaluates against the updated base
+  EOF
 
 ## Notes
 

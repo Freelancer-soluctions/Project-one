@@ -13,7 +13,10 @@
 # `.checkov.baseline` (`checkov -b .checkov.baseline --fail-on-new`) para no
 # penalizar deuda histórica.
 #
-soft-fail: true
+# FASE 2 BLOCKING ACTIVA (2026-11-10): el job PR no lleva job-COE ni
+# soft-fail. El weekly conserva `continue-on-error` y el pre-commit pasa
+# `--soft-fail` explícito, así que ambos siguen siendo advisory.
+soft-fail: false
 compact: true
 quiet: true
 framework:

@@ -253,7 +253,7 @@ lockfile-audit-weekly:
 ## 7. Decisiones para `project-one` (coherentes con cambios existentes)
 
 1. **D1 — No reemplazar `dependency-review` (L765):** manifest PR-time es rápido y bloqueante; se mantiene.
-2. **D2 — Añadir `lockfile-audit` PR-time (fase 1 advisory):** `npm audit --json` + artifact 14d; `continue-on-error: true`; no bloquea hasta fase 2.
+2. **D2 — Añadir `lockfile-audit` PR-time (fase 1 advisory):** `npm audit --json` + artifact 14d; `continue-on-error: true`; **FASE 2 blocking activa desde 2026-11-10** (sin COE a nivel job ni en el step de audit).
 3. **D3 — Extender `scheduled-security.yml` con `lockfile-audit-weekly`:** evidencia 90d; `npm audit` + `trivy fs` (SARIF); alinea con `scancode-license-audit`.
 4. **D4 — Ajustar `.github/dependabot.yml` existente (NO crear el archivo):** ya está activo (npm + github-actions + docker, `weekly` lunes 03:00 UTC, `groups.dev-dependencies`, `open-pull-requests-limit: 10` — ver §3.3); el ajuste se limita a añadir grupo `security-patches` (solo `patch`) + `cooldown`/`default-days`; prevención, no gate; complementario.
 5. **D5 — Pre-commit local (opcional, fase 1):** `npm audit --audit-level=moderate` en `.husky/pre-commit`; advisory; sin artifact.
@@ -305,4 +305,74 @@ lockfile-audit-weekly:
   | `omniroute@3.8.50` (devDep) | `omniroute` (RCE ACP, critical), `next@16.3.1` (RCE ×2, critical), `onnxruntime-node` + `adm-zip` (high), `dompurify@3.4.13` (moderate), `monaco-editor` (low) | 2 critical, 2 high, 1 moderate, 1 low | Dependencia de tooling IA sin fix disponible upstream (3.8.50 = latest; su pin `next@16.3.1` es interno). No corre en producción. FASE 2 del gate requerirá fix upstream o override/exclusión documentada |
   | `storybook@9.1.20` (devDep) | 8 paquetes `@storybook/*` (moderate), `@vitest/mocker@3.2.4` elevado desde `storybook@9.1` (moderate)                                                          | 9 moderate                            | Fix solo en `storybook@10.x` (migración mayor futura; 9.2.0 stable no existe aún — solo alphas vulnerables). No corre en producción                                                                       |
 
+- **TRIAJE `npm audit` 66 → 54 (2026-11-12, sin `--force`):** el gate llevaba rojo en cada PR desde la deriva de advisories. `omniroute` 3.8.50 → **3.8.53** (patch; elimina los critical de `omniroute`/`next` y los high de `adm-zip`/`onnxruntime-node`) + overrides `launch-editor@^2.14.2`, `shell-quote@^1.12.0`, `dompurify@^3.4.17` (nested de `monaco-editor`): **68 → 54**, critical **6 → 1**, high **21 → 15**. El residual no tiene fix forward seguro: `npm audit fix`/`npm update` crashean en este árbol (`Cannot read properties of null (reading 'edgesOut')` — bug del arborist de npm 10.9.8), y las "recomendaciones" de `fixAvailable` para `@lhci/cli`, `typescript-eslint`, `markdownlint-cli` o `depcheck` son **downgrades**. Quedan mayores pendientes: `storybook@9.1.20` → `@vitest/mocker@3.2.4` (fix en 9.1.21/10.x; npm no resuelve 9.1.21 en este workspace, requiere `npm ci` limpio desde un lock regenerado), `body-parser` 2.x (Express 5), `vite` 8, `zod` 4 (`shadcn-ui`), cadena Lighthouse/`@lhci/cli`.
+
+- **TRIAJE `npm audit` 54 → 23 (2026-11-13, sin `--force`):** con el lockfile regenerado desde cero (los overrides con clave de rango parent-scoped no reescriben copias anidadas en el lock, y el árbol queda `invalid` hasta un `npm ci` limpio) se cierran los hallazgos que sí tenían fix forward: `storybook` 9.1.20 → **10.6.7** (el advisory crítico solo tiene fix en 10.1.0; 9.2.0 stable no existe) + `@chromatic-com/storybook` 5.6.0, `@storybook/addon-styling-webpack` 3.0.2, y vitest family 4.1.11 → **4.1.12** — Storybook 10 ya no arrastra `@vitest/mocker@3.2.4` (causa del critical). Overrides nuevos: `qs@^6.17.1`, `ip-address@10.7.6`, `markdown-it@14.3.3`, `smol-toml@1.9.1`, `fast-uri@3.1.9`, `decode-uri-component@0.5.1`, `katex@0.19.1`, y parent-scoped `@tailwindcss/typography > postcss-selector-parser@6.1.5`, `markdownlint-cli > js-yaml@5.5.0`, `@joshwooding/vite-plugin-react-docgen-typescript > glob@14.0.6`, `omniroute > body-parser@2.4.0`, `omniroute`/`@fission-ai/openspec > zod@4.6.7`; bumps `shadcn-ui@^0.9.5`, `@lhci/cli@^0.16.1`, client `vite@^6.4.6`. Resultado: **54 → 23**, critical **1 → 0**, high **15 → 10**, moderate **30 → 13**, low **8 → 0**.
+  **Residual (23) y por qué no se toca:** `typescript-eslint` 8.72.2 es la última publicada y sigue dentro del rango vulnerable (fix inexistente); la cadena Lighthouse/`@lhci` (`lighthouse@13.6.0` latest, `puppeteer-core`/`basic-ftp` sin versión corregida) solo baja con el "fix" de npm a `@lhci/cli@0.13.0`, un downgrade; `depcheck`, `eslint-plugin-storybook`, `@stryker-mutator/*` y `@vitest/eslint-plugin` tampoco tienen fix forward; `zod` es dependencia **runtime directa** de `apps/client` (`^3.23.8`, 23 schemas + `zod-i18n`), así que el fix real es migrar a zod 4 — cambio de comportamiento en formato de errores, fuera de un triaje de lockfile.
+
+- **TRIAJE `npm audit` 23 → 1 (2026-11-13, lockfile regenerado con npm ≥11):** el residual de tooling era una sola causa raíz repetida: `minimatch` `>=7.0.0 <11.0.1` (DoS por amplificación de `globparts`) entraba por `typescript-eslint`, `eslint-plugin-storybook`, `@vitest/eslint-plugin`, `depcheck`, `markdownlint-cli` y `@stryker-mutator/*`. Override `minimatch@^11.0.1` (hoisted pasa a 11.0.8, incluidas las copias anidadas de `depcheck` 7.4.9): **23 → 1**, moderate **13 → 0**, high **10 → 1**, critical 0. Además se pinnea `omniroute > react`/`react-dom` a `18.3.1`: una resolución desde cero coloca el `react@19.2.8` que exige `omniroute` (devDependency de la raíz) en `node_modules/react` y empuja el React 18 del cliente a `apps/client/node_modules/react`, con lo que `@radix-ui/*` (hoisted) y los componentes del cliente renderizan con runtimes distintos — **147 tests** del cliente mueren con `Objects are not valid as a React child`. El pin mantiene una sola copia (18.3.1); `omniroute` no se ejecuta en CI ni en scripts. El único hallazgo restante es `zod` (`<4.6.6`, agotamiento de memoria con colecciones sobredimensionadas) sobre la dependencia **runtime directa** de `apps/client` (`^3.23.8`): el fix es `zod@4.6.7`, migración mayor de 23 schemas + `zod-i18n` con cambio de formato de errores, fuera de un triaje de lockfile.
+
+  **Efecto colateral del hoisting en `@types`:** con el resolve nuevo `@types/react` 19 queda en la raíz y `@types/react` 18 en `apps/client/node_modules`. Como los paquetes de DefinitelyTyped publican `exports` condicionados a `types` y dependency-cruiser añade `node_modules/@types` a sus rutas de búsqueda, el import runtime `react` desde `apps/client/src` resolvía a ese stub y el gate `Import boundaries` reportaba 137 `not-to-unresolvable`. Fix: `conditionNames` del config raíz incluye `types`.
+
+  **Notas de regeneración (el lockfile de este monorepo no se puede generar solo en Windows):** `npm install --package-lock-only` en Windows **poda** los `optionalDependencies` de otras plataformas (npm bug #4828: `@rollup/rollup-linux-x64-gnu`, `@esbuild/linux-x64`), y el `npm ci` de Linux muere con `Cannot find module @rollup/rollup-linux-x64-gnu` en los 26 jobs. Secuencia reproducible sin Docker/WSL: `npx npm@12 install --package-lock-only` (npm ≥11 registra los opcionales de todas las plataformas) + `npm install --package-lock-only` con el npm del repo (normaliza las entradas que el árbol de npm 10 espera, sin volver a podar), y validar con `npm ci --dry-run` antes de commitear. El lockfile no se puede regenerar a mano: **siempre** esa doble pasada. Cualquier lockfile tocado debe verificarse con ese dry-run en Linux **y** Windows.
+
   **Notas**: (1) Todas las waivers están en cadenas **devDependency/tooling** — con `fail-on-scopes: runtime` (default, `license-policy.md` §4) el gate FASE 2 no las evaluaría como runtime; el riesgo declarado ahí aplica. (2) Los 15 residuales vuelven a entrar al radar con: omniroute > 3.8.50, storybook 9.2.0 stable / 10.x, `@vitest/mocker` ≥ fix. (3) `dompurify@3.4.8` nested de monaco y `monaco-editor@0.56` no tienen fix (monaco 0.57 existe pero lo trae omniroute `^0.56`). (4) Lockfile reconciliado con `node_modules` vía `npx npm@12 install`; tests verdes post-fix: client 30/30, server unit 161/161. (5) Lección de ecosistema: la migration SB8→SB9 elimina `@storybook/addon-essentials` y `addon-interactions` (absorbidos por core), `@storybook/blocks` y `@storybook/test` (no existen @9; `addon-docs` expone `./blocks`), y exige `@chromatic-com/storybook@^4` + `@storybook/addon-styling-webpack@^2`. (6) MDX fix aplicado: `Configure.mdx` importa `Meta` desde `@storybook/addon-docs/blocks` (antes `@storybook/blocks`).
+
+---
+
+## 10. Promoción a blocking, OSV-Scanner PR-time y calibración (change `sca-lockfile-compliance`, 2026-11-10)
+
+- **Promoción**: `lockfile-audit` es **blocking** desde 2026-11-10 (`Security: Lockfile Audit`): sin job-COE ni step-COE, `npm audit --audit-level=moderate` sale 1 con hallazgos y el job tiñe el agregador `prebuild-security-complete` (una de las 9 entradas). Un fallo de red/registro también bloquea (fail-closed: no se distingue "sin hallazgos" de "no auditado").
+- **OSV-Scanner PR-time (advisory, FASE 1)** — task 1.3: step `scan -L package-lock.json --format=sarif --output-file=osv-scanner.sarif` con **binario pinneado v2.5.0 + SHA-256** (`edcfc41d…24e0c`, verificado contra el asset del release), gated a `needs.repo-discovery.outputs.lockfile == 'true'`, `continue-on-error: true`, SARIF subido con `category: osv-scanner` e incluido en el artifact `lockfile-audit-pr` (14d). Se evita `google/osv-scanner-action@v2.5.0`: su `action.yml` raíz no declara `runs:` y la action anidada cambia de CLI entre minors. Cobertura multi-ecosistema (npm/yarn/pnpm/bun) sobre el mismo lockfile; **complementa** `npm audit`, no lo sustituye.
+- **Lockfile obligatorio** — task 1.2: el job gana el step `Verify lockfile updated with manifest changes`; con `manifests == true` (raíz/sub-workspaces/e2e) y `lockfile != true` emite `::error::` y `exit 1` (remediación: `npm install --package-lock-only`). Los flags `manifests`/`lockfile` viven en `repo-discovery` (`dorny/paths-filter@v4`) y se propagan como outputs; en `merge_group`/`workflow_dispatch` resuelven `true` (contrato de suite completa). El job sigue corriendo en **todos** los PRs: el audit del lockfile commiteado es cobertura continua barata; lo diff-aware es el guard y el step OSV.
+- **Calibración (tasks 2.1-2.3)**: ventana advisory **2026-09-29 → 2026-11-10**, reconstruida con `gh api` sobre los 117 PR runs del workflow: **116/116** ejecuciones del job `Security: Lockfile Audit (advisory, FASE 1)` terminaron `success`; **0 fallos de job** y **0 falsos positivos** registrados en `security/exceptions.yml`. _Límite honesto_: en FASE 1 el step tenía COE, así que `success` de job no distingue "sin hallazgos" de "hallazgos no bloqueantes"; la clasificación por hallazgo es manual y, si aplica, se registra como excepción (≤ 90 días).
+- **Limitación OSV (task 5.2)**: OSV-Scanner consulta OSV DB (30+ fuentes) y emite SARIF con CVSS, pero **no** calcula EPSS, KEV ni reachability. El triaje de explotabilidad sigue siendo manual: cruzar con FIRST EPSS + CISA KEV (`docs/runbooks/security/cve-triage.md`); triaje completo = Snyk (comercial), fuera de alcance de este change.
+- **Rollback**: revertir el commit del job completo. `lockfile-audit` está en `prebuild-security-complete.needs`, así que el revert debe quitar también esa entrada (el agregador es estricto con `needs` desconocidos/saltados).
+- **Ventana de promoción del step OSV**: abierta el 2026-11-10 — bitácora, criterios y evidencia por run en **§11** de este documento.
+
+---
+
+## 11. Bitácora de calibración OSV-Scanner — ventana de promoción a blocking
+
+**Estado:** 🟡 ABIERTA · **Inicio:** 2026-11-10 · **Cierre objetivo:** 2026-11-24 (14 días) · **Gate afectado:** step `OSV-Scanner lockfile scan (advisory, SARIF)` del job `lockfile-audit` en `.github/workflows/ci.yml` (`continue-on-error: true` en el step y en el upload del SARIF).
+
+El step nace advisory por diseño (change `sca-lockfile-compliance`, FASE 1) y la promoción a blocking exige la ventana de calibración de 2–4 semanas de `docs/learning/quality-gates.md` §7, aplicada aquí con la misma disciplina: un run no se anota hasta que OSV **realmente se ejecuta** (PR que toca `package-lock.json`), no cuando el job se salta el step por el guard.
+
+### 11.1 Criterios de cierre (promoción a blocking)
+
+- [ ] Ventana de **≥ 14 días** desde 2026-11-10 y **≥ 5 runs con OSV ejecutado** (`lockfile` cambiado), no solo PRs abiertos.
+- [ ] **0 fallos de infraestructura** del step (checksum, descarga del binario, `--output-file`), con el artifact `lockfile-audit-pr` presente en todos esos runs.
+- [ ] **100 % de los hallazgos triados** con una de estas etiquetas: `sin hallazgos` · `corregido (PR #N)` · `waiver #N (≤ 90 días)` · `FP (motivo)`.
+- [ ] Ningún falso positivo reiterado sin clasificar en `security/exceptions.yml`; si lo hay, el cierre se pospone y se registra el motivo.
+- [ ] Decisión documentada en el PR que quita el `continue-on-error: true` del step (y del upload del SARIF), con enlace a esta bitácora.
+
+### 11.2 Registro de ejecuciones
+
+| Fecha      | Run ID | PR  | OSV ejecutado | Resultado del step | Hallazgos (crit/high/mod/low) | Triaje / acción                                                                                                                                                                                                      |
+| ---------- | ------ | --- | ------------- | ------------------ | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-10 | —      | —   | No            | —                  | —                             | **Apertura de la ventana.** El step solo existe en el árbol de trabajo (sin commit) → CI no lo ha ejecutado: 0 runs elegibles. La primera fila se anota en el primer PR que toque `package-lock.json` tras el merge. |
+
+**Límite honesto:** mientras el step tenga COE, el resultado del **job** no distingue "sin hallazgos" de "hallazgos no bloqueantes". La evidencia se toma del SARIF/artifact (`osv-scanner.sarif`), no del color del job ni del exit code del step.
+
+### 11.3 Cómo registrar un run
+
+```bash
+# 1) Runs de PR del workflow (id, fecha, rama, conclusión)
+gh api --paginate "repos/{owner}/{repo}/actions/workflows/ci.yml/runs?event=pull_request&per_page=100" \
+  --jq '.workflow_runs[] | [.id, .created_at, .head_branch, .conclusion] | @tsv'
+
+# 2) ¿Corrió OSV en ese run? (el step solo se ejecuta si el PR toca el lockfile)
+gh run view <run-id> --log --job "Security: Lockfile Audit" | grep -E "OSV|osv-scanner"
+
+# 3) Evidencia: SARIF del artifact (14d) — ausente si OSV no se ejecutó
+gh run download <run-id> -n lockfile-audit-pr -D .tmp/osv-evidence
+
+# 4) Hallazgos agregados (Code Scanning, categoría osv-scanner)
+gh api "repos/{owner}/{repo}/code-scanning/analyses?tool_name=OSV-Scanner&per_page=20" \
+  --jq '.[] | [.created_at, .results_count] | @tsv'
+```
+
+### 11.4 Promoción y rollback
+
+- **Promoción (al cerrar §11.1):** quitar `continue-on-error: true` del step `OSV-Scanner lockfile scan (advisory, SARIF)`, renombrar el step sin `(advisory, ...)`, actualizar las filas de `docs/learning/quality-gates.md` §2/§4.4 y §10 de este documento, y enlazar esta bitácora en el PR. Con el step bloqueante, cualquier hallazgo OSV (exit code 1) tiñe `lockfile-audit` y el agregador `prebuild-security-complete`. El `continue-on-error` del **upload** del SARIF se mantiene a propósito: un fallo de `security-events` (p. ej. PR desde fork) es de infraestructura y no debe bloquear un merge; la señal bloqueante es el scan, no la publicación.
+- **Rollback:** reponer `continue-on-error: true` en el step y en el upload **con causa registrada en esta bitácora** (fecha, run, motivo). No se toca `npm audit`, que ya es blocking: OSV es la capa complementaria, no la única.

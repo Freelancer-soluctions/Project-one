@@ -38,3 +38,33 @@ scripts/ci/check-coverage.mjs @Freelancer-soluctions/devops-team
 .gitleaksignore            @Freelancer-soluctions/devops-team
 .gitleaks.toml             @Freelancer-soluctions/devops-team
 .github/workflows/         @Freelancer-soluctions/devops-team
+
+# Política de excepciones, SLA y métricas (change `security-exceptions-policy`).
+# AL FINAL por la misma razón (last-match-wins): cambiar una excepción, el SLA
+# o las métricas exige revisión del equipo devops.
+/security/                 @Freelancer-soluctions/devops-team
+
+# Configuración y baselines de calidad (change `ci-quality-gates-blocking-hardening`,
+# capability `quality-governance`). AL FINAL por la misma regla de last-match-wins:
+# cambiar la configuración del linter o podar un baseline es un cambio de política
+# y exige revisión del equipo devops; un baseline/allowlist regenerado por comodidad
+# no debe pasar sin owner. `eslint-suppressions.json` aún no existe: el patrón queda
+# listo para cuando la supresión masiva se active (ratchet documentado en
+# docs/learning/quality-policy.md).
+/eslint.config.js            @Freelancer-soluctions/devops-team
+/eslint.config.*             @Freelancer-soluctions/devops-team
+/.dependency-cruiser.cjs     @Freelancer-soluctions/devops-team
+/.dependency-cruiser.*       @Freelancer-soluctions/devops-team
+/apps/*/.dependency-cruiser.cjs @Freelancer-soluctions/devops-team
+/.dependency-cruiser-known-violations.json @Freelancer-soluctions/devops-team
+/eslint-suppressions.json    @Freelancer-soluctions/devops-team
+/knip.json*                  @Freelancer-soluctions/devops-team
+/manifest-allowlist.json     @Freelancer-soluctions/devops-team
+/tsconfig.json               @Freelancer-soluctions/devops-team
+/.vale.ini                   @Freelancer-soluctions/devops-team
+/.markdownlint.json          @Freelancer-soluctions/devops-team
+/.markdownlintignore         @Freelancer-soluctions/devops-team
+/.github/styles/             @Freelancer-soluctions/devops-team
+/scripts/ci/                 @Freelancer-soluctions/devops-team
+/docs/learning/quality-policy.md    @Freelancer-soluctions/devops-team
+/docs/learning/quality-exceptions.md @Freelancer-soluctions/devops-team

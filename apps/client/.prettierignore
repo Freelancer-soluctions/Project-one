@@ -1,0 +1,12 @@
+# Artefactos generados (change `ci-format-check-blocking`): no son fuente y
+# existen en local/CI, así que no deben hacer fallar `prettier --check`.
+node_modules
+dist
+build
+storybook-static
+coverage
+reports/
+.vitest-reports/
+test-results/
+playwright-report/
+*.log

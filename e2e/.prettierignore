@@ -1,0 +1,13 @@
+# Artefactos generados (change `ci-format-check-blocking`): no son fuente y
+# existen tras ejecutar Playwright, así que no deben hacer fallar
+# `prettier --check`.
+node_modules
+test-results/
+playwright-report/
+blob-report/
+reports/
+coverage/
+dist/
+build/
+.vitest-reports/
+*.log

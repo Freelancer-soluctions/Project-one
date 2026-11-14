@@ -19,15 +19,15 @@
 set -u
 
 # ------------------------------------------------------------
-# Política: devDependencies EXCLUIDAS del escaneo (FASE 1).
+# Política: devDependencies EXCLUIDAS del escaneo (blocking desde día uno).
 # Para incluirlas: PR que cambie esto a `true` con justificación.
 # ------------------------------------------------------------
 export GUARDDOG_NPM_INCLUDE_DEV_DEPENDENCIES=false
 
 # ------------------------------------------------------------
 # Exclusiones de reglas (selectivas, justificadas por regla).
-# FASE 1: NINGUNA excluida — acumular runs advisory antes de
-# excluir nada (la promoción a FASE 2 exige clasificar el ruido).
+# Blocking desde día uno: NINGUNA excluida. Exclusiones (si se necesitan)
+# se añaden aquí con justificación (qué regla, por qué, hasta cuándo).
 #
 # Formato: --exclude-rules <regla> (repetible). Reglas npm reales
 # en v3.2.0 (RULES.md): threat.metadata.typosquatting,
@@ -75,10 +75,85 @@ rm -f "${guarddog_stderr}"
 # plataforma no lo soporta, el scan falla — comportamiento seguro por
 # defecto (mitiga CVE-2022-23530/31, CVE-2026-22870/871). En Windows
 # nativo fallará (GuardDog solo soporta Windows vía Docker): los
-# consumidores llaman este script con `|| true` (advisory).
+# consumidores llaman este script con `|| true` (para generar la evidencia) y
+# el gate bloqueante parsea el SARIF, no el exit code.
 #
 # `--output-format sarif` es OBLIGATORIO: los jobs `typosquat-guarddog` /
 # `guarddog-weekly` y el hook pre-commit redirigen stdout a un .sarif que
 # se sube a Code Scanning (upload-sarif valida el JSON). Sin el flag,
 # GuardDog imprime texto plano y el "SARIF" queda corrupto/invalido.
-exec uvx --python "${GUARDDOG_PYTHON}" "guarddog==${GUARDDOG_PIN}" npm verify package.json --output-format sarif "$@"
+
+# ------------------------------------------------------------
+# Alcance del escaneo: manifiestos de PRODUCTO (raíz + workspaces declarados
+# en `package.json`). GuardDog `npm verify` recorre el árbol completo y NO
+# tiene flag de exclusión, así que se monta un espejo temporal con solo esos
+# manifiestos. Se conserva la ruta relativa (misma forma de árbol) para que
+# las URIs del SARIF sigan siendo repo-relativas y Code Scanning no marque
+# rutas inexistentes.
+#
+# Quedan fuera `.opencode/**` y `docs/opencode/**`: son manifiestos de
+# tooling de agentes, no dependencias que se distribuyan con el producto, y
+# sus paquetes (plugins/SDK) disparan heurísticas `capability-*`
+# (network-outbound, process-spawn) que no describen un typosquat. Si en el
+# futuro alguno pasa a ser dependencia de producto, basta con declararlo como
+# workspace y entra automáticamente.
+# ------------------------------------------------------------
+GUARDDOG_SCOPE="$(mktemp -d)"
+trap 'rm -rf "${GUARDDOG_SCOPE}"' EXIT
+
+node - "${GUARDDOG_SCOPE}" <<'NODE'
+const fs = require('node:fs');
+const path = require('node:path');
+
+const out = process.argv[2];
+const root = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+const dirs = ['.'];
+
+for (const pattern of root.workspaces || []) {
+  if (pattern.endsWith('/*')) {
+    const base = pattern.slice(0, -2);
+    for (const entry of fs.readdirSync(base)) {
+      const dir = path.join(base, entry);
+      if (fs.existsSync(path.join(dir, 'package.json'))) dirs.push(dir);
+    }
+  } else if (fs.existsSync(path.join(pattern, 'package.json'))) {
+    dirs.push(pattern);
+  }
+}
+
+for (const dir of dirs) {
+  fs.mkdirSync(path.join(out, dir), { recursive: true });
+  fs.copyFileSync(
+    path.join(dir, 'package.json'),
+    path.join(out, dir, 'package.json')
+  );
+}
+NODE
+
+# ------------------------------------------------------------
+# Reglas BLOQUEANTES: cadena de suministro npm/typosquatting (metadata).
+#
+# `verify` sin `--rules` ejecuta las 63 reglas e incluye las heurísticas de
+# código fuente (`capability-*`: red, spawn, filesystem; `threat-runtime-*`,
+# `metadata_mismatch`, `provenance_regression`, `risky_new_dependency`,
+# `bundled_binary`). Sobre un árbol de dependencias legítimo y pinnado esas
+# reglas disparan 144 hallazgos en paquetes mainstream (`@reduxjs/toolkit`,
+# `@tanstack/react-table`, `tiptap`, `bcrypt`…) y bloquean el gate sin señal de
+# typosquatting. Esas heurísticas se reservan para `guarddog npm scan <pkg>`
+# sobre un paquete concreto (análisis ad hoc), no para el gate de PR.
+# Bloquean solo los detectores de cadena de suministro:
+GUARDDOG_RULES=(
+  typosquatting
+  threat-npm-dependency-confusion
+  deceptive_author
+  unclaimed_maintainer_email_domain
+  potentially_compromised_email_domain
+  direct_url_dependency
+  threat-npm-http-dependency
+  threat-npm-preinstall-script
+  threat-setup-network-in-install
+)
+RULE_ARGS=()
+for rule in "${GUARDDOG_RULES[@]}"; do RULE_ARGS+=(--rules "${rule}"); done
+
+( cd "${GUARDDOG_SCOPE}" && uvx --python "${GUARDDOG_PYTHON}" "guarddog==${GUARDDOG_PIN}" npm verify . --output-format sarif "${RULE_ARGS[@]}" "$@" )

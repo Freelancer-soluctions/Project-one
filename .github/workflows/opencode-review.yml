@@ -22,7 +22,9 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
 
       - name: Install opencode
         run: |
@@ -41,7 +43,7 @@ jobs:
           # MODEL replaces the former `with: model:` input (action set MODEL env var internally)
           MODEL: google/gemini-3.6-flash
           # use_github_token:true exige GITHUB_TOKEN (former `with: use_github_token:` input)
-          USE_GITHUB_TOKEN: "true"
+          USE_GITHUB_TOKEN: 'true'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Prompt: the composite action passed `with: prompt:` via PROMPT env var
           # (github/action.yml L62); the `opencode github run` CLI reads PROMPT from environment
