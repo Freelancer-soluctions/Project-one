@@ -23,4 +23,4 @@
 - [ ] Ejecutar `openspec sync secret-scanning-history-governance` para propagar las 4 ADDED requirements (`Baseline and allowlist governance`, `Scanner health and anti-skip`, `Pre-release secret scan`, `Secret incident response`) y el MODIFIED `Scheduled full-repository scan` a `openspec/specs/ci-secret-scanning/spec.md`.
 - [ ] Gate: sincronizar SOLO después de que `ci-security-hardening` haya aterrizado el fail-closed (remoción de `continue-on-error` en `gitleaks-full-scan`) y lo haya verificado vía `workflow_dispatch`. Hasta entonces, mantener el delta sin sincronizar para no propagar una afirmación incumplida.
 - [ ] Gate: coordinar con `secret-scanning` task 6.2 para añadir `Secret Detection`/`Prebuild Security Complete` a `required_status_checks` antes de sincronizar, o suavizar el escenario de bloqueo del delta (spec.md:78) para que no afirme un enforcement inexistente.
-- [ ] Verificar con `openspec validate --specs --strict` tras el sync.
+- [x] Verificar con `openspec validate --specs --strict` tras el sync. — ✅ ejecutado 2026-11-16: 178 passed, 0 failed

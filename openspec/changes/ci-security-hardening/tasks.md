@@ -58,7 +58,7 @@ Migración runtime Node 20→24 (deadline **2026-09-16**) + hardening enterprise
 
 ## Verificación final
 
-- [ ] 4.1 Ejecutar `npx actionlint` sobre los 8 workflows tocados (ci, deploy, preview, quality, release, scheduled-security, security-digest, security) y confirmar 0 errores
-- [ ] 4.2 Ejecutar `openspec validate` y confirmar que el change `ci-security-hardening` pasa la validación
-- [ ] 4.3 Ejecutar `openspec status --change ci-security-hardening` y confirmar apply-ready antes de delegar implementación
-- [ ] 4.4 Confirmar que `ci-enterprise.yml` NO aparece en el diff (zombie preservado) — verifiable vía `git diff` al commitear
+- [x] 4.1 Ejecutar `npx actionlint` sobre los 8 workflows tocados (ci, deploy, preview, quality, release, scheduled-security, security-digest, security) y confirmar 0 errores — ✅ ejecutado 2026-11-16: 0 errores
+- [x] 4.2 Ejecutar `openspec validate` y confirmar que el change `ci-security-hardening` pasa la validación — ✅ ejecutado 2026-11-16: válido
+- [x] 4.3 Ejecutar `openspec status --change ci-security-hardening` y confirmar apply-ready antes de delegar implementación — ✅ ejecutado 2026-11-16: 4/4 artifacts
+- [x] 4.4 Confirmar que `ci-enterprise.yml` NO aparece en el diff (zombie preservado) — verifiable vía `git diff` al commitear — ✅ verificado: no tocado (zombie preservado)
