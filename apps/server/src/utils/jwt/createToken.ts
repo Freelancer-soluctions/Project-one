@@ -15,7 +15,7 @@ export const createTokenOld = (payload = {}) => {
         // expiresIn: '5m'
         expiresIn: '1d',
       },
-      (err, token) => {
+      (err: Error | null, token: string | undefined) => {
         if (err) {
           reject('token not generated.');
         } else {
@@ -35,7 +35,7 @@ export const createRefreshTokenOld = (payload = {}) => {
       {
         expiresIn: '1d',
       },
-      (err, token) => {
+      (err: Error | null, token: string | undefined) => {
         if (err) {
           reject('refresh token not generated.');
         } else {
