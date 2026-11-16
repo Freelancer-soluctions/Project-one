@@ -97,7 +97,7 @@ jobs:
           path: artifacts/osv-report
       - name: Find latest scheduled-security run
         id: sibling-run
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const runs = await github.rest.actions.listWorkflowRuns({
@@ -134,7 +134,7 @@ jobs:
           path: security-digest.md
       - name: Post digest comment to PR
         if: inputs.pull_request_number != ''
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           # Nunca interpolar `${{ inputs.* }}` dentro de `script:` (zizmor
           # `template-injection`): la entrada va por entorno.
@@ -164,7 +164,7 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.issues.create({
