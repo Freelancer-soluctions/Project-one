@@ -37,3 +37,14 @@ Contexto: el PR #164 dejó 30 alertas abiertas en GitHub Advanced Security (CVEs
 - [x] 4.2 **Evidencia**: `npm run docs:lint` (gate real) exit 0; join diff×lint sobre los 5 docs → 94 líneas añadidas, 0 violaciones nuevas
 - [ ] 4.3 Operacional pre-merge documentado: verificar en GitHub que el check `Quality: ActionLint` no esté en `required_status_checks` del ruleset `main` (removerlo del ruleset si lo está). Verificación: paso anotado y ejecutado post-push, pre-merge
 - [ ] 4.4 Primer run observado en GitHub (post-push del PR de implementación, pre-merge): `dependency-review` valida `config-file` sin error de startup, `scancode-license-pr-diff` imprime la deny-list desde el archivo nuevo, `actionlint-advisory` corre vía imagen Docker y sube SARIF. Verificación: run en el PR con los 3 jobs en estado esperado
+
+## 6. Audit gate (umbral graduado de npm audit)
+
+Contexto: el job `Security: Lockfile Audit` bloqueaba con `--audit-level=moderate`, lo que causaba que todos los PRs se bloquearan por advisories moderate pre-existentes (no introducidos por el PR). Se implementó un gate graduado.
+
+- [x] 6.1 Crear `scripts/audit-gate.mjs`: gate que bloquea `critical` siempre, `high` si hay fix disponible, y deja `moderate`/`low` como advisory (warning, exit 0). Fail-closed (exit 2) si el registro cae o el reporte es ilegible. Soporte de excepciones con vencimiento vía `.github/audit-exceptions.json`. **Evidencia**: `node scripts/audit-gate.mjs audit-report.json .github/audit-exceptions.json` → exit 0 con las 3 vulnerabilidades moderate como advisory.
+- [x] 6.2 Crear `.github/audit-exceptions.json` (array vacío inicial) para excepciones con GHSA, motivo y fecha de vencimiento, bajo CODEOWNERS.
+- [x] 6.3 Modificar job `lockfile-audit` en `.github/workflows/ci.yml`: reemplazar `npm audit --audit-level=moderate` por `npm audit --json > audit-report.json || true` + `node scripts/audit-gate.mjs`. Eliminar el step de resumen inline (el script ya imprime el detalle).
+- [x] 6.4 Verificar que `actionlint` pasa sobre `ci.yml` tras el cambio. **Evidencia**: `actionlint .github/workflows/ci.yml` → 0 errores.
+- [ ] 6.5 Actualizar `docs/learning/sca-dependency-lockfile-scan.md` con la tabla de umbrales graduados y el script. (pendiente)
+- [ ] 6.6 Actualizar `scheduled-security.yml` para usar el mismo gate (consistencia). (pendiente)
