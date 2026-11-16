@@ -110,7 +110,7 @@ const createTokenWithKey = (
         payload,
         secret,
         { ...options, expiresIn }, // Apply options + specific expiration
-        (err, token) => {
+        (err: Error | null, token: string | undefined) => {
           if (err) {
             return reject('Error generating token.');
           }
