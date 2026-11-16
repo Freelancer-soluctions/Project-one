@@ -15,6 +15,56 @@ components:
           example: 400
           type: integer
       type: object
+    BodyAttendanceCreateUpdate:
+      properties:
+        date:
+          example: 2024-08-05T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+        entryTime:
+          example: 09:00
+          maxLength: 5
+          type: string
+        exitTime:
+          example: 17:00
+          maxLength: 5
+          type: string
+        workedHours:
+          example: 8
+          type: number
+      required:
+        - employeeId
+        - date
+        - entryTime
+        - exitTime
+        - workedHours
+      type: object
+    BodyAttendanceUpdatePartial:
+      description: "PATCH: todos los campos son opcionales, pero debe enviarse al
+        menos uno."
+      properties:
+        date:
+          example: 2024-08-05T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+        entryTime:
+          example: 09:00
+          maxLength: 5
+          type: string
+        exitTime:
+          example: 17:00
+          maxLength: 5
+          type: string
+        workedHours:
+          example: 8
+          type: number
+      type: object
     BodyClientCreateUpdate:
       properties:
         address:
@@ -38,6 +88,130 @@ components:
         - email
         - phone
         - address
+      type: object
+    BodyClientUpdatePartial:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        address:
+          example: 123 Main St
+          maxLength: 120
+          minLength: 1
+          type: string
+        email:
+          example: john@example.com
+          format: email
+          type: string
+        name:
+          example: John Doe
+          maxLength: 100
+          minLength: 1
+          type: string
+        phone:
+          example: "+1234567890"
+          maxLength: 15
+          minLength: 1
+          type: string
+      type: object
+    BodyEmployeeCreate:
+      properties:
+        address:
+          example: Av. Siempre Viva 742
+          maxLength: 120
+          type: string
+        department:
+          example: Operaciones
+          maxLength: 100
+          type: string
+        dni:
+          example: "12345678"
+          maxLength: 10
+          type: string
+        email:
+          example: ana.perez@example.com
+          format: email
+          type: string
+        lastName:
+          example: Pérez
+          maxLength: 100
+          type: string
+        name:
+          example: Ana
+          maxLength: 100
+          type: string
+        phone:
+          example: "+5491122334455"
+          maxLength: 15
+          type: string
+        position:
+          example: Analista
+          maxLength: 100
+          type: string
+        salary:
+          example: 2500.5
+          minimum: 0
+          type: number
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+      required:
+        - name
+        - lastName
+        - dni
+        - email
+        - startDate
+        - position
+        - department
+        - salary
+      type: object
+    BodyEmployeeUpdate:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        address:
+          example: Av. Siempre Viva 742
+          maxLength: 120
+          type: string
+        department:
+          example: Operaciones
+          maxLength: 100
+          minLength: 1
+          type: string
+        dni:
+          example: "12345678"
+          maxLength: 10
+          minLength: 1
+          type: string
+        email:
+          example: ana.perez@example.com
+          format: email
+          type: string
+        lastName:
+          example: Pérez
+          maxLength: 100
+          minLength: 1
+          type: string
+        name:
+          example: Ana
+          maxLength: 100
+          minLength: 1
+          type: string
+        phone:
+          example: "+5491122334455"
+          maxLength: 15
+          type: string
+        position:
+          example: Analista
+          maxLength: 100
+          minLength: 1
+          type: string
+        salary:
+          example: 2500.5
+          minimum: 0
+          type: number
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
       type: object
     BodyEventCreateUpdate:
       properties:
@@ -110,6 +284,38 @@ components:
         - total
         - category
         - status
+      type: object
+    BodyExpensePatch:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        category:
+          enum:
+            - RENTAL
+            - UTILITIES
+            - SALARIES
+            - SUPPLIES
+            - TRANSPORT
+            - MAINTENANCE
+            - MARKETING
+            - SOFTWARE
+            - PROFESSIONAL_SERVICES
+            - TAXES
+            - BANK_FEES
+            - TRAVEL
+            - TRAINING
+            - OTHER
+          example: MARKETING
+          nullable: true
+          type: string
+        description:
+          example: New Marketing Campaign
+          maxLength: 255
+          nullable: true
+          type: string
+        total:
+          example: 500.75
+          minimum: 0.01
+          type: number
       type: object
     BodyInventoryMovementCreate:
       properties:
@@ -199,6 +405,40 @@ components:
         - statusId
         - statusCode
       type: object
+    BodyPayrollUpdate:
+      description: "PATCH: al menos un campo."
+      properties:
+        baseSalary:
+          example: 2500.5
+          minimum: 1
+          type: number
+        deductions:
+          example: 80
+          minimum: 0
+          type: number
+        employeeId:
+          example: 1
+          minimum: 1
+          type: integer
+        extraHours:
+          example: 120.5
+          minimum: 0
+          type: number
+        month:
+          example: 6
+          maximum: 12
+          minimum: 1
+          type: integer
+        totalPayment:
+          example: 2541
+          minimum: 1
+          type: number
+        year:
+          example: 2024
+          maximum: 2100
+          minimum: 1900
+          type: integer
+      type: object
     BodyProductCategoryCreate:
       properties:
         code:
@@ -262,6 +502,41 @@ components:
         - name
         - status
       type: object
+    BodyProviderPatch:
+      description: "PATCH: al menos un campo."
+      properties:
+        address:
+          example: Av. Principal 123
+          maxLength: 120
+          nullable: true
+          type: string
+        code:
+          example: P01
+          maxLength: 3
+          type: string
+        contactEmail:
+          example: contacto@proveedor.com
+          maxLength: 80
+          nullable: true
+          type: string
+        contactName:
+          example: Juan Pérez
+          maxLength: 60
+          nullable: true
+          type: string
+        contactPhone:
+          example: "+123456789"
+          maxLength: 15
+          nullable: true
+          type: string
+        name:
+          example: Proveedor ABC
+          maxLength: 100
+          type: string
+        status:
+          example: true
+          type: boolean
+      type: object
     BodyPurchaseCreate:
       properties:
         details:
@@ -282,6 +557,34 @@ components:
         - total
         - details
       type: object
+    BodyPurchasePatch:
+      description: "PATCH: al menos un campo."
+      properties:
+        details:
+          items:
+            properties:
+              price:
+                example: 750.37
+                minimum: 0
+                type: number
+              productId:
+                example: 1
+                type: integer
+              quantity:
+                example: 2
+                minimum: 1
+                type: integer
+            type: object
+          minItems: 1
+          type: array
+        providerId:
+          example: 1
+          type: integer
+        total:
+          example: 1500.75
+          minimum: 0
+          type: number
+      type: object
     BodySaleCreateUpdate:
       properties:
         clientId:
@@ -301,6 +604,34 @@ components:
         - clientId
         - total
         - details
+      type: object
+    BodySalePatch:
+      description: "PATCH: al menos un campo."
+      properties:
+        clientId:
+          example: 1
+          type: integer
+        details:
+          items:
+            properties:
+              price:
+                example: 750.37
+                minimum: 0
+                type: number
+              productId:
+                example: 1
+                type: integer
+              quantity:
+                example: 2
+                minimum: 1
+                type: integer
+            type: object
+          minItems: 1
+          type: array
+        total:
+          example: 1500.75
+          minimum: 0
+          type: number
       type: object
     BodyStockCreateUpdate:
       properties:
@@ -423,6 +754,116 @@ components:
         - zipcode
         - userPermitId
       type: object
+    BodyUserUpdate:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        accessConfiguration:
+          example: false
+          type: boolean
+        accessNews:
+          example: true
+          type: boolean
+        address:
+          example: 123 Main St
+          maxLength: 250
+          nullable: true
+          type: string
+        birthday:
+          example: 1990-01-01T00:00:00Z
+          format: date-time
+          type: string
+        city:
+          example: Anytown
+          maxLength: 35
+          nullable: true
+          type: string
+        document:
+          example: "123456789"
+          nullable: true
+          type: string
+        email:
+          example: john@example.com
+          format: email
+          type: string
+        isAdmin:
+          example: false
+          type: boolean
+        isManager:
+          example: false
+          type: boolean
+        name:
+          example: John Doe
+          maxLength: 100
+          minLength: 1
+          type: string
+        password:
+          description: "Solo escritura: nunca se devuelve en las respuestas."
+          example: S3cr3t
+          minLength: 1
+          type: string
+        permissions:
+          example:
+            - 1
+            - 2
+          items:
+            type: integer
+          type: array
+        picture:
+          example: https://example.com/avatar.png
+          nullable: true
+          type: string
+        roleId:
+          example: 2
+          minimum: 1
+          type: integer
+        socialSecurity:
+          example: "123456789"
+          maxLength: 9
+          type: string
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        state:
+          example: CA
+          maxLength: 50
+          nullable: true
+          type: string
+        statusId:
+          example: 1
+          minimum: 1
+          type: integer
+        telephone:
+          example: 555-123-4567
+          maxLength: 15
+          type: string
+        zipcode:
+          example: "90210"
+          maxLength: 9
+          type: string
+      type: object
+    BodyVacationPatch:
+      properties:
+        employeeId:
+          example: 1
+          minimum: 1
+          type: integer
+        endDate:
+          example: 2024-08-15T00:00:00Z
+          format: date-time
+          type: string
+        startDate:
+          example: 2024-08-01T00:00:00Z
+          format: date-time
+          type: string
+        status:
+          enum:
+            - PENDING
+            - APPROVED
+            - REJECTED
+          example: PENDING
+          type: string
+      type: object
     BodyWarehouseCreate:
       properties:
         address:
@@ -502,6 +943,106 @@ components:
           example: 200
           type: integer
       type: object
+    Employee:
+      properties:
+        address:
+          example: Av. Siempre Viva 742
+          maxLength: 120
+          nullable: true
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-03-15T10:30:00Z
+          format: date-time
+          type: string
+        department:
+          example: Operaciones
+          maxLength: 100
+          type: string
+        dni:
+          example: "12345678"
+          maxLength: 128
+          type: string
+        email:
+          example: ana.perez@example.com
+          format: email
+          type: string
+        id:
+          example: 1
+          type: integer
+        lastName:
+          example: Pérez
+          maxLength: 100
+          type: string
+        name:
+          example: Ana
+          maxLength: 100
+          type: string
+        phone:
+          example: "+5491122334455"
+          maxLength: 15
+          nullable: true
+          type: string
+        position:
+          example: Analista
+          maxLength: 100
+          type: string
+        salary:
+          description: Salario serializado por la columna VarChar(128), no un número.
+          example: "2500.50"
+          maxLength: 128
+          type: string
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    EmployeeFilters:
+      properties:
+        department:
+          example: Operaciones
+          maxLength: 100
+          type: string
+        dni:
+          example: "12345678"
+          maxLength: 10
+          type: string
+        email:
+          example: ana.perez@example.com
+          format: email
+          type: string
+        lastName:
+          example: Pérez
+          maxLength: 100
+          type: string
+        limit:
+          example: 20
+          minimum: 1
+          type: integer
+        name:
+          example: Ana
+          maxLength: 100
+          type: string
+        page:
+          example: 1
+          minimum: 1
+          type: integer
+        position:
+          example: Analista
+          maxLength: 100
+          type: string
+      type: object
     Error:
       properties:
         error:
@@ -513,6 +1054,59 @@ components:
         statusCode:
           example: 500
           type: number
+      type: object
+    EventsUpdateSchema:
+      description: "PATCH: todos los campos son opcionales. `meetingUrl` es
+        obligatorio para ONLINE/HYBRID y prohibido para IN_PERSON; `location` al
+        contrario."
+      properties:
+        capacity:
+          example: 100
+          minimum: 0
+          type: integer
+        description:
+          example: Charla sobre IA
+          maxLength: 200
+          type: string
+        endTime:
+          example: 11:00
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          type: string
+        eventDate:
+          example: 2025-06-15T00:00:00Z
+          format: date-time
+          type: string
+        location:
+          example: Auditorio principal
+          maxLength: 200
+          type: string
+        meetingUrl:
+          example: https://meet.example.com/abc-123
+          maxLength: 500
+          type: string
+        modality:
+          enum:
+            - ONLINE
+            - IN_PERSON
+            - HYBRID
+          example: HYBRID
+          type: string
+        speaker:
+          example: John Doe
+          maxLength: 20
+          nullable: true
+          type: string
+        startTime:
+          example: 09:00
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          type: string
+        title:
+          example: Tech Conference 2025
+          maxLength: 50
+          type: string
+        type:
+          example: 2
+          type: integer
       type: object
     ExpenseFilters:
       properties:
@@ -671,6 +1265,26 @@ components:
         - statusId
         - statusCode
       type: object
+    NewsUpdatePartial:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        description:
+          example: Noticia actualizada
+          maxLength: 400
+          minLength: 1
+          type: string
+        document:
+          example: Documento en base64
+          nullable: true
+          type: string
+        statusCode:
+          example: C01
+          maxLength: 3
+          type: string
+        statusId:
+          example: 1
+          type: integer
+      type: object
     NotFound:
       properties:
         error:
@@ -681,6 +1295,71 @@ components:
           type: string
         statusCode:
           example: 404
+          type: integer
+      type: object
+    PerformanceEvaluationCreate:
+      properties:
+        calification:
+          example: 8
+          maximum: 10
+          minimum: 1
+          type: integer
+        comments:
+          example: Buen desempeño
+          maxLength: 200
+          type: string
+        date:
+          example: 2024-06-30T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+      required:
+        - employeeId
+        - date
+        - calification
+      type: object
+    PerformanceEvaluationFilters:
+      properties:
+        employeeId:
+          example: 1
+          type: integer
+        fromDate:
+          example: 2024-01-01
+          format: date
+          type: string
+        limit:
+          example: 20
+          minimum: 1
+          type: integer
+        page:
+          example: 1
+          minimum: 1
+          type: integer
+        toDate:
+          example: 2024-12-31
+          format: date
+          type: string
+      type: object
+    PerformanceEvaluationPatch:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        calification:
+          example: 8
+          maximum: 10
+          minimum: 1
+          type: integer
+        comments:
+          example: Buen desempeño
+          maxLength: 200
+          type: string
+        date:
+          example: 2024-06-30T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
           type: integer
       type: object
     Permission:
@@ -713,8 +1392,8 @@ components:
           type: integer
         endDate:
           description: End date of the permission
-          example: 2024-03-26
-          format: date
+          example: 2024-08-15T00:00:00Z
+          format: date-time
           type: string
         id:
           description: The permission ID
@@ -726,8 +1405,8 @@ components:
           type: string
         startDate:
           description: Start date of the permission
-          example: 2024-03-25
-          format: date
+          example: 2024-08-01T00:00:00Z
+          format: date-time
           type: string
         status:
           description: Current status of the permission
@@ -890,6 +1569,44 @@ components:
           format: date-time
           type: string
       type: object
+    ResponseAttendanceCreateUpdate:
+      properties:
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-08-05T09:00:00Z
+          format: date-time
+          type: string
+        date:
+          example: 2024-08-05T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+        entryTime:
+          example: 09:00
+          type: string
+        exitTime:
+          example: 17:00
+          type: string
+        id:
+          example: 1
+          type: integer
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+        workedHours:
+          example: "8.00"
+          type: string
+      type: object
     ResponseClientCreateUpdate:
       properties:
         address:
@@ -924,6 +1641,62 @@ components:
         updatedOn:
           example: 2024-03-17T10:30:00Z
           format: date-time
+          type: string
+      type: object
+    ResponseEmployeeCreateUpdate:
+      properties:
+        address:
+          example: null
+          nullable: true
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-03-15T10:30:00Z
+          format: date-time
+          type: string
+        department:
+          example: Operaciones
+          type: string
+        dni:
+          example: "12345678"
+          type: string
+        email:
+          example: ana.perez@example.com
+          format: email
+          type: string
+        id:
+          example: 1
+          type: integer
+        lastName:
+          example: Pérez
+          type: string
+        name:
+          example: Ana
+          type: string
+        phone:
+          example: null
+          nullable: true
+          type: string
+        position:
+          example: Analista
+          type: string
+        salary:
+          example: "2500.50"
+          type: string
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
           type: string
       type: object
     ResponseEventCreateUpdate:
@@ -978,6 +1751,61 @@ components:
     ResponseExpenseCreateUpdate:
       allOf:
         - $ref: "#/components/schemas/ResponseGetExpense"
+    ResponseGetAttendance:
+      properties:
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-08-05T09:00:00Z
+          format: date-time
+          type: string
+        date:
+          example: 2024-08-05T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+        employeeLastName:
+          example: Pérez
+          nullable: true
+          type: string
+        employeeName:
+          example: Ana
+          nullable: true
+          type: string
+        entryTime:
+          example: 09:00
+          type: string
+        exitTime:
+          example: 17:00
+          type: string
+        id:
+          example: 1
+          type: integer
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+        userAttendanceCreatedName:
+          example: Admin
+          nullable: true
+          type: string
+        userAttendanceUpdatedName:
+          example: null
+          nullable: true
+          type: string
+        workedHours:
+          description: Decimal(18,2) serializado como string por el driver de Postgres.
+          example: "8.00"
+          type: string
+      type: object
     ResponseGetClient:
       properties:
         address:
@@ -1049,6 +1877,78 @@ components:
         updatedOn:
           description: Update Timestamp
           format: date-time
+          nullable: true
+          type: string
+      type: object
+    ResponseGetEmployee:
+      properties:
+        address:
+          example: null
+          maxLength: 120
+          nullable: true
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-03-15T10:30:00Z
+          format: date-time
+          type: string
+        department:
+          example: Operaciones
+          maxLength: 100
+          type: string
+        dni:
+          example: "12345678"
+          maxLength: 128
+          type: string
+        email:
+          example: ana.perez@example.com
+          format: email
+          type: string
+        id:
+          example: 1
+          type: integer
+        lastName:
+          example: Pérez
+          maxLength: 100
+          type: string
+        name:
+          example: Ana
+          maxLength: 100
+          type: string
+        phone:
+          example: null
+          maxLength: 15
+          nullable: true
+          type: string
+        position:
+          example: Analista
+          maxLength: 100
+          type: string
+        salary:
+          example: "2500.50"
+          maxLength: 128
+          type: string
+        startDate:
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+        userEmployeeCreatedName:
+          example: Admin
+          nullable: true
+          type: string
+        userEmployeeUpdatedName:
+          example: null
           nullable: true
           type: string
       type: object
@@ -1276,6 +2176,54 @@ components:
           example: null
           nullable: true
           type: object
+      type: object
+    ResponseGetPerformanceEvaluation:
+      properties:
+        calification:
+          example: 8
+          type: integer
+        comments:
+          example: Buen desempeño
+          nullable: true
+          type: string
+        createdBy:
+          example: 1
+          type: integer
+        createdOn:
+          example: 2024-06-30T10:00:00Z
+          format: date-time
+          type: string
+        date:
+          example: 2024-06-30T00:00:00Z
+          format: date-time
+          type: string
+        employeeId:
+          example: 1
+          type: integer
+        employeeName:
+          example: Ana
+          nullable: true
+          type: string
+        id:
+          example: 1
+          type: integer
+        updatedBy:
+          example: null
+          nullable: true
+          type: integer
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+        userPerformanceCreatedName:
+          example: Admin
+          nullable: true
+          type: string
+        userPerformanceUpdatedName:
+          example: null
+          nullable: true
+          type: string
       type: object
     ResponseGetProductCategories:
       properties:
@@ -2364,6 +3312,42 @@ components:
       required:
         - language
       type: object
+    SettingsPatch:
+      properties:
+        displayOptions:
+          properties:
+            displayEvents:
+              example: true
+              type: boolean
+            displayLanguage:
+              example: true
+              type: boolean
+            displayNews:
+              example: true
+              type: boolean
+            displayNotes:
+              example: true
+              type: boolean
+            displayPayroll:
+              example: true
+              type: boolean
+            displayProfile:
+              example: true
+              type: boolean
+            displayReports:
+              example: true
+              type: boolean
+            displayStock:
+              example: true
+              type: boolean
+          type: object
+        language:
+          enum:
+            - es
+            - en
+          example: es
+          type: string
+      type: object
     SettingsResponse:
       properties:
         data:
@@ -2419,6 +3403,47 @@ components:
         warehouseId:
           description: ID del almacén para filtrar
           type: string
+      type: object
+    StockPatch:
+      description: "PATCH: al menos un campo."
+      properties:
+        expirationDate:
+          example: 2025-06-15T00:00:00Z
+          format: date-time
+          nullable: true
+          type: string
+        lot:
+          example: L-2024-01
+          maxLength: 50
+          nullable: true
+          type: string
+        maximum:
+          example: 100
+          minimum: 0
+          nullable: true
+          type: integer
+        minimum:
+          example: 2
+          minimum: 0
+          type: integer
+        productId:
+          example: 1
+          type: integer
+        quantity:
+          example: 10
+          minimum: 0
+          type: integer
+        unitMeasure:
+          enum:
+            - PIECES
+            - KILOGRAMS
+            - LITERS
+            - METERS
+          example: PIECES
+          type: string
+        warehouseId:
+          example: 1
+          type: integer
       type: object
     Unauthorized:
       properties:

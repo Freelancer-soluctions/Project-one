@@ -2897,3 +2897,20 @@
  *           type: integer
  *           example: 1
  */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Permission:
+ *       type: object
+ *       properties:
+ *         id: { type: integer, example: 1 }
+ *         employeeId: { type: integer, example: 1 }
+ *         employee:
+ *           $ref: '#/components/schemas/Employee'
+ *         type: { type: string, enum: [SICK, PERSONAL, MATERNITY, PATERNITY, OTHER], example: SICK }
+ *         status: { type: string, enum: [PENDING, APPROVED, REJECTED], example: PENDING }
+ *         startDate: { type: string, format: date-time, example: "2024-08-01T00:00:00Z" }
+ *         endDate: { type: string, format: date-time, example: "2024-08-15T00:00:00Z" }
+ */
