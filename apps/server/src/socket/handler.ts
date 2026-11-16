@@ -99,7 +99,7 @@ export const getMentionsBacklog = async (userId: number) => {
     });
 
     // Transformar a formato esperado por el cliente
-    return mentions.map((mention) => ({
+    return mentions.map((mention: unknown) => ({
       id: mention.id,
       actor: {
         id: mention.mentionedByUser.id,
