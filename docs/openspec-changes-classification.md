@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # Clasificación de Changes OpenSpec no archivados
 
 Fecha: 2026-11-16 (análisis). Regla inamovible: **NO se archiva un change que tenga tasks sin completar**. Si el change necesita validación en PR (job/CI/otra validación), se ejecuta **ahora**, sin esperar tiempo.

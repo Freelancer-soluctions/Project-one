@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 -->
+
 # Decisión de changes — Stage Quality (Grupo A)
 
 > Análisis de la implementación real del pipeline y del sistema para decidir el conjunto MÍNIMO y COHERENTE de changes de OpenSpec necesarios para el stage Quality. Fecha: 2026-11-12.
@@ -106,7 +108,7 @@ Basado en gaps **reales y verificables en código**, no en el PRD abstracto:
   - Ratchet configurado en `knip.jsonc` `rules`: `warn` para tipos con hallazgos en production (`files`/`dependencies`/`exports`/`types`), `error` para tipos en cero, `duplicates: off`. Baseline production 2026-11-12: client 10 / server 6 (assets de dev-time, no dead code confirmado). Promoción por tipo documentada en `quality-policy.md` §3.1.
   - Tasks 6.1/6.2 de `ci-prebuild-substage-structure-phase2` **cerrados por supersesión** (la promoción a blocking la gobierna el ratchet de este change, no el merge de phase2).
 
-## 6. Próximos pasos:
+## 6. Próximos pasos
 
 1. **Eliminar** `ci-complexity-rules-ratchet` (sin gap funcional).
 2. **Fusionar** `ci-type-check-strict` con `server-typescript-migration` (mover `ban-ts-comment` y cache de tsBuildInfo al hardening).

@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 MD038 -->
+
 # Prebuild Security Stage — Analysis, Gap Report, and Adoption Plan
 
 **Date:** 2026-11-10 (repo date context)

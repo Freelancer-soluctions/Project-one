@@ -42,7 +42,8 @@ export default mergeConfig(
       // A cambio los tests vuelven a ser independientes del orden, que es la propiedad que un
       // gate blocking necesita para que su rojo signifique algo.
       ...(process.env.CI === 'true' ? { maxWorkers: 1, retry: 2 } : {}),
-      reporters: ['default', 'hanging-process'],
+      reporters: ['default', 'hanging-process', 'blob'],
+      outputFile: { blob: './.vitest-reports/blob.json' },
       coverage: {
         reporter: ['text', 'json-summary'],
         reportsDirectory: './tests/coverage',

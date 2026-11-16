@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 MD034 -->
+
 # Política de calidad — registro de gates (Stage Quality)
 
 > Fuente de verdad ejecutable: `.github/workflows/ci.yml`. Este documento es el
@@ -317,6 +319,20 @@ no se ejecuta. Fecha de la decisión: **2026-11-12**.
 2. Lazy-load de sub-features pesadas (calendar ya lo hace; replicar para otros).
 3. Auditar imports en Layout/Header.
 4. Medir Lighthouse en múltiples rutas.
+
+## 4.4 Decisión: blob reporter en Vitest (2026-11-16)
+
+**Contexto:** El job `Quality: Server Coverage` fallaba porque `.vitest-reports/` (blob reports) no se generaba. La config `vitest.config.ts` usaba `reporters: ['default', 'hanging-process']` sin `'blob'`.
+
+**Decisión:** Añadir `'blob'` al array de reporters y configurar `outputFile.blob: './.vitest-reports/blob.json'` para que los blobs se escriban en el directorio que el CI espera.
+
+**Fuentes:**
+
+- Vitest docs (reporters): https://vitest.dev/guide/reporters — blob reporter stores results for `--merge-reports`.
+- Vitest docs (improving performance): https://vitest.dev/guide/improving-performance — sharding with `--reporter=blob` + `--merge-reports`.
+- BuildPulse CI guide: https://buildpulse.io/blog/vitest-sharding-ci-guide — sharding pattern with blob reports.
+
+**Impacto:** Overhead mínimo; los blobs se generan automáticamente en cada run de tests. El job `Quality: Server Coverage` podrá merge los blobs y generar `coverage-summary.json`.
 
 ## 5. Referencias
 
