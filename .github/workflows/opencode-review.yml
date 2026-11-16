@@ -13,6 +13,8 @@ permissions:
 jobs:
   opencode-review:
     name: opencode-review
+    # Desactivado temporalmente (2026-11-16): no se necesita en este momento.
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     continue-on-error: true
