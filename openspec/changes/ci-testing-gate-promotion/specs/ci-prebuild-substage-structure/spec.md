@@ -41,7 +41,7 @@ explicitly out of scope).
 - **THEN** its `needs` array contains exactly those 5 jobs — no more, no less
 - **AND** `test-integration` and `test-smoke` are absent from it
 
-#### Scenario: property-tests is recorded but not made blocking
+#### Scenario: property-tests is blocking
 
 - **WHEN** `property-tests` finalizes with `failure`
 - **THEN** `prebuild-tests-complete` finalizes with failure — the record-only posture of FASE 1 no longer applies to

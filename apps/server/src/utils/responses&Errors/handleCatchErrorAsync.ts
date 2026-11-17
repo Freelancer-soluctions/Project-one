@@ -19,7 +19,7 @@ type AsyncHandler = (
 ) => Promise<unknown>;
 
 const handleCatchErrorAsync = (fn: AsyncHandler): RequestHandler => {
-  return (req, res, next) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     fn(req, res, next).catch((err: unknown) => {
       next(err);
     });

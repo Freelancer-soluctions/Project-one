@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 MD034 -->
+
 # Verificación de claims — `quality-gap-analysis.md`
 
 > Verificación en fuentes oficiales de las afirmaciones técnicas del gap analysis `docs/learning/quality-gap-analysis.md`, antes de implementar cambios en el sistema. Fecha: 2026-11-11.

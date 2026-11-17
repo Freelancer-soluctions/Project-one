@@ -923,8 +923,8 @@
   },
   {
     "type": "module",
-    "from": "apps/server/src/docs/schemas.js",
-    "to": "apps/server/src/docs/schemas.js",
+    "from": "apps/server/src/docs/schemas-shift-left.ts",
+    "to": "apps/server/src/docs/schemas-shift-left.ts",
     "rule": {
       "severity": "warn",
       "name": "no-orphans"
@@ -932,8 +932,8 @@
   },
   {
     "type": "module",
-    "from": "apps/server/src/modules/clientOrder/routes.js",
-    "to": "apps/server/src/modules/clientOrder/routes.js",
+    "from": "apps/server/src/docs/schemas.ts",
+    "to": "apps/server/src/docs/schemas.ts",
     "rule": {
       "severity": "warn",
       "name": "no-orphans"
@@ -941,8 +941,8 @@
   },
   {
     "type": "module",
-    "from": "apps/server/src/modules/users/constants/users.js",
-    "to": "apps/server/src/modules/users/constants/users.js",
+    "from": "apps/server/src/modules/security/types.ts",
+    "to": "apps/server/src/modules/security/types.ts",
     "rule": {
       "severity": "warn",
       "name": "no-orphans"
@@ -950,8 +950,8 @@
   },
   {
     "type": "module",
-    "from": "apps/server/src/socket/levels/level-01-conceptos.js",
-    "to": "apps/server/src/socket/levels/level-01-conceptos.js",
+    "from": "apps/server/src/socket/levels/level-01-conceptos.ts",
+    "to": "apps/server/src/socket/levels/level-01-conceptos.ts",
     "rule": {
       "severity": "warn",
       "name": "no-orphans"
@@ -959,8 +959,8 @@
   },
   {
     "type": "module",
-    "from": "apps/server/src/socket/levels/level-03-client.js",
-    "to": "apps/server/src/socket/levels/level-03-client.js",
+    "from": "apps/server/src/socket/levels/level-03-client.ts",
+    "to": "apps/server/src/socket/levels/level-03-client.ts",
     "rule": {
       "severity": "warn",
       "name": "no-orphans"
@@ -968,8 +968,8 @@
   },
   {
     "type": "module",
-    "from": "apps/server/src/socket/levels/level-09-hardening-client.js",
-    "to": "apps/server/src/socket/levels/level-09-hardening-client.js",
+    "from": "apps/server/src/socket/levels/level-09-hardening-client.ts",
+    "to": "apps/server/src/socket/levels/level-09-hardening-client.ts",
     "rule": {
       "severity": "warn",
       "name": "no-orphans"
@@ -977,8 +977,8 @@
   },
   {
     "type": "module",
-    "from": "apps/server/src/socket/levels/level-11-scale.js",
-    "to": "apps/server/src/socket/levels/level-11-scale.js",
+    "from": "apps/server/src/socket/levels/level-11-scale.ts",
+    "to": "apps/server/src/socket/levels/level-11-scale.ts",
     "rule": {
       "severity": "warn",
       "name": "no-orphans"
@@ -991,17 +991,6 @@
     "rule": {
       "severity": "warn",
       "name": "no-orphans"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": ".opencode/plugins/neurosymbolic-guardrails.ts",
-    "to": "../guardrails-rules",
-    "unresolvedTo": "../guardrails-rules",
-    "dependencyTypes": ["unknown"],
-    "rule": {
-      "severity": "error",
-      "name": "not-to-unresolvable"
     }
   }
 ]

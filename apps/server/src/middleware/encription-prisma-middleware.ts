@@ -179,7 +179,7 @@ function decryptFields(
   for (const field of fields) {
     if (result[field] && typeof result[field] === 'string') {
       try {
-        const encrypted = result[field];
+        const encrypted = result[field] as string;
         result[field] = decrypt(result[field]);
         decryptedCount++;
         console.log(

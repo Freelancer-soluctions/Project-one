@@ -1392,8 +1392,8 @@ components:
           type: integer
         endDate:
           description: End date of the permission
-          example: 2024-03-26
-          format: date
+          example: 2024-08-15T00:00:00Z
+          format: date-time
           type: string
         id:
           description: The permission ID
@@ -1405,8 +1405,8 @@ components:
           type: string
         startDate:
           description: Start date of the permission
-          example: 2024-03-25
-          format: date
+          example: 2024-08-01T00:00:00Z
+          format: date-time
           type: string
         status:
           description: Current status of the permission

@@ -17,7 +17,7 @@ export const swaggerOptions = {
     'src/modules/**/routes.ts',
     'src/docs/schemas.ts',
     // Schemas que completan los `$ref` de las rutas (change `ci-shifting-left`).
-    'src/docs/schemas-*.ts',
+    'src/docs/schemas-shift-left.ts',
   ],
 };
 

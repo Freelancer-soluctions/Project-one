@@ -99,7 +99,8 @@ export const getMentionsBacklog = async (userId: number) => {
     });
 
     // Transformar a formato esperado por el cliente
-    return mentions.map((mention) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return mentions.map((mention: any) => ({
       id: mention.id,
       actor: {
         id: mention.mentionedByUser.id,

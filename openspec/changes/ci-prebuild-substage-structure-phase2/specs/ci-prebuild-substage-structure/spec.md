@@ -48,6 +48,17 @@ The system SHALL remove `continue-on-error` from dead-code jobs, making knip dea
 - **AND** the aggregator `prebuild-quality-complete` propagates the failure
 - **AND** `ci-complete` reports failure, blocking the merge
 
+#### Scenario: Calibration period
+
+- **WHEN** Phase 2 begins
+- **THEN** baseline knip metrics are recorded and the team reviews them before promotion
+
+#### Scenario: Promotion to blocking
+
+- **WHEN** the team confirms knip stability
+- **THEN** `continue-on-error: true` is removed from `client-dead-code` and `server-dead-code`
+- **AND** knip failures block the merge
+
 ### Requirement: Baseline calibration of ignores
 
 The system SHALL calibrate ignores in per-workspace `knip.json` files when the knip baseline reports false positives, and document them in the change artifacts. Baseline metrics SHALL include false positive counts, required ignores, and per-workspace calibration status.
