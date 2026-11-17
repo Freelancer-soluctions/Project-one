@@ -1144,7 +1144,7 @@ jobs:
           name: coverage-server-shard-1
           path: |
             apps/server/tests/coverage/
-            apps/server/.vitest-reports/
+            apps/server/vitest-reports/
           include-hidden-files: true
           retention-days: 3
           if-no-files-found: warn
@@ -1347,14 +1347,14 @@ jobs:
       # según la entrada faltante.
       - name: Validate shard artifacts (merge gate, N=0 guard)
         run: |
-          test -d apps/server/.vitest-reports && [ -n "$(ls -A apps/server/.vitest-reports)" ] || { echo "::error::vitest blob reports missing — merge cannot proceed"; exit 1; }
+          test -d apps/server/vitest-reports && [ -n "$(ls -A apps/server/vitest-reports)" ] || { echo "::error::vitest blob reports missing — merge cannot proceed"; exit 1; }
           test -f apps/server/tests/coverage/coverage-summary.json || { echo "::error::coverage artifact missing"; exit 1; }
       # Merge de shards — change `coverage-merge-gate`: `working-directory: apps/server`
       # (root de config del server → `.vitest-reports/` y `tests/coverage/` resuelven sin
       # flags extra). SIN `--reporter=blob` por la misma razón que en el client.
       - name: Merge shard reports (vitest --merge-reports --coverage)
         working-directory: apps/server
-        run: npx vitest --merge-reports --coverage
+        run: npx vitest --merge-reports=vitest-reports --coverage
       - name: Upload merged coverage (server)
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
