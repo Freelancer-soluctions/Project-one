@@ -282,3 +282,26 @@ Coverage`, `Tests: Property Tests`), así que ningún check cambia de identidad 
       commit `0a94d774` de `main` que además describía la promoción como pendiente: reescrita en este lockstep.
 - [ ] 5.V Verificación: spec `ci-test-jobs-activation` en `openspec/specs/` con el requirement de FASE 2 ya
       sincronizado y los docs de lockstep reflejando blocking.
+
+---
+
+## Nota de validación (2026-11-17, rama ci-prebuild-improvement-v9)
+
+La validación del pipeline de testing se adaptó a la rama actual (v9). Evidencia:
+
+- CI run 44023401393: CI Complete = success, Build Complete = success, Security Pipeline = success.
+- Todos los jobs blocking de testing pasan: test-unit-client, test-unit-server, client-coverage, server-coverage, property-tests, test-integration, test-smoke.
+- La ventana de calibración (tasks 1.1-1.3) queda como deuda de proceso: requiere 3+ corridas con triaje explícito.
+- Las tasks de PR real (3.V, 4.1, 4.3) requieren PRs de prueba que se ejecutarán en el siguiente ciclo.
+
+Tasks que se pueden considerar validadas por la evidencia actual:
+
+- La pipeline de testing funciona correctamente en v9 (CI Complete = success).
+- Los jobs de testing no llevan continue-on-error (son blocking).
+- El agregador prebuild-tests-complete evalúa correctamente.
+
+Tasks que siguen bloqueadas:
+
+- 1.1-1.3, 1.V: Ventana de calibración 2-4 semanas (tiempo).
+- 3.V, 4.1, 4.3: Requieren PR de prueba específico (se ejecutarán en el siguiente ciclo).
+- 4.2, 5.V: Verificación de métrica semanal y spec (requiere datos reales).

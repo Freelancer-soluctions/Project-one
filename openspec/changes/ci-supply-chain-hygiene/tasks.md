@@ -35,8 +35,8 @@ Contexto: el PR #164 dejó 30 alertas abiertas en GitHub Advanced Security (CVEs
 
 - [x] 4.1 **Evidencia**: `openspec validate ci-supply-chain-hygiene --strict` → "is valid" (exit 0, sin warnings); `openspec validate --specs --strict` → **118 passed, 0 failed**
 - [x] 4.2 **Evidencia**: `npm run docs:lint` (gate real) exit 0; join diff×lint sobre los 5 docs → 94 líneas añadidas, 0 violaciones nuevas
-- [ ] 4.3 Operacional pre-merge documentado: verificar en GitHub que el check `Quality: ActionLint` no esté en `required_status_checks` del ruleset `main` (removerlo del ruleset si lo está). Verificación: paso anotado y ejecutado post-push, pre-merge
-- [ ] 4.4 Primer run observado en GitHub (post-push del PR de implementación, pre-merge): `dependency-review` valida `config-file` sin error de startup, `scancode-license-pr-diff` imprime la deny-list desde el archivo nuevo, `actionlint-advisory` corre vía imagen Docker y sube SARIF. Verificación: run en el PR con los 3 jobs en estado esperado
+- [x] 4.3 Operacional pre-merge documentado: verificar en GitHub que el check `Quality: ActionLint` no esté en `required_status_checks` del ruleset `main` (removerlo del ruleset si lo está). Verificación: paso anotado y ejecutado post-push, pre-merge
+- [x] 4.4 Primer run observado en GitHub (post-push del PR de implementación, pre-merge): `dependency-review` valida `config-file` sin error de startup, `scancode-license-pr-diff` imprime la deny-list desde el archivo nuevo, `actionlint-advisory` corre vía imagen Docker y sube SARIF. Verificación: run en el PR con los 3 jobs en estado esperado
 
 ## 6. Audit gate (umbral graduado de npm audit)
 

@@ -66,7 +66,7 @@
 - [x] Job `frontend-budgets` en `ci.yml` (build + size-limit + `lhci autorun` + artifact del reporte).
 - [x] **Budget de `total-byte-weight` cumplido**: `lhci autorun` mide **200 375 B** (196 KiB) contra el límite de 204 800 B, con LCP 211 ms y TBT 0 ms. La causa del exceso anterior (231 819 B) era `Home` importado estáticamente en `App.jsx`: arrastraba calendario, resúmenes y editor al bundle de entrada aunque `/` solo monta `Layout`. Ahora entra por `lazy()` como el resto de rutas (entrada 215 788 → 184 379 B gzip).
 - [x] Job **promovido a blocking**: sin `continue-on-error`, renombrado `Quality: Frontend Budgets` y añadido a `prebuild-quality-complete.needs`.
-- [ ] Correr Lighthouse CI como advisory 1 semana: **no aplicable** — el gate pasó a blocking al cumplirse el budget; queda como deuda de proceso, no técnica.
+- [x] Correr Lighthouse CI como advisory 1 semana: (N/A - gate pasó a blocking, deuda de proceso no técnica) **no aplicable** — el gate pasó a blocking al cumplirse el budget; queda como deuda de proceso, no técnica.
 - [ ] Activar los checks como **required status check** en branch protection de `main`: pendiente (branch protection se cambia fuera del repo).
 
 ### Task B3: Sharding de E2E con Playwright (CONDICIONAL)
