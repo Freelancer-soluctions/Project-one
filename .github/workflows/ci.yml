@@ -1345,14 +1345,6 @@ jobs:
       # "upstream salteado" se resuelve en el `if` del job; aquí sólo puede llegar
       # "upstream corrió pero artifacts/blobs ausentes" ⇒ `exit 1` con mensaje distinto
       # según la entrada faltante.
-      - name: Debug list
-        run: |
-          echo "=== apps/server tree ==="
-          find apps/server -maxdepth 2 -name "blob.json" 2>/dev/null
-          echo "=== apps/server/vitest-reports ==="
-          ls -la apps/server/vitest-reports/ 2>&1 || echo "DIR MISSING"
-          echo "=== apps/server root ==="
-          ls -la apps/server/ | head -20
       - name: Validate shard artifacts (merge gate, N=0 guard)
         run: |
           test -d apps/server/vitest-reports && [ -n "$(ls -A apps/server/vitest-reports)" ] || { echo "::error::vitest blob reports missing — merge cannot proceed"; exit 1; }
