@@ -58,6 +58,17 @@ El workflow `ci.yml` SHALL ejecutar un job `scancode-license-pr-diff` que escane
 
 - **WHEN** el job acumula 2-4 semanas de runs sin falsos positivos y con hallazgos triados
 - **THEN** la remoción de `continue-on-error` convierte el check en blocking de forma gradual (un check por PR a la vez)
+
+#### Scenario: Blocking from day one
+
+- **WHEN** el escaneo detecta una licencia de la deny-list en archivos del diff
+- **THEN** el job bloquea el merge (sin `continue-on-error`, evaluate step exit 1) y deja el artifact con el hallazgo visible en log o comentario
+- **AND** `scancode-license-pr-diff` está en `prebuild-security-complete.needs` desde día uno
+
+#### Scenario: Unknown license escalation
+
+- **WHEN** un `LicenseRef-scancode-unknown*` permanece sin resolver después de 30 días
+- **THEN** el hallazgo se escala a bloqueante (excepción vencida en `security/exceptions.yml`)
 - **AND** `docs/learning/quality-gates.md` y `docs/learning/license-policy.md` reflejan el cambio de fase (`advisory (PR, fase 1)` → `blocking (PR)`)
 
 #### Scenario: Fila de taxonomía en quality-gates.md

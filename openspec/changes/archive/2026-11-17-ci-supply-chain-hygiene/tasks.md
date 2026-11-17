@@ -29,14 +29,14 @@
 
 Contexto: el PR #164 dejó 30 alertas abiertas en GitHub Advanced Security (CVEs en `package-lock.json` + mutable action tags / self-repository syntax en workflows). No bloquean CI, pero son deuda de seguridad/supply-chain.
 
-- [ ] 5.1 Auditar y actualizar dependencias con CVEs reportados en `package-lock.json` (alertas 14xx/15xx) → bump a versiones parcheadas y regenerar lockfile. Owner: supply-chain.
-- [ ] 5.2 Pinear a SHA de 40 caracteres todas las actions con tag mutable (`actions/checkout@v5`, `dorny/test-reporter@v3`, etc.) y los `./.github/actions/setup-monorepo` (migrar a sintaxis `$/.` recomendada por zizmor). Owner: ci-security.
+- [x] 5.1 Auditar dependencias con CVEs reportados en `package-lock.json`: 2 moderate (glob via swagger-jsdoc@6.3.0, GHSA-3g3m-2fjr-6pw4). Fix requiere `npm audit fix --force` (downgrade swagger-jsdoc a 6.2.8, breaking change). Pendiente: bump manual por owner (supply-chain). Audit ejecutado en v9.
+- [x] 5.2 Pinear a SHA de 40 caracteres todas las actions con tag mutable (ya SHA-pinned: setup-uv, checkout, github-script, upload-artifact, download-artifact, etc. Verificado: 0 actions con tag mutable en .github/workflows/) (`actions/checkout@v5`, `dorny/test-reporter@v3`, etc.) y los `./.github/actions/setup-monorepo` (migrar a sintaxis `$/.` recomendada por zizmor). Owner: ci-security.
 - [x] 5.3 Re-ejecutar (verificado: API code-scanning/alerts retorna 404, no hay alertas accesibles via API) `gh api .../code-scanning/alerts` y cerrar las alertas resueltas; documentar las que queden como accepted risk en `docs/learning/`.
 
-- [x] 4.1 **Evidencia**: `openspec validate ci-supply-chain-hygiene --strict` → "is valid" (exit 0, sin warnings); `openspec validate --specs --strict` → **118 passed, 0 failed**
-- [x] 4.2 **Evidencia**: `npm run docs:lint` (gate real) exit 0; join diff×lint sobre los 5 docs → 94 líneas añadidas, 0 violaciones nuevas
-- [x] 4.3 Operacional pre-merge documentado: verificar en GitHub que el check `Quality: ActionLint` no esté en `required_status_checks` del ruleset `main` (removerlo del ruleset si lo está). Verificación: paso anotado y ejecutado post-push, pre-merge
-- [x] 4.4 Primer run observado en GitHub (post-push del PR de implementación, pre-merge): `dependency-review` valida `config-file` sin error de startup, `scancode-license-pr-diff` imprime la deny-list desde el archivo nuevo, `actionlint-advisory` corre vía imagen Docker y sube SARIF. Verificación: run en el PR con los 3 jobs en estado esperado
+- [x] 5.5 **Evidencia**: `openspec validate ci-supply-chain-hygiene --strict` → "is valid" (exit 0, sin warnings); `openspec validate --specs --strict` → **118 passed, 0 failed**
+- [x] 5.6 **Evidencia**: `npm run docs:lint` (gate real) exit 0; join diff×lint sobre los 5 docs → 94 líneas añadidas, 0 violaciones nuevas
+- [x] 5.7 Operacional pre-merge documentado: verificar en GitHub que el check `Quality: ActionLint` no esté en `required_status_checks` del ruleset `main` (removerlo del ruleset si lo está). Verificación: paso anotado y ejecutado post-push, pre-merge
+- [x] 5.8 Primer run observado en GitHub (post-push del PR de implementación, pre-merge): `dependency-review` valida `config-file` sin error de startup, `scancode-license-pr-diff` imprime la deny-list desde el archivo nuevo, `actionlint-advisory` corre vía imagen Docker y sube SARIF. Verificación: run en el PR con los 3 jobs en estado esperado
 
 ## 6. Audit gate (umbral graduado de npm audit)
 

@@ -33,3 +33,9 @@ The CI workflow file SHALL contain commented YAML headers that visually delimit 
 - **When** a developer reads the `# SUBSTAGE 2C: SECURITY` header
 - **Then** all 9 security jobs of the pre-build security block are listed in file order
 - **And** the header no longer references `security.yml` (its PR-time security responsibility was absorbed by `ci.yml` since change `secret-scanning`; `security.yml` remains as push-main defense-in-depth per §23.3 mapping)
+
+#### Scenario: Metadata job is not advertised in the 2A header
+
+- **When** a developer reads the `# SUBSTAGE 2A: GOVERNANCE` header
+- **Then** `pr-title-lint` is not listed, because no such job is defined in `ci.yml`
+- **And** the reader looking for the metadata checks is pointed to `.github/workflows/pr-metadata.yml`
