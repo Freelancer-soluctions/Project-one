@@ -13,7 +13,7 @@ vi.mock('../../config/dotenv.js', () => ({
 
 // Mock jsonwebtoken
 vi.mock('jsonwebtoken', () => {
-  const sign = vi.fn((payload, secret, options, cb) => {
+  const sign = vi.fn((payload: any, secret: any, options: any, cb: any) => {
     cb(null, 'mocked-token');
   });
   return {
@@ -29,7 +29,10 @@ describe('createToken', () => {
 
   it('createToken resolves with a token', async () => {
     const { createToken } = await import('./createToken.js');
-    const result = await createToken({ id: 1, rol: { id: 1, code: 'ADMIN' } });
+    const result = await createToken({
+      id: 1,
+      rol: { id: 1, code: 'ADMIN' },
+    } as any);
     expect(result).toBe('mocked-token');
   });
 
@@ -41,7 +44,7 @@ describe('createToken', () => {
 
   it('createRefreshTokenOpaque resolves with a 128-char hex string', async () => {
     const { createRefreshTokenOpaque } = await import('./createToken.js');
-    const result = await createRefreshTokenOpaque();
+    const result = (await createRefreshTokenOpaque()) as string;
     expect(typeof result).toBe('string');
     expect(result.length).toBe(128);
     expect(/^[0-9a-f]+$/.test(result)).toBe(true);
@@ -55,7 +58,7 @@ describe('createToken', () => {
   it('createToken rejects when jwt.sign errors', async () => {
     const jwt = await import('jsonwebtoken');
     (jwt.default.sign as any).mockImplementationOnce(
-      (payload, secret, options, cb) => {
+      (payload: any, secret: any, options: any, cb: any) => {
         cb(new Error('sign error'), undefined);
       }
     );

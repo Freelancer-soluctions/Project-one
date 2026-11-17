@@ -119,7 +119,7 @@ describe('encription-prisma-middleware', () => {
   it('encryptionMiddleware creates middleware function', async () => {
     const { encryptionMiddleware } =
       await import('./encription-prisma-middleware.js');
-    let capturedMiddleware: unknown = null;
+    let capturedMiddleware: any = null;
     const mockPrisma = {
       $use: vi.fn((fn: unknown) => {
         capturedMiddleware = fn;
@@ -137,7 +137,7 @@ describe('encription-prisma-middleware', () => {
   it('encryptionMiddleware handles create action', async () => {
     const { encryptionMiddleware } =
       await import('./encription-prisma-middleware.js');
-    let capturedMiddleware: unknown = null;
+    let capturedMiddleware: any = null;
     const mockPrisma = {
       $use: vi.fn((fn: unknown) => {
         capturedMiddleware = fn;
@@ -162,7 +162,7 @@ describe('encription-prisma-middleware', () => {
   it('encryptionMiddleware handles findMany action', async () => {
     const { encryptionMiddleware } =
       await import('./encription-prisma-middleware.js');
-    let capturedMiddleware: unknown = null;
+    let capturedMiddleware: any = null;
     const mockPrisma = {
       $use: vi.fn((fn: unknown) => {
         capturedMiddleware = fn;
@@ -189,7 +189,7 @@ describe('encription-prisma-middleware', () => {
   it('encryptionMiddleware handles model without encrypted fields', async () => {
     const { encryptionMiddleware } =
       await import('./encription-prisma-middleware.js');
-    let capturedMiddleware: unknown = null;
+    let capturedMiddleware: any = null;
     const mockPrisma = {
       $use: vi.fn((fn: unknown) => {
         capturedMiddleware = fn;
