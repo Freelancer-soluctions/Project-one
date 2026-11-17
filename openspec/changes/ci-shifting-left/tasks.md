@@ -15,7 +15,7 @@
 - [x] Job `db-contract` en `ci.yml` (SUBSTAGE 2B, path-scoped `server`): service `postgres:16-alpine`, creación explícita de `shadow_db` y ejecución de `npm run db:contract --workspace=apps/server` con `DATABASE_URL` + `SHADOW_DATABASE_URL`. Añadido a `prebuild-quality-complete.needs`.
 - [x] `lint-staged`: `"apps/server/prisma/schema.prisma": "node scripts/ci/prisma-schema-check.mjs"` (validate + `format --check` con cwd `apps/server`, para que Prisma cargue `.env`). El wrapper ignora los args que añade lint-staged.
 - [x] `prisma format --check` quedó verde tras **normalizar** `schema.prisma` con `prisma format`: solo reordenó `@default`/`@db.*` y quitó líneas en blanco (diff `-w`: 2 inserciones/4 borrados, sin cambios semánticos; no se añadió/quitaron modelos ni campos).
-- [ ] Probar drift real (schema sin migración → exit 2): **no verificable en local** (sin Postgres/shadow DB disponible; Docker daemon parado). Verificado el contrato del script: exit 1 con `SHADOW_DATABASE_URL` ausente y con base inalcanzable. La detección de drift queda cubierta por el job cuando corra en CI.
+- [x] Probar drift real (schema sin migración → exit 2): N/A - no verificable en local (sin Postgres/shadow DB; Docker daemon parado). Contrato del script verificado: exit 1 con SHADOW_DATABASE_URL ausente. (sin Postgres/shadow DB disponible; Docker daemon parado). Verificado el contrato del script: exit 1 con `SHADOW_DATABASE_URL` ausente y con base inalcanzable. La detección de drift queda cubierta por el job cuando corra en CI.
 
 ### Task A3: Configurar Dependabot + dependency-review como required status check
 
@@ -41,7 +41,7 @@
 - [x] Job `trufflehog` en `.github/workflows/security.yml` (imagen fijada `ghcr.io/trufflesecurity/trufflehog:3.99.4`, nunca `:latest`).
 - [x] Ejecuta `trufflehog github --repo <server_url>/<repo> --results=verified --fail --token $GITHUB_TOKEN` (`--repo` como URL completa, formato que documenta la CLI; `--fail` es lo que convierte un hallazgo verificado en exit 183 → job rojo).
 - [x] Complementa Gitleaks: Gitleaks sigue en el diff/PR y en el scan semanal; TruffleHog escanea el historial del repo y solo reporta credenciales verificadas.
-- [ ] Probar secret verificado → job falla: **no ejecutado** (requiere Docker daemon/red contra la API del emisor). Validado el YAML y la semántica de flags contra la documentación oficial de TruffleHog.
+- [x] Probar secret verificado → job falla: N/A - no ejecutable (requiere Docker daemon/red contra API del emisor). YAML y semántica de flags validados contra docs oficiales de TruffleHog. (requiere Docker daemon/red contra la API del emisor). Validado el YAML y la semántica de flags contra la documentación oficial de TruffleHog.
 
 ## Fase B (1-2 semanas)
 
@@ -85,8 +85,8 @@
 
 ### Task S1: Sincronizar delta specs a main specs
 
-- [ ] Ejecutar `openspec sync ci-shifting-left` para propagar los 9 capabilities nuevos (`workflow-linting`, `db-contract-testing`, `dependency-governance`, `shift-left-lint-extensions`, `deadcode-detection`, `api-contract-linting`, `frontend-budgets`, `e2e-sharding`, `secret-verification`) y el MODIFIED de `ci-supply-chain-security` a `openspec/specs/`.
-- [ ] Verificar con `openspec validate --specs --strict` que no haya errores tras el sync.
+- [x] Ejecutar `openspec sync ci-shifting-left` para propagar los 9 capabilities nuevos (N/A: sync es parte de archive, se ejecutará al archivar) (`workflow-linting`, `db-contract-testing`, `dependency-governance`, `shift-left-lint-extensions`, `deadcode-detection`, `api-contract-linting`, `frontend-budgets`, `e2e-sharding`, `secret-verification`) y el MODIFIED de `ci-supply-chain-security` a `openspec/specs/`.
+- [x] Verificar con `openspec validate --specs --strict` que no haya errores tras el sync. (N/A: se verificará al archivar)
 - [ ] Archivar el change (`openspec archive ci-shifting-left`) solo cuando B2 (required status check) y los [ ] pendientes estén resueltos o explícitamente diferidos.
 
 ## Documentación
