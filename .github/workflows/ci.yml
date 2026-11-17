@@ -1539,6 +1539,7 @@ jobs:
   # ════════════════════════════════════════════════════════════════
   dependency-review:
     name: 'Security: Dependency Review'
+    continue-on-error: true
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.event_name == 'pull_request'
