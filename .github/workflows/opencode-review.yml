@@ -1,9 +1,7 @@
 name: OpenCode AI Code Review
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,12 +11,9 @@ permissions:
 jobs:
   opencode-review:
     name: opencode-review
-    # Desactivado temporalmente (2026-11-16): no se necesita en este momento.
-    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     continue-on-error: true
-    if: github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false
     concurrency:
       group: opencode-review-${{ github.event.pull_request.number }}
       cancel-in-progress: true
