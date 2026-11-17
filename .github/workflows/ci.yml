@@ -3002,7 +3002,7 @@ jobs:
     # los 4 veredictos prebuild se conserva intacto.
     # ACTIVADO (change `ci-build-workflow`, task 4.2): el bundle del client se
     # compila en CI y `build-complete` consume un veredicto real, no un skipped.
-    if: (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true') && needs.prebuild-governance-complete.result == 'success' && needs.prebuild-quality-complete.result == 'success' && needs.prebuild-security-complete.result == 'success' && needs.prebuild-tests-complete.result == 'success'
+    if: always() && (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true') && needs.prebuild-governance-complete.result == 'success' && needs.prebuild-quality-complete.result == 'success' && needs.prebuild-security-complete.result == 'success' && needs.prebuild-tests-complete.result == 'success'
     name: 'Build: Client'
     needs:
       [
@@ -3032,7 +3032,7 @@ jobs:
     # Dockerfile multi-stage). Este job valida la emisión en el pipeline de checks
     # obligatorios; el job `build` de build.yml hace lo propio para el carril de
     # imagen. Mismo path-scoping + gate compuesto que client-build.
-    if: (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && needs.prebuild-governance-complete.result == 'success' && needs.prebuild-quality-complete.result == 'success' && needs.prebuild-security-complete.result == 'success' && needs.prebuild-tests-complete.result == 'success'
+    if: always() && (needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true') && needs.prebuild-governance-complete.result == 'success' && needs.prebuild-quality-complete.result == 'success' && needs.prebuild-security-complete.result == 'success' && needs.prebuild-tests-complete.result == 'success'
     name: 'Build: Server'
     needs:
       [
