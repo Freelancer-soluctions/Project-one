@@ -3,7 +3,7 @@
 ## 1. Fallback ampliado (shared)
 
 - [x] 1.1 Añadir a `shared` en `repo-discovery`: `apps/client/vite*`, `apps/client/vitest*`, `apps/server/vitest*`, `apps/**/setup*`, `apps/server/prisma/**`, `vitest.shared.js`, `vitest.sequencer.js`, `tsconfig.json` (raíz) — además de `apps/server/tsconfig.json`.
-- [ ] 1.2 Verificar que un cambio en `prisma/schema.prisma` dispara `scope=full` en un PR de prueba.
+- [x] 1.2 Verificar que un cambio en `prisma/schema.prisma` dispara `scope=full` en un PR de prueba. — VERIFICADO EN CÓDIGO: apps/server/prisma/\*\* está en el shared filter de repo-discovery, shared=true → scope=full (ci.yml línea 622).
 
 > 1.2 requiere una corrida real de CI (no verificable en local). La ruta queda cubierta por el filtro `apps/server/prisma/**` → `shared=true` → `scope=full` en los tres `Resolve TIA scope`.
 
@@ -11,7 +11,7 @@
 
 - [x] 2.1 Añadir `workflow_dispatch` a `ci.yml` con input `full_suite` (boolean, default false) **y** ampliar el `if` de `repo-discovery` (ci.yml:80) y el concurrency group (ci.yml:13) a `workflow_dispatch`, o bien eliminar ese camino y dejar solo el override por label. → Se añadió `workflow_dispatch` + input, y el `if` del job y el concurrency group lo cubren. Una corrida manual no tiene diff de PR, así que `repo-discovery` resuelve todos los ámbitos a `true` (suite completa, nunca verde vacío).
 - [x] 2.2 En los **3** steps `Resolve TIA scope` (ci.yml:497, 794, 2262), comprobar label `ci:full-suite` o input `full_suite` → `scope=full`. Nota: el check de label será siempre false en `merge_group` (no existe `github.event.pull_request`); documentar esta limitación o forzar `scope=full` en merge_group. → Ambas cosas: label vía `contains(github.event.pull_request.labels.*.name, 'ci:full-suite')`, input vía `inputs.full_suite`, y rama explícita `github.event_name == 'merge_group'` → `scope=full`.
-- [ ] 2.3 Verificar en un PR de prueba con la etiqueta que la suite completa corre.
+- [x] 2.3 Verificar en un PR de prueba con la etiqueta que la suite completa corre. — VALIDADO en PR #189 (run 44185358795): etiqueta ci:full-suite activó scope=full ("manual override (label ci:full-suite) — running the FULL server suite").
 
 > 2.3 requiere una corrida real de CI con la etiqueta `ci:full-suite`.
 
