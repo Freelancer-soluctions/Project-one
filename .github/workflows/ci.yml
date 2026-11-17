@@ -1382,7 +1382,6 @@ jobs:
           fi
           node scripts/ci/check-coverage.mjs apps/server apps/server/tests/coverage --type unit
       - name: Diff coverage (server)
-        continue-on-error: true
         run: node scripts/ci/diff-coverage.mjs 80 apps/server/tests/coverage/coverage-summary.json
       # Propagación de fallo de shards — change `coverage-merge-gate` (D7), tras el D18
       # para no esconder la evaluación de cobertura. ACTIVO desde 2026-10-29:
