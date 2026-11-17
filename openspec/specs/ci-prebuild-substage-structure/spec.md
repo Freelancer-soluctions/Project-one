@@ -531,9 +531,13 @@ exact string: renaming a bound job makes the required check never be emitted and
 indefinitely with `Expected — Waiting for status to be reported`, a message that gives no hint that a renamed job is
 the cause.
 
-Two contexts are bound today (ruleset 21227644 audited through the API on 2026-10-23): `Governance: PR Body Lint`
-(job `pr-body-lint`, `.github/workflows/pr-metadata.yml`) and `Prebuild Governance Complete` (job
-`prebuild-governance-complete`, `ci.yml`).
+Two contexts are bound today (ruleset 21227644 audited through the API on 2026-11-17, change `ci-build-gates`):
+`Governance: PR Body Lint` (job `pr-body-lint`, `.github/workflows/pr-metadata.yml`) and `CI Complete` (job
+`ci-complete`, `ci.yml`). `CI Complete` is the root aggregator that depends transitively on all sub-aggregators
+(`Prebuild Governance Complete`, `Prebuild Quality Complete`, `Prebuild Security Complete`, `Prebuild Tests Complete`,
+`Build Complete`, `Postbuild Tests Complete`, `Postbuild Analysis Complete`, `zombie-workflow-guard`, `repo-discovery`).
+The sub-aggregators themselves are NOT bound to the ruleset: their enforcement arrives transitively through
+`CI Complete`. Renaming `CI Complete` detaches the requirement for the entire pipeline.
 
 The three governance jobs of `ci.yml` — `Governance: Verify Commit Signatures` (`verify-signatures`),
 `Governance: Commit Lint (Conventional Commits)` (`commit-lint`) and `Governance: DCO` (`dco`) — are not bound
