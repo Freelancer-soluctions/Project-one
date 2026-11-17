@@ -2951,11 +2951,10 @@ jobs:
   # Fase 2 (bloqueante) queda fuera de este change hasta que docs/ pase limpio.
   docs-validation:
     if: github.event_name == 'pull_request'
-    name: 'Quality: Docs Validation (advisory)'
+    name: 'Quality: Docs Validation'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -3582,6 +3581,7 @@ jobs:
       - frontend-budgets
       - root-manifest-guard
       - openspec-validate
+      - docs-validation
     steps:
       # Checkout necesario para ejecutar el veredicto versionado
       # (`scripts/ci/quality-aggregator-verdict.mjs`), cubierto por su test en
