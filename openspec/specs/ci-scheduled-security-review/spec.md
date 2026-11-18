@@ -47,20 +47,14 @@ The workflow SHALL re-run SBOM generation in CycloneDX JSON format on the schedu
 
 ### Requirement: Scheduled dependency vulnerability and license review
 
-The workflow SHALL scan the merged dependency tree for known vulnerabilities on the weekly cadence, independent of PRs, so newly-published vulnerabilities in already-merged dependencies are surfaced. The license summary SHALL be derived from the SBOM components (CycloneDX metadata), not from a separate license scanner. The scan SHALL fail closed: known vulnerabilities fail the run so they cannot be silently ignored, while the JSON report is still uploaded for review.
+The workflow SHALL scan the merged dependency tree for known vulnerabilities on the weekly cadence, independent of PRs, so newly-published vulnerabilities in already-merged dependencies are surfaced. The license summary SHALL be derived from the SBOM components (CycloneDX metadata), not from a separate license scanner.
 
 #### Scenario: Vulnerable package in merged dependencies
 
 - **WHEN** the vulnerability review job scans `package-lock.json` on the scheduled cadence
 - **THEN** the scan SHALL report each known-vulnerable package with its severity and affected version
 - **AND** the findings SHALL be written to a machine-readable report (JSON) for the digest job
-- **AND** the scan job SHALL fail the run when findings are reported (fail-closed), so vulnerable merged dependencies block the pipeline
-
-#### Scenario: Report still uploaded when the scan fails
-
-- **WHEN** the OSV scan step exits non-zero because vulnerabilities were detected
-- **THEN** the report upload step SHALL still run (declared `if: always()`) and upload the JSON report artifact
-- **AND** the digest job SHALL still execute against the uploaded report so findings remain visible
+- **AND** the workflow run SHALL NOT fail solely for reporting findings (audit-style, consistent with the sibling scheduled secret-scanning)
 
 #### Scenario: No known vulnerabilities found
 
@@ -98,14 +92,14 @@ The workflow SHALL generate a markdown security digest that consolidates the SBO
 - **THEN** the workflow SHALL post a summary comment on that pull request
 - **AND** the comment SHALL reference the artifact for full details
 
-### Requirement: Findings fail the run with reports preserved
+### Requirement: Digest and reports surfaced without breaking automation
 
-The scheduled security review SHALL fail the run when actionable findings are detected, while still uploading the SBOM, vulnerability report, and generated digest as artifacts so the findings remain visible and auditable after the failed run.
+The scheduled run SHALL surface findings visibly (artifacts, digest, optional comment) while keeping the run green in audit mode, so automation (e.g. notifications, subsequent runs) is not broken by reported findings.
 
 #### Scenario: Vulnerabilities found on schedule
 
 - **WHEN** the scheduled run detects vulnerabilities
-- **THEN** the run SHALL fail (fail-closed)
+- **THEN** the run SHALL complete successfully (audit mode)
 - **AND** the findings SHALL be visible via the uploaded digest and JSON report artifacts
 
 #### Scenario: Digest job failure handling

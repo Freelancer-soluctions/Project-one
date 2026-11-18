@@ -627,25 +627,38 @@ silencioso:
 
 ### 9.7 Binding al ruleset y rollback (tasks 3.1/3.2/3.3/5.3)
 
-**Contexto a bindear:** el `name:` del job, **`CI Complete`** (no el id
-`ci-complete`). Los required checks se ligan por nombre de job; renombrarlo
+**Contexto a bindear:** el `name:` del job, **`Build Complete`** (no el id
+`build-complete`). Los required checks se ligan por nombre de job; renombrarlo
 rompe el binding. Ruleset **21227644** (`main`), `integration_id` **15368**
-(GitHub Actions). Contextos actuales (verificado via API 2026-11-17):
-`Governance: PR Body Lint`, `CI Complete`.
+(GitHub Actions). Contextos actuales (verificado vía API 2026-11-13):
+`Governance: PR Body Lint`, `Prebuild Governance Complete`,
+`Prebuild Security Complete`.
 
-**Diseno (actualizado 2026-11-17):** el ruleset requiere UNICAMENTE `CI Complete`
-(agregador raiz) en lugar de multiples sub-agregadores individuales. `CI Complete`
-depende transitivamente de TODOS los sub-agregadores (`Prebuild Governance Complete`,
-`Prebuild Quality Complete`, `Prebuild Security Complete`, `Prebuild Tests Complete`,
-`Build Complete`, `Postbuild Tests Complete`, `Postbuild Analysis Complete`,
-`zombie-workflow-guard`, `repo-discovery`). Si cualquiera falla, `CI Complete` falla
--> merge bloqueado. Los sub-agregadores individuales NO estan vinculados al ruleset.
+**Procedimiento (tras ≥1 run real que reporte `Build Complete`):**
 
-`Governance: PR Body Lint` (emitido por `pr-metadata.yml`) se mantiene como required
-check independiente (no esta en `ci.yml`, por lo que no puede agregarse a `CI Complete`).
+```bash
+# 1. GET del ruleset completo (nunca PATCH: GitHub no lo soporta para rulesets)
+gh api repos/Freelancer-soluctions/Project-one/rulesets/21227644 > /tmp/ruleset.json
+# 2. Modificar el JSON: añadir el contexto a required_status_checks
+#    (integration_id 15368, context "Build Complete")
+# 3. PUT del ruleset completo modificado
+gh api --method PUT repos/Freelancer-soluctions/Project-one/rulesets/21227644 \
+  --input /tmp/ruleset.json
+```
 
-> **NOTA:** El change `ci-build-gates` fue archivado con las tasks de binding marcadas
-> como canceladas por cambio de diseno (se usa `CI Complete` en lugar de `Build Complete`).
+> ⏳ **BLOQUEADO (tasks 3.1/3.2/5.3):** requiere (a) ≥1 run real en una rama de
+> prueba para que `Build Complete` se reporte al menos una vez — un contexto que
+> nunca se ha reportado no puede exigirse sin dejar el check en Pending
+> permanente; y (b) confirmación del usuario: es una escritura sobre estado
+> compartido (el ruleset de `main`). No se ejecuta en este entorno.
+
+**Rollback (task 3.3):** mismo procedimiento GET → modify → PUT, **eliminando** el
+contexto `Build Complete` de `required_status_checks`. Efecto: el merge deja de
+exigir el check de build; `build-complete` sigue corriendo y reportando (advisory
+a nivel de merge). El rollback es reversible y no toca el workflow — solo el
+binding. Si el binding causa Pending permanente (p. ej. el workflow no se ejecuta
+por un filtro), el rollback inmediato desbloquea la cola mientras se corrige el
+trigger (§9.4).
 
 ### 9.8 Umbrales G6/G7 pendientes de medición (task 4.2 — BLOQUEADO)
 

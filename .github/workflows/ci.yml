@@ -3872,16 +3872,10 @@ jobs:
 
   # ═══════════════════════════════════════════════════════════════
   # AGGREGATOR — CI Complete — Root verdict over every stage
-  # RULESET-REQUIRED CHECK: ruleset 21227644 binds `CI Complete` as the sole
-  # required status check (change `ci-build-gates`, design update 2026-11-17).
-  # `CI Complete` depende transitivamente de TODOS los sub-agregadores
-  # (`Prebuild Governance Complete`, `Prebuild Quality Complete`,
-  # `Prebuild Security Complete`, `Prebuild Tests Complete`, `Build Complete`,
-  # `Postbuild Tests Complete`, `Postbuild Analysis Complete`,
-  # `zombie-workflow-guard`, `repo-discovery`). Si cualquiera falla,
-  # `CI Complete` falla → merge bloqueado.
-  # `Governance: PR Body Lint` (pr-metadata.yml) se mantiene como required
-  # check independiente (no está en ci.yml).
+  # NOT a ruleset-required check: ruleset 21227644 binds three contexts
+  # (`Governance: PR Body Lint`, `Prebuild Governance Complete`,
+  # `Prebuild Security Complete`) — verificado vía API de GitHub 2026-11-13
+  # (change `ci-build-gates`). `Build Complete` se añadirá tras ≥1 run real.
   # ═══════════════════════════════════════════════════════════════
   ci-complete:
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}

@@ -38,6 +38,22 @@ The `server-lint` job in `ci.yml` SHALL execute `npm run lint --workspace=apps/s
 - **WHEN** a pull request targets `main` AND the `repo-discovery` job outputs `server == 'false'`
 - **THEN** the `server-lint` job is skipped
 
+### Requirement: actionlint job runs on PRs modifying shared/workflow files
+
+The `actionlint` job in `ci.yml` SHALL execute `rhysd/actionlint@v1` on pull requests that modify shared files or GitHub Actions workflows.
+
+#### Scenario: PR modifies shared/workflow files
+
+- **WHEN** a pull request targets `main` AND the `repo-discovery` job outputs `shared == 'true'`
+- **THEN** the `actionlint` job runs `rhysd/actionlint@v1`
+- **AND** the job scans all `.github/workflows/*.yml` files
+- **AND** findings in pre-existing workflow files are addressed in the same change or disabled with justification
+
+#### Scenario: PR does not modify shared/workflow files
+
+- **WHEN** a pull request targets `main` AND the `repo-discovery` job outputs `shared == 'false'`
+- **THEN** the `actionlint` job is skipped
+
 ### Requirement: lint jobs are standalone and not gated by CI_MINIMAL
 
 The 3 lint jobs SHALL execute independently of the `CI_MINIMAL` variable, following the pattern of `sast` and `dependency-review` jobs.
@@ -114,25 +130,3 @@ The `*-lint` jobs SHALL upload SARIF results with `security-events: write` so fi
 - **WHEN** ESLint finds violations
 - **THEN** they appear as annotations in the PR via SARIF
   EOF
-
-### Requirement: actionlint-advisory job runs via pinned Docker image without remote scripts
-
-The `actionlint-advisory` job in `ci.yml` SHALL execute the pinned Docker image `rhysd/actionlint:1.7.12` on pull requests that modify shared files or GitHub Actions workflows, without downloading remote scripts at runtime.
-
-#### Scenario: PR modifies shared/workflow files
-
-- **WHEN** a pull request targets `main` AND the `repo-discovery` job outputs `shared == 'true'`
-- **THEN** the `actionlint-advisory` job runs the pinned Docker image `rhysd/actionlint:1.7.12`
-- **AND** the job scans all `.github/workflows/*.y*ml` files with the same config (`.github/actionlint.yaml`) and SARIF template as before the consolidation
-
-#### Scenario: PR does not modify shared/workflow files
-
-- **WHEN** a pull request targets `main` AND the `repo-discovery` job outputs `shared == 'false'`
-- **THEN** the `actionlint-advisory` job is skipped
-
-#### Scenario: Sin ejecución de scripts remotos en runtime
-
-- **WHEN** se inspeccionan los steps del job `actionlint-advisory` en `.github/workflows/ci.yml`
-- **THEN** ninguno descarga ni ejecuta scripts remotos (no existe el patrón `curl | bash` ni su equivalente con `wget`)
-- **AND** la única referencia de versión de actionlint es el tag de la imagen Docker `rhysd/actionlint:1.7.12`
-- **AND** la salida SARIF y el artifact del job se conservan con los mismos flags, categoría y retención que tenía la implementación por instalador bash
