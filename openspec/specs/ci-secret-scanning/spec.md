@@ -37,12 +37,14 @@ The system SHALL run a Gitleaks scan over the entire repository history on a wee
 
 - **WHEN** the scheduled workflow trigger fires (weekly cron)
 - **THEN** the workflow SHALL scan the full repository, including all historical commits (not only staged changes)
+- **AND** the workflow SHALL assert that the checkout is not shallow before scanning, failing with an explicit message otherwise
 - **AND** the workflow SHALL report all findings in the job output with commit hash and file path for each detected secret
 
 #### Scenario: Secret found in historical commit
 
 - **WHEN** the full-history scan detects a secret in a past commit
-- **THEN** the workflow SHALL surface the finding with the commit SHA and file path
+- **THEN** the workflow SHALL surface the finding with the commit SHA and file path in the created issue
+- **AND** the workflow SHALL create or update an issue containing the rule, file and commit for each finding
 - **AND** the workflow SHALL fail the scheduled run (fail-closed), blocking the pipeline until the secret is rotated or removed
 
 #### Scenario: Reports still uploaded when the scan fails
