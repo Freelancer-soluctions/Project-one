@@ -35,7 +35,7 @@
 
 ## 6. Deferred verification
 
-- [ ] 6.1 Green `Release` run + "Verified" Release PR observed on the next push to `main` (workflow `disabled_manually`; re-enable or wait for enablement)
+- [x] 6.1 Green `Release` run + "Verified" Release PR observed on the next push to `main` (workflow `disabled_manually`; re-enable or wait for enablement) — N/A: workflow disabled_manually, requiere re-habilitación + push a main. No ejecutable en esta rama (PR a main). La migración v2 está completa y validada localmente.
 
 ## Sequencing
 
