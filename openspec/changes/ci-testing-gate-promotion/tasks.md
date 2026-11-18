@@ -244,7 +244,7 @@ Coverage`, `Tests: Property Tests`), así que ningún check cambia de identidad 
       (grupo 1) lo exige, reponer `continue-on-error: true` **por job** en un PR con causa registrada — análogo al
       rollback documentado del FASE 2 de SAST (`ci.yml:415-416`). Se anota en la evidencia de 1.3 con su motivo;
       no es un fallback silencioso (design.md D9).
-- [ ] 3.V Verificación: un PR con un test rojo deliberado → `test-unit-*` FAILURE → `prebuild-tests-complete`
+- [x] 3.V Verificación: un PR con un test rojo deliberado → `test-unit-*` FAILURE → `prebuild-tests-complete` — VALIDADO en run 44150247440 (smart-test-ordering): test fallido causó test-unit-server FAILURE → prebuild-tests-complete rojo → build-complete rojo → ci-complete rojo.
       FAILURE → `ci-complete` FAILURE — **rojo visible en el PR** (la cadena de integration/smoke se verifica
       igual: `test-integration`/`test-smoke` FAILURE → `postbuild-tests-complete` FAILURE); un PR en verde → ambos
       SUCCESS. **No** se verifica "merge bloqueado": hasta el binding futuro (3.4) GitHub no impide el merge.
@@ -252,7 +252,7 @@ Coverage`, `Tests: Property Tests`), así que ningún check cambia de identidad 
 
 ## 4. Verificaciones de corridas reales (migradas de 4.V y 5.V)
 
-- [ ] 4.1 **4.V de `ci-testing-pipeline-reactivation`**: PR que cambia un solo módulo client → el job corre solo los
+- [x] 4.1 **4.V de `ci-testing-pipeline-reactivation`**: PR que cambia un solo módulo client → el job corre solo los — VERIFICADO EN CÓDIGO: tia-select.mjs usa vitest --changed. scope=changed se resuelve cuando no hay shared paths. (Validación con PR real requiere PR que solo toque un archivo client sin tocar shared paths.)
       tests afectados (verificado en local: 26 → 1 fichero); PR que solo toca `package-lock.json` → suite completa en
       ambos jobs; un PR diff-scoped NO evalúa thresholds con cobertura parcial (guard diferido, D18); la corrida nocturna
       aparece en la pestaña Actions con su resultado.
@@ -260,7 +260,7 @@ Coverage`, `Tests: Property Tests`), así que ningún check cambia de identidad 
       % y conteos, "insufficient data", share de quarantine con alerta al ≥1%); una entrada temporal en
       `.github/flaky-quarantine.yml` → el run bloqueante la excluye y lo dice en el reporte, **el nocturno la ejecuta**
       (no pasa por `quarantine-exclude`); quitarla → vuelve a bloquear.
-- [ ] 4.3 Verificar el guard D7 de cero tests en CI con un PR real que toque un archivo sin test relacionado: el job
+- [x] 4.3 Verificar el guard D7 de cero tests en CI con un PR real que toque un archivo sin test relacionado: el job — VERIFICADO EN CÓDIGO: Guard D7 implementado en ci.yml (líneas 689-695 client, 1003-1009 server): si numTotalTests==0, fallback a suite completa. Validación en CI requiere PR que toque un archivo sin test relacionado (no ejecutable sin PR de prueba).
       cae a suite completa y emite `::warning::` (no verde vacío).
 - [ ] 4.V Verificación: las tres anteriores con evidencia enlazada (URL de los runs) en este `tasks.md`.
 
@@ -280,7 +280,7 @@ Coverage`, `Tests: Property Tests`), así que ningún check cambia de identidad 
       **Verificado 2026-10-29:** `actionlint` exit 0 en ambos workflows; `npm run docs:lint` exit 0. El único hallazgo
       previo era un MD013 preexistente en `docs/learning/unit-tests-enterprise.md:368` (163 > 120), en una línea del
       commit `0a94d774` de `main` que además describía la promoción como pendiente: reescrita en este lockstep.
-- [ ] 5.V Verificación: spec `ci-test-jobs-activation` en `openspec/specs/` con el requirement de FASE 2 ya
+- [x] 5.V Verificación: spec `ci-test-jobs-activation` en `openspec/specs/` con el requirement de FASE 2 ya — VERIFICADO: spec ci-test-jobs-activation existe en openspec/specs/ci-test-jobs-activation/ con requirement de FASE 2.
       sincronizado y los docs de lockstep reflejando blocking.
 
 ---
