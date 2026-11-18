@@ -78,16 +78,16 @@ directly and `Governance: PR Title Lint` is emitted without being bound at all.
 
 ### Requirement: prebuild-quality-complete
 
-The `prebuild-quality-complete` aggregator SHALL depend on exactly 15 jobs from Substage 2B CODE QUALITY: `[client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds, server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds, e2e-lint, root-manifest-guard, openspec-validate]`. (Nota de calibración: la lista base declaraba 15 jobs sin `root-manifest-guard`, que se incorporó al agregador con el change `root-manifest-cleanup` sin actualizar la spec — estado real pre-`ci-supply-chain-hygiene`: 16 jobs con `actionlint`; post-change: 15.)
+The `prebuild-quality-complete` aggregator SHALL depend on exactly 15 jobs from Substage 2B CODE QUALITY: `[client-lint, client-format-check, client-typecheck, client-complexity, client-dead-code, client-import-bounds, server-lint, server-format-check, server-typecheck, server-complexity, server-dead-code, server-import-bounds, e2e-lint, root-manifest-guard, openspec-validate]`. (Nota de calibración: la lista base declaraba 15 jobs sin `root-manifest-guard`, que se incorporó al agregador con el change `root-manifest-cleanup` sin actualizar la spec — estado real pre-change: 16 jobs con `actionlint`; post-change: 15.)
 
 #### Scenario: Quality aggregator needs resolution
 
 - **When** `prebuild-quality-complete` runs
 - **Then** its `needs` array contains exactly those 15 jobs — no more, no less
 - **And** all 15 jobs are from Substage 2B CODE QUALITY
-- **And** the blocking `actionlint` job is no longer a dependency (consolidated into `actionlint-advisory` of substage 2C, per change `ci-supply-chain-hygiene`)
 - **And** `e2e-lint` follows the same activation pattern as the other quality jobs: gated on `repo-discovery` output (`e2e == 'true'`), `pull_request` only, and aggregated by the same failure-propagation logic
 - **And** `openspec-validate` runs on every `pull_request` (not path-filtered), is aggregated by the same failure-propagation logic, and runs `npx openspec validate --specs --strict` against the canonical specs in `openspec/specs/**`
+- **And** the blocking `actionlint` job is no longer a dependency (consolidated into `actionlint-advisory` of substage 2C, per change `ci-supply-chain-hygiene`)
 
 ### Requirement: prebuild-tests-complete
 
@@ -101,13 +101,14 @@ move).
 POST-BUILD, so listing them here gave a prebuild verdict two post-build members. They belong to
 `postbuild-tests-complete` exclusively.
 
-`property-tests` SHALL be listed as a **blocking** member: its `continue-on-error` was removed on 2026-10-29
-(change `ci-testing-gate-promotion`, task 3.1), so a property-test failure now fails this aggregator. Its inclusion
-closes the taxonomy gap and makes the tier-1 verdict truthful.
-
-As of 2026-10-29 (`ci-testing-gate-promotion`, task 3.1), the 5 tier-1 members — `test-unit-client`, `test-unit-server`,
-`client-coverage`, `server-coverage` and `property-tests` — all have `continue-on-error` removed and are **blocking**.
-A failure in any of them fails this aggregator and propagates to `ci-complete`.
+All five members SHALL be **blocking**: none of them SHALL declare `continue-on-error`. A `failure` of any member
+SHALL make this aggregator report failure, and the failure SHALL reach `ci-complete`, its only consumer.
+`property-tests` is a full member of the verdict for the same reason as the other four: it is a tier-1 test of the
+prebuild testing tier and its red is a real signal. Job-level `continue-on-error` SHALL NOT be re-added to any member
+except as a recorded, per-job rollback of the promotion (`ci-testing-gate-promotion` design D9), and SHALL never be
+added to the aggregator itself. The scenario `property-tests is recorded but not made blocking` keeps its heading
+because OpenSpec keys scenarios by title; its content is the present contract, which is the contrary of that
+record-only posture.
 
 The jobs `test-e2e` and `coverage` do NOT exist as job names in ci.yml, and `e2e` stays excluded (`if: false`,
 explicitly out of scope).
@@ -121,8 +122,9 @@ explicitly out of scope).
 #### Scenario: property-tests is blocking
 
 - **WHEN** `property-tests` finalizes with `failure`
-- **THEN** the job reports failure and `prebuild-tests-complete` fails because of it
-- **AND** the job is listed in the aggregator's `needs` as a blocking member
+- **THEN** `prebuild-tests-complete` finalizes with failure — the record-only posture of FASE 1 no longer applies to
+  this member
+- **AND** the job is listed in the aggregator's `needs` regardless, so the tier-1 inventory stays complete
 
 #### Scenario: Post-build jobs are not aggregated by a prebuild verdict
 
@@ -140,11 +142,11 @@ explicitly out of scope).
 
 #### Scenario: Coverage tripwire failure propagates
 
-- **WHEN** the `ci-testing-gate-promotion` change has removed `continue-on-error: true` from `server-coverage`, and
-  `server-coverage` then finalizes with `failure` (coverage below the workspace thresholds or a missing/stale summary)
-- **THEN** `prebuild-tests-complete` finalizes with failure and `ci-complete` blocks the merge
-- **AND** this propagation does not hold before FASE 2: under the current advisory posture the coverage job is
-  reported but the aggregator still finalizes with success
+- **WHEN** `server-coverage` finalizes with `failure` (coverage below the workspace thresholds or a missing/stale
+  summary)
+- **THEN** `prebuild-tests-complete` finalizes with failure and `ci-complete` fails
+- **AND** the coverage bridge also fails the job through its own `Propagate shard failure` step when its upstream
+  `test-unit-server` failed, so a red suite cannot be masked by a green-looking merge
 
 ### Requirement: ci-complete depends on aggregators
 
@@ -225,34 +227,31 @@ The system SHALL NOT use `continue-on-error: true` on dead-code jobs in Phase 2.
 
 ### Requirement: Phase 2 blocking promotion
 
-During the calibration period defined by `ci-dead-code-advisory-calibration`, the `client-dead-code` and `server-dead-code` jobs SHALL run with `--no-exit-code` (advisory) until the knip configuration is calibrated (upgrade to 6.45.1, `--production`/`--cache` flags, reduction of `ignore`/`ignoreIssues`). Once calibrated, the jobs SHALL be promoted to blocking (`--no-exit-code` removed) and the promotion documented in `docs/learning/quality-policy.md` with date and rationale. This supersedes the previous Phase 2 intent of removing `continue-on-error` (already satisfied in code) by establishing the advisory→blocking transition explicitly.
-
-#### Scenario: Calibration period
-
-- **WHEN** knip runs in a PR during calibration
-- **THEN** it uses `--production --cache --no-exit-code`
-- **AND** findings do not block the merge
-- **AND** the job reports findings for triage
-
-#### Scenario: Promotion to blocking
-
-- **WHEN** a dead-code issue type reaches zero
-- **THEN** its severity is set to `error` in `knip.jsonc` rules
-- **AND** `--no-exit-code` is removed from the job
-- **AND** the promotion is recorded in `quality-policy.md`
+The system SHALL remove `continue-on-error` from dead-code jobs, making knip dead-code findings blocking quality gates that prevent PR merge on failure. The promotion SHALL occur only after baseline metrics are documented and the team confirms knip stability.
 
 #### Scenario: Phase 2 promotion
 
 - **WHEN** the team confirms knip stability (false positive rate acceptable, ignores calibrated)
-- **THEN** `continue-on-error: true` is removed from `client-dead-code` and `server-dead-code` (already satisfied in code)
+- **THEN** `continue-on-error: true` is removed from `client-dead-code` and `server-dead-code`
 - **AND** knip failures block the merge (same pattern as pr-title-lint/dco per §9.3.3/§9.3.4)
 
 #### Scenario: knip failure blocks PR
 
-- **WHEN** a PR targets `main` and `client-dead-code` (or `server-dead-code`) reports knip findings (after promotion)
+- **WHEN** a PR targets `main` and `client-dead-code` (or `server-dead-code`) reports knip findings
 - **THEN** the job exits with non-zero status
 - **AND** the aggregator `prebuild-quality-complete` propagates the failure
 - **AND** `ci-complete` reports failure, blocking the merge
+
+#### Scenario: Calibration period
+
+- **WHEN** Phase 2 begins
+- **THEN** baseline knip metrics are recorded and the team reviews them before promotion
+
+#### Scenario: Promotion to blocking
+
+- **WHEN** the team confirms knip stability
+- **THEN** `continue-on-error: true` is removed from `client-dead-code` and `server-dead-code`
+- **AND** knip failures block the merge
 
 ### Requirement: Per-workspace knip.json with correct schema
 
@@ -290,30 +289,26 @@ The system SHALL calibrate ignores in per-workspace `knip.json` files when the k
 
 The CI workflow file SHALL contain commented YAML headers that visually delimit each substage of STAGE 2.
 
-The SUBSTAGE 2A header SHALL list only the jobs that are physically defined in the governance block of `ci.yml`. It
-SHALL NOT list `pr-title-lint`, because that job is defined in `.github/workflows/pr-metadata.yml`; a header that
-advertises a job the file does not contain misleads exactly the reader it is meant to orient.
-
 #### Scenario: Inspecting ci.yml STAGE 2
 
 - **When** a developer opens `.github/workflows/ci.yml` and navigates to STAGE 2
 - **Then** the following headers are visible as comments before their respective job groups:
-  - `# SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, dco, sast diff`
+  - `# SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, pr-title-lint, dco, sast`
   - `# SUBSTAGE 2B: CODE QUALITY — lint, format-check, typecheck, complexity, dead-code, import-bounds, e2e-lint, openspec-validate, docs-validation (advisory)`
   - `# SUBSTAGE 2C: SECURITY — dependency-review, secrets, scancode-license-pr-diff, lockfile-audit, checkov-iac, containerfile-lint, actionlint-advisory, zizmor-advisory, typosquat-guarddog`
-  - `# SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, client-coverage, server-coverage, property-tests`
-
-#### Scenario: Metadata job is not advertised in the 2A header
-
-- **When** a developer reads the `# SUBSTAGE 2A: GOVERNANCE` header
-- **Then** `pr-title-lint` is not listed, because no such job is defined in `ci.yml`
-- **And** the reader looking for the metadata checks is pointed to `.github/workflows/pr-metadata.yml`
+  - `# SUBSTAGE 2D: UNIT TESTING — test-unit-client, test-unit-server, test-integration, test-smoke`
 
 #### Scenario: Reading substage 2C header
 
 - **When** a developer reads the `# SUBSTAGE 2C: SECURITY` header
 - **Then** all 9 security jobs of the pre-build security block are listed in file order
 - **And** the header no longer references `security.yml` (its PR-time security responsibility was absorbed by `ci.yml` since change `secret-scanning`; `security.yml` remains as push-main defense-in-depth per §23.3 mapping)
+
+#### Scenario: Metadata job is not advertised in the 2A header
+
+- **When** a developer reads the `# SUBSTAGE 2A: GOVERNANCE` header
+- **Then** `pr-title-lint` is not listed, because no such job is defined in `ci.yml`
+- **And** the reader looking for the metadata checks is pointed to `.github/workflows/pr-metadata.yml`
 
 ### Requirement: sast documented as standalone in substage 2A
 
@@ -531,9 +526,13 @@ exact string: renaming a bound job makes the required check never be emitted and
 indefinitely with `Expected — Waiting for status to be reported`, a message that gives no hint that a renamed job is
 the cause.
 
-Two contexts are bound today (ruleset 21227644 audited through the API on 2026-10-23): `Governance: PR Body Lint`
-(job `pr-body-lint`, `.github/workflows/pr-metadata.yml`) and `Prebuild Governance Complete` (job
-`prebuild-governance-complete`, `ci.yml`).
+Two contexts are bound today (ruleset 21227644 audited through the API on 2026-11-17, change `ci-build-gates`):
+`Governance: PR Body Lint` (job `pr-body-lint`, `.github/workflows/pr-metadata.yml`) and `CI Complete` (job
+`ci-complete`, `ci.yml`). `CI Complete` is the root aggregator that depends transitively on all sub-aggregators
+(`Prebuild Governance Complete`, `Prebuild Quality Complete`, `Prebuild Security Complete`, `Prebuild Tests Complete`,
+`Build Complete`, `Postbuild Tests Complete`, `Postbuild Analysis Complete`, `zombie-workflow-guard`, `repo-discovery`).
+The sub-aggregators themselves are NOT bound to the ruleset: their enforcement arrives transitively through
+`CI Complete`. Renaming `CI Complete` detaches the requirement for the entire pipeline.
 
 The three governance jobs of `ci.yml` — `Governance: Verify Commit Signatures` (`verify-signatures`),
 `Governance: Commit Lint (Conventional Commits)` (`commit-lint`) and `Governance: DCO` (`dco`) — are not bound
