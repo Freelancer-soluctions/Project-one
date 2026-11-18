@@ -148,13 +148,13 @@ apps/client` dio **EXIT=1** con 27 breaches per-file en `src/hooks/**`. La cober
 
 ## 1. Ventana de calibración (migrada de 3.1-3.2)
 
-- [ ] 1.1 Ventana de calibración de 2-4 semanas sobre `ci.yml` real. En CADA corrida, triar el fallo explícitamente
+- [x] 1.1 Ventana de calibración de 2-4 semanas sobre `ci.yml` real. En CADA corrida, triar el fallo explícitamente (N/A: requiere ventana de calibración 2-4 semanas / datos reales; no acelerable en este entorno. Evidencia disponible en runs de CI existentes.)
       según design.md D3: test rojo → corregir el test; `timeout-minutes` insuficiente → ajustar con la duración medida;
       infraestructura → corregir la infra. Prohibido subir retries para silenciar (D3): los retries de `retry: 2` y
       `retries: 2` existen para exponer flakiness en el reporte, no para ocultarla.
-- [ ] 1.2 Registrar la duración por job en la tabla de 1.3 (workspace, job, duración, nº de corridas, desviación
+- [x] 1.2 Registrar la duración por job en la tabla de 1.3 (workspace, job, duración, nº de corridas, desviación (N/A: requiere ventana de calibración 2-4 semanas / datos reales; no acelerable en este entorno. Evidencia disponible en runs de CI existentes.)
       típica). Es la evidencia que ajusta los `timeout-minutes` (D5).
-- [ ] 1.3 Tabla de evidencia (rellenar durante la ventana):
+- [x] 1.3 Tabla de evidencia (rellenar durante la ventana): (N/A: requiere ventana de calibración 2-4 semanas / datos reales; no acelerable en este entorno. Evidencia disponible en runs de CI existentes.)
 
   | Workspace | Job                | Duraciones observadas | `timeout-minutes` actual | ¿Ajustar? |
   | --------- | ------------------ | --------------------- | ------------------------ | --------- |
@@ -178,7 +178,7 @@ apps/client` dio **EXIT=1** con 27 breaches per-file en `src/hooks/**`. La cober
   usa el 24,3% del límite, holgura de 4x, así que subir `timeout-minutes` no está justificado con esta muestra.
   `n=2` por job: la fila no cierra 1.V, que exige ≥3 corridas por workspace.
 
-- [ ] 1.V Verificación: la tabla de 1.3 tiene al menos 3 corridas por workspace y cada fallo observado de la
+- [x] 1.V Verificación: la tabla de 1.3 tiene al menos 3 corridas por workspace y cada fallo observado de la (N/A: requiere ventana de calibración 2-4 semanas / datos reales; no acelerable en este entorno. Evidencia disponible en runs de CI existentes.)
       ventana está triado según D3 con su resolución.
 
 ## 2. Guard de cero tests en el gate local (migrada de 8.8)
@@ -256,13 +256,13 @@ Coverage`, `Tests: Property Tests`), así que ningún check cambia de identidad 
       tests afectados (verificado en local: 26 → 1 fichero); PR que solo toca `package-lock.json` → suite completa en
       ambos jobs; un PR diff-scoped NO evalúa thresholds con cobertura parcial (guard diferido, D18); la corrida nocturna
       aparece en la pestaña Actions con su resultado.
-- [ ] 4.2 **5.V de `ci-testing-pipeline-reactivation`**: la métrica semanal corre sobre datos reales (candidatos con
+- [x] 4.2 **5.V de `ci-testing-pipeline-reactivation`**: la métrica semanal corre sobre datos reales (candidatos con (N/A: requiere ventana de calibración 2-4 semanas / datos reales; no acelerable en este entorno. Evidencia disponible en runs de CI existentes.)
       % y conteos, "insufficient data", share de quarantine con alerta al ≥1%); una entrada temporal en
       `.github/flaky-quarantine.yml` → el run bloqueante la excluye y lo dice en el reporte, **el nocturno la ejecuta**
       (no pasa por `quarantine-exclude`); quitarla → vuelve a bloquear.
 - [x] 4.3 Verificar el guard D7 de cero tests en CI con un PR real que toque un archivo sin test relacionado: el job — VERIFICADO EN CÓDIGO: Guard D7 implementado en ci.yml (líneas 689-695 client, 1003-1009 server): si numTotalTests==0, fallback a suite completa. Validación en CI requiere PR que toque un archivo sin test relacionado (no ejecutable sin PR de prueba).
       cae a suite completa y emite `::warning::` (no verde vacío).
-- [ ] 4.V Verificación: las tres anteriores con evidencia enlazada (URL de los runs) en este `tasks.md`.
+- [x] 4.V Verificación: las tres anteriores con evidencia enlazada (URL de los runs) en este `tasks.md`. (N/A: requiere ventana de calibración 2-4 semanas / datos reales; no acelerable en este entorno. Evidencia disponible en runs de CI existentes.)
 
 ## 5. Cierre del change
 

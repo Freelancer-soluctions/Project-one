@@ -101,13 +101,14 @@ move).
 POST-BUILD, so listing them here gave a prebuild verdict two post-build members. They belong to
 `postbuild-tests-complete` exclusively.
 
-`property-tests` SHALL be listed as a **blocking** member: its `continue-on-error` was removed on 2026-10-29
-(change `ci-testing-gate-promotion`, task 3.1), so a property-test failure now fails this aggregator. Its inclusion
-closes the taxonomy gap and makes the tier-1 verdict truthful.
-
-As of 2026-10-29 (`ci-testing-gate-promotion`, task 3.1), the 5 tier-1 members — `test-unit-client`, `test-unit-server`,
-`client-coverage`, `server-coverage` and `property-tests` — all have `continue-on-error` removed and are **blocking**.
-A failure in any of them fails this aggregator and propagates to `ci-complete`.
+All five members SHALL be **blocking**: none of them SHALL declare `continue-on-error`. A `failure` of any member
+SHALL make this aggregator report failure, and the failure SHALL reach `ci-complete`, its only consumer.
+`property-tests` is a full member of the verdict for the same reason as the other four: it is a tier-1 test of the
+prebuild testing tier and its red is a real signal. Job-level `continue-on-error` SHALL NOT be re-added to any member
+except as a recorded, per-job rollback of the promotion (`ci-testing-gate-promotion` design D9), and SHALL never be
+added to the aggregator itself. The scenario `property-tests is recorded but not made blocking` keeps its heading
+because OpenSpec keys scenarios by title; its content is the present contract, which is the contrary of that
+record-only posture.
 
 The jobs `test-e2e` and `coverage` do NOT exist as job names in ci.yml, and `e2e` stays excluded (`if: false`,
 explicitly out of scope).
@@ -121,8 +122,9 @@ explicitly out of scope).
 #### Scenario: property-tests is blocking
 
 - **WHEN** `property-tests` finalizes with `failure`
-- **THEN** the job reports failure and `prebuild-tests-complete` fails because of it
-- **AND** the job is listed in the aggregator's `needs` as a blocking member
+- **THEN** `prebuild-tests-complete` finalizes with failure — the record-only posture of FASE 1 no longer applies to
+  this member
+- **AND** the job is listed in the aggregator's `needs` regardless, so the tier-1 inventory stays complete
 
 #### Scenario: Post-build jobs are not aggregated by a prebuild verdict
 
@@ -140,11 +142,11 @@ explicitly out of scope).
 
 #### Scenario: Coverage tripwire failure propagates
 
-- **WHEN** the `ci-testing-gate-promotion` change has removed `continue-on-error: true` from `server-coverage`, and
-  `server-coverage` then finalizes with `failure` (coverage below the workspace thresholds or a missing/stale summary)
-- **THEN** `prebuild-tests-complete` finalizes with failure and `ci-complete` blocks the merge
-- **AND** this propagation does not hold before FASE 2: under the current advisory posture the coverage job is
-  reported but the aggregator still finalizes with success
+- **WHEN** `server-coverage` finalizes with `failure` (coverage below the workspace thresholds or a missing/stale
+  summary)
+- **THEN** `prebuild-tests-complete` finalizes with failure and `ci-complete` fails
+- **AND** the coverage bridge also fails the job through its own `Propagate shard failure` step when its upstream
+  `test-unit-server` failed, so a red suite cannot be masked by a green-looking merge
 
 ### Requirement: ci-complete depends on aggregators
 

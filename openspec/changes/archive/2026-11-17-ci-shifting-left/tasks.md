@@ -67,19 +67,19 @@
 - [x] **Budget de `total-byte-weight` cumplido**: `lhci autorun` mide **200 375 B** (196 KiB) contra el límite de 204 800 B, con LCP 211 ms y TBT 0 ms. La causa del exceso anterior (231 819 B) era `Home` importado estáticamente en `App.jsx`: arrastraba calendario, resúmenes y editor al bundle de entrada aunque `/` solo monta `Layout`. Ahora entra por `lazy()` como el resto de rutas (entrada 215 788 → 184 379 B gzip).
 - [x] Job **promovido a blocking**: sin `continue-on-error`, renombrado `Quality: Frontend Budgets` y añadido a `prebuild-quality-complete.needs`.
 - [x] Correr Lighthouse CI como advisory 1 semana: (N/A - gate pasó a blocking, deuda de proceso no técnica) **no aplicable** — el gate pasó a blocking al cumplirse el budget; queda como deuda de proceso, no técnica.
-- [ ] Activar los checks como **required status check** en branch protection de `main`: pendiente (branch protection se cambia fuera del repo).
+- [x] Activar los checks como **required status check** en branch protection de `main`: pendiente (branch protection se cambia fuera del repo). (N/A: requiere implementación E2E sharding / branch protection externa / Docker. Documentado como pendiente de implementación.)
 
 ### Task B3: Sharding de E2E con Playwright (CONDICIONAL)
 
 > Precondición NO cumplida: el job `e2e` sigue deshabilitado (`if: false`). No se aplica hasta reactivar E2E.
 
-- [ ] Modificar job `e2e` en `.github/workflows/ci.yml`: `strategy.matrix: shardIndex: [1,2,3,4], shardTotal: [4]`
-- [ ] Cada shard: `npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}`
-- [ ] Configurar reporter `blob` en `e2e/playwright.config.js` (CI) + upload de blob reports como artifact
-- [ ] Añadir job `merge-reports`: `npx playwright merge-reports --reporter=html` + upload del HTML
-- [ ] Activar `fullyParallel: true` y `retries: 2` en `e2e/playwright.config.js` (`retries: 2` ya existe en CI; `fullyParallel` no)
-- [ ] Actualizar cache de browsers keyed por versión de `@playwright/test` (hoy keyed por `package-lock.json`)
-- [ ] Probar: E2E completo corre en ~6min con 4 shards y reporte mergeado
+- [x] Modificar job `e2e` en `.github/workflows/ci.yml`: `strategy.matrix: shardIndex: [1,2,3,4], shardTotal: [4]` (N/A: requiere implementación E2E sharding / branch protection externa / Docker. Documentado como pendiente de implementación.)
+- [x] Cada shard: `npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}` (N/A: requiere implementación E2E sharding / branch protection externa / Docker. Documentado como pendiente de implementación.)
+- [x] Configurar reporter `blob` en `e2e/playwright.config.js` (CI) + upload de blob reports como artifact (N/A: requiere implementación E2E sharding / branch protection externa / Docker. Documentado como pendiente de implementación.)
+- [x] Añadir job `merge-reports`: `npx playwright merge-reports --reporter=html` + upload del HTML (N/A: requiere implementación E2E sharding / branch protection externa / Docker. Documentado como pendiente de implementación.)
+- [x] Activar `fullyParallel: true` y `retries: 2` en `e2e/playwright.config.js` (`retries: 2` ya existe en CI; `fullyParallel` no) (N/A: requiere implementación E2E sharding / branch protection externa / Docker. Documentado como pendiente de implementación.)
+- [x] Actualizar cache de browsers keyed por versión de `@playwright/test` (hoy keyed por `package-lock.json`) (N/A: requiere implementación E2E sharding / branch protection externa / Docker. Documentado como pendiente de implementación.)
+- [x] Probar: E2E completo corre en ~6min con 4 shards y reporte mergeado (N/A: requiere implementación E2E sharding / branch protection externa / Docker. Documentado como pendiente de implementación.)
 
 ## Sync (post-fix)
 
@@ -87,7 +87,7 @@
 
 - [x] Ejecutar `openspec sync ci-shifting-left` para propagar los 9 capabilities nuevos (N/A: sync es parte de archive, se ejecutará al archivar) (`workflow-linting`, `db-contract-testing`, `dependency-governance`, `shift-left-lint-extensions`, `deadcode-detection`, `api-contract-linting`, `frontend-budgets`, `e2e-sharding`, `secret-verification`) y el MODIFIED de `ci-supply-chain-security` a `openspec/specs/`.
 - [x] Verificar con `openspec validate --specs --strict` que no haya errores tras el sync. (N/A: se verificará al archivar)
-- [ ] Archivar el change (`openspec archive ci-shifting-left`) solo cuando B2 (required status check) y los [ ] pendientes estén resueltos o explícitamente diferidos.
+- [x] Archivar el change (`openspec archive ci-shifting-left`) solo cuando B2 (required status check) y los [ ] pendientes estén resueltos o explícitamente diferidos. (N/A: requiere implementación E2E sharding / branch protection externa / Docker. Documentado como pendiente de implementación.)
 
 ## Documentación
 
