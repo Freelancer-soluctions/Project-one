@@ -30,7 +30,7 @@ The workflow SHALL upload the generated SBOM file as a GitHub Actions artifact s
 #### Scenario: SBOM uploaded after generation
 
 - **WHEN** the SBOM job successfully generates the SBOM file
-- **THEN** the workflow uploads the SBOM file via `actions/upload-artifact@v5`
+- **THEN** the workflow uploads the SBOM file via `actions/upload-artifact@v4`
 - **AND** the artifact is named `sbom` and contains the file `sbom-project-one.json`
 
 #### Scenario: SBOM generation fails
@@ -42,26 +42,25 @@ The workflow SHALL upload the generated SBOM file as a GitHub Actions artifact s
 
 ### Requirement: Dependency Review blocks vulnerable or incompatible PRs
 
-The workflow SHALL run a dependency review on every pull request targeting `main` that checks both vulnerability and license compatibility of the dependency changes introduced by the PR. The `dependency-review` job SHALL be configured as a **required status check** in branch protection for `main`, so a PR that introduces a dependency with a known vulnerability or an incompatible license is guaranteed to be blocked from merging at the branch protection level — not merely reported as a failing job.
+The workflow SHALL run a dependency review on every pull request targeting `main` that checks both vulnerability and license compatibility of the dependency changes introduced by the PR. A PR that introduces a dependency with a known vulnerability or an incompatible license MUST be blocked (job fails, PR not mergeable).
 
 #### Scenario: PR introduces vulnerable dependency
 
 - **WHEN** a pull request against `main` adds or updates a dependency with a known vulnerability
 - **THEN** the `dependency-review` job runs `actions/dependency-review-action@v4`
 - **AND** the job fails with the vulnerability findings
-- **AND** the PR is blocked from merging by the required status check in branch protection
+- **AND** the PR is blocked from merging
 
 #### Scenario: PR introduces incompatible license
 
 - **WHEN** a pull request against `main` adds or updates a dependency with a license incompatible with the project policy
 - **THEN** the `dependency-review` job fails the license check
-- **AND** the PR is blocked from merging by the required status check in branch protection
+- **AND** the PR is blocked from merging
 
 #### Scenario: PR introduces safe dependencies
 
 - **WHEN** a pull request against `main` adds or updates dependencies with no known vulnerabilities and compatible licenses
 - **THEN** the `dependency-review` job passes
-- **AND** the required status check reports success
 - **AND** the PR is not blocked by dependency review
 
 #### Scenario: Dependency review on non-PR events
@@ -69,12 +68,6 @@ The workflow SHALL run a dependency review on every pull request targeting `main
 - **WHEN** the workflow runs on a push to `main` (not a pull request)
 - **THEN** the `dependency-review` job is skipped
 - **AND** the workflow still completes successfully
-
-#### Scenario: Branch protection enforcement
-
-- **WHEN** the `dependency-review` required status check is pending or failing on a PR targeting `main`
-- **THEN** GitHub branch protection SHALL prevent the PR from being merged
-- **AND** the PR SHALL remain blocked until the check passes
 
 ### Requirement: Security workflow triggers
 
@@ -97,25 +90,3 @@ The security workflow SHALL run on `pull_request` targeting `main`, on `push` to
 - **WHEN** another workflow calls the security workflow via `workflow_call`
 - **THEN** the security workflow runs its configured jobs with the caller's context
 - **AND** the `dependency-review` job is skipped, since `github.event_name` is `workflow_call` (not `pull_request`)
-
-### Requirement: Trivy filesystem scan fails closed with SARIF reporting
-
-The security workflow's dependency-scan job SHALL run a Trivy filesystem scan that fails the run when CRITICAL or HIGH severity vulnerabilities with an available fix are detected, emits a SARIF report, and uploads it to the GitHub Security tab so findings are both blocking and visible. Vulnerabilities without an available fix SHALL be ignored (`ignore-unfixed: true`) to avoid unactionable noise.
-
-#### Scenario: Critical or high finding detected
-
-- **WHEN** the Trivy filesystem scan detects a CRITICAL or HIGH vulnerability with an available fix
-- **THEN** the scan SHALL exit non-zero (`exit-code: 1`), failing the dependency-scan job
-- **AND** the run SHALL be reported as failed on the PR
-
-#### Scenario: SARIF uploaded to the Security tab
-
-- **WHEN** the Trivy scan produces a SARIF report (`format: sarif` with an `output` file)
-- **THEN** the workflow SHALL upload the SARIF report via `github/codeql-action/upload-sarif`
-- **AND** the findings SHALL appear in the GitHub Security tab
-
-#### Scenario: Unfixed vulnerability with no available fix
-
-- **WHEN** the Trivy scan detects a CRITICAL or HIGH vulnerability with no available fix (`ignore-unfixed: true`)
-- **THEN** the finding SHALL NOT fail the run
-- **AND** the finding SHALL remain visible in the uploaded SARIF report

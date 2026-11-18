@@ -194,20 +194,14 @@ undefined`, verificado con `--debug`) — usar siempre los scripts raíz `npm ru
 
 ### 3.2 Los status checks del ruleset (nombres EXACTOS)
 
-**1 vinculado hoy (API re-verificada 2026-11-17, change `ci-build-gates`):**
+**3 vinculados hoy (API re-verificada 2026-11-12):**
 
-1. `CI Complete` (agregador raíz en `ci.yml`) — único required check del ruleset 21227644.
+1. `Governance: PR Body Lint` (emitido por `.github/workflows/pr-metadata.yml`)
+2. `Prebuild Governance Complete` (job agregador de 2A en `ci.yml`)
+3. `Prebuild Security Complete` (job agregador de 2C en `ci.yml`)
 
-- `CI Complete` depende transitivamente de TODOS los sub-agregadores (`Prebuild Governance Complete`,
-  `Prebuild Quality Complete`, `Prebuild Security Complete`, `Prebuild Tests Complete`, `Build Complete`,
-  `Postbuild Tests Complete`, `Postbuild Analysis Complete`, `zombie-workflow-guard`, `repo-discovery`).
-  Si cualquiera falla, `CI Complete` falla → merge bloqueado.
-- Los sub-agregadores individuales NO están vinculados al ruleset: su enforcement llega transitivamente a través
-  de `CI Complete`.
-- `Governance: PR Body Lint` (emitido por `pr-metadata.yml`) se mantiene como required check independiente
-  (no está en `ci.yml`, por lo que no puede agregarse a `CI Complete`).
-- Integration ID: `15368` (origen: config del ruleset vía API).
-- Los nombres DEBEN coincidir EXACTO con el `name:` del job (renombrar rompe el binding del ruleset).
+- `CI Complete` NO está vinculado al ruleset 21227644 (job saltaba mientras CI_MINIMAL=true; CI_MINIMAL=false desde
+  2026-09-17 → corre y será añadible tras ≥1 run).
 - Integration ID para los 2 checks: `15368` (origen: config del ruleset vía API; no derivable de los workflows).
 - Los nombres DEBEN coincidir EXACTO con el `name:` del job (renombrar rompe el binding del ruleset).
 
