@@ -14,7 +14,13 @@
 
 ## 3. Determinismo
 
-- [x] 3.1 Ejecutar dos `vite build` seguidos y comparar nombres de assets (deben ser idénticos).
+- [x] 3.1 Ejecutar dos `vite build` seguidos y comparar nombres de assets (deben ser idénticos) — verificado manualmente 2026-11-18 (139 archivos, sha256 idénticos).
+
+## 4. Gate automatizado en CI (salvedad cerrada 2026-11-19)
+
+- [x] 4.1 Añadir job `frontend-determinism` a `build.yml`: dos `vite build` + `sha256sum` compare + fail si difieren.
+- [x] 4.2 Añadir job `frontend-headers-smoke` a `build.yml`: nginx:alpine con el config del repo + curl que verifica `Cache-Control: immutable` en assets, `no-cache` en index.html y 404 en `.map`.
+- [x] 4.3 Validar YAML con `actionlint` (EXIT 0) y confirmar que los 2 jobs aparecen en `build.yml`.
 
 ## Resultado de la verificación (2026-11-18)
 

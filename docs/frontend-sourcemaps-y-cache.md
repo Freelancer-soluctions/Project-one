@@ -143,3 +143,15 @@ commit, cada deploy invalidaría todo el cache sin motivo.
 - Change: `openspec/changes/ci-frontend-sourcemaps-cache/`
 - Config: `apps/client/vite.config.js`, `apps/server/nginx.conf`
 - Vite `build.sourcemap`: <https://vite.dev/config/build-options#build-sourcemap>
+
+## 7. Gates automatizados en CI (añadidos 2026-11-19)
+
+Para que la verificación no dependa solo de pasos manuales, `build.yml` incluye dos jobs:
+
+- **`frontend-determinism`**: ejecuta `vite build` dos veces y compara con `sha256sum` los archivos de `dist/assets/*.js`; falla si difieren (regresión de determinismo).
+- **`frontend-headers-smoke`**: levanta `nginx:alpine` con el `nginx.conf` del repo y el `dist/` montado, y verifica con `curl`:
+  - `Cache-Control: public, max-age=31536000, immutable` en assets con hash.
+  - `Cache-Control: no-cache` en `index.html`.
+  - `404` en cualquier `.map`.
+
+Ambos jobs tienen `timeout-minutes: 10` y permisos mínimos (`contents: read`). El YAML valida con `actionlint` (EXIT 0).
