@@ -1,0 +1,18 @@
+{
+  // Proyecto de diagnóstico opt-in: `checkJs` acotado a `src/lib` y `src/redux`
+  // (el "store"; en este repo no existe `src/store`). No se usa en CI ni en
+  // `npm run typecheck`; se invoca a mano:
+  //   npx tsc --noEmit -p apps/client/tsconfig.checkjs.json
+  //
+  // tsc no tiene `checkJs` por directorio: el flag es por programa. Como
+  // `src/redux/store.js` importa las 24 APIs (que a su vez importan
+  // `src/config/axios.js`), activarlo aquí arrastra 206 errores de archivos
+  // fuera del alcance. Por eso el alcance real se fija con `// @ts-check` en
+  // los archivos concretos, que es el mecanismo de adopción incremental de JS.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "checkJs": false
+  },
+  "include": ["src/lib/**/*", "src/redux/**/*"],
+  "exclude": ["node_modules", "dist", "coverage", "storybook-static"]
+}

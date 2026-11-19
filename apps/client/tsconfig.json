@@ -1,12 +1,29 @@
 {
-  // Typecheck del client (change `quality-gates`). Extiende la raíz; el client
-  // es React 100% JS/JSX: `allowJs` + `checkJs: false` valida compilación y
-  // resolución de imports (incluye el alias `@` de Vite vía jsconfig paths
-  // espejado abajo) sin exigir tipos. `jsx: react-jsx` = transform moderno.
-  // Flags strict llegarán con typescript-strict-check.
-  "extends": "../../tsconfig.json",
+  // Typecheck del client (changes `quality-gates` y `ci-typescript-strict-flags`).
+  // Extiende la base estricta compartida (`tsconfig.base.json`), no la solución
+  // raíz, para que cualquier `.ts`/`.tsx` nuevo herede los flags del PRD.
+  // El client es React 100% JS/JSX: `allowJs` + `checkJs: false` valida
+  // compilación y resolución de imports (incluye el alias `@` de Vite vía
+  // `paths`) sin exigir tipos. `jsx: react-jsx` = transform moderno.
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
+    // El client se empaqueta con Vite y corre en el navegador: resolución
+    // "bundler" y libs DOM en lugar de `module`/`moduleResolution` NodeNext y
+    // `lib` ES2023 de la base.
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    // Solo type-check (`tsc --noEmit`): no es proyecto referenciado, no emite
+    // ni escribe `.tsbuildinfo`.
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "composite": false,
+    "incremental": false,
+    "declaration": false,
+    "declarationMap": false,
     "paths": {
       "@/*": ["./src/*"]
     }
