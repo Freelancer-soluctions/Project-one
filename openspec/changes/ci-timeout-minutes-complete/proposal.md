@@ -7,7 +7,7 @@
 ## What Changes
 
 - Añadir `timeout-minutes` a los 8 jobs restantes de `ci.yml` (los 6 listados arriba más `commit-lint` y `dco`, que también carecían de él).
-- Verificar que `build.yml` ya tiene timeout en todos sus jobs (4/4).
+- Verificar que `build.yml` ya tiene timeout en todos sus jobs (6/6).
 - Documentar los valores elegidos (p. ej. 10min para aggregators, 5min para verify-signatures).
 
 ## Capabilities
@@ -20,5 +20,5 @@
 - Archivos: `.github/workflows/ci.yml`.
 - Riesgo: bajo.
 - **Alcance real (2026-11-18):** 8 jobs sin timeout a nivel de job (`commit-lint` y `dco` no estaban
-  en el listado inicial). `build.yml` ya estaba completo (4/4). Ver «Resultado de la verificación»
+  en el listado inicial). `build.yml` ya estaba completo (6/6). Ver «Resultado de la verificación»
   en `tasks.md`.

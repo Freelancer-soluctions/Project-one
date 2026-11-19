@@ -5,7 +5,7 @@
 - [x] 1.1 Añadir `timeout-minutes: 5` a `verify-signatures` en `ci.yml`.
 - [x] 1.2 Añadir `timeout-minutes: 10` a los 4 agregadores prebuild (`prebuild-governance-complete`, `prebuild-quality-complete`, `prebuild-security-complete`, `prebuild-tests-complete`).
 - [x] 1.3 Añadir `timeout-minutes: 15` a `ci-complete`.
-- [x] 1.4 Verificar que todos los jobs de `build.yml` ya tienen timeout (4/4).
+- [x] 1.4 Verificar que todos los jobs de `build.yml` ya tienen timeout (6/6).
 
 ## 2. Verificación
 
@@ -47,7 +47,7 @@
   (el listado del proposal los omitía). Valores aplicados:
   `verify-signatures` 5 · `commit-lint` 5 · `dco` 5 · los 4 `prebuild-*-complete` 10 ·
   `ci-complete` 15.
-- **`build.yml`: 4/4 con timeout** (`build` 15, `image` 30, `trivy` 15, `validate` 20).
+- **`build.yml`: 6/6 con timeout** (`build` 15, `image` 30, `trivy` 15, `validate` 20).
 - **Cobertura**: 64 jobs en `ci.yml`, **0 sin `timeout-minutes` a nivel de job** (check estructural,
   EXIT 0). Antes del cambio eran 8.
 - **`actionlint .github/workflows/ci.yml`** → EXIT 0 (sin warnings).
