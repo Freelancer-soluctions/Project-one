@@ -16,6 +16,12 @@
 - [x] 3.1 Ejecutar dos builds del mismo commit y comparar `version.json` (deben ser idénticos).
 - [x] 3.2 Verificar que `Date.now()` no se usa por defecto.
 
+## 4. Salvedades cerradas (2026-11-19)
+
+- [x] 4.1 Añadir `node ../../scripts/write-version.mjs` al `build` de `apps/server/package.json` para que `version.json` también se genere en builds locales.
+- [x] 4.2 Añadir test de integración `tests/integration/version/version-endpoint.integration.test.ts` que verifica `GET /version` → 200 con `{revision, created}` y 404 cuando no existe (wiring con supertest).
+- [x] 4.3 Ejecutar el test: 2/2 passed.
+
 ## Resultado de la verificación (2026-11-18)
 
 Commit de prueba: `4420021b63228a185b07ebb84e5cf9534d626409` (epoch `1795044485` →
