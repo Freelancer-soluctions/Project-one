@@ -123,7 +123,7 @@ export const createProductCategory = handleCatchErrorAsync(async (req, res) => {
  */
 export const updateProductCategoryById = handleCatchErrorAsync(
   async (req, res) => {
-    const categoryId = req.params.id;
+    const categoryId = req.params['id'];
     // Cast único del body validado por Joi (SettingsProductCategoryUpdateSchema)
     const body = req.body as UpdateProductCategoryInput;
     await settingsService.updateProductCategoryById(Number(categoryId), body);
@@ -142,7 +142,7 @@ export const updateProductCategoryById = handleCatchErrorAsync(
  */
 export const deleteProductCategoryById = handleCatchErrorAsync(
   async (req, res) => {
-    const categoryId = req.params.id;
+    const categoryId = req.params['id'];
     await settingsService.deleteProductCategoryById(Number(categoryId));
     globalResponse(res, 200, { message: 'Item deleted successfully' });
   }
@@ -161,7 +161,7 @@ export const deleteProductCategoryById = handleCatchErrorAsync(
  * @returns {Promise<void>} Sends response with updated settings data
  */
 export const patchSettingsById = handleCatchErrorAsync(async (req, res) => {
-  const settingsId = req.params.id;
+  const settingsId = req.params['id'];
   const { language, displayOptions } = req.body;
 
   // Build update object with only provided fields

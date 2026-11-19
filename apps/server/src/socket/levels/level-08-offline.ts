@@ -112,8 +112,8 @@ io.on('connection', (socket) => {
           picture: `https://i.pravatar.cc/150?u=${mention.mentionedByUserId}`,
         },
         note: {
-          id: mention.noteId,
-          title: `Nota ${mention.noteId}`, // En app real vendría de DB
+          id: mention['noteId'],
+          title: `Nota ${mention['noteId']}`, // En app real vendría de DB
         },
         excerpt: `Esta es una mención simulada creada mientras estabas offline`,
         createdAt: mention.createdOn.toISOString(),

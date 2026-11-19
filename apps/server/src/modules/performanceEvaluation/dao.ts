@@ -110,7 +110,7 @@ export const createPerformanceEvaluation = async (
     data: {
       date: data.date,
       calification: data.calification,
-      comments: data.comments,
+      ...(data.comments !== undefined && { comments: data.comments }),
       createdOn: data.createdOn,
       employee: {
         connect: { id: data.employeeId },

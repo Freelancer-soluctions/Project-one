@@ -8,7 +8,7 @@ import dotenv, { requireEnv } from './dotenv.js';
  * suite las keys críticas existen: estos tests no dependen de un `.env` local.
  */
 
-const ORIGINAL_SECRETKEY = process.env.SECRETKEY;
+const ORIGINAL_SECRETKEY = process.env['SECRETKEY'];
 const CRITICAL_KEY = 'SECRETKEY';
 
 afterEach(() => {
@@ -61,6 +61,6 @@ describe('dotenv (default) para keys opcionales (unit)', () => {
   it('sigue devolviendo cadena vacía cuando la key opcional no está definida', () => {
     // Contraste que justifica la política: las opcionales tienen default propio
     // en el call-site (`|| 3000`, `Number(...) || 20`), así que no deben lanzar.
-    expect(dotenv('CLOUD_NAME')).toBe(process.env.CLOUD_NAME ?? '');
+    expect(dotenv('CLOUD_NAME')).toBe(process.env['CLOUD_NAME'] ?? '');
   });
 });

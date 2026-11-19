@@ -27,7 +27,7 @@
 import type { Server } from 'socket.io';
 
 export const createAdapter = async (server: Server): Promise<void> => {
-  const redisUrl = process.env.REDIS_URL;
+  const redisUrl = process.env['REDIS_URL'];
 
   if (!redisUrl) {
     // Sin Redis → adapter en memoria (default de Socket.IO)

@@ -95,6 +95,19 @@ export const getAllEventTypes = async (): Promise<EventType[]> => {
  * @param {string} [params.modality] - Filter by modality: 'ONLINE', 'IN_PERSON', or 'HYBRID'.
  * @returns {Promise<Object>} Paginated list of events with total count.
  */
+/**
+ * Traduce la paginación opcional del dao a argumentos de Prisma sin claves
+ * `undefined` (que `exactOptionalPropertyTypes` rechaza).
+ *
+ * @param {number} [take] - Registros por página.
+ * @param {number} [skip] - Registros a omitir.
+ * @returns {Object} Argumentos de paginación listos para `findMany`.
+ */
+const toPaginationArgs = (take?: number, skip?: number) => ({
+  ...(take !== undefined && { take }),
+  ...(skip !== undefined && { skip }),
+});
+
 export const getAllEvents = async ({
   searchQuery,
   take,
@@ -171,8 +184,7 @@ export const getAllEvents = async ({
         userEventCreated: true,
       },
       orderBy: [{ eventDate: 'desc' }, { startTime: 'asc' }],
-      take,
-      skip,
+      ...toPaginationArgs(take, skip),
     }),
     prisma.events.count({ where }),
   ]);

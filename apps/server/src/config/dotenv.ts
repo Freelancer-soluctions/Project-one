@@ -6,7 +6,7 @@ import { config } from 'dotenv';
 // .env.production   → Secretos de PROD (DIFERENTES)
 
 // configuracion de entorno
-const env = process.env.NODE_ENV || 'development';
+const env = process.env['NODE_ENV'] || 'development';
 
 // Intentar cargar archivo específico del entorno primero
 config({ path: `.env.${env}` });

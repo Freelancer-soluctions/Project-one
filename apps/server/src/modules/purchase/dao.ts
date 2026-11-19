@@ -107,7 +107,15 @@ export const patchPurchaseById = async (
   data: PurchasePatchData
 ): Promise<PurchaseListItem | null> => {
   const { details, ...purchaseData } = data;
-  const updateData = { ...purchaseData, updatedBy: data.updatedBy };
+  const updateData = {
+    ...(purchaseData.providerId !== undefined && {
+      providerId: purchaseData.providerId,
+    }),
+    ...(purchaseData.total !== undefined && { total: purchaseData.total }),
+    ...(purchaseData.updatedBy !== undefined && {
+      updatedBy: purchaseData.updatedBy,
+    }),
+  };
 
   // Only update purchase fields if they exist
   if (Object.keys(updateData).length > 0) {

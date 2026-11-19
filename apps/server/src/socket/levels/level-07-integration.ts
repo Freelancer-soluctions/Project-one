@@ -62,7 +62,7 @@ io.on('connection', (socket) => {
 // --- Capa Servicio: simula el service.js que emite eventos ---
 const simulateMention = (payload: Record<string, unknown>) => {
   console.log(
-    `📝 Servicio: mención creada por usuario ${payload.mentionedByUserId} para usuario ${payload.mentionedUserId}`
+    `📝 Servicio: mención creada por usuario ${payload['mentionedByUserId']} para usuario ${payload['mentionedUserId']}`
   );
   // El servicio NO sabe que Socket.IO existe. Solo emite en el bus.
   bus.emit(BUS_EVENTS.MENTION_CREATED, payload);

@@ -38,12 +38,12 @@ export type NoteColumnWithNotes = NoteColumnRecord & {
 
 /** Filters accepted by the board query. */
 export interface NotesFilters {
-  searchTerm?: string;
-  statusCode?: string;
-  hashtagIds?: number[];
-  userId?: number;
-  isFavorite?: boolean;
-  scope?: NoteScope;
+  searchTerm?: string | undefined;
+  statusCode?: string | undefined;
+  hashtagIds?: number[] | undefined;
+  userId?: number | undefined;
+  isFavorite?: boolean | undefined;
+  scope?: NoteScope | undefined;
 }
 
 /** Payload used to create a note. */

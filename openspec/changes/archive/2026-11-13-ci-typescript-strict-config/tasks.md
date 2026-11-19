@@ -2,7 +2,7 @@
 
 ## 1. Base compartida
 
-- [x] 1.1 Crear `tsconfig.base.json` en la raíz con los flags del PRD (sección 1).
+- [x] 1.1 Crear `tsconfig.base.json` en la raíz con los flags del PRD (sección 1). **Divergencia (2026-11-18):** se marcó completada pero el archivo quedó con 16 opciones y faltaban 13 flags del PRD (§1): `lib: ["ES2023"]`, `types: ["node"]`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `useUnknownInCatchVariables`, `verbatimModuleSyntax`, `erasableSyntaxOnly`, `rewriteRelativeImportExtensions`, `composite`, `incremental` y `noEmitOnError`. Por eso B2/B3/B4 no disparaban y `tsc` podía emitir `dist/` con errores de tipos. Completado en el change `ci-typescript-strict-flags`, que además corrigió los 115 errores que afloraron al activarlos.
 - [x] 1.2 Fijar `typescript` y `@types/node` en `devDependencies` raíz (una sola versión) y en `apps/server`.
 - [x] 1.3 Añadir `**/dist/` y `**/.tsbuildinfo` a `.gitignore` y `.dockerignore` (PRD §6: `**/dist`, no `dist/` root-scoped).
 - [x] 1.4 (N/A: ci-build-gates gestiona path filters) Añadir `tsconfig.base.json` a los path filters de `.github/workflows/ci.yml` (líneas ~109-115) para que cambios en la base disparen `server-typecheck`.

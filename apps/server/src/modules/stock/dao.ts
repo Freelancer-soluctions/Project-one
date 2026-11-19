@@ -137,10 +137,12 @@ export const createStock = async (
     data: {
       quantity: data.quantity,
       minimum: data.minimum,
-      maximum: data.maximum,
-      lot: data.lot,
+      ...(data.maximum !== undefined && { maximum: data.maximum }),
+      ...(data.lot !== undefined && { lot: data.lot }),
       unitMeasure: data.unitMeasure,
-      expirationDate: data.expirationDate,
+      ...(data.expirationDate !== undefined && {
+        expirationDate: data.expirationDate,
+      }),
 
       createdOn: data.createdOn,
       warehouse: {
@@ -177,23 +179,31 @@ export const updateStock = async (
   const stock = await prisma.stock.update({
     where,
     data: {
-      quantity: data.quantity,
-      minimum: data.minimum,
-      maximum: data.maximum,
-      lot: data.lot,
-      unitMeasure: data.unitMeasure,
-      expirationDate: data.expirationDate,
+      ...(data.quantity !== undefined && { quantity: data.quantity }),
+      ...(data.minimum !== undefined && { minimum: data.minimum }),
+      ...(data.maximum !== undefined && { maximum: data.maximum }),
+      ...(data.lot !== undefined && { lot: data.lot }),
+      ...(data.unitMeasure !== undefined && {
+        unitMeasure: data.unitMeasure,
+      }),
+      ...(data.expirationDate !== undefined && {
+        expirationDate: data.expirationDate,
+      }),
       updatedOn: data.updatedOn,
-      warehouse: {
-        connect: {
-          id: data.warehouseId,
+      ...(data.warehouseId !== undefined && {
+        warehouse: {
+          connect: {
+            id: data.warehouseId,
+          },
         },
-      },
-      product: {
-        connect: {
-          id: data.productId,
+      }),
+      ...(data.productId !== undefined && {
+        product: {
+          connect: {
+            id: data.productId,
+          },
         },
-      },
+      }),
       userStockUpdated: {
         connect: {
           id: data.updatedBy,

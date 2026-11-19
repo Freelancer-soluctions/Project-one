@@ -6,7 +6,7 @@ export const verifyCsrfOld = (
   res: Response,
   next: NextFunction
 ): Response | void => {
-  const csrfCookie = req.cookies.csrfToken;
+  const csrfCookie = req.cookies['csrfToken'];
   const csrfHeader = req.headers['csrf-token'];
 
   if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
@@ -21,7 +21,7 @@ export const verifyCsrf = (
   next: NextFunction
 ): Response | void => {
   try {
-    const csrfCookie = req.cookies?.csrfToken;
+    const csrfCookie = req.cookies?.['csrfToken'];
     const csrfHeader = req.headers['csrf-token']; // express siempre los pasa en minúscula
 
     // `typeof` además de la comprobación de existencia: el header puede llegar

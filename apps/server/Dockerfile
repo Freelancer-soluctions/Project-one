@@ -54,8 +54,16 @@ RUN --mount=type=cache,target=/root/.npm \
  && npx prisma generate --schema=apps/server/prisma/schema.prisma \
  && npm rebuild bcrypt
 
-# --- build: emisión JS con tsc + poda de devDeps ---
+# --- build: emisión JS con tsc + metadatos de versión + poda de devDeps ---
 FROM deps AS build
+# Metadatos de build (change `ci-write-version-metadatos`): `dist/version.json`
+#   alimenta `GET /version` (soporte rastrea el commit desplegado). `.git` está
+#   en .dockerignore, así que no hay git en la imagen: revision/created llegan
+#   por build-arg y los pasan build.yml, deploy.yml y preview.yml.
+#   Sin args el build NO falla (compose/dev): se avisa en el log y la app
+#   responde 404 en /version — hornear `revision: unknown` mentiría en soporte.
+ARG GITHUB_SHA
+ARG SOURCE_DATE_EPOCH
 # `tsconfig.base.json` (raíz) es la base compartida (strict, target, module...).
 #   tsconfig.build.json extiende apps/server/tsconfig.json → tsconfig.base.json y SÍ
 #   emite: noEmit:false + rewriteRelativeImportExtensions (TS 5.7+) reescribe los
@@ -64,11 +72,14 @@ COPY tsconfig.base.json ./
 COPY tsconfig.json ./
 COPY apps/server/tsconfig.json apps/server/tsconfig.build.json ./apps/server/
 COPY apps/server/src ./apps/server/src
+COPY scripts/write-version.mjs ./scripts/write-version.mjs
 
 # `tsc -p` (project references existen pero build.json no es composite). outDir/include se
 #   resuelven relativos al config → emite en apps/server/dist. prune DESPUÉS de tsc
 #   (typescript es devDep). Una sola capa (hadolint DL3059). Sin `cd` (DL3003).
 RUN npx tsc -p apps/server/tsconfig.build.json \
+ && (node scripts/write-version.mjs --out apps/server/dist/version.json \
+     || echo "WARN: sin metadatos de versión (faltan GITHUB_SHA/SOURCE_DATE_EPOCH)") \
  && npm prune --omit=dev
 
 # --- runtime: imagen mínima, no root, init de señales, healthcheck ---

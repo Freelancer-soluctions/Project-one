@@ -23,7 +23,7 @@ const io = new Server(httpServer, {
 // conexiones no autenticadas — después de 'connection' el socket ya
 // está aceptado.
 io.use((socket, next) => {
-  const token = socket.handshake.auth?.token;
+  const token = socket.handshake.auth?.['token'];
 
   if (!token) {
     console.log('❌ Conexión rechazada: sin token');

@@ -40,17 +40,17 @@ export interface CreateEmployeePermissionInput {
 
 /** Body de `PATCH /permissions/:id` (todo opcional). */
 export interface UpdateEmployeePermissionInput {
-  employeeId?: number;
-  type?: string;
-  startDate?: Date;
-  endDate?: Date;
-  reason?: string;
-  status?: PermissionStatus;
-  approvedBy?: number;
-  comments?: string;
-  fromDate?: Date;
-  toDate?: Date;
-  updatedBy?: number;
+  employeeId?: number | undefined;
+  type?: string | undefined;
+  startDate?: Date | undefined;
+  endDate?: Date | undefined;
+  reason?: string | undefined;
+  status?: PermissionStatus | undefined;
+  approvedBy?: number | undefined;
+  comments?: string | undefined;
+  fromDate?: Date | undefined;
+  toDate?: Date | undefined;
+  updatedBy?: number | undefined;
 }
 
 /** Filtros de `GET /permissions` (`req.safeQuery`). */

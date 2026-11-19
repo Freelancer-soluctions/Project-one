@@ -64,12 +64,12 @@ export interface UpdateNewsInput {
 
 /** Filtros de `GET /news` (`NewsFilters`). */
 export interface NewsFilters {
-  description?: string;
-  fromDate?: Date;
-  toDate?: Date;
-  statusCode?: string;
-  page?: number;
-  limit?: number;
+  description?: string | undefined;
+  fromDate?: Date | undefined;
+  toDate?: Date | undefined;
+  statusCode?: string | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

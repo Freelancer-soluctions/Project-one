@@ -95,13 +95,13 @@ const handleMentionNew = (
 ) => {
   // io.to() envía el evento a TODOS los sockets en la sala del usuario mencionado
   // (incluyendo múltiples pestañas del mismo usuario)
-  io.to(`user:${payload.mentionedUserId}`).emit('mention:new', {
+  io.to(`user:${payload['mentionedUserId']}`).emit('mention:new', {
     type: 'mention:new',
     payload: {
-      noteId: payload.noteId,
-      noteTitle: payload.noteTitle,
-      mentionedByUserId: payload.mentionedByUserId,
-      excerpt: payload.excerpt,
+      noteId: payload['noteId'],
+      noteTitle: payload['noteTitle'],
+      mentionedByUserId: payload['mentionedByUserId'],
+      excerpt: payload['excerpt'],
       timestamp: new Date().toISOString(),
     },
   });

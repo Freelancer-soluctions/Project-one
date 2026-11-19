@@ -130,10 +130,10 @@ export const updateClientById = async (
   return prisma.clients.update({
     where: { id },
     data: {
-      name: data.name,
+      ...(data.name !== undefined && { name: data.name }),
       email: data.email!,
-      phone: data.phone,
-      address: data.address,
+      ...(data.phone !== undefined && { phone: data.phone }),
+      ...(data.address !== undefined && { address: data.address }),
       updatedOn: data.updatedOn,
       userClientUpdated: {
         ...(data.updatedBy !== undefined && {

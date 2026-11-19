@@ -98,7 +98,7 @@ export const refreshTokenLimiter = rateLimit({
   legacyHeaders: false,
   // Limit by IP AND by cookie
   keyGenerator: (req: Request) => {
-    const token = req.cookies?.jwt;
+    const token = req.cookies?.['jwt'];
 
     // `req.ip` es `string | undefined` en los tipos de Express 4; en una petición
     // HTTP real siempre está definido (el cast documenta ese contrato, sin `any`).

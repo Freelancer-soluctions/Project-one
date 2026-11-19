@@ -148,11 +148,11 @@ describe('getMentionsBacklog', () => {
     const result = await getMentionsBacklog(1);
 
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe(1);
-    expect(result[0].actor.name).toBe('User2');
-    expect(result[0].note.title).toBe('Test note');
-    expect(result[0].excerpt).toBe('Test note');
-    expect(result[0].createdAt).toBe('2024-01-01T00:00:00.000Z');
+    expect(result[0]!.id).toBe(1);
+    expect(result[0]!.actor.name).toBe('User2');
+    expect(result[0]!.note.title).toBe('Test note');
+    expect(result[0]!.excerpt).toBe('Test note');
+    expect(result[0]!.createdAt).toBe('2024-01-01T00:00:00.000Z');
   });
 
   it('truncates long titles in excerpt', async () => {
@@ -173,7 +173,7 @@ describe('getMentionsBacklog', () => {
 
     const result = await getMentionsBacklog(1);
 
-    expect(result[0].excerpt).toBe('a'.repeat(100) + '...');
+    expect(result[0]!.excerpt).toBe('a'.repeat(100) + '...');
   });
 
   it('returns empty array when no mentions', async () => {

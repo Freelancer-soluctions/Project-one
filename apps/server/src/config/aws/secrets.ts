@@ -6,7 +6,7 @@ import { secretsClient } from './secret-manager.client.js';
 // (ver `.env.example` / docker-compose). Sin consumidores en `src/` hoy.
 export async function loadSecrets(): Promise<Record<string, string>> {
   const command = new GetSecretValueCommand({
-    SecretId: process.env.SECRET_NAME,
+    SecretId: process.env['SECRET_NAME'],
   });
 
   const response: GetSecretValueCommandOutput =
