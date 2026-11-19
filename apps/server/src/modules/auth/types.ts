@@ -42,7 +42,7 @@ export interface SignUpInput {
   email: string;
   password: string;
   /** Rol asignado por el service (`ROLESCODES.USER`), no viene del body. */
-  roleId?: number;
+  roleId?: number | undefined;
 }
 
 /** Body de `POST /auth/signin` (`SignInSchema`). */
@@ -81,11 +81,11 @@ export interface StoreRefreshTokenInput {
 /** Datos de usuario que devuelve auth (espeja lo que consume el frontend). */
 export interface AuthUserPayload {
   id: number;
-  firstName?: string | null;
-  picture?: string | null;
-  role?: number | null;
-  roleId?: number | null;
-  roleName?: string | null;
+  firstName?: string | null | undefined;
+  picture?: string | null | undefined;
+  role?: number | null | undefined;
+  roleId?: number | null | undefined;
+  roleName?: string | null | undefined;
 }
 
 /** Resultado de `signUp`: solo access token. */

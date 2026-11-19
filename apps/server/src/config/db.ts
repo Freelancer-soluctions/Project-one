@@ -3,7 +3,7 @@ import { encryptionMiddleware } from '../middleware/encription-prisma-middleware
 
 const prisma = new PrismaClient({
   log:
-    process.env.NODE_ENV === 'development'
+    process.env['NODE_ENV'] === 'development'
       ? ['query', 'error', 'warn']
       : ['error'],
 });

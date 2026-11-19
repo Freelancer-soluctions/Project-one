@@ -51,7 +51,7 @@ export const getAllPurchases = handleCatchErrorAsync(async (req, res) => {
 export const createPurchase = handleCatchErrorAsync(async (req, res) => {
   const purchase = await createPurchaseService({
     ...req.body,
-    createdBy: req.user!.id,
+    createdBy: req.user!['id'],
   } as PurchaseCreateData);
   globalResponse(res, 201, purchase);
 });
@@ -66,7 +66,7 @@ export const createPurchase = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Deletes purchase and returns confirmation message
  */
 export const deletePurchaseById = handleCatchErrorAsync(async (req, res) => {
-  await deletePurchaseByIdService(Number(req.params.id));
+  await deletePurchaseByIdService(Number(req.params['id']));
   globalResponse(res, 200, { message: 'Purchase deleted successfully' });
 });
 
@@ -81,7 +81,7 @@ export const deletePurchaseById = handleCatchErrorAsync(async (req, res) => {
  */
 export const deletePurchaseDetailById = handleCatchErrorAsync(
   async (req, res) => {
-    await deletePurchaseDetailByIdService(Number(req.params.id));
+    await deletePurchaseDetailByIdService(Number(req.params['id']));
     globalResponse(res, 200, {
       message: 'Purchase detail deleted successfully',
     });
@@ -104,9 +104,9 @@ export const deletePurchaseDetailById = handleCatchErrorAsync(
  * @returns {Promise<void>} Updates purchase and returns updated purchase object
  */
 export const patchPurchaseById = handleCatchErrorAsync(async (req, res) => {
-  const purchase = await patchPurchaseByIdService(Number(req.params.id), {
+  const purchase = await patchPurchaseByIdService(Number(req.params['id']), {
     ...req.body,
-    updatedBy: req.user!.id,
+    updatedBy: req.user!['id'],
   } as PurchasePatchData);
   globalResponse(res, 200, purchase);
 });

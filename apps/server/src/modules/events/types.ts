@@ -77,32 +77,32 @@ export interface UpdateEventInput {
 
 /** Filtros de `GET /events` (`EventsFilters`). */
 export interface EventFilters {
-  searchQuery?: string;
-  page?: number;
-  limit?: number;
-  showDeleted?: boolean;
-  type?: number;
-  dateFrom?: Date | string;
-  dateTo?: Date | string;
-  speaker?: string;
-  status?: string;
-  modality?: EventModality;
+  searchQuery?: string | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
+  showDeleted?: boolean | undefined;
+  type?: number | undefined;
+  dateFrom?: Date | string | undefined;
+  dateTo?: Date | string | undefined;
+  speaker?: string | undefined;
+  status?: string | undefined;
+  modality?: EventModality | undefined;
 }
 
 /** Filtros que recibe el dao (ya paginados y con fechas normalizadas). */
 export interface EventDaoFilters {
-  searchQuery?: string;
-  take?: number;
-  skip?: number;
-  page?: number;
-  pageSize?: number;
-  showDeleted?: boolean;
-  type?: number;
-  dateFrom?: Date;
-  dateTo?: Date;
-  speaker?: string;
-  status?: string;
-  modality?: EventModality;
+  searchQuery?: string | undefined;
+  take?: number | undefined;
+  skip?: number | undefined;
+  page?: number | undefined;
+  pageSize?: number | undefined;
+  showDeleted?: boolean | undefined;
+  type?: number | undefined;
+  dateFrom?: Date | undefined;
+  dateTo?: Date | undefined;
+  speaker?: string | undefined;
+  status?: string | undefined;
+  modality?: EventModality | undefined;
 }
 
 /** Límites UTC usados para derivar upcoming/past desde la hora del servidor. */
@@ -196,8 +196,8 @@ export type EventListResponse = Omit<EventListItem, 'startTime' | 'endTime'> & {
 export interface EventDaoResult {
   data: EventListItem[];
   total: number;
-  page?: number;
-  pageSize?: number;
+  page?: number | undefined;
+  pageSize?: number | undefined;
 }
 
 /**
@@ -209,8 +209,8 @@ export type EventServiceResult =
   | {
       data: EventListResponse[];
       total: number;
-      page?: number;
-      pageSize?: number;
+      page?: number | undefined;
+      pageSize?: number | undefined;
     }
   | EventDaoResult;
 
@@ -221,14 +221,14 @@ export type CreateEventResult = EventResponse;
 export interface SoftDeleteEventResult {
   status: 'not-found' | 'already-deleted' | 'deleted';
   /** Presente solo cuando `status === 'deleted'`. */
-  event?: Event;
+  event?: Event | undefined;
 }
 
 /** Resultado público de `deleteEventById` (status HTTP + payload). */
 export interface DeleteEventResult {
   status: 200 | 404 | 409;
   /** Presente en los caminos de error (404/409). */
-  message?: string;
+  message?: string | undefined;
   /** Presente solo cuando `status === 200`. */
-  event?: Event;
+  event?: Event | undefined;
 }

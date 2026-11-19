@@ -35,18 +35,18 @@ export interface UpdateInventoryMovementInput {
 
 /** Filtros de `GET /inventory-movements` (`req.safeQuery`). */
 export interface InventoryMovementFilters {
-  productId?: number;
-  warehouseId?: number;
-  type?: MovementType;
-  page?: number;
-  limit?: number;
+  productId?: number | undefined;
+  warehouseId?: number | undefined;
+  type?: MovementType | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
 }
 
 /** Filtros ya paginados que recibe el dao. */
 export interface InventoryMovementDaoFilters {
-  productId?: number;
-  warehouseId?: number;
-  type?: MovementType;
+  productId?: number | undefined;
+  warehouseId?: number | undefined;
+  type?: MovementType | undefined;
   take: number;
   skip: number;
 }

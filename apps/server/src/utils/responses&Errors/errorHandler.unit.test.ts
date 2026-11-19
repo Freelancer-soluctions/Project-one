@@ -14,7 +14,7 @@ describe('errorHandler', () => {
   let req: Request;
   let res: Response;
   let next: NextFunction;
-  const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
+  const ORIGINAL_NODE_ENV = process.env['NODE_ENV'];
 
   beforeEach(() => {
     req = {} as Request;
@@ -26,7 +26,7 @@ describe('errorHandler', () => {
   });
 
   afterEach(() => {
-    process.env.NODE_ENV = ORIGINAL_NODE_ENV;
+    process.env['NODE_ENV'] = ORIGINAL_NODE_ENV;
   });
 
   it('should return 409 for P2002 unique constraint violation', () => {
@@ -125,7 +125,7 @@ describe('errorHandler', () => {
   });
 
   it('should sanitize error message in production', () => {
-    process.env.NODE_ENV = 'production';
+    process.env['NODE_ENV'] = 'production';
     const err = new Prisma.PrismaClientKnownRequestError(
       'Unique constraint failed on the fields: (email)',
       { code: 'P2002', clientVersion: '5.22.0' }
@@ -139,7 +139,7 @@ describe('errorHandler', () => {
   });
 
   it('should include stack in development mode', () => {
-    process.env.NODE_ENV = 'development';
+    process.env['NODE_ENV'] = 'development';
     const err = new Error('test error');
     errorHandler(err, req, res, next);
     const callArgs = (res.json as unknown as { mock: { calls: unknown[][] } })

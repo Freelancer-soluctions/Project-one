@@ -75,9 +75,9 @@ export interface AttendanceFilters {
 
 /** Subconjunto de filtros que llega al dao (los de fecha/empleado, ya sin paginar). */
 export interface AttendanceDaoFilters {
-  employeeId?: number;
-  fromDate?: Date;
-  toDate?: Date;
+  employeeId?: number | undefined;
+  fromDate?: Date | undefined;
+  toDate?: Date | undefined;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

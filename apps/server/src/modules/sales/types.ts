@@ -49,10 +49,10 @@ export interface SaleCreateData {
 
 /** Payload used to patch a sale. */
 export interface SalePatchData {
-  clientId?: number;
-  total?: number;
-  updatedBy?: number;
-  details?: SaleDetailInput[];
+  clientId?: number | undefined;
+  total?: number | undefined;
+  updatedBy?: number | undefined;
+  details?: SaleDetailInput[] | undefined;
 }
 
 /** Sale body accepted by the create/patch endpoints (raw request values). */

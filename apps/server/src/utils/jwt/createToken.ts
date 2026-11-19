@@ -116,7 +116,7 @@ const createTokenWithKey = (
           }
 
           // ONLY in development print token (this should never be done in production)
-          if (process.env.NODE_ENV === 'development') {
+          if (process.env['NODE_ENV'] === 'development') {
             console.log('Token generated:', token);
           }
 

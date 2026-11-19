@@ -39,19 +39,19 @@ export interface VacationCreateData {
   employeeId: number;
   startDate: Date;
   endDate: Date;
-  status?: vacationStatus;
-  createdBy?: number;
+  status?: vacationStatus | undefined;
+  createdBy?: number | undefined;
   createdOn: Date;
 }
 
 /** Payload used to update a vacation record. */
 export interface VacationUpdateData {
-  employeeId?: number;
-  startDate?: Date;
-  endDate?: Date;
-  status?: vacationStatus;
-  updatedBy?: number;
-  updatedOn?: Date;
+  employeeId?: number | undefined;
+  startDate?: Date | undefined;
+  endDate?: Date | undefined;
+  status?: vacationStatus | undefined;
+  updatedBy?: number | undefined;
+  updatedOn?: Date | undefined;
 }
 
 /** Vacation body accepted by the create/patch endpoints (raw request values). */

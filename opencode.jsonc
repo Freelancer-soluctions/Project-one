@@ -165,7 +165,7 @@
       "model": "opencode/mimo-v2.6-flash-free",
       "description": "Code and spec reviewer",
       "prompt": "{file:docs/opencode/prompts/reviewer.md}",
-      "steps": 25,
+      "steps": 50,
       "temperature": 0,
       "permission": {
         "lsp": "allow",
@@ -178,7 +178,7 @@
       "model": "opencode-go/beam-free",
       "description": "Research agent",
       "prompt": "{file:docs/opencode/prompts/researcher.md}",
-      "steps": 20,
+      "steps": 50,
       "permission": {
         "webfetch": "allow",
         "websearch": "allow",

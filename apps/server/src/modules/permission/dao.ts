@@ -131,7 +131,7 @@ export const createPermission = async (
       startDate: data.startDate,
       endDate: data.endDate,
       type: data.type,
-      status: data.status,
+      ...(data.status !== undefined && { status: data.status }),
       employee: {
         connect: { id: data.employeeId },
       },
@@ -170,16 +170,20 @@ export const updatePermissionById = async (
     where: { id: id as number },
     data: {
       updatedOn: data.updatedOn,
-      startDate: data.startDate,
-      endDate: data.endDate,
-      type: data.type,
-      status: data.status,
-      employee: {
-        connect: { id: data.employeeId },
-      },
-      userPermissionUpdated: {
-        connect: { id: data.updatedBy },
-      },
+      ...(data.startDate !== undefined && { startDate: data.startDate }),
+      ...(data.endDate !== undefined && { endDate: data.endDate }),
+      ...(data.type !== undefined && { type: data.type }),
+      ...(data.status !== undefined && { status: data.status }),
+      ...(data.employeeId !== undefined && {
+        employee: {
+          connect: { id: data.employeeId },
+        },
+      }),
+      ...(data.updatedBy !== undefined && {
+        userPermissionUpdated: {
+          connect: { id: data.updatedBy },
+        },
+      }),
     },
     include: {
       employee: true,

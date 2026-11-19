@@ -148,8 +148,8 @@ export const createNew = async (data: CreateNewsData): Promise<News> => {
   const result = await prisma.news.create({
     data: {
       description: data.description,
-      document: data.document,
-      documentId: data.documentId,
+      ...(data.document !== undefined && { document: data.document }),
+      ...(data.documentId !== undefined && { documentId: data.documentId }),
       createdOn: data.createdOn,
       userNewsCreated: {
         connect: {
@@ -157,14 +157,14 @@ export const createNew = async (data: CreateNewsData): Promise<News> => {
         },
       },
 
-      userNewsPending: data.pendingBy
-        ? {
-            connect: {
-              id: data.pendingBy, // Si no hay un id, no incluyas esta propiedad
-            },
-          }
-        : undefined,
-      pendingOn: data.pendingOn ? data.pendingOn : undefined,
+      ...(data.pendingBy && {
+        userNewsPending: {
+          connect: {
+            id: data.pendingBy, // Si no hay un id, no incluyas esta propiedad
+          },
+        },
+      }),
+      ...(data.pendingOn !== undefined && { pendingOn: data.pendingOn }),
       status: {
         connect: {
           id: data.statusId,
@@ -200,22 +200,22 @@ export const updateRow = async (
       ...(data.description !== undefined && { description: data.description }),
       ...(data.document !== undefined && { document: data.document }),
       ...(data.documentId !== undefined && { documentId: data.documentId }),
-      pendingOn: data.pendingOn ? data.pendingOn : undefined,
-      userNewsPending: data.pendingBy
-        ? {
-            connect: {
-              id: data.pendingBy,
-            },
-          }
-        : undefined,
-      closedOn: data.closedOn ? data.closedOn : undefined,
-      userNewsClosed: data.closedBy
-        ? {
-            connect: {
-              id: data.closedBy,
-            },
-          }
-        : undefined,
+      ...(data.pendingOn !== undefined && { pendingOn: data.pendingOn }),
+      ...(data.pendingBy && {
+        userNewsPending: {
+          connect: {
+            id: data.pendingBy,
+          },
+        },
+      }),
+      ...(data.closedOn !== undefined && { closedOn: data.closedOn }),
+      ...(data.closedBy && {
+        userNewsClosed: {
+          connect: {
+            id: data.closedBy,
+          },
+        },
+      }),
       ...(data.statusId !== undefined && {
         status: {
           connect: {

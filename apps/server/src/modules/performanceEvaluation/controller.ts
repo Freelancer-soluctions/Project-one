@@ -78,7 +78,7 @@ export const patchPerformanceEvaluationById = handleCatchErrorAsync(
   async (req, res) => {
     // Cast único del body validado por Joi
     const evaluation = await patchPerformanceEvaluationByIdService(
-      Number(req.params.id),
+      Number(req.params['id']),
       req.body as UpdatePerformanceEvaluationInput,
       req.userId as number
     );
@@ -98,7 +98,7 @@ export const patchPerformanceEvaluationById = handleCatchErrorAsync(
 export const deletePerformanceEvaluationById = handleCatchErrorAsync(
   async (req, res) => {
     const evaluation = await deletePerformanceEvaluationByIdService(
-      req.params.id as string | number
+      req.params['id'] as string | number
     );
     globalResponse(res, 200, evaluation);
   }

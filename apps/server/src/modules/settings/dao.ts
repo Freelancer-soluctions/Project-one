@@ -38,7 +38,7 @@ export const createOrUpdateSettingsLanguage = async (
     return await prisma.settings.create({
       data: {
         language: data.language,
-        createdOn: data.createdOn,
+        ...(data.createdOn !== undefined && { createdOn: data.createdOn }),
         userSettingCreated: {
           connect: {
             id: userId,
@@ -190,8 +190,8 @@ export const updateProductCategory = async (
   return prisma.productCategories.update({
     where,
     data: {
-      description: data.description,
-      code: data.code,
+      ...(data.description !== undefined && { description: data.description }),
+      ...(data.code !== undefined && { code: data.code }),
       updatedOn: new Date(),
     },
   });

@@ -30,7 +30,7 @@ export const createAuthMiddleware = () => {
       // El token se envía desde el cliente en socket.handshake.auth.token,
       // NO en query params (quedan en logs del servidor). Socket.IO provee
       // handshake.auth específicamente para credenciales de conexión.
-      const token = socket.handshake.auth?.token;
+      const token = socket.handshake.auth?.['token'];
 
       if (!token) {
         logger.warn('⚠️ WS CONEXION SIN TOKEN', {

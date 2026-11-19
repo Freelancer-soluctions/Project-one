@@ -56,8 +56,8 @@ export const signIn = handleCatchErrorAsync(async (req, res) => {
     path: '/',
   });
   // deletion of user object before sending response
-  (user as { refreshToken?: string }).refreshToken = undefined;
-  (user as { csrfToken?: string }).csrfToken = undefined;
+  (user as { refreshToken?: string | undefined }).refreshToken = undefined;
+  (user as { csrfToken?: string | undefined }).csrfToken = undefined;
 
   globalResponse(res, 200, user);
 });
@@ -107,8 +107,8 @@ export const refreshToken = handleCatchErrorAsync(async (req, res) => {
     path: '/',
   });
   // deletion of user object before sending response
-  (data as { refreshToken?: string }).refreshToken = undefined;
-  (data as { csrfToken?: string }).csrfToken = undefined;
+  (data as { refreshToken?: string | undefined }).refreshToken = undefined;
+  (data as { csrfToken?: string | undefined }).csrfToken = undefined;
   globalResponse(res, 200, { accessToken: data.accessToken });
 });
 

@@ -10,6 +10,7 @@ import { register } from './socket/monitor/metrics.js';
 import { secretsClient } from './config/aws/secret-manager.client.js';
 import { GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 import { prisma } from './config/db.js';
+import { readBuildVersion } from './utils/version/build-version.js';
 const app = express();
 
 // middleware (helmet PRIMERO: cabeceras de seguridad desde la primera respuesta)
@@ -63,15 +64,30 @@ app.get('/health', async (req, res) => {
   });
 });
 
+// Metadatos del build (change `ci-write-version-metadatos`): soporte identifica
+// el commit desplegado sin acceso al registro. El archivo lo escribe
+// scripts/write-version.mjs en el build; en dev (sin build) responde 404.
+// Fuera de /api/v1 a propósito: sin auth ni CSRF, igual que /health.
+app.get('/version', async (req, res) => {
+  const version = await readBuildVersion();
+  if (!version) {
+    res.status(404).json({
+      error: 'version.json no encontrado: build sin metadatos de versión',
+    });
+    return;
+  }
+  res.status(200).json(version);
+});
+
 // Test-only smoke route: exercises the app's secretsClient path (Secrets Manager)
 // Only available when NODE_ENV=test or ENABLE_SMOKE_ROUTE=true (for preview CI)
 if (
-  process.env.NODE_ENV === 'test' ||
-  process.env.ENABLE_SMOKE_ROUTE === 'true'
+  process.env['NODE_ENV'] === 'test' ||
+  process.env['ENABLE_SMOKE_ROUTE'] === 'true'
 ) {
   app.get('/_smoke/secrets', async (req, res) => {
     try {
-      const secretName = (req.query.name as string) || 'preview-smoke-test';
+      const secretName = (req.query['name'] as string) || 'preview-smoke-test';
       const command = new GetSecretValueCommand({ SecretId: secretName });
       const response = await secretsClient.send(command);
       res.status(200).json({

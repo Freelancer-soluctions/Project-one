@@ -27,6 +27,9 @@ on:
     branches: [main]
   push:
     branches: [main]
+    # Tags de release (`v1.4.2`): únicos que producen el tag semántico de la
+    # imagen (`type=semver`). Un push a main NO reetiqueta una release.
+    tags: ['v*.*.*']
   # Merge queue: sin este trigger los checks de este workflow quedarían
   # pending en la cola (task 4.3). Mismo patrón que ci.yml.
   merge_group: {}
@@ -111,6 +114,19 @@ jobs:
         id: image-name
         run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
+      # Metadatos de versión (change `ci-write-version-metadatos`): el Dockerfile
+      # no tiene git (.dockerignore), así que created sale de la fecha del commit.
+      # `created` y `version` alimentan también las labels OCI del paso de
+      # metadata (change `ci-image-oci-labels`): una sola fuente de verdad para
+      # version.json y para la imagen, y nunca `Date.now()`.
+      - name: Version metadata inputs
+        id: version
+        run: |
+          epoch="$(git log -1 --format=%ct)"
+          echo "epoch=${epoch}" >> "$GITHUB_OUTPUT"
+          echo "created=$(date -u -d "@${epoch}" +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p 'require("./package.json").version')" >> "$GITHUB_OUTPUT"
+
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       # Login solo cuando se publica (main push / merge queue). En PRs
@@ -123,6 +139,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Etiquetas OCI + tags de imagen (PRD §Versionado, change `ci-image-oci-labels`).
+      # Las labels viajan DENTRO de la imagen (`docker inspect` las lee sin el
+      # registro) y el tag `sha-<commit>` la ata al commit; los despliegues usan
+      # el DIGEST, no los tags mutables.
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
@@ -130,6 +150,15 @@ jobs:
           images: ${{ steps.image-name.outputs.name }}
           tags: |
             type=sha,format=long
+            type=semver,pattern={{version}}
+            type=ref,event=branch,enable=${{ github.event_name == 'push' && github.ref_type == 'branch' }}
+          labels: |
+            org.opencontainers.image.title=Project One API
+            org.opencontainers.image.description=API Express + Socket.IO del monorepo Project One
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ steps.version.outputs.created }}
+            org.opencontainers.image.version=${{ steps.version.outputs.version }}
 
       - name: Build and push
         id: push
@@ -137,6 +166,10 @@ jobs:
         with:
           context: .
           file: apps/server/Dockerfile
+          # dist/version.json reproducible: commit + fecha del commit, no Date.now().
+          build-args: |
+            GITHUB_SHA=${{ github.sha }}
+            SOURCE_DATE_EPOCH=${{ steps.version.outputs.epoch }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

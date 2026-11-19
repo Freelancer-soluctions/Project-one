@@ -11,26 +11,26 @@ export interface StockAlerts {
 
 /** Query parameters accepted by the stock listing endpoint. */
 export interface StockQuery {
-  productId?: number;
-  warehouseId?: number;
-  lot?: string;
-  unitMeasure?: string;
-  stocksExpirated?: boolean;
-  stocksLow?: boolean;
-  limit?: number;
-  page?: number;
+  productId?: number | undefined;
+  warehouseId?: number | undefined;
+  lot?: string | undefined;
+  unitMeasure?: string | undefined;
+  stocksExpirated?: boolean | undefined;
+  stocksLow?: boolean | undefined;
+  limit?: number | undefined;
+  page?: number | undefined;
 }
 
 /** Filters accepted by the stock list query. */
 export interface StockListFilters {
-  productId?: number;
-  warehouseId?: number;
-  lot?: string;
-  unitMeasure?: string;
-  stocksExpirated?: boolean;
-  stocksLow?: boolean;
-  take?: number;
-  skip?: number;
+  productId?: number | undefined;
+  warehouseId?: number | undefined;
+  lot?: string | undefined;
+  unitMeasure?: string | undefined;
+  stocksExpirated?: boolean | undefined;
+  stocksLow?: boolean | undefined;
+  take?: number | undefined;
+  skip?: number | undefined;
 }
 
 /** Payload used to create a stock entry. */
@@ -53,12 +53,12 @@ export interface StockUpdateData {
   minimum?: number;
   maximum?: number | null;
   lot?: string | null;
-  unitMeasure?: unitMeasureStock;
-  expirationDate?: Date | null;
+  unitMeasure?: unitMeasureStock | undefined;
+  expirationDate?: Date | null | undefined;
   updatedOn: Date;
   updatedBy: number;
-  warehouseId?: number;
-  productId?: number;
+  warehouseId?: number | undefined;
+  productId?: number | undefined;
 }
 
 /** Stock body accepted by the create/patch endpoints (raw request values). */

@@ -79,7 +79,7 @@ export const errorHandler = (
   let statusCode = 500;
   let code = 'INTERNAL_ERROR';
   let message = 'An unexpected error occurred';
-  const isDev = process.env.NODE_ENV === 'development';
+  const isDev = process.env['NODE_ENV'] === 'development';
 
   // Campos de soporte leídos SOLO después del dispatch por tipo.
   const errorLike = err as ErrorLike;

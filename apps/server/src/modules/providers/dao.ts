@@ -144,8 +144,8 @@ export const updateRow = async (
   const result = await prisma.productProviders.update({
     where,
     data: {
-      code: data.code,
-      name: data.name,
+      ...(data.code !== undefined && { code: data.code }),
+      ...(data.name !== undefined && { name: data.name }),
       status: data.status,
       contactName: data.contactName,
       contactEmail: data.contactEmail,

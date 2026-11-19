@@ -124,7 +124,7 @@ export const patchUserById = handleCatchErrorAsync(async (req, res) => {
   // Cast único del body validado por Joi (userUpdateSchema)
   const body = req.body as UpdateUserInput;
   const user = await patchUserByIdService(
-    req.params.id as string | number,
+    req.params['id'] as string | number,
     body
   );
   globalResponse(res, 200, user);
@@ -140,6 +140,6 @@ export const patchUserById = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Deletes user and returns confirmation message
  */
 export const deleteUserById = handleCatchErrorAsync(async (req, res) => {
-  await deleteUserByIdService(req.params.id as string | number);
+  await deleteUserByIdService(req.params['id'] as string | number);
   globalResponse(res, 200, { message: 'User deleted successfully' });
 });

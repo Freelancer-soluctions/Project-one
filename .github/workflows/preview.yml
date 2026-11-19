@@ -79,9 +79,15 @@ jobs:
         run: npm ci
 
       # 4. Build server Docker image (validates Dockerfile used by compose)
-      # Build from monorepo root to access package-lock.json; tag for reuse in step 6
+      # Build from monorepo root to access package-lock.json; tag for reuse in step 6.
+      # Metadatos de versión: sin git en la imagen, revision/created por build-arg
+      # (change `ci-write-version-metadatos`).
       - name: Build server Docker image
-        run: docker build -t preview-server -f apps/server/Dockerfile .
+        run: |
+          docker build \
+            --build-arg GITHUB_SHA="${{ github.sha }}" \
+            --build-arg SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)" \
+            -t preview-server -f apps/server/Dockerfile .
 
       # 5. Run Prisma migrations against ephemeral Postgres
       - name: Run Prisma migrations

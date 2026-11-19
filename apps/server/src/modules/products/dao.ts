@@ -218,13 +218,13 @@ export const updateRow = async (
   const result = await prisma.products.update({
     where,
     data: {
-      sku: data.sku,
-      name: data.name,
-      price: data.price,
-      cost: data.cost,
-      description: data.description,
-      barCode: data.barCode,
-      updatedOn: data.updatedOn,
+      ...(data.sku !== undefined && { sku: data.sku }),
+      ...(data.name !== undefined && { name: data.name }),
+      ...(data.price !== undefined && { price: data.price }),
+      ...(data.cost !== undefined && { cost: data.cost }),
+      ...(data.description !== undefined && { description: data.description }),
+      ...(data.barCode !== undefined && { barCode: data.barCode }),
+      ...(data.updatedOn !== undefined && { updatedOn: data.updatedOn }),
 
       // Claves foráneas - solo conectar si el campo está definido
       ...(data.productCategoryId !== undefined && {
@@ -242,11 +242,13 @@ export const updateRow = async (
           connect: { id: data.productStatusId },
         },
       }),
-      userProductUpdated: {
-        connect: {
-          id: data.updatedBy,
+      ...(data.updatedBy !== undefined && {
+        userProductUpdated: {
+          connect: {
+            id: data.updatedBy,
+          },
         },
-      },
+      }),
     },
   });
   return Promise.resolve(result);

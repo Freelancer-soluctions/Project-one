@@ -34,7 +34,7 @@ const DUMMY_CI_KEY = Buffer.from(
   'base64'
 );
 if (
-  process.env.NODE_ENV === 'production' &&
+  process.env['NODE_ENV'] === 'production' &&
   ENCRYPTION_KEY.equals(DUMMY_CI_KEY)
 ) {
   throw new Error(
@@ -353,19 +353,19 @@ export async function migrateExistingData(
 
       if (needsUpdate) {
         await model.update({
-          where: { id: record.id },
+          where: { id: record['id'] },
           data: updates,
         });
         migrated++;
-        console.log(`✅ Migrado registro ID ${record.id}`);
+        console.log(`✅ Migrado registro ID ${record['id']}`);
       } else {
         skipped++;
-        console.log(`⏭️  Registro ID ${record.id} ya encriptado`);
+        console.log(`⏭️  Registro ID ${record['id']} ya encriptado`);
       }
     } catch (error) {
       errors++;
       console.error(
-        `❌ Error migrando registro ID ${record.id}:`,
+        `❌ Error migrando registro ID ${record['id']}:`,
         error instanceof Error ? error.message : String(error)
       );
     }

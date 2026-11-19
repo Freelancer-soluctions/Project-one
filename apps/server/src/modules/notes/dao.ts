@@ -163,14 +163,18 @@ const buildNoteFilters = ({
 
   // Scope filters
   scope === 'mine'
-    ? { createdBy: userId }
+    ? userId !== undefined
+      ? { createdBy: userId }
+      : {}
     : scope === 'mixed'
-      ? {
-          OR: [
-            { createdBy: userId },
-            { mentions: { some: { mentionedUserId: userId } } },
-          ],
-        }
+      ? userId !== undefined
+        ? {
+            OR: [
+              { createdBy: userId },
+              { mentions: { some: { mentionedUserId: userId } } },
+            ],
+          }
+        : {}
       : {},
 ];
 

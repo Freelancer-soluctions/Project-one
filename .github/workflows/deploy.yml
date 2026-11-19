@@ -82,9 +82,14 @@ jobs:
         run: npm ci
 
       # 4. Build server Docker image (tag: SHA + latest)
+      # Metadatos de versión: sin git en la imagen, revision/created por build-arg
+      # (change `ci-write-version-metadatos`).
       - name: Build server Docker image
         run: |
-          docker build -t project-one-server:${GITHUB_SHA} -t project-one-server:latest -f apps/server/Dockerfile .
+          docker build \
+            --build-arg GITHUB_SHA="${GITHUB_SHA}" \
+            --build-arg SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)" \
+            -t project-one-server:${GITHUB_SHA} -t project-one-server:latest -f apps/server/Dockerfile .
         env:
           GITHUB_SHA: ${{ github.sha }}
 
@@ -206,7 +211,10 @@ jobs:
 
       - name: Build and push image to ECR
         run: |
-          docker build -t project-one-server:${GITHUB_SHA} -t project-one-server:latest -f apps/server/Dockerfile .
+          docker build \
+            --build-arg GITHUB_SHA="${GITHUB_SHA}" \
+            --build-arg SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)" \
+            -t project-one-server:${GITHUB_SHA} -t project-one-server:latest -f apps/server/Dockerfile .
           docker tag project-one-server:${GITHUB_SHA} "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/project-one-server:${GITHUB_SHA}"
           docker tag project-one-server:latest "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/project-one-server:latest"
           docker push "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/project-one-server:${GITHUB_SHA}"

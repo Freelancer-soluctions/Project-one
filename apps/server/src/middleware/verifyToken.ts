@@ -58,7 +58,8 @@ export const verifyToken = async (
 ): Promise<Response | void> => {
   try {
     // Get the token from the headers
-    const authHeader = req.headers.authorization || req.headers.Authorization;
+    const authHeader =
+      req.headers.authorization || req.headers['Authorization'];
     if (!authHeader || typeof authHeader !== 'string') {
       // `typeof` defensivo: los headers pueden repetirse (string[]), caso que
       // el código original trataba igual que "sin token" (undefined).
@@ -103,7 +104,7 @@ export const verifyToken = async (
     }
 
     // save the token on request object to using on routes
-    req.userId = decoded.id as number;
+    req.userId = decoded['id'] as number;
     req.user = decoded;
     // continue with the next function
     next();

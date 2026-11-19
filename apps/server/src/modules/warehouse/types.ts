@@ -11,10 +11,10 @@ export interface WarehousesPage {
 
 /** Query parameters accepted by the warehouse listing endpoint. */
 export interface WarehousesQuery {
-  name?: string;
-  status?: warehouseStatus;
-  limit?: number;
-  page?: number;
+  name?: string | undefined;
+  status?: warehouseStatus | undefined;
+  limit?: number | undefined;
+  page?: number | undefined;
 }
 
 /** Payload used to create a warehouse. */

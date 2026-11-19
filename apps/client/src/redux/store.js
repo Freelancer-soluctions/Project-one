@@ -1,3 +1,4 @@
+// @ts-check
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import authSlice from '../modules/auth/slice/authSlice';
 import newsApi from '../modules/news/api/newsAPI';
