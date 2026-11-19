@@ -24,6 +24,13 @@ concurrency:
   group: ${{ github.event_name == 'merge_group' && format('merge-group-{0}', github.event.merge_group.head_ref) || github.event_name == 'workflow_dispatch' && format('dispatch-{0}', github.run_id) || format('pr-{0}', github.event.pull_request.number) }}
   cancel-in-progress: true
 
+# Política de `timeout-minutes` (change `ci-timeout-minutes-complete`, G6 del PRD):
+# TODOS los jobs lo declaran a NIVEL DE JOB (no solo en steps), para que un job
+# colgado falle en vez de ocupar el runner indefinidamente. Valores por tipo:
+#   - gates ligeros (governance, lint, format, meta, guards): 5
+#   - jobs con `npm ci`/tests/análisis pesados: 10–30 (ver cada job)
+#   - agregadores `prebuild-*-complete`: 10 (solo evalúan `needs.*.result`)
+#   - `ci-complete`: 15 (agregador raíz; holgura para la cola de dependencias)
 jobs:
   # ═══════════════════════════════════════════════════════════════
   # ENTRY — Detect Changes (path-filtered)
@@ -176,6 +183,7 @@ jobs:
   verify-signatures:
     name: 'Governance: Verify Commit Signatures'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
@@ -427,6 +435,7 @@ jobs:
   commit-lint:
     name: 'Governance: Commit Lint (Conventional Commits)'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
       pull-requests: read
@@ -471,6 +480,7 @@ jobs:
   dco:
     name: 'Governance: DCO'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
       pull-requests: read
@@ -3513,6 +3523,7 @@ jobs:
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: Prebuild Governance Complete
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs:
       - verify-signatures
       - commit-lint
@@ -3550,6 +3561,7 @@ jobs:
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: Prebuild Quality Complete
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs:
       - repo-discovery
       - client-lint
@@ -3616,6 +3628,7 @@ jobs:
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: Prebuild Security Complete
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs:
       - dependency-review
       - secrets
@@ -3731,6 +3744,7 @@ jobs:
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: Prebuild Tests Complete
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs:
       - test-unit-client
       - test-unit-server
@@ -3887,6 +3901,7 @@ jobs:
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: CI Complete
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs:
       - prebuild-governance-complete
       - prebuild-quality-complete
