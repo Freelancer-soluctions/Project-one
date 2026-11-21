@@ -124,7 +124,7 @@ deben declarar ambos esquemas sin renumerarlos.
 | **`tim-actions/dco`**       | CI, action                                   | Sí (falla el job)                                  | Mínima; solo presencia                                                                | Sin política de bots documentada                                   |
 
 **Por qué KineticCafe:** ya está integrado como check `DCO` required y blocking en `ci.yml`, atado al ruleset
-21227644 (`Require signed commits`), con parser `strict` (posición/formato del trailer) y política de bots
+21227644 (`Main Branch Protection`), con parser `strict` (posición/formato del trailer) y política de bots
 tunable. Snapshot verificado 2026-10-19: el ruleset tiene `enforcement: active` y un bypass
 `RepositoryRole` (`actor_id 5`) en modo `pull_request`, con `current_user_can_bypass: pull_requests_only` —
 el bypass **no** es un push directo sin check, y su permanencia es una decisión de gobernanza separada.

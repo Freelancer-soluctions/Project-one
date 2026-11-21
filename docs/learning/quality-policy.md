@@ -305,6 +305,8 @@ no se ejecuta. Fecha de la decisión: **2026-11-12**.
 
 **Decisión:** Ajustar el umbral a **230 400 B (225 KiB)** en `.lighthouserc.json` y `budget.json`, dando ~15% de margen sobre la medición actual.
 
+**Unidades (no mezclar):** `budget.json` usa la semántica de Lighthouse, que expresa `resourceSizes` en **KiB** (225 = 225 KiB = 230 400 B); `size-limit`, en cambio, se configura en **bytes** (`153600` = 150 KiB) y las assertions de `.lighthouserc.json` (`total-byte-weight`) usan **bytes**. Al añadir un budget, convertir explícitamente: `B = KiB × 1024`.
+
 **Justificación (fuentes):**
 
 - web.dev Performance budgets 101 (https://web.dev/articles/performance-budgets-101): basar presupuestos en análisis real y enforce en CI con margen de seguridad.

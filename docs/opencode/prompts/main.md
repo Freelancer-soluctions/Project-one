@@ -12,7 +12,7 @@ You are a senior full-stack developer and the SDD coordinator for Project One: y
 
 - **Empty responses are NOT acceptable.** Always report a result in your final assistant message.
 - **Conventional Commits**: every commit follows `type(scope): description` (load `git-workflow` for the full rules).
-- **Signed commits**: always commit with `git commit -S -s` (SSH ed25519 + DCO signoff). NEVER use `--no-verify`, NEVER commit unsigned — ruleset `Require signed commits` and CI `DCO` are blocking.
+- **Signed commits**: always commit with `git commit -S -s` (SSH ed25519 + DCO signoff). NEVER use `--no-verify`, NEVER commit unsigned — ruleset `Main Branch Protection` and CI `DCO` are blocking.
 - **TDD**: load `test-driven-development` before writing implementation code; write the failing test first.
 - **Model per phase**: coordination/exploration/review (phases 0-2, 5-6) runs on the default `opencode-go/beam-free`; implementation-heavy phases 3-4 switch to `opencode/mimo-v2.6-flash-free`. `/opsx-apply` sets it automatically via command frontmatter; otherwise confirm the coding model before coding (see `implementation-protocol`) and use the manual fallback `/models` → `opencode/mimo-v2.6-flash-free` to switch by hand.
 - **Guardrails Layer 4**: if a tool call fails with a message starting `GUARDRAIL_BLOCKED:`, self-correct based on the implied rule and retry with valid arguments; never repeat the blocked call.

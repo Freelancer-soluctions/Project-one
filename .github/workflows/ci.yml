@@ -1,7 +1,6 @@
 name: 'CI'
 
-permissions:
-  contents: read
+permissions: {}
 
 on:
   pull_request:
@@ -58,6 +57,8 @@ jobs:
       lockfile: ${{ steps.scope.outputs.lockfile }}
       manifests: ${{ steps.scope.outputs.manifests }}
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -594,7 +595,7 @@ jobs:
     # `tia-enterprise-gaps`: la cláusula `pull_request` original permitía integrar
     # sin tests. El path-scoping legítimo de PRs se conserva (mismos outputs).
     if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.shared == 'true'
-    name: 'Tests: Unit - Client'
+    name: 'Prebuild Tests: Unit - Client'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -913,7 +914,7 @@ jobs:
     # `tia-enterprise-gaps`: la cláusula `pull_request` original permitía integrar
     # sin tests. El path-scoping legítimo de PRs se conserva (mismos outputs).
     if: needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
-    name: 'Tests: Unit - Server'
+    name: 'Prebuild Tests: Unit - Server'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1221,10 +1222,12 @@ jobs:
     #   presencia emitiría un `::error::` falso por artifacts legítimamente ausentes.
     #   El carril PR queda cubierto por propagación: `test-unit-client` sólo corre en PRs.
     if: ${{ !cancelled() && needs.test-unit-client.result != 'skipped' }}
-    name: 'Quality: Client Coverage'
+    name: 'Prebuild Quality: Client Coverage'
     needs: [test-unit-client]
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -1326,10 +1329,12 @@ jobs:
     # `result != 'skipped'`: hereda el skip del upstream sin ejecutar (y sin emitir un
     # `::error::` falso por artifacts ausentes legítimos).
     if: ${{ !cancelled() && needs.test-unit-server.result != 'skipped' }}
-    name: 'Quality: Server Coverage'
+    name: 'Prebuild Quality: Server Coverage'
     needs: [test-unit-server]
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -1410,10 +1415,12 @@ jobs:
     # Merge queue y workflow_dispatch también ejecutan (task 4.2 de
     # `tia-enterprise-gaps`); el path-scoping de PRs se conserva.
     if: needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.shared == 'true'
-    name: 'Tests: Property Tests'
+    name: 'Prebuild Tests: Property Tests'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -1461,6 +1468,8 @@ jobs:
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -1479,6 +1488,8 @@ jobs:
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -1492,10 +1503,12 @@ jobs:
         run: npm run snapshot:orphan-check
 
   coverage-floor-guard:
-    name: 'Quality: Coverage Floor Guard'
+    name: 'Prebuild Quality: Coverage Floor Guard'
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -1514,13 +1527,15 @@ jobs:
   # remain advisory under D18 while every PR gets one blocking full-suite
   # verdict from the same guard used by `npm run coverage:check`.
   coverage-full-gate:
-    name: 'Quality: Coverage Full Gate'
+    name: 'Prebuild Quality: Coverage Full Gate'
     # La condición original era `pull_request` como ÚNICA cláusula (task 4.2 de
     # `tia-enterprise-gaps`): se reformula para cubrir también la merge queue, de
     # modo que el veredicto de floors exista antes de integrar.
     if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -1547,7 +1562,7 @@ jobs:
   # SECURITY — Dependency Review (inline so ci-complete.needs resolves)
   # ════════════════════════════════════════════════════════════════
   dependency-review:
-    name: 'Security: Dependency Review'
+    name: 'Prebuild Security: Dependency Review'
     continue-on-error: true
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1600,7 +1615,7 @@ jobs:
     # Job-level continue-on-error: false (default) — failures block the check
 
   secrets:
-    name: 'Security: Secret Detection'
+    name: 'Prebuild Security: Secret Detection'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # `merge_group` (change `secret-scanning-history-governance`, task 3.2): si el
@@ -1679,9 +1694,11 @@ jobs:
   # semanal.
   scancode-license-pr-diff:
     if: github.event_name == 'pull_request'
-    name: 'Security: ScanCode License PR-Diff'
+    name: 'Prebuild Security: ScanCode License PR-Diff'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -1868,7 +1885,7 @@ jobs:
   # aplica aquí.
   lockfile-audit:
     if: github.event_name == 'pull_request'
-    name: 'Security: Lockfile Audit'
+    name: 'Prebuild Security: Lockfile Audit'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1965,10 +1982,12 @@ jobs:
   # deuda. Complementaria a SAST (código) y SCA (dependencias).
   checkov-iac:
     if: github.event_name == 'pull_request'
-    name: 'Security: Checkov IaC'
+    name: 'Prebuild Security: Checkov IaC'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2007,7 +2026,7 @@ jobs:
   # `prebuild-security-aggregator-strict`).
   containerfile-lint:
     if: github.event_name == 'pull_request'
-    name: 'Security: Containerfile Lint'
+    name: 'Prebuild Security: Containerfile Lint'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -2066,7 +2085,7 @@ jobs:
   # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
   actionlint-advisory:
     if: github.event_name == 'pull_request'
-    name: 'Security: ActionLint (SARIF)'
+    name: 'Prebuild Security: ActionLint (SARIF)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -2132,7 +2151,7 @@ jobs:
   # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
   zizmor-advisory:
     if: github.event_name == 'pull_request'
-    name: 'Security: Zizmor (unpinned-uses)'
+    name: 'Prebuild Security: Zizmor (unpinned-uses)'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -2202,7 +2221,7 @@ jobs:
   # change ci-security-substage-alignment (2026-09-30): ubicado en bloque security 2C, orden §23.3
   typosquat-guarddog:
     if: github.event_name == 'pull_request' && needs.repo-discovery.outputs.manifests == 'true'
-    name: 'Security: Typosquat GuardDog'
+    name: 'Prebuild Security: Typosquat GuardDog'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -2256,7 +2275,7 @@ jobs:
   # zizmor `adhoc-packages`).
   security-exceptions-check:
     if: github.event_name == 'pull_request'
-    name: 'Security: Exceptions Policy'
+    name: 'Prebuild Security: Exceptions Policy'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -2278,7 +2297,7 @@ jobs:
   # --- Client Pre-Build ---
   client-lint:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client Lint'
+    name: 'Prebuild Quality: Client Lint'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -2319,10 +2338,12 @@ jobs:
           category: eslint-client
   client-format-check:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client Format'
+    name: 'Prebuild Quality: Client Format'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2332,10 +2353,12 @@ jobs:
       - run: npm run format:check --workspace=apps/client
   client-typecheck:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client TypeCheck'
+    name: 'Prebuild Quality: Client TypeCheck'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2366,10 +2389,12 @@ jobs:
 
   client-complexity:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client Complexity'
+    name: 'Prebuild Quality: Client Complexity'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2384,10 +2409,12 @@ jobs:
 
   client-dead-code:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client Dead Code'
+    name: 'Prebuild Quality: Client Dead Code'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2407,10 +2434,12 @@ jobs:
 
   client-import-bounds:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Client Import Bounds'
+    name: 'Prebuild Quality: Client Import Bounds'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2448,10 +2477,12 @@ jobs:
   # `main` (se configura fuera del repo).
   frontend-budgets:
     if: needs.repo-discovery.outputs.client == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Frontend Budgets'
+    name: 'Prebuild Quality: Frontend Budgets'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2478,7 +2509,7 @@ jobs:
   # --- Server Pre-Build ---
   server-lint:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Server Lint'
+    name: 'Prebuild Quality: Server Lint'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -2527,10 +2558,12 @@ jobs:
   # `--write`: el auto-fix vive en lint-staged (pre-commit).
   server-format-check:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Server Format'
+    name: 'Prebuild Quality: Server Format'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2541,10 +2574,12 @@ jobs:
 
   server-typecheck:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Server TypeCheck'
+    name: 'Prebuild Quality: Server TypeCheck'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2578,10 +2613,12 @@ jobs:
 
   server-complexity:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Server Complexity'
+    name: 'Prebuild Quality: Server Complexity'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2596,10 +2633,12 @@ jobs:
 
   server-dead-code:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Server Dead Code'
+    name: 'Prebuild Quality: Server Dead Code'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2617,10 +2656,12 @@ jobs:
 
   server-import-bounds:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Server Import Bounds'
+    name: 'Prebuild Quality: Server Import Bounds'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2653,7 +2694,7 @@ jobs:
   # `prebuild-quality-complete.needs`. Path-scoped al workspace server.
   db-contract:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: DB Contract'
+    name: 'Prebuild Quality: DB Contract'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -2670,6 +2711,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2708,10 +2751,12 @@ jobs:
   # visible, no un fallo: la severidad no se relajó.
   api-contract:
     if: needs.repo-discovery.outputs.server == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: API Contract'
+    name: 'Prebuild Quality: API Contract'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2722,9 +2767,13 @@ jobs:
           prisma: 'true'
       # El contrato versionado debe corresponder a las anotaciones: si alguien
       # edita una ruta sin regenerar, el diff lo delata aquí.
+      # `git add -N .` (task 1.1 de `ci-gaps-priority-1-2`, G1+G12): sin el
+      # intent-to-add, un archivo generado NUEVO queda untracked y `git diff`
+      # sale 0 — el drift silencioso que el gate debe atrapar.
       - name: Verify generated contract is committed
         run: |
           npm run openapi:generate --workspace=apps/server
+          git add -N .
           git diff --exit-code apps/server/openapi.yaml
         shell: bash
       - name: Lint OpenAPI contract (Spectral)
@@ -2736,7 +2785,7 @@ jobs:
   # de complejidad de e2e/tests/** es 'off' vía bloque de tests de la config.
   e2e-lint:
     if: needs.repo-discovery.outputs.e2e == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: E2E Lint'
+    name: 'Prebuild Quality: E2E Lint'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -2780,10 +2829,12 @@ jobs:
   # desde el día 1; entra en `prebuild-quality-complete.needs`.
   e2e-format-check:
     if: needs.repo-discovery.outputs.e2e == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: E2E Format'
+    name: 'Prebuild Quality: E2E Format'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2809,7 +2860,7 @@ jobs:
   # eslint-plugin-jsx-a11y 6.10.2 no publican peer ^10; ver quality-policy.md).
   eslint-v10-advisory:
     if: github.event_name == 'pull_request' && (needs.repo-discovery.outputs.client == 'true' || needs.repo-discovery.outputs.server == 'true' || needs.repo-discovery.outputs.e2e == 'true' || needs.repo-discovery.outputs.shared == 'true')
-    name: 'Quality: ESLint 10 Advisory'
+    name: 'Prebuild Quality: ESLint 10 Advisory'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -2862,10 +2913,12 @@ jobs:
   # categorías de Code Scanning.
   validate-pipeline:
     if: needs.repo-discovery.outputs.workflows == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Validate Pipeline'
+    name: 'Prebuild Quality: Validate Pipeline'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2899,10 +2952,12 @@ jobs:
   # que toque el manifest raíz (outputs.shared). Sin red, en segundos.
   root-manifest-guard:
     if: needs.repo-discovery.outputs.shared == 'true' && github.event_name == 'pull_request'
-    name: 'Quality: Root Manifest Guard'
+    name: 'Prebuild Quality: Root Manifest Guard'
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2922,9 +2977,11 @@ jobs:
   # repo-discovery, así que corre desde t=0 del workflow en paralelo.
   openspec-validate:
     if: github.event_name == 'pull_request'
-    name: 'Quality: OpenSpec Validate'
+    name: 'Prebuild Quality: OpenSpec Validate'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -2964,6 +3021,8 @@ jobs:
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -3022,6 +3081,8 @@ jobs:
       ]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -3052,6 +3113,8 @@ jobs:
       ]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -3386,6 +3449,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
+      contents: read
       pull-requests: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -3419,6 +3483,8 @@ jobs:
     name: 'Quality: Client DepCheck'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -3437,6 +3503,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
+      contents: read
       pull-requests: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -3466,6 +3533,8 @@ jobs:
     needs: server-build
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -3520,7 +3589,13 @@ jobs:
   # One aggregator per substage 2A/2B/2C/2D; ci-complete depends on these.
   # ═══════════════════════════════════════════════════════════════
   prebuild-governance-complete:
-    if: ${{ vars.CI_MINIMAL != 'true' && always() }}
+    # REQUIRED CHECK del ruleset 21227644 — SIN gate `CI_MINIMAL` (task 2.4 del
+    # change `ci-gaps-priority-1-2`, G4). Con la cláusula anterior, poner
+    # `CI_MINIMAL=true` saltaba el único camino de enforcement de gobernanza del
+    # repo y el required check reportaba skipped (= verde para el ruleset).
+    # Los jobs que agrega NO están gated por CI_MINIMAL, así que quitarla aquí
+    # no cambia el coste del modo minimal, solo cierra el bypass de gobernanza.
+    if: ${{ always() }}
     name: Prebuild Governance Complete
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -3537,6 +3612,8 @@ jobs:
       # comentario de alcance en el job `sast`). El job sigue fuera de
       # `ci-complete.needs` por diseño.
       - sast
+    permissions:
+      contents: read
     steps:
       - name: Check for failures
         run: |
@@ -3593,6 +3670,12 @@ jobs:
       - root-manifest-guard
       - openspec-validate
       - docs-validation
+      # eslint-v10-advisory es ADVISORY (job-level continue-on-error: true): migración a
+      # ESLint 10, no gate. Excluido del agregador prebuild-quality para que no tiña
+      # el veredicto. Se reporta como check propio.
+      # - eslint-v10-advisory
+    permissions:
+      contents: read
     steps:
       # Checkout necesario para ejecutar el veredicto versionado
       # (`scripts/ci/quality-aggregator-verdict.mjs`), cubierto por su test en
@@ -3630,7 +3713,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs:
-      - dependency-review
+      # dependency-review es ADVISORY (job-level continue-on-error: true): licencias/vulns
+      # no bloquean el merge; se reporta como check propio. Excluido del gate prebuild
+      # para que un hallazgo advisory no tiña el veredicto del agregador.
+      # - dependency-review
       - secrets
       - scancode-license-pr-diff
       - lockfile-audit
@@ -3640,6 +3726,8 @@ jobs:
       - zizmor-advisory
       - typosquat-guarddog
       - security-exceptions-check
+    permissions:
+      contents: read
     steps:
       # Checkout SOLO para computar la autorización de skip en `pull_request`
       # (design D8): la detección de paths vive dentro del step del agregador —sin un job extra
@@ -3766,6 +3854,8 @@ jobs:
       # members; neither changes the existing TIA/advisory coverage lane.
       - coverage-floor-guard
       - coverage-full-gate
+    permissions:
+      contents: read
     steps:
       - name: Check for failures
         run: |
@@ -3804,6 +3894,8 @@ jobs:
       - repo-discovery
       - client-build
       - server-build
+    permissions:
+      contents: read
     steps:
       - name: 'Check for failures (strict: failure, cancelled, unauthorized skip)'
         env:
@@ -3838,51 +3930,59 @@ jobs:
           echo "✅ Build stage succeeded: jobs en success o skip autorizado por repo-discovery"
 
   postbuild-tests-complete:
+    # ESTRICTO (change `ci-gaps-priority-1-2`, G2+G3): mismo contrato que
+    # `build-complete` — `failure`, `cancelled` y `skipped` NO autorizado fallan.
+    # Antes solo miraba `failure`/`cancelled`, así que un job saltado sin
+    # autorización reportaba verde.
     if: ${{ always() }}
     name: Postbuild Tests Complete
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs:
+      # Dependencia DIRECTA (además de transitiva vía `build-complete`) para
+      # leer sus outputs: el contexto `needs` solo expone dependencias directas.
+      - repo-discovery
       - build-complete
       - test-integration
       - test-smoke
       - e2e
+    permissions:
+      contents: read
     steps:
-      - name: Check for failures
-        run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "❌ One or more post-build test jobs failed"
-            exit 1
-          fi
-          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "❌ One or more post-build test jobs were cancelled"
-            exit 1
-          fi
-          echo "✅ Post-build testing stage succeeded or was skipped"
+      - name: 'Check for failures (strict: failure, cancelled, unauthorized skip)'
+        env:
+          # `needs` por `env`, nunca interpolado en el script (PRD regla #5).
+          NEEDS: ${{ toJSON(needs) }}
+        # Veredicto versionado (`scripts/ci/stage-aggregator-verdict.mjs`),
+        # cubierto por `npm run test:scripts`: la autorización de skipped se
+        # prueba fuera de CI en vez de vivir como jq inline no testeable.
+        run: node scripts/ci/stage-aggregator-verdict.mjs postbuild-tests
 
+  # ESTRICTO (change `ci-gaps-priority-1-2`, G2+G3): los 4 jobs de análisis
+  # están en `if: false` (SonarQube sin credenciales, DepCheck incremental) y su
+  # skip es autorizado; cualquier otro skipped/failure/cancelled falla el stage.
   postbuild-analysis-complete:
     if: ${{ always() }}
     name: Postbuild Analysis Complete
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs:
+      # Ver comentario en `postbuild-tests-complete`: dependencia directa para
+      # leer outputs de `repo-discovery`.
+      - repo-discovery
       - build-complete
       - client-sonarqube
       - server-sonarqube
       - client-depcheck
       - server-depcheck
+    permissions:
+      contents: read
     steps:
-      - name: Check for failures
-        run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "❌ One or more post-build analysis jobs failed"
-            exit 1
-          fi
-          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "❌ One or more post-build analysis jobs were cancelled"
-            exit 1
-          fi
-          echo "✅ Post-build analysis stage succeeded or was skipped"
+      - name: 'Check for failures (strict: failure, cancelled, unauthorized skip)'
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        # Veredicto versionado, cubierto por `npm run test:scripts`.
+        run: node scripts/ci/stage-aggregator-verdict.mjs postbuild-analysis
 
   # ═══════════════════════════════════════════════════════════════
   # AGGREGATOR — CI Complete — Root verdict over every stage
@@ -3898,6 +3998,12 @@ jobs:
   # check independiente (no está en ci.yml).
   # ═══════════════════════════════════════════════════════════════
   ci-complete:
+    # ESTRICTO (change `ci-gaps-priority-1-2`, G2+G3): un `skipped` upstream ya
+    # no pasa como verde. Todos sus `needs` corren cuando este job corre (los
+    # prebuild comparten el mismo gate `CI_MINIMAL`), así que un skip solo puede
+    # venir de un fallo/cancelación en cascada — que debe bloquear el merge.
+    # `CI_MINIMAL` NO se elimina de aquí porque este job NO es required check del
+    # ruleset (ese es `Prebuild Governance Complete`, ver task 2.4).
     if: ${{ vars.CI_MINIMAL != 'true' && always() }}
     name: CI Complete
     runs-on: ubuntu-latest
@@ -3912,18 +4018,14 @@ jobs:
       - postbuild-analysis-complete
       - zombie-workflow-guard
       - repo-discovery
+    permissions:
+      contents: read
     steps:
-      - name: Check for failures
-        run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "❌ One or more upstream jobs failed"
-            exit 1
-          fi
-          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "❌ One or more upstream jobs were cancelled"
-            exit 1
-          fi
-          echo "✅ All upstream jobs succeeded or were skipped"
+      - name: 'Check for failures (strict: failure, cancelled, skipped)'
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        # Veredicto versionado, cubierto por `npm run test:scripts`.
+        run: node scripts/ci/stage-aggregator-verdict.mjs ci-complete
 
   # ═══════════════════════════════════════════════════════════════
   # GUARDS — Zombie Workflow Guard
@@ -3933,6 +4035,8 @@ jobs:
     needs: repo-discovery
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:

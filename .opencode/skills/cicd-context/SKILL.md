@@ -18,7 +18,7 @@ quick facts and where to look.
 
 ## Quick Facts
 
-- **Repo:** public, default branch `main`, ruleset `21227644` "Require signed commits".
+- **Repo:** public, default branch `main`, ruleset `21227644` "Main Branch Protection".
 - **Workflows enabled (GitHub):** `ci.yml`, `opencode-review.yml`, plus `security.yml`/`scheduled-security.yml` (re-enabled 2026-09-25). `release.yml`, `preview.yml`, `deploy.yml`, `security-digest.yml` are `disabled_manually`.
 - **Required status checks (ruleset):** `Governance: PR Body Lint` and `Prebuild Governance Complete`. `Verify Commit Signatures`, `Commit Lint`, `DCO` block only via the aggregator. `CI Complete` is NOT a required check.
 - **CI_MINIMAL:** `false` since 2026-09-17. `ci-complete` runs.

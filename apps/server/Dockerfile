@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # ============================================================
 # Dockerfile multi-stage para API Express + Socket.IO
 # change `ci-dockerfile-multi-stage`

@@ -48,7 +48,10 @@
   sale con 0 (no lo ve).
 - **Fix**: Añadir `git add -N .` antes de `git diff --exit-code`, o verificar
   `git status --porcelain` vacío.
-- **Estado**: **Por implementar** (incluido en change `ci-gaps-priority-1-2`).
+- **Estado**: **Implementado** (change `ci-gaps-priority-1-2`): `git add -N .`
+  antes del diff en `api-contract`. Verificado en repo temporal: con un
+  `openapi.yaml` nuevo sin trackear el gate antiguo salía 0 y el nuevo sale 1
+  (task 1.2/4.3).
 
 ### Prioridad 2 — Medio (próximo sprint)
 
@@ -60,7 +63,14 @@
   entre agregadores evita que un gap en postbuild se convierta en verde vacío.
 - **Archivo**: `ci.yml:3851-3861` y `ci.yml:3875-3885`
 - **Fix**: Añadir evaluación de skipped (autorizado o no) como en `build-complete`.
-- **Estado**: **Por implementar** (incluido en change `ci-gaps-priority-1-2`).
+- **Estado**: **Implementado** (change `ci-gaps-priority-1-2`): los tres
+  agregadores delegan en el veredicto versionado
+  `scripts/ci/stage-aggregator-verdict.mjs` y solo toleran skips autorizados
+  (`test-integration`/`test-smoke` fuera de `server`/`shared`; `e2e`,
+  `*-sonarqube` y `*-depcheck` por `if: false` documentado). `repo-discovery` se
+  añadió como dependencia directa para poder leer sus outputs. `ci-complete`
+  pasó a veredicto estricto (skipped = rojo). La lógica está cubierta fuera de
+  CI por `scripts/ci/stage-aggregator-verdict.test.mjs` (`npm run test:scripts`).
 
 #### G4: `ci-complete` se salta si `CI_MINIMAL=true`
 
@@ -70,7 +80,10 @@
 - **Archivo**: `ci.yml:3901`
 - **Fix**: Documentar el comportamiento; considerar que CI_MINIMAL no desactive
   el required check.
-- **Estado**: **Por implementar** (incluido en change `ci-gaps-priority-1-2`).
+- **Estado**: **Implementado** (change `ci-gaps-priority-1-2`): `ci-complete`
+  conserva la cláusula (no es required check), pero `Prebuild Governance Complete`
+  —el required check del ruleset— ya NO está gated por `CI_MINIMAL`. Documentado en
+  `docs/CONTEXT-CICD.md` §5.5 y §6 (P2-3).
 
 #### G5: SLSA L3 no alcanzado (requiere reusable workflow)
 
@@ -106,7 +119,9 @@
 - **Archivo**: `ci.yml:3-5`
 - **Fix**: Cambiar a `permissions: {}` y asegurar que cada job declare
   `contents: read` donde lo necesite.
-- **Estado**: **Por implementar** (incluido en change `ci-gaps-priority-1-2`).
+- **Estado**: **Implementado** (change `ci-gaps-priority-1-2`): `permissions: {}`
+  a nivel workflow y `contents: read` declarado en los 64 jobs (43 añadidos en
+  esta implementación; los existentes ya lo incluían salvo los dos SonarQube).
 
 ### Prioridad 3 — Bajo (backlog / quick wins)
 
@@ -128,7 +143,7 @@
   Cosmético: BuildKit ya está activo por defecto en Docker 23+.
 - **Archivo**: `apps/server/Dockerfile:1`
 - **Fix**: Añadir `# syntax=docker/dockerfile:1` como primera línea.
-- **Estado**: **Quick win opcional** (incluido en change `ci-gaps-priority-1-2`).
+- **Estado**: **Implementado** (change `ci-gaps-priority-1-2`).
 
 #### G10: Falta `--pull` en docker build
 
@@ -146,7 +161,10 @@
 - **Problema**: budget.json usa kB (225 = 225 KB), size-limit usa bytes (153600 = 150KB).
 - **Impacto**: Confusión en mantenimiento; no afecta funcionalidad.
 - **Fix**: Unificar unidades o documentar claramente.
-- **Estado**: **Quick win opcional** (incluido en change `ci-gaps-priority-1-2`).
+- **Estado**: **Implementado como documentación** (change `ci-gaps-priority-1-2`):
+  `budget.json` se deja en KiB (semántica de Lighthouse) y
+  `docs/learning/quality-policy.md` §4.3 fija la conversión `B = KiB × 1024` y
+  aclara que `size-limit` y las assertions de `.lighthouserc.json` están en bytes.
 
 #### G13: TypeScript target ES2023 vs ES2024
 
@@ -165,7 +183,8 @@
 - **Problema**: TS 5.6 introdujo `noUncheckedSideEffectImports`. No está activo.
 - **Impacto**: Menor — no detecta imports de módulos inexistentes con side effects.
 - **Fix**: Añadir `noUncheckedSideEffectImports: true` (TS 5.6+).
-- **Estado**: **Quick win opcional** (incluido en change `ci-gaps-priority-1-2`).
+- **Estado**: **Implementado** (change `ci-gaps-priority-1-2`): activo en
+  `tsconfig.base.json`; `npm run typecheck` (client + server) en verde con TS 5.9.
 
 #### G15: Falta `isolatedDeclarations` (TS 5.5+)
 
@@ -258,5 +277,10 @@ y se re-evaluarán cuando haya infraestructura (orquestador) o requisito de
 auditoría.
 
 El sistema ya es **apto para producción** en su estado actual.
-EOF
-echo "written OK"
+
+## 7. Estado tras `ci-gaps-priority-1-2` (2026-11-20)
+
+Los 7 gaps incluidos (G1+G12, G2+G3, G4, G8, G9, G11 y G14) están implementados.
+Verificación: `actionlint` (WASM) sin errores de sintaxis/expresión nuevos, `npm run
+typecheck` en verde, y el gate de drift probado manualmente contra un archivo
+indexado y otro nuevo sin trackear.

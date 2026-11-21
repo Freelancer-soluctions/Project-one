@@ -140,7 +140,7 @@ Ambos se aplican **simultáneamente**. Si branch protection dice 2 reviews y rul
 | **Restrict deletions**                      | Solo bypass users pueden delete branches/tags (selected by default)    |
 | **Require linear history**                  | Previene merge commits; solo squash/rebase merge                       |
 | **Require deployments to succeed**          | Changes deben ser deployados a environments específicos antes de merge |
-| **Require signed commits**                  | Solo commits firmados y verificados pueden push                        |
+| **Main Branch Protection**                  | Solo commits firmados y verificados pueden push                        |
 | **Require a pull request before merging**   | Todos los cambios deben ser via PR (ver sub-reglas 4.2)                |
 | **Require status checks to pass**           | CI tests deben pasar antes de merge (ver sub-reglas 4.3)               |
 | **Block force pushes**                      | Previene force push (enabled by default)                               |
@@ -371,7 +371,7 @@ La branch protection clásica sigue existiendo pero es **vestigial** en repos qu
 | Campo                       | Valor                                         |
 | --------------------------- | --------------------------------------------- |
 | **ID**                      | 21227644                                      |
-| **Nombre API**              | `Require signed commits`                      |
+| **Nombre API**              | `Main Branch Protection`                      |
 | **Nombre documentado**      | `Pre-Merge Governance Gate` (CONTEXT-CICD.md) |
 | **Target**                  | `branch`                                      |
 | **Enforcement**             | `active`                                      |
@@ -381,7 +381,7 @@ La branch protection clásica sigue existiendo pero es **vestigial** en repos qu
 | **current_user_can_bypass** | `pull_requests_only`                          |
 | **bypass_actors**           | RepositoryRole id=5, bypass_mode=pull_request |
 
-> **⚠️ Discrepancia documental:** La API reporta `name: "Require signed commits"` mientras que CONTEXT-CICD.md §5.1 dice "Pre-Merge Governance Gate". Verificar si el rename está pendiente en GitHub.
+> **⚠️ Discrepancia documental:** La API reporta `name: "Main Branch Protection"` mientras que CONTEXT-CICD.md §5.1 dice "Pre-Merge Governance Gate". Verificar si el rename está pendiente en GitHub.
 
 ### 8.2 Las 6 Reglas del Ruleset
 
