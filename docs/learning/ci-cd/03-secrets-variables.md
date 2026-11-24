@@ -13,7 +13,7 @@ Al terminar esta guía, serás capaz de:
 - ✅ **Aplicar el principio de mínimo privilegio** en configuración de workflows
 - ✅ **Entender el gating real del proyecto**: `if: ${{ vars.AWS_ROLE_ARN != '' }}` y secrets `STAGING_*`/`PROD_*`
 - ✅ **Configurar OIDC** para AWS sin credenciales estáticas (`permissions: id-token: write`)
-- ✅ **Referenciar** [`../../workflows-mantenimiento-guia.md`](../../workflows-mantenimiento-guia.md) para anti-patterns y casos resueltos
+- ✅ **Referenciar** [`workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) para anti-patterns y casos resueltos
 
 ---
 
@@ -90,7 +90,7 @@ GitHub Actions expone dos mecanismos separados por una razón de **diseño de se
 | **Compartir secrets entre repos sin Organization secrets** | Duplicación, drift, rotación manual en N repos             | Organization secrets → heredan en todos los repos de la org                          |
 | **No usar Environments para staging/prod**                 | Mismos secrets para todo → riesgo de leak cross-env        | Environments `staging`/`production` con secrets aislados + protection rules          |
 
-> 📖 **Casos resueltos y anti-patterns documentados**: [`../../workflows-mantenimiento-guia.md#18-lecciones-aprendidas-y-anti-patrones`](../../workflows-mantenimiento-guia.md#18-lecciones-aprendidas-y-anti-patrones)
+> 📖 **Casos resueltos y anti-patterns documentados**: [`workflows-mantenimiento-guia.md#18-lecciones-aprendidas-y-anti-patrones`](workflows-mantenimiento-guia.md#18-lecciones-aprendidas-y-anti-patrones)
 
 ---
 
@@ -633,7 +633,7 @@ aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
 
 ## 6. Referencia: `workflows-mantenimiento-guia.md` — Casos Resueltos
 
-> 📖 **Documento completo**: [`../../workflows-mantenimiento-guia.md`](../../workflows-mantenimiento-guia.md)
+> 📖 **Documento completo**: [`workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md)
 
 ### 6.1 Secciones Relevantes para Secrets/Variables
 

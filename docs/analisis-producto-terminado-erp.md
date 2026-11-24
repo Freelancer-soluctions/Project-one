@@ -227,8 +227,7 @@ EN/ES (`locale/*.json`, i18next); shadcn/ui + Tailwind + DataTable; socketServic
 ### 3.5 Docs, UX y proceso
 
 - **Docs:** 100+ archivos (`docs/rbac-system.md`, `aws-deploy-architecture.md` , `ci-cd-pipeline-empresarial.md` ,
-  `testing-architecture.md` , `security/` , 1 ADR, 24 guías de learning, **35 guías de módulo** ). Pero
-  `docs/openspec-implementation-audit.md` es puntual y obsoleta (audita solo `testing-strategy` , 2025-07-28).
+  `testing-architecture.md` , `security/` , 1 ADR, 24 guías de learning, **35 guías de módulo** ).
 - **README desalineado:** badge Node 18 vs `engines >=22.11` ; claim "RBAC + ABAC" sin código ABAC; "45+ permisos" vs
   seed hasta 82; "FIFO/LIFO" sin evidencia.
 - **OpenSpec (SDD):** **34 changes activos** (130 specs; ~140 archivados). ~10 casi cerrados; backlog sin empezar
@@ -557,7 +556,7 @@ OpenSpec, los pending.txt y esta hoja de ruta para ejecutarse sin sorpresas.
 - `e2e/tests/`, `.husky/{pre-commit,pre-push,commit-msg}`, `.github/workflows/*.yml` (11 workflows)
 - `openspec/changes/` (34 activos + ~140 archivados), `openspec/specs/` (130)
 - `docs/` (rbac-system, aws-deploy-architecture, ci-cd-pipeline-empresarial, testing-architecture,
-  openspec-implementation-audit, security/, adr/, learning/, modules/), `reports/` , `.changeset/config.json`
+  security/, openspec/adr/, learning/, modules/), `reports/` , `.changeset/config.json`
 - Documentos de trabajo: `C:\Users\user\AppData\Local\Temp\opencode\analisis-erp-publicacion-internet.md` y
   `analisis-codebase-estado.md` (2026-10-11)
 

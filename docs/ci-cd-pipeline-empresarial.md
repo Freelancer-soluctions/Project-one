@@ -3,7 +3,7 @@
 > **Documento de investigación técnica** — Cómo aplicar un pipeline de CI/CD (Continuous Integration / Continuous Delivery & Deployment) con estándares empresariales y profesionales.
 >
 > **Fecha:** agosto 2026
-> **Contexto del proyecto:** monorepo Node.js/Express + React (Vite) con GitHub Actions como runner CI/CD (ver `docs/cicd-estado-actual.md`). Herramientas actuales: Vitest, Testing Library, Playwright, Prisma, Husky, Conventional Commits.
+> **Contexto del proyecto:** monorepo Node.js/Express + React (Vite) con GitHub Actions como runner CI/CD (ver `docs/CONTEXT-CICD.md`). Herramientas actuales: Vitest, Testing Library, Playwright, Prisma, Husky, Conventional Commits.
 > **Alcance:** documento genérico/educativo con notas contextuales para stacks Node.js/React.
 > **Idioma:** español técnico, conservando términos en inglés cuando son estándar de la industria (SAST, DAST, blue/green, canary, etc.).
 
@@ -97,7 +97,7 @@ CI/CD es la disciplina de **automatizar el camino del código desde el commit ha
 - **Continuous Delivery (CD):** mantener el software **siempre desplegable**. Cada cambio que pasa todas las verificaciones queda listo en un artifact versionado que puede desplegarse a producción con un solo comando/acción manual o automatizada. La entrega (release) es un evento de negocio, no técnico.
 - **Continuous Deployment:** la extensión extrema de CD: cada cambio que pasa todas las verificaciones se despliega a producción **automáticamente, sin intervención humana**. Requiere la máxima madurez de testing, observabilidad y rollback.
 
-> **Nota contextual (project-one):** el proyecto actual implementa CI completo + CD con deployment a ECS Fargate desde GitHub Actions, PR como puerta de entrada, preview environments por PR y circuit breaker en el deploy (ver `docs/cicd-estado-actual.md`). La adopción de Continuous Deployment total dependerá de la madurez de las verificaciones automáticas descritas en este documento.
+> **Nota contextual (project-one):** el proyecto actual implementa CI completo + CD con deployment a ECS Fargate desde GitHub Actions, PR como puerta de entrada, preview environments por PR y circuit breaker en el deploy (ver `docs/CONTEXT-CICD.md`). La adopción de Continuous Deployment total dependerá de la madurez de las verificaciones automáticas descritas en este documento.
 
 ### 1.2 ¿Por qué importa? Evidencia DORA
 
@@ -525,7 +525,7 @@ Este stage aplica **análisis estático de calidad** sobre el código: estilo, r
 10. **Reglas de dependencias (import boundaries):** prohibir imports cruzados indebidos (ej. `apps/server` importando código de `apps/client`) con ESLint `import/no-restricted-paths` o herramientas como dependency-cruiser.
 11. **Análisis de tipos en el PR:** el type-check corre en el stage de build; aquí se puede añadir `tsc --noEmit --incremental` con caché.
 12. **Dead code detection:** knip, ts-prune (detectar exports/módulos no usados).
-13. **Docs generadas:** JSDoc/TSDoc review automático (ver `docs/jsdoc-review-checklist.md` en project-one).
+13. **Docs generadas:** JSDoc/TSDoc review automático (ver la sección JSDoc de `docs/code-review-checklist.md` en project-one).
 14. **Baseline y evolución:** fijar la deuda actual como baseline y exigir que las métricas no empeoren (quality trend en el PR).
 15. **PR Review Automation:** herramientas de revisión automática de código que analizan cada PR y comentan sugerencias de calidad, bugs potenciales, vulnerabilidades y code smells directamente en el pull request. Herramientas principales: DeepSource (análisis estático multi-lenguaje con auto-fix), CodeRabbit (AI-powered review que comenta en el PR con explicaciones), SonarQube PR Analysis (quality gate comentado en el PR). Ventaja: feedback inmediato sin esperar un reviewer humano; el reviewer se enfoca en lógica de negocio mientras la herramienta cubre calidad estática. Desventaja: falsos positivos que generan ruido; requiere calibración de reglas para evitar alert fatigue.
 16. **Dependency Analysis (POST-Build):** detección de dependencias no utilizadas (unused) y faltantes (missing) con `depcheck`. Ver §36.3 item 13 para la explicación completa.

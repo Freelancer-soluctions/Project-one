@@ -577,8 +577,7 @@ flowchart LR
 
 > 🔗 **Docs de referencia para profundización (Nivel Avanzado):**
 >
-> - [`../../aws-dev-local-floci.md`](../../aws-dev-local-floci.md) — Desarrollo local con Floci
-> - [`../../aws-learning-with-floci.md`](../../aws-learning-with-floci.md) — Aprendizaje AWS usando Floci
+> - [`../../aws-learning-with-floci.md`](../../aws-learning-with-floci.md) — Aprendizaje AWS usando Floci (incluye el setup dev-local)
 > - [`../../aws-deploy-architecture.md`](../../aws-deploy-architecture.md) — Arquitectura despliegue AWS + ECS
 > - [`../../aws-cd-learning-path.md`](../../aws-cd-learning-path.md) — Ruta aprendizaje AWS/CD
 
@@ -609,10 +608,10 @@ flowchart LR
 
 ### 6.2 ¿Por Qué Existe Esta Diferencia?
 
-| Contexto                               | Versión              | Razón                                                                                                                                                                                                                                                                                                                            |
-| -------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Desarrollo Local / CI Runners**      | 22.23.1 (LTS actual) | `.nvmrc` = single source of truth para developers y CI jobs. Actualizado ago 2026 por requisito de `omniroute@3.8.49` (requiere Node ≥22.22.2). Ver [`../../workflows-mantenimiento-guia.md#caso-1--ebadengine-por-requisito-de-omniroute`](../../workflows-mantenimiento-guia.md#caso-1--ebadengine-por-requisito-de-omniroute) |
-| **Runtime de Contenedor (Producción)** | 20-alpine            | Imagen base estable, probada, menor tamaño. Node 20 LTS hasta **abril 2026 (EOL programado)**, pero **Alpine 20** sigue recibiendo security patches tras EOL upstream. Cambiar a Node 22 Alpine requeriría testing de compatibilidad (musl libc, native deps).                                                                   |
+| Contexto                               | Versión              | Razón                                                                                                                                                                                                                                                                                                                |
+| -------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Desarrollo Local / CI Runners**      | 22.23.1 (LTS actual) | `.nvmrc` = single source of truth para developers y CI jobs. Actualizado ago 2026 por requisito de `omniroute@3.8.49` (requiere Node ≥22.22.2). Ver [`workflows-mantenimiento-guia.md#caso-1--ebadengine-por-requisito-de-omniroute`](workflows-mantenimiento-guia.md#caso-1--ebadengine-por-requisito-de-omniroute) |
+| **Runtime de Contenedor (Producción)** | 20-alpine            | Imagen base estable, probada, menor tamaño. Node 20 LTS hasta **abril 2026 (EOL programado)**, pero **Alpine 20** sigue recibiendo security patches tras EOL upstream. Cambiar a Node 22 Alpine requeriría testing de compatibilidad (musl libc, native deps).                                                       |
 
 ### 6.3 Impacto Práctico
 

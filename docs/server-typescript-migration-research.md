@@ -4,9 +4,7 @@
 > de internet de 2026 sobre runtime TS en Node, estrategias de migración, strict flags, tipos y CI/Docker, y (3) el
 > gap analysis contra el change OpenSpec activo `openspec/changes/server-typescript-migration/`, para cerrar las Fases
 > B y C de la tarea de investigación. **Estado:** investigación completada; change corregido 2026-10-14 (commit
-> `7fdd7024` + correcciones post-review de las Fases A–E); validación strict en verde. **Complementa (no reemplaza):**
-> [`docs/learning/typescript-migration-server.md`](learning/typescript-migration-server.md) (investigación canónica
-> 2026-09-23) y
+> `7fdd7024` + correcciones post-review de las Fases A–E); validación strict en verde. **Documento de referencia:**
 > [`openspec/changes/server-typescript-migration/`](../openspec/changes/server-typescript-migration/README.md).
 
 ---
@@ -373,8 +371,6 @@ la Fase D.
 
 ## 7. Cross-links
 
-- Investigación canónica previa:
-  [`docs/learning/typescript-migration-server.md`](learning/typescript-migration-server.md)
 - Change afectado (pendiente de correcciones §4-§5):
   [`openspec/changes/server-typescript-migration/`](../openspec/changes/server-typescript-migration/README.md) —
   `proposal.md`, `design.md`, `tasks.md`, `specs/server-typescript-incremental-migration/spec.md`,
@@ -451,3 +447,119 @@ la Fase D.
 > (raíz y server), `tsconfig.json` (raíz y server), `eslint.config.js`, `knip.jsonc`, `.dependency-cruiser.cjs` (raíz
 > y server), `vitest.config.js`, `.husky/*`, `.github/workflows/ci.yml` (L568, L1777), `Dockerfile`,
 > `docs/code-style.md` y del change completo.
+
+---
+
+## 9. JSDoc: estándar y migración (histórico)
+
+> **⚠️ Temporal (migración TS total, 2026-10-14):** el JSDoc de `apps/server` vive mientras dure
+> la migración JS→TS y **muere por archivo convertido** (se reemplaza por tipos TS). Hoy `src/`
+> solo usa `@param`/`@returns` (~2.586); `@typedef`/`@type` = 0. No añadir JSDoc a archivos ya
+> convertidos a `.ts`.
+
+### 9.1 Resumen de la estandarización
+
+JSDoc se estandarizó en todos los módulos controller, service y dao de
+`apps/server/src/modules/`. El estándar garantiza documentación consistente y mantenible
+mientras el código siga en JS.
+
+**Antes (patrón viejo):**
+
+```javascript
+/**
+ * Creates a new user
+ */
+async function createUser(req, res) {
+  // Implementation...
+}
+```
+
+**Después (estándar):**
+
+```javascript
+/**
+ * Creates a new user account.
+ *
+ * @param {Object} req - The HTTP request object
+ * @param {Object} req.body - The request body containing user data
+ * @param {string} req.body.email - User email address (must be unique)
+ * @param {string} req.body.password - User password (will be hashed)
+ * @param {string} req.body.firstName - User's first name
+ * @param {string} req.body.lastName - User's last name
+ * @param {number} req.body.roleId - ID of the assigned role
+ * @param {Object} res - The HTTP response object
+ * @returns {Promise<void>} Sends JSON response with created user or error
+ * @throws {ClientError} When email is already registered (400)
+ * @throws {ClientError} When validation fails (400)
+ */
+async function createUser(req, res) {
+  // Implementation...
+}
+```
+
+### 9.2 Patrones clave
+
+1. **Controller functions**
+   - Documentar `req`/`res` con propiedades específicas (`req.body`, `req.params`, `req.safeQuery`, `req.userId`, `req.cookies`).
+   - Usar `@returns {Promise<void>}` (el controller envía la respuesta, no retorna datos).
+   - Documentar cada `@throws` con tipo de error y status code.
+2. **Service functions**
+   - Documentar `data`/`params` con todas sus propiedades y tipos.
+   - Usar corchetes `[paramName]` para parámetros opcionales.
+   - Especificar el tipo de retorno exacto y, para retornos complejos, un segundo `@returns` con la estructura.
+3. **DAO functions**
+   - Documentar `where` con sus propiedades, y `take`/`skip` en consultas paginadas.
+   - Retornos: `Promise<Object>`, `Promise<Array>`, `Promise<Object|null>`.
+4. **Qué NO hacer**
+   - No usar `@function`, `@async` ni `@description`.
+   - No añadir JSDoc a `routes.js` (usar Swagger/OpenAPI).
+
+**Referencia completa de patrones:** `docs/jsdoc-reference-guide.md`.
+
+### 9.3 Módulos afectados
+
+Los 24 módulos de `apps/server/src/modules/` se documentaron:
+
+| #   | Module Name             | Controller | Service | DAO |
+| --- | ----------------------- | ---------- | ------- | --- |
+| 1   | `attendance`            | ✅         | ✅      | ✅  |
+| 2   | `auth`                  | ✅         | ✅      | ✅  |
+| 3   | `clientOrder`           | ✅         | ✅      | ✅  |
+| 4   | `clients`               | ✅         | ✅      | ✅  |
+| 5   | `employees`             | ✅         | ✅      | ✅  |
+| 6   | `events`                | ✅         | ✅      | ✅  |
+| 7   | `expenses`              | ✅         | ✅      | ✅  |
+| 8   | `inventoryMovement`     | ✅         | ✅      | ✅  |
+| 9   | `news`                  | ✅         | ✅      | ✅  |
+| 10  | `notes`                 | ✅         | ✅      | ✅  |
+| 11  | `payroll`               | ✅         | ✅      | ✅  |
+| 12  | `performanceEvaluation` | ✅         | ✅      | ✅  |
+| 13  | `permission`            | ✅         | ✅      | ✅  |
+| 14  | `products`              | ✅         | ✅      | ✅  |
+| 15  | `providerOrder`         | ✅         | ✅      | ✅  |
+| 16  | `providers`             | ✅         | ✅      | ✅  |
+| 17  | `purchase`              | ✅         | ✅      | ✅  |
+| 18  | `sales`                 | ✅         | ✅      | ✅  |
+| 19  | `security`              | N/A        | N/A     | N/A |
+| 20  | `settings`              | ✅         | ✅      | ✅  |
+| 21  | `stock`                 | ✅         | ✅      | ✅  |
+| 22  | `users`                 | ✅         | ✅      | ✅  |
+| 23  | `vacation`              | ✅         | ✅      | ✅  |
+| 24  | `warehouse`             | ✅         | ✅      | ✅  |
+
+**Nota:** el módulo `security` solo tiene `routes.js` (sin controller/service/dao), por lo que quedó excluido.
+
+### 9.4 Exclusiones y mantenimiento
+
+- **`routes.js`**: usa Swagger/OpenAPI, no JSDoc.
+- **Funciones nuevas**: seguir `docs/jsdoc-reference-guide.md`, documentar todos los parámetros
+  con tipo y descripción, añadir `@throws` para cada error, y `@example` en funciones complejas
+  (recomendado).
+- **Code review**: usar la sección JSDoc de `docs/code-review-checklist.md`.
+- **Enforcement**: los PRs sin JSDoc correcto se marcan en review; el linting mantiene consistencia de formato.
+
+### 9.5 Timeline
+
+- **Inicio**: documentación módulo a módulo (prioridad por criticidad).
+- **Completado**: 24 módulos documentados (72 archivos: 24 controllers, 24 services, 24 DAOs).
+- **Validado**: revisión de consistencia contra los patrones de referencia (2026-05-03).

@@ -36,7 +36,7 @@
 
 ### Fase 2: Limpieza y Finalización
 
-- [ ] **Task 28: Remove old stub files** — Eliminar `docs/modules/server-auth.md`, `server-users.md`, `server-stock.md`, `server-notes.md`, `client-auth.md`, `client-users.md`, `client-stock.md`, `client-notes.md` (reemplazados por versiones consolidadas).
+- [x] **Task 28: Remove old stub files** — Eliminar `docs/modules/server-auth.md`, `server-users.md`, `server-stock.md`, `server-notes.md`, `client-auth.md`, `client-users.md`, `client-stock.md`, `client-notes.md` (reemplazados por versiones consolidadas). _Completado por el change `docs-cleanup` (2026-11-23): los 8 stubs legacy fueron eliminados._
 - [ ] **Task 29: Update INDEX.md** — Reescribir `docs/modules/INDEX.md` con lista consolidada full-stack (sin separación Server/Client). Incluir todos los módulos con links a sus documentos.
 - [ ] **Task 30: Final review and verify all docs** — Revisión final de consistencia: verificar que todos los documentos existen, que los links en INDEX.md son válidos, que los diagramas Mermaid son correctos, y que no hay referencias a stubs legacy.
 
@@ -44,4 +44,4 @@
 
 - Cada tarea de documentación implica: (1) explorar código fuente server + client, (2) generar markdown siguiendo la plantilla estandarizada, (3) verificar consistencia con módulos previos.
 - Los checkpoints (Tasks 11 y 21) detienen la fase para revisar uniformidad de plantilla antes de continuar.
-- Tasks ejecutar secuencialmente en 
+- Tasks ejecutar secuencialmente en

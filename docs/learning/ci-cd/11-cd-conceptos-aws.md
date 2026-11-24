@@ -744,7 +744,7 @@ Hasta entonces, blue-green con circuit breaker es una elección sólida.
 | Documento                         | Para qué consultarlo                                |
 | --------------------------------- | --------------------------------------------------- |
 | `docs/aws-deploy-architecture.md` | Diagrama completo de la arquitectura de despliegue  |
-| `docs/cicd-estado-actual.md`      | Estado actual de los workflows y datos del proyecto |
+| `docs/CONTEXT-CICD.md`            | Estado actual de los workflows y datos del proyecto |
 | `docs/aws-cd-learning-path.md`    | Ruta pedagógica Floci → Consola → Terraform         |
 | `.github/workflows/deploy.yml`    | El workflow de despliegue real (guía 13)            |
 | `infra/`                          | Terraform: la infraestructura como código (guía 15) |

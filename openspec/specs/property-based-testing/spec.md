@@ -161,12 +161,11 @@ silent retry of a failing property SHALL be prohibited.
 ### Requirement: Documentation lockstep with actual PBT state
 
 After installation, `docs/learning/unit-tests-enterprise.md` (§23.3 and its summary table)
-and `docs/learning/panorama-resumen.md` SHALL state the real state (fast-check 4.x installed
-in workspaces, first properties present) instead of the outdated
-"`fast-check@3.23.2` instalado, 0 usos" claim.
+SHALL state the real state (fast-check 4.x installed in workspaces, first properties present)
+instead of the outdated "`fast-check@3.23.2` instalado, 0 usos" claim.
 
 #### Scenario: docs match reality
 
-- **WHEN** a developer reads the gap tables in those two documents after the change
+- **WHEN** a developer reads the gap tables in that document after the change
 - **THEN** the fast-check version, install location and usage count match what
   `npm ls fast-check` and a `grep fc.property` over the repo actually report

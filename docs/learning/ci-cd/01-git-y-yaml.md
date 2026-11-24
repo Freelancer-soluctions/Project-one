@@ -762,7 +762,7 @@ jobs:
 
 ### ¿Qué es `fetch-depth: 0` y por qué lo veo en workflows?
 
-**Clona historial completo** (no shallow). Necesario para: `changesets`, `dorny/test-reporter`, `git log` en steps. Ver guía 02 y [`../../workflows-mantenimiento-guia.md#6-mantenimiento-de-actionscheckout-y-fetch-depth`](../../workflows-mantenimiento-guia.md#6-mantenimiento-de-actionscheckout-y-fetch-depth).
+**Clona historial completo** (no shallow). Necesario para: `changesets`, `dorny/test-reporter`, `git log` en steps. Ver guía 02 y [`workflows-mantenimiento-guia.md#6-mantenimiento-de-actionscheckout-y-fetch-depth`](workflows-mantenimiento-guia.md#6-mantenimiento-de-actionscheckout-y-fetch-depth).
 
 ### ¿Los anclas YAML (`&`/`*`) funcionan en GitHub Actions?
 

@@ -6,7 +6,7 @@ Ver proposal.md (Why). Estado actual relevante:
 - `security.yml` (sibling `ci-security-enhance`) corre Trivy fs (`aquasecurity/trivy-action@0.33.1`, `scan-type: fs`, `scan-ref: .`, `severity: CRITICAL,HIGH`) en PR/push — NO programado.
 - `ci-enterprise.yml` corre `npm audit --audit-level=high` en push (job `dependency-audit`) — NO programado.
 - `security-digest.yml` (sibling `ci-scheduled-security-review`) cubre OSV + SBOM + digest en cron — NO Trivy full, NO npm audit.
-- El plan (`docs/cicd-plan-implementacion.md` L238, L914-952, L1273) describe UN workflow `scheduled-security.yml` con Gitleaks full + Trivy full + npm audit + SBOM. La realidad lo dividio: Gitleaks en `scheduled-security.yml`, OSV/SBOM/digest en `security-digest.yml`. Trivy full y npm audit programados NO existen (GAP C3).
+- El plan (`docs/CONTEXT-CICD.md` L238, L914-952, L1273) describe UN workflow `scheduled-security.yml` con Gitleaks full + Trivy full + npm audit + SBOM. La realidad lo dividio: Gitleaks en `scheduled-security.yml`, OSV/SBOM/digest en `security-digest.yml`. Trivy full y npm audit programados NO existen (GAP C3).
 
 ## Goals / Non-Goals
 

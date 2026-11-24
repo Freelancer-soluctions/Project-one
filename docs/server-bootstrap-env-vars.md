@@ -40,7 +40,7 @@ Cada workflow o stack que arranque el contenedor del server debe inyectar estas 
 
 ## Mapa rápido de stages (entornos del repo)
 
-> Resumen ejecutivo para ubicar el flujo. Detalle exhaustivo en `docs/cicd-estado-actual.md` (§5-§11, §16).
+> Resumen ejecutivo para ubicar el flujo. Detalle exhaustivo en `docs/CONTEXT-CICD.md` (§5-§11, §16).
 
 | Stage                             | Workflow                                  | Cuándo corre                                            | Entorno                                                                                        | Persistente?             | Gate                                                                                                                                                               |
 | --------------------------------- | ----------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -52,7 +52,7 @@ Cada workflow o stack que arranque el contenedor del server debe inyectar estas 
 
 **¿Qué es `preview.yml`?** (para no técnicos): cuando abres un PR contra `main`, GitHub levanta un "mini-proyecto" temporal: arranca el servidor backend real (build de Docker), una base de datos PostgreSQL efímera, un emulador de AWS (Floci, para probar Secrets Manager sin credenciales reales), y ejecuta smoke tests. En paralelo, Vercel despliega una URL temporal del frontend. Al final, `preview.yml` **publica un comentario en el PR** con: ✅/❌ validación del backend + URL del preview del frontend. Todo muere cuando cierras el PR — no es un entorno persistente.
 
-**Relación entre los dos flujos emulados**: `preview.yml` (por PR, feedback temprano) y `deploy.yml:docker-build` (post-merge, gate del CD) hacen **la misma validación emulada** en dos momentos del ciclo. El researcher 2026-08-10 sugirió extraer un reusable workflow para evitar drift (ver `docs/cicd-estado-actual.md` §17).
+**Relación entre los dos flujos emulados**: `preview.yml` (por PR, feedback temprano) y `deploy.yml:docker-build` (post-merge, gate del CD) hacen **la misma validación emulada** en dos momentos del ciclo. El researcher 2026-08-10 sugirió extraer un reusable workflow para evitar drift (ver `docs/CONTEXT-CICD.md` §17).
 
 ---
 

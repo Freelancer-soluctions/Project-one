@@ -111,6 +111,147 @@ El stack `docker-compose.preview.yml` define tres servicios:
 
 ---
 
+## 💻 Activación dev-local (compose diario)
+
+Además del stack de preview, el día a día usa el compose de `apps/server` (`docker-compose.yml`):
+
+```bash
+# Desde apps/server
+cd apps/server
+
+# Levantar solo Floci (en segundo plano)
+docker compose up -d floci
+
+# Ver estado y healthcheck
+docker compose ps
+# floci debe aparecer como "healthy"
+
+# Ver logs de Floci
+docker compose logs -f floci
+
+# Parar Floci
+docker compose down
+```
+
+### Verificación del Healthcheck
+
+```bash
+# Verificar que el healthcheck reporta healthy
+docker compose ps
+# STATE debe mostrar: Up ... (healthy)
+
+# O directamente (el contenedor tiene curl disponible):
+docker compose exec floci curl -f http://localhost:4566/_floci/health
+# Respuesta esperada: JSON con status ok y servicios running
+```
+
+### Variables de Entorno de Desarrollo
+
+Variables para conectar la app al emulador. **Son credenciales dummy — solo para uso local**.
+
+| Variable                | Valor                   | Descripción                                  |
+| ----------------------- | ----------------------- | -------------------------------------------- |
+| `AWS_REGION`            | `us-east-1`             | Región simulada                              |
+| `AWS_ENDPOINT_URL`      | `http://localhost:4566` | Endpoint del emulador (modo host)            |
+| `AWS_ENDPOINT_URL`      | `http://floci:4566`     | Endpoint del emulador (modo contenedor)      |
+| `AWS_ACCESS_KEY_ID`     | `test`                  | Credencial dummy (Floci no valida)           |
+| `AWS_SECRET_ACCESS_KEY` | `test`                  | Credencial dummy                             |
+| `SECRET_NAME`           | `<secret-de-dev>`       | Nombre del secreto a leer en Secrets Manager |
+
+> **Estas variables están documentadas como referencia en `apps/server/.env.example`** (marcadas como "solo local / dummy"). **NO modificar el `.env` real** — cada desarrollador configura su entorno local.
+
+### Modo Host vs Modo Contenedor — Distinción Crítica
+
+**Modo host** (`npm run dev` en el host):
+
+- La app corre en el host (fuera de Docker) con `nodemon`.
+- Floci expone el puerto 4566 en `localhost:4566`.
+- Usar: `AWS_ENDPOINT_URL=http://localhost:4566`.
+
+```bash
+# Terminal 1: Levantar Floci
+cd apps/server && docker compose up -d floci
+
+# Terminal 2: App en host
+AWS_REGION=us-east-1 \
+AWS_ENDPOINT_URL=http://localhost:4566 \
+AWS_ACCESS_KEY_ID=test \
+AWS_SECRET_ACCESS_KEY=test \
+SECRET_NAME=mi-secreto-dev \
+npm run dev
+```
+
+**Modo contenedor** (servicio `api` en docker-compose):
+
+- El servicio `api` corre dentro de Docker Compose (usa `env_file: .env`).
+- Desde la red interna `app-network`, Floci es accesible como `floci:4566`.
+- Usar: `AWS_ENDPOINT_URL=http://floci:4566` (en `.env`).
+
+```yaml
+# docker-compose.yml (ya configurado)
+services:
+  api:
+    env_file:
+      - .env
+    networks:
+      - app-network
+  floci:
+    networks:
+      - app-network
+```
+
+> **Nota**: Si cambias variables de entorno AWS en `.env`, **debes reiniciar el servidor** (`docker compose restart api` o `npm run dev` en host). **Nodemon no recarga variables de entorno** — solo recarga código.
+
+### Validación Manual del Path Secrets Manager (Opcional)
+
+Si Docker está disponible, puedes validar el path completo:
+
+```bash
+# 1. Levantar Floci
+cd apps/server && docker compose up -d floci
+
+# 2. Crear un secreto de prueba en Floci
+aws --endpoint-url=http://localhost:4566 secretsmanager create-secret \
+  --name mi-secreto-dev \
+  --secret-string '{"FLOCI_CONN":"<DEV_PASSWORD>","FLOCI_AUTH":"<DEV_API_KEY>"}'
+
+# 3. Ejecutar script de validación (REPL independiente)
+AWS_REGION=us-east-1 \
+AWS_ENDPOINT_URL=http://localhost:4566 \
+AWS_ACCESS_KEY_ID=test \
+AWS_SECRET_ACCESS_KEY=test \
+SECRET_NAME=mi-secreto-dev \
+node --input-type=module -e "
+import {loadSecrets} from './src/config/aws/secrets.js';
+console.log(await loadSecrets());
+"
+# Output esperado: { FLOCI_CONN: '<DEV_PASSWORD>', FLOCI_AUTH: '<DEV_API_KEY>' }
+```
+
+> **Nota**: `loadSecrets()` es **código muerto hoy** — ningún archivo de la app la importa; ejecutar la app no ejercita el path de Secrets Manager hasta que exista un consumidor. La validación del path emulado se hace vía script/REPL independiente.
+
+### Follow-up: ampliación de tests AWS con `@floci/testcontainers` + Vitest
+
+> **Fuera de scope del change `ci-floci-migration`** — documentado para trazabilidad.
+
+- **Objetivo**: añadir tests de integración que usen Floci vía `@floci/testcontainers` para validar el path de Secrets Manager (y futuros servicios AWS) en CI.
+- **Herramientas**: `@floci/testcontainers` (Testcontainers module para Floci) + Vitest.
+- **Alcance**: tests que levantan Floci efímero por test suite, crean secretos y validan `loadSecrets()` end-to-end.
+- **Ubicación sugerida**: `tests/integration/aws/` o junto a módulos que consuman Secrets Manager.
+- **Estado**: pendiente — requiere consumidor real de `loadSecrets()` en la app para tener valor de prueba.
+
+### Resumen Rápido dev-local
+
+| Acción                           | Comando                                                |
+| -------------------------------- | ------------------------------------------------------ |
+| Levantar Floci                   | `cd apps/server && docker compose up -d floci`         |
+| Ver healthcheck                  | `docker compose ps` (buscar "healthy")                 |
+| Modo host (npm run dev)          | `AWS_ENDPOINT_URL=http://localhost:4566`               |
+| Modo contenedor (docker-compose) | `AWS_ENDPOINT_URL=http://floci:4566` en `.env`         |
+| Reiniciar tras cambio de env     | `docker compose restart api` o reiniciar `npm run dev` |
+
+---
+
 ## ☁️ Catálogo de Servicios AWS Emulados por Floci
 
 Floci emula **68 servicios AWS**. Los más relevantes para este proyecto:

@@ -211,14 +211,13 @@ Las guías de este nivel **no copian** la documentación técnica existente del 
 
 Estas guías se apoyan en la documentación técnica existente del proyecto. No necesitas leerlos completos antes, pero te serán útiles como referencia:
 
-| Documento                              | Contenido                                                     | Se usa en        |
-| -------------------------------------- | ------------------------------------------------------------- | ---------------- |
-| `docs/aws-deploy-architecture.md`      | Arquitectura de despliegue AWS (diagrama mermaid completo)    | Guías 11, 13, 16 |
-| `docs/aws-dev-local-floci.md`          | Floci para desarrollo local                                   | Guía 12          |
-| `docs/aws-learning-with-floci.md`      | Aprender AWS con Floci                                        | Guía 12          |
-| `docs/aws-cd-learning-path.md`         | Ruta pedagógica: Floci → Consola → Terraform                  | Guías 12, 15     |
-| `docs/cicd-estado-actual.md`           | Estado actual del CI/CD (sección 10: workflows, §11.2: datos) | Guías 13, 15     |
-| `docs/workflows-mantenimiento-guia.md` | Mantenimiento de workflows (sección 14: secrets)              | Guías 13, 14     |
+| Documento                                             | Contenido                                                     | Se usa en        |
+| ----------------------------------------------------- | ------------------------------------------------------------- | ---------------- |
+| `docs/aws-deploy-architecture.md`                     | Arquitectura de despliegue AWS (diagrama mermaid completo)    | Guías 11, 13, 16 |
+| `docs/aws-learning-with-floci.md`                     | Aprender AWS con Floci + setup dev-local                      | Guía 12          |
+| `docs/aws-cd-learning-path.md`                        | Ruta pedagógica: Floci → Consola → Terraform                  | Guías 12, 15     |
+| `docs/CONTEXT-CICD.md`                                | Estado actual del CI/CD (sección 10: workflows, §11.2: datos) | Guías 13, 15     |
+| `docs/learning/ci-cd/workflows-mantenimiento-guia.md` | Mantenimiento de workflows (sección 14: secrets)              | Guías 13, 14     |
 
 ### Archivos fuente que analizarás
 

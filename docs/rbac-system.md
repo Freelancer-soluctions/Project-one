@@ -161,7 +161,7 @@ Para cambiar el rol, ADMIN o MANAGER usa `PATCH /users/:id`.
 
 ### 4.1 Categorías de Permisos
 
-Los códigos se definen en `PERMISSIONCODES` en `apps/server/src/utils/constants/enums.js`. ~65 códigos activos, ~8 comentados como "futuro".
+Los códigos se definen en `PERMISSIONCODES` en `apps/server/src/utils/constants/enums.ts`. **82 códigos activos** (10 comentados como "futuro") y **90 sembrados** en `prisma/seed.ts` (incluye orders/dashboard/reports comentados en el enum). Ver `docs/application-context.md` §1.1 y §15.2.
 
 | Categoría          | Códigos                                                                                                                                         |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |

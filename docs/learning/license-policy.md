@@ -36,7 +36,7 @@ deny-licenses:
 **Decisión del owner (2026-11-10): el ERP se distribuye como SaaS (acceso por red; no hay
 entrega de binarios, imágenes ni instalación on-prem a clientes).** La deny-list de
 `.github/license-policy.yml` (fuente ejecutable) queda **confirmada** con el siguiente
-racional por licencia (research §8.4 de `docs/research/prebuild-security-stage-analysis.md`:
+racional por licencia (research §10.8.4 de `docs/learning/quality-gates.md`:
 GPL se activa con la distribución; AGPL también con el simple servicio por red):
 
 - `AGPL-3.0` — **riesgo máximo bajo SaaS**: el copyleft de red (sección 13) obliga a liberar

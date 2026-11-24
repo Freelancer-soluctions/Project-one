@@ -1625,8 +1625,8 @@ licencia denegada, fix urgente bloqueado, PR rojo, escaneo sin reporte, secreto)
 > `include` de `apps/server/vitest.config.js` y glob eslint de `lint-staged`. El `apps/server/tsconfig.json`
 > (`allowJs`+`noEmit`+`nodenext`, sin build step — strangler fig) **ya existe** y el job `server-typecheck` de `ci.yml`
 > **ya está activo y bloqueante** desde el change `quality-gates` (2026-09-26, ver §1 — la frase "hoy `if: false`" ya no
-> aplica). Investigación canónica: `docs/learning/typescript-migration-server.md`; fuente vigente (2026-10-14):
-> `docs/server-typescript-migration-research.md`. Estado detallado: `openspec/changes/server-typescript-migration/`.
+> aplica). Investigación canónica (2026-10-14): `docs/server-typescript-migration-research.md`. Estado detallado:
+> `openspec/changes/server-typescript-migration/`.
 > **Contratos de dominio por módulo: `23/23 módulos con contratos de dominio (types.ts — 22 dirs + events/attendee)`** (change activo `server-ts-domain-interfaces`, 2026-10-18): cada módulo bajo `src/modules/` posee un `types.ts` autocontenido (entidad derivada de `Prisma.*GetPayload`, inputs `Create`/`Update`, `Filters` y tipo de resultado de servicio espejo de la respuesta real) cuyas firmas de dao/service/controller consumen — **cero cambio de comportamiento**, sin imports de tipos entre módulos (allowlist `@prisma/client`/`joi`/`src/utils/constants`). Verificado con `find apps/server/src/modules -name types.ts | wc -l` → 23. Gates: type-check ✓ · lint ✓ · test:unit 175/175 ✓ · depcruise 0 errores · `openspec validate --strict` PASS.
 >
 > **Contador de progreso: `235/236` convertidos + FASE 4 STRICT COMPLETA (2026-10-20) — `strict: true` activo con 0 errores** (10/10 flags: noImplicitAny, noImplicitReturns, noFallthroughCasesInSwitch, strictNullChecks, strictBindCallApply, strictFunctionTypes, strictPropertyInitialization, useUnknownInCatchVariables, noUncheckedIndexedAccess, strict). Cambio `server-typescript-migration` — Fase 4 cerrada.

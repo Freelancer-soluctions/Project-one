@@ -15,7 +15,7 @@ Al terminar esta guía, serás capaz de:
 - ✅ **Entender el bloque `concurrency`** (`group: pr-<n>`, `cancel-in-progress: true`) y por qué se usa en PRs
 - ✅ **Configurar un service container de PostgreSQL 16** con healthcheck (`pg_isready`) y `prisma migrate deploy` antes de los tests
 - ✅ **Explicar el reporting JUnit** con Vitest (`--reporter=junit`) + `dorny/test-reporter@v3` adjuntando check runs al PR
-- ✅ **Diagnosticar el gotcha `fetch-depth`** (Caso 2 de `docs/workflows-mantenimiento-guia.md`) y por qué `fetch-depth: 0` es opt-in consciente
+- ✅ **Diagnosticar el gotcha `fetch-depth`** (Caso 2 de `docs/learning/ci-cd/workflows-mantenimiento-guia.md`) y por qué `fetch-depth: 0` es opt-in consciente
 - ✅ **Razonar sobre el mantenimiento de versiones Node** con el Caso 1 EBADENGINE y el principio `.nvmrc` como única fuente de verdad
 
 ---
@@ -619,7 +619,7 @@ fi
 
 ---
 
-## 10. Gotcha `fetch-depth` — Caso 2 de `docs/workflows-mantenimiento-guia.md`
+## 10. Gotcha `fetch-depth` — Caso 2 de `docs/learning/ci-cd/workflows-mantenimiento-guia.md`
 
 ### 10.1 El síntoma
 
@@ -659,7 +659,7 @@ Por defecto, `actions/checkout@v5` hace **shallow clone** (`fetch-depth: 1`) —
 | `e2e`                     | `0`                      | usa `dorny/test-reporter`                                         |
 | `zombie-workflow-guard`   | (default 1)              | Solo hace `test -f`, no necesita historial                        |
 
-> 📖 **Detalle histórico del incidente**: [`docs/workflows-mantenimiento-guia.md`](../../../docs/workflows-mantenimiento-guia.md) § "Caso 2 — fetch-depth 128" — incidente real documentado, fix aplicado workflow por workflow.
+> 📖 **Detalle histórico del incidente**: [`docs/learning/ci-cd/workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) § "Caso 2 — fetch-depth 128" — incidente real documentado, fix aplicado workflow por workflow.
 
 ---
 
@@ -709,7 +709,7 @@ Si cada workflow tuviera su propio `node-version: 22.22.0` hardcoded, actualizar
     node-version-file: '.nvmrc'
 ```
 
-> 📖 **Contexto completo**: [`docs/workflows-mantenimiento-guia.md`](../../../docs/workflows-mantenimiento-guia.md) §3 "Caso 1 — EBADENGINE". Ver también la composite `setup-monorepo` (guía 08) que implementa el patrón correcto.
+> 📖 **Contexto completo**: [`docs/learning/ci-cd/workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) §3 "Caso 1 — EBADENGINE". Ver también la composite `setup-monorepo` (guía 08) que implementa el patrón correcto.
 
 ---
 

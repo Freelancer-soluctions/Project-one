@@ -1021,3 +1021,75 @@ The model (deepseek-v4-flash-free) tried to obey BOTH the `## OUTPUT CONTRACT` (
 ### Key Takeaway
 
 **One output format per agent.** Competing format sections (markdown templates, emoji-prefix text templates) confuse the model into producing hybrid output that fails JSON parsing. The `## OUTPUT CONTRACT` section must be the ONLY authority on response format. Content guidance sections should describe what goes IN the JSON fields, not alternative response templates.
+
+---
+
+## Design Rationale and Trade-offs (archived article)
+
+> Consolidated from the former `docs/opencode/output-contracts-article.md` (2026-07-09). Only the analysis that is not already covered above is preserved here.
+
+### Problem context
+
+Output Contracts was hardened in response to a critical finding: low-tier language models produce malformed responses at a **10-15% rate per call**. In an 8-agent chain, that compounds to a **>57% probability of at least one failure per cycle** (`1 - 0.85^8`). The researcher graded the issue **A = Critical**. Runtime validation in the orchestrator (`tool.execute.after`) was declared but does not fire in OpenCode v1.14.39 — tracked in [Issue #25918](https://github.com/sst/opencode/issues/25918). As a transitional solution, **Option D** (each agent self-validates before emitting) was implemented in 8/8 agent prompts.
+
+### Design decisions
+
+| #   | Decisión                                                     | Problema                                                                                | Solución                                                                                              |
+| --- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 1   | withRetry reissue callback                                   | Sin reissue, retry siempre usa la misma respuesta (garantizado fallar)                  | Callback opcional `reissue()` que retorna respuesta fresca; async soportado                           |
+| 2   | canonical-wins en caveman                                    | `last-writer-wins` descarta silenciosamente valores canónicos explícitos                | Solo asigna si canónica no está en `payload`; warning en colisión                                     |
+| 3   | Null guard en checkTypes                                     | `typeof null === 'object'` causa que null pase como objeto válido                       | Check explícito `value === null && type !== 'null'` → error claro                                     |
+| 4   | XML regex permisivo                                          | Regex estricto falla con comillas simples, orden variable, whitespace trailing          | Regex con backreferences y alternancia; acepta 4 variaciones de envelope                              |
+| 5   | **DROPPED** — Caveman mode removed                           | Caveman compression was a presentation concern; removed to simplify validation pipeline | Caveman field expansion and CAVEMAN_FIELD_MAP deleted; validation now purely canonical                |
+| 6   | Recursive nested-object walker                               | Walker anterior solo validaba campos planos; nested `properties.properties` ignorados   | Walker recursivo valida required+types+format a cualquier profundidad                                 |
+| 7   | Base field re-validation                                     | Campos base no se re-validaban en el payload ya parseado                                | Validate contra `base.schema.json` antes de schema específico del agente                              |
+| 8   | Degraded mode con clearDegraded                              | DEGRADED_AGENTS no tenía forma de salir de degraded                                     | `clearDegraded(agentName)` elimina del Set y limpia schemaCache                                       |
+| 9   | Prompt heading hierarchy fix                                 | `# REMEMBER` (h1) rompe heading hierarchy en 3 agent prompts                            | Cambiar a `## REMEMBER` (h2) en spec-manager.md, git-manager.md, project-manager.md                   |
+| 10  | Orchestrator runtime hook                                    | `validateContract` documentado pero nunca invocado por el orchestrator                  | Thin shim en task-result handling post-delegación (bloqueado por Issue #25918)                        |
+| 11  | Ajv validates all fields, no custom FORMAT_VALIDATORS needed | Hand-rolled validators didn't cover full JSON Schema                                    | Ajv with `ajv-formats` handles uri/date-time and all standard formats; removed ~100 lines hand-rolled |
+| 12  | Self-Validation per Agent (Opción D)                         | Issue #25918 bloquea orchestrator runtime hook                                          | Cada agente valida su envelope antes de emitir; activo en 8/8 prompts                                 |
+
+### Advantages
+
+- **Early detection of malformations**: missing fields, wrong types, invalid formats, and null payloads are caught at emission time, before reaching the orchestrator.
+- **Chain-wide type safety**: each agent can trust that the previous agent's output is valid, reducing null-checks and type-assertions in consumers.
+- **Actionable errors**: every error includes `{field, message}` with the full field path (e.g. `error.details.code`).
+- **Escalation with reissue**: `withRetry` supports a fresh response via an async `reissue` callback.
+- **Degraded mode for onboarding**: new agents can integrate without an existing schema; the DEGRADED_AGENTS fast-path avoids disk I/O entirely.
+- **Explicit contract**: the XML envelope makes responses parseable by external tooling without knowing orchestrator internals.
+
+### Limitations
+
+- **Additional latency**: regex match + JSON.parse + up to 3 file reads + recursive validation, roughly 5-15 ms per validation (~40-120 ms across an 8-agent chain). Mitigated by schema caching and the degraded fast-path.
+- **Maintenance overhead**: 8 schema files must stay in sync with the fields each agent actually uses.
+- **Self-validation blind spots (Option D)**: it cannot catch orchestrator parse errors, transport errors, or orchestrator processing bugs. Layer 2 (runtime hook) covers these once Issue #25918 is fixed.
+- **JSON Schema incompleteness (conscious)**: `additionalProperties`, `patternProperties`, `anyOf`, `oneOf`, and `allOf` are not used by the schemas; full compliance is not required by the validator's scope.
+- **Degraded mode as a potential false positive**: a degraded agent with a genuinely malformed payload returns `valid: true, degraded: true`; callers must treat `verdict.degraded` as failure in production.
+
+### Alternatives considered
+
+| Criterio                 | Output Contracts | TypeScript-only | Protobuf  | Zod     | GraphQL |
+| ------------------------ | ---------------- | --------------- | --------- | ------- | ------- |
+| Validación runtime       | ✅               | ❌              | ✅        | ✅      | ✅      |
+| Schema files externos    | ✅ JSON Schema   | ❌              | ✅ .proto | ❌      | ✅ SDL  |
+| Type safety compile-time | ❌               | ✅              | ✅        | Partial | ✅      |
+| LLM-friendly XML+JSON    | ✅               | ❌              | ❌        | ❌      | ❌      |
+| Caveman compression      | **Dropped**      | ❌              | ❌        | ❌      | ❌      |
+| Degraded mode            | ✅               | ❌              | ❌        | ❌      | ❌      |
+| Setup complexity         | Baja             | Baja            | Alta      | Baja    | Alta    |
+| Coverage del change      | ✅ /opsx-verify  | ❌              | ❌        | ❌      | ❌      |
+
+Free-form responses leave every consumer to implement its own validation; TypeScript-only has no runtime validation of external responses; Protobuf/gRPC adds serialization and tooling overhead that LLMs do not produce natively; Zod/Yup validate but do not define a reusable external contract; GraphQL assumes a queryable graph, which does not match agent→orchestrator payloads.
+
+### Verification metrics
+
+- 35 unit tests on `contractValidator.js` (35/35 passing; ~95% coverage in the last run).
+- 10/10 end-to-end simulation scenarios (valid envelope, agent mismatch, missing field, caveman expansion + canonical-wins, degraded mode, null payload, format validators, withRetry reissue, canonical-wins collision, invalid responseType rejection).
+- Coverage goal: >=90% on `contractValidator.js` (`npm run coverage` from `docs/opencode/prompts/contracts`).
+
+### Future work
+
+1. **Orchestrator runtime hook**: when Issue #25918 is fixed, Layer 2 activates without code changes; Layers 1 and 2 become mutually reinforcing.
+2. **Schema evolution**: add the field to the agent schema, update the prompt example, run tests, and let the `/opsx-verify` Coverage Gate detect the change. For backwards-incompatible changes (e.g. renaming a field), consider a contract version bump via the envelope `version` field.
+3. **Expanded JSON Schema coverage**: `additionalProperties: false` to detect unexpected fields, and `anyOf`/`oneOf` for payload variants.
+4. **Production CI gate**: run `contractValidator.test.js` coverage in CI; failing coverage or tests blocks merge.

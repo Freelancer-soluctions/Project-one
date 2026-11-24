@@ -446,7 +446,7 @@ test-integration:
 
 | Bloque                      | Qué define                                                | Detalle                                                                      |
 | --------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `image: postgres:16-alpine` | Imagen Docker de PostgreSQL 16 (variante alpine = ligera) | La misma versión de producción (ver `docs/cicd-estado-actual.md`)            |
+| `image: postgres:16-alpine` | Imagen Docker de PostgreSQL 16 (variante alpine = ligera) | La misma versión de producción (ver `docs/CONTEXT-CICD.md`)                  |
 | `ports: ['5432:5432']`      | Mapea el puerto del container al runner                   | El job accede a `localhost:5432`                                             |
 | `env`                       | Credenciales de la BD de test                             | `test`/`test`/`project_one_test` — **solo para CI**, nunca las de producción |
 | `options`                   | Flags de Docker para el healthcheck                       | `pg_isready` confirma que Postgres acepta conexiones                         |
@@ -804,9 +804,9 @@ Este `if` es **deliberado**: el step de reporting debe correr **incluso si los t
 Dos permisos/config son necesarios para el reporting:
 
 1. **`permissions: checks: write`** — `test-reporter` necesita permiso para crear/actualizar check runs en el PR. Sin este permiso, el step falla con un error de autorización (403).
-2. **`fetch-depth: 0`** — el clonado completo. Aquí vive el **Caso 2** de `docs/workflows-mantenimiento-guia.md`: con un clonado shallow (default de `actions/checkout@v5`), `dorny/test-reporter` falla con **exit 128** porque no tiene el historial/refs necesarios. El fix fue `fetch-depth: 0` en los jobs de test.
+2. **`fetch-depth: 0`** — el clonado completo. Aquí vive el **Caso 2** de `docs/learning/ci-cd/workflows-mantenimiento-guia.md`: con un clonado shallow (default de `actions/checkout@v5`), `dorny/test-reporter` falla con **exit 128** porque no tiene el historial/refs necesarios. El fix fue `fetch-depth: 0` en los jobs de test.
 
-> 📖 **Referencia**: [`docs/workflows-mantenimiento-guia.md`](../../../docs/workflows-mantenimiento-guia.md) Caso 2 — viste el análisis completo en la guía 06 (sección 10) y la regla "la composite NO hace checkout" en la guía 08 (sección 5.4). Aquí la lección se aplica al reporting.
+> 📖 **Referencia**: [`docs/learning/ci-cd/workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) Caso 2 — viste el análisis completo en la guía 06 (sección 10) y la regla "la composite NO hace checkout" en la guía 08 (sección 5.4). Aquí la lección se aplica al reporting.
 
 ### 8.5 El pipeline de reporting completo
 
@@ -1118,8 +1118,8 @@ El nivel **Avanzado** continúa con temas de despliegue y operación (workflows 
 ## 15. Referencias
 
 - [`docs/testing-architecture.md`](../../../docs/testing-architecture.md) — arquitectura de testing del repo (link de referencia de la sección 2, no copia)
-- [`docs/workflows-mantenimiento-guia.md`](../../../docs/workflows-mantenimiento-guia.md) — Caso 2 (fetch-depth / test-reporter) y comandos de mantenimiento
-- [`docs/cicd-estado-actual.md`](../../../docs/cicd-estado-actual.md) — inventario de workflows y métricas de tiempos de CI
+- [`docs/learning/ci-cd/workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) — Caso 2 (fetch-depth / test-reporter) y comandos de mantenimiento
+- [`docs/CONTEXT-CICD.md`](../../../docs/CONTEXT-CICD.md) — inventario de workflows y métricas de tiempos de CI
 - [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml) — jobs `test-unit-*`, `test-integration`, `test-smoke`, `e2e` y `changes`
 - [`apps/server/vitest.smoke.config.js`](../../../apps/server/vitest.smoke.config.js) — configuración de los smoke tests
 - [Documentación de Playwright](https://playwright.dev/docs/ci) — ejecución en CI, caché de navegadores y reporters

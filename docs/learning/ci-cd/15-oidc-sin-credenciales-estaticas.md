@@ -205,7 +205,7 @@ Durante la investigación de este nivel se detectó una **inconsistencia real** 
 
 | Fuente                                       | Qué dice                                                                                           |
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `docs/cicd-estado-actual.md:1340`            | La trust policy usa `:ref:refs/heads/main` — es decir, **solo la rama main** puede asumir el role. |
+| `docs/CONTEXT-CICD.md:1340`                  | La trust policy usa `:ref:refs/heads/main` — es decir, **solo la rama main** puede asumir el role. |
 | `docs/aws-deploy-architecture.md` (HCL real) | La trust policy usa `repo:owner/repo:*` con `StringLike` — **cualquier ref** del repo.             |
 
 ### 4.2 ¿Por qué importa?
@@ -219,7 +219,7 @@ En la práctica, el proyecto compensa la apertura de `repo:*` con las **protecti
 
 ### 4.3 La lección didáctica
 
-> 🔑 **Lección**: la documentación puede quedarse desactualizada respecto a la infraestructura real. **Siempre verifica contra el código fuente** (el HCL de Terraform, el YAML del workflow) antes de asumir que un claim de seguridad es correcto. Un auditor que confiara en `cicd-estado-actual.md:1340` concluiría que el role solo es asumible desde main; la realidad es más amplia.
+> 🔑 **Lección**: la documentación puede quedarse desactualizada respecto a la infraestructura real. **Siempre verifica contra el código fuente** (el HCL de Terraform, el YAML del workflow) antes de asumir que un claim de seguridad es correcto. Un auditor que confiara en `CONTEXT-CICD.md:1340` concluiría que el role solo es asumible desde main; la realidad es más amplia.
 
 Este es exactamente el tipo de discrepancia que un **revisión de seguridad** (como la que hace `owasp-security-check`) debe cazar: la superficie de confianza real es mayor que la documentada.
 
@@ -230,7 +230,7 @@ Este es exactamente el tipo de discrepancia que un **revisión de seguridad** (c
 grep -n "StringLike\|StringEquals\|sub\|aud" docs/aws-deploy-architecture.md
 
 # 2. Compara con la documentación
-grep -n "refs/heads/main\|repo:" docs/cicd-estado-actual.md | head -20
+grep -n "refs/heads/main\|repo:" docs/CONTEXT-CICD.md | head -20
 
 # 3. Conclusión: ¿coinciden? Si no, la doc está desactualizada.
 ```
@@ -464,7 +464,7 @@ Esto responde a la pregunta de auditoría: **"¿quién desplegó qué, desde qu�
 1. Abre `docs/aws-deploy-architecture.md`.
 2. Localiza la trust policy del role `project-one-github-actions`.
 3. Anota: ¿qué `Action` permite? ¿Qué condiciones usa (`StringEquals`/`StringLike`)? ¿Qué claims compara?
-4. Compara con lo que dice `docs/cicd-estado-actual.md:1340`.
+4. Compara con lo que dice `docs/CONTEXT-CICD.md:1340`.
 5. Responde: ¿la documentación coincide con el HCL? ¿Qué implicación de seguridad tiene la diferencia?
 
 **Criterio de éxito**: identificas correctamente si el `sub` usa `:ref:refs/heads/main` o `repo:*`, y explicas la diferencia de superficie de confianza.
@@ -812,7 +812,7 @@ StringLike = {
 | ------------------------------- | ------------------------------------------------------------------ |
 | Trust policy y role             | `docs/aws-deploy-architecture.md`                                  |
 | Workflow de deploy              | `.github/workflows/deploy.yml`                                     |
-| Documentación del estado actual | `docs/cicd-estado-actual.md` (sección 11.2, línea 1340)            |
+| Documentación del estado actual | `docs/CONTEXT-CICD.md` (sección 11.2, línea 1340)                  |
 | Limitación de Floci con STS     | `docs/aws-cd-learning-path.md` (módulo M4)                         |
 | Guía 12 (Floci)                 | [12-floci-emulador-aws.md](./12-floci-emulador-aws.md)             |
 | Guía 13 (deploy.yml)            | [13-deploy-yml-walkthrough.md](./13-deploy-yml-walkthrough.md)     |
@@ -820,7 +820,7 @@ StringLike = {
 
 ## 21. Cierre
 
-OIDC es la pieza que hace que el pipeline de deploy del proyecto sea **seguro por diseño**: sin credenciales estáticas que rotar, sin blast radius permanente, con auditoría granular por repo/ref y con mínimo privilegio. La lección más valiosa de esta guía, sin embargo, no es el protocolo: es la **verificación**. La discrepancia entre `cicd-estado-actual.md:1340` y el HCL real demuestra que la documentación se queda vieja y que la seguridad se audita contra el código, no contra los documentos.
+OIDC es la pieza que hace que el pipeline de deploy del proyecto sea **seguro por diseño**: sin credenciales estáticas que rotar, sin blast radius permanente, con auditoría granular por repo/ref y con mínimo privilegio. La lección más valiosa de esta guía, sin embargo, no es el protocolo: es la **verificación**. La discrepancia entre `CONTEXT-CICD.md:1340` y el HCL real demuestra que la documentación se queda vieja y que la seguridad se audita contra el código, no contra los documentos.
 
 Con esto, el pipeline ya puede desplegar de forma segura. La siguiente guía se centra en **cómo se protege ese deploy** una vez en ECS: SHA pinning, circuit breaker y health checks.
 

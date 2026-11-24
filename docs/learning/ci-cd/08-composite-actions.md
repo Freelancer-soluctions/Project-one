@@ -10,7 +10,7 @@ Al terminar esta guía, serás capaz de:
 
 - ✅ **Explicar qué es una composite action** y en qué se diferencia de una action JavaScript/Docker y de un reusable workflow
 - ✅ **Desglosar `.github/actions/setup-monorepo/action.yml` línea por línea** (24 líneas): `name`, `description`, `runs.using: composite`, los 3 steps (setup-node, `npm ci`, cache Vitest)
-- ✅ **Aplicar la regla de oro: "la composite NO hace checkout"** — el job invocador ejecuta `actions/checkout@v5` con `fetch-depth: 0` ANTES (Caso 2 de `docs/workflows-mantenimiento-guia.md`)
+- ✅ **Aplicar la regla de oro: "la composite NO hace checkout"** — el job invocador ejecuta `actions/checkout@v5` con `fetch-depth: 0` ANTES (Caso 2 de `docs/learning/ci-cd/workflows-mantenimiento-guia.md`)
 - ✅ **Decidir cuándo usar composite action vs reusable workflow** con la matriz de decisión y los ejemplos reales del repo
 - ✅ **Explicar cómo los 6 jobs de `ci.yml` invocan `setup-monorepo`** con `uses: ./.github/actions/setup-monorepo` y por qué es el segundo step tras el checkout
 
@@ -21,7 +21,7 @@ Al terminar esta guía, serás capaz de:
 1. ✅ **Fundamentos completado (00-04)** — sabes qué es un workflow, job, step, action y runner
 2. ✅ **Guía 06 (`ci.yml`)** — viste los 6 jobs que usan `uses: ./.github/actions/setup-monorepo` como segundo step
 3. ✅ **Guía 07 (reusable workflows)** — entiendes `workflow_call`, `uses:` y la tabla comparativa reusable vs composite (sección 4)
-4. ✅ **Caso 2 de `docs/workflows-mantenimiento-guia.md`** — el incidente de `fetch-depth` y `dorny/test-reporter` exit 128 (repasado en la guía 06, sección 10)
+4. ✅ **Caso 2 de `docs/learning/ci-cd/workflows-mantenimiento-guia.md`** — el incidente de `fetch-depth` y `dorny/test-reporter` exit 128 (repasado en la guía 06, sección 10)
 
 > **Si no hiciste la guía 07**: vuelve a [`./07-quality-yml-reusable.md`](./07-quality-yml-reusable.md) sección 4 — la tabla comparativa es el punto de entrada conceptual a esta guía. La fila clave "¿quién hace checkout?" se profundiza aquí.
 
@@ -302,7 +302,7 @@ El mismo patrón se repite en los 6 jobs. La composite centraliza los pasos 2-4 
 
 ## 4. La regla de oro: "la composite NO hace checkout"
 
-### 4.1 El incidente (Caso 2 de `docs/workflows-mantenimiento-guia.md`)
+### 4.1 El incidente (Caso 2 de `docs/learning/ci-cd/workflows-mantenimiento-guia.md`)
 
 Esta es la lección más importante de la guía. Recuerda el Caso 2 (guía 06 sección 10):
 
@@ -601,7 +601,7 @@ Cada invocación es independiente: la composite se expande por separado en cada 
 
 ### ¿Cómo sé qué versión de `actions/cache` usa la composite?
 
-`actions/cache@v5` (línea 18 de `action.yml`). La guía de mantenimiento (`docs/workflows-mantenimiento-guia.md` sección 7) recomienda revisar versiones mensualmente con Dependabot.
+`actions/cache@v5` (línea 18 de `action.yml`). La guía de mantenimiento (`docs/learning/ci-cd/workflows-mantenimiento-guia.md` sección 7) recomienda revisar versiones mensualmente con Dependabot.
 
 ### ¿La composite puede usar `env:`?
 

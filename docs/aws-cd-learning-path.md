@@ -19,8 +19,7 @@
 
 > **Cross-references**:
 >
-> - `docs/aws-learning-with-floci.md` — Progressive AWS learning levels 1–5 (sibling `ci-preview-environments`)
-> - `docs/aws-dev-local-floci.md` — Local dev setup with Floci (sibling `ci-floci-migration`)
+> - `docs/aws-learning-with-floci.md` — Progressive AWS learning levels 1–5 (sibling `ci-preview-environments`), including the dev-local Floci setup (host vs container, Secrets Manager path)
 >
 > **Note**: The Floci tag used throughout this learning path is `floci/floci:1.5.31` (the actual published tag on Docker Hub), not `v1.5.11` which does not exist.
 
@@ -532,14 +531,13 @@ Copy this to your local notes and check off as you complete each milestone:
 
 ## 🔗 Cross-References
 
-| Document                                            | Purpose                                                                 |
-| --------------------------------------------------- | ----------------------------------------------------------------------- |
-| `docs/aws-deploy-architecture.md`                   | Component inventory, network layout, **Terraform reference** (D9)       |
-| `docs/aws-learning-with-floci.md`                   | Progressive AWS learning levels 1–5 (sibling `ci-preview-environments`) |
-| `docs/aws-dev-local-floci.md`                       | Local dev setup with Floci (sibling `ci-floci-migration`)               |
-| `openspec/changes/cd-aws-deploy-pipeline/tasks.md`  | Phase 2 tasks unlocked by milestones (5.x–9.x)                          |
-| `openspec/changes/cd-aws-deploy-pipeline/design.md` | Design decisions D1–D10                                                 |
-| `.github/workflows/deploy.yml`                      | Pipeline with gated jobs (Phase 1 scaffold + Phase 2 real)              |
+| Document                                            | Purpose                                                           |
+| --------------------------------------------------- | ----------------------------------------------------------------- |
+| `docs/aws-deploy-architecture.md`                   | Component inventory, network layout, **Terraform reference** (D9) |
+| `docs/aws-learning-with-floci.md`                   | Progressive AWS learning levels 1–5 + dev-local Floci setup       |
+| `openspec/changes/cd-aws-deploy-pipeline/tasks.md`  | Phase 2 tasks unlocked by milestones (5.x–9.x)                    |
+| `openspec/changes/cd-aws-deploy-pipeline/design.md` | Design decisions D1–D10                                           |
+| `.github/workflows/deploy.yml`                      | Pipeline with gated jobs (Phase 1 scaffold + Phase 2 real)        |
 
 ---
 

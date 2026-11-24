@@ -3,7 +3,7 @@
 > **Fecha:** 2026-10-01
 > **Alcance:** Unit testing enterprise/profesional en el monorepo (Vitest + GitHub Actions).
 > **Fuentes:** `docs/ci-cd-pipeline-empresarial.md` §23.3/§23.6, `docs/testing-architecture.md`,
-> `docs/learning/panorama-resumen.md`, `docs/learning/quality-gates.md`, `vitest.shared.js`,
+> `docs/learning/quality-gates.md`, `vitest.shared.js`,
 > `apps/{client,server}/vitest.config.js`, `.github/workflows/ci.yml`, `.husky/pre-push`, `.husky/pre-commit`, docs
 > Vitest v4 (CLI, coverage, sequence, improving-performance).
 > **Veredicto corto:** la arquitectura de testing está **diseñada y declarada**, pero los jobs de
@@ -117,8 +117,10 @@ Política (§23.3 regla 5, línea de análisis 520):
 - **Red de seguridad:** `.github/workflows/nightly-full-suite.yml` corre las suites completas a diario (advisory, con
   `dorny/test-reporter` y guard de cobertura informational). Es la superficie que detecta lo que el diff-scoped dejó
   fuera (orden, cache, deriva de dependencias).
-- Limitación documentada (`docs/adr/turborepo-evaluation.md`): `vitest --changed` es **local y no persistente
-  cross-machine** — en CI no hay cache de la memoria de tests entre runs (R5 del design: por eso el nocturno).
+- Limitación documentada
+  (`docs/modules/requirements-engineering/adr/turborepo-evaluation.md`): `vitest --changed` es
+  **local y no persistente cross-machine** — en CI no hay cache de la memoria de tests entre
+  runs (R5 del design: por eso el nocturno).
 - Excluidos por diseño de pre-push: E2E (Playwright) e integration con DB (requieren PostgreSQL) — pertenecen a CI.
 - **Asimetría del hook: CORREGIDA 2026-10-03.** Ver §2.3 y `docs/CONTEXT-CICD.md` §10.6. Precisión importante: el hook
   **siempre fue diff-scoped** (`--changed origin/main`); lo que no tenía era el **filtro `.unit.test.js`**, por lo que su
@@ -358,7 +360,7 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 | Gate autoritativo de cobertura (SonarQube new-code ≥80%)   | `if: false`, sin `SONAR_TOKEN`                                                                                                                                                   | El tripwire es el único guard y está desactivado                                   | P1                                  |
 | Balanceo de shards por duración                            | No existe en Vitest (#9184); custom sequencer                                                                                                                                    | Shards desbalanceados                                                              | P3                                  |
 | `coverage.changed` / thresholds por glob / `perFile`       | No implementados                                                                                                                                                                 | TIA de cobertura y granularidad crítica no disponibles                             | P3                                  |
-| CONTEXT.md términos TESTING (0/10)                         | Pendiente (`panorama-resumen.md` §4)                                                                                                                                             | Onboarding/decisions drift                                                         | P3                                  |
+| CONTEXT.md términos TESTING (0/10)                         | Pendiente (términos TESTING en `docs/CONTEXT.md`)                                                                                                                                | Onboarding/decisions drift                                                         | P3                                  |
 
 ---
 
@@ -398,15 +400,14 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
   (L3469-3494).
 - `docs/testing-architecture.md` — §4 capas, §6 principios, §7.5 estrategia pre-commit/pre-push/CI, §8 híbrido, §9
   mocks/anti-patrones, §16 coverage targets, §18 cross-platform.
-- `docs/learning/panorama-resumen.md` — matriz implementado≠activo y faltantes explícitos.
 - `docs/learning/quality-gates.md` — estado blocking/advisory por job y requisitos de activación.
 - `vitest.shared.js`, `apps/server/vitest.config.js`, `apps/client/vitest.config.js`, `scripts/ci/check-coverage.mjs`.
 - `.github/workflows/ci.yml` (test-unit L744-847, client-coverage L1514-1524, server-coverage L1603-1610,
   integration L1665, smoke L1717, e2e L1769, agregador L1946).
 - `.husky/pre-push`, `.husky/pre-commit`, `apps/{server,client}/package.json`.
 - `docs/learning/coverage-tripwire-floor-ratchet.md` — doc fully updated reference (CI + tier local + granularidad).
-- `docs/adr/turborepo-evaluation.md` (límites de `--changed` cross-machine), `docs/changelog.md` (migración del hook a
-  scoped).
+- `docs/modules/requirements-engineering/adr/turborepo-evaluation.md` (límites de `--changed`
+  cross-machine), `docs/changelog.md` (migración del hook a scoped).
 
 **Externas (consultadas 2026-10-01):**
 

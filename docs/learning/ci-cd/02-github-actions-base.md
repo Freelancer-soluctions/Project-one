@@ -1158,7 +1158,7 @@ jobs:
 
 ## 9. Siguiente Guía
 
-▶️ ** [`03-secrets-variables.md`](03-secrets-variables.md) ** — Profundizaremos en **Secrets vs Variables de GitHub**, **Environments** (staging/production), **Principio de Mínimo Privilegio**, y el **uso real en el proyecto**: gating con `vars.AWS_ROLE_ARN`, secrets `STAGING_*`/`PROD_*` para ECS task definitions, y referencias a [`../../workflows-mantenimiento-guia.md`](../../workflows-mantenimiento-guia.md) para anti-patterns y casos resueltos.
+▶️ ** [`03-secrets-variables.md`](03-secrets-variables.md) ** — Profundizaremos en **Secrets vs Variables de GitHub**, **Environments** (staging/production), **Principio de Mínimo Privilegio**, y el **uso real en el proyecto**: gating con `vars.AWS_ROLE_ARN`, secrets `STAGING_*`/`PROD_*` para ECS task definitions, y referencias a [`workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) para anti-patterns y casos resueltos.
 
 > 💡 **Por qué este orden**: Entender expresiones y contextos (`github`, `secrets`, `vars`, `needs`) **antes** de ver cómo se configuran y protegen los secrets/variables en GitHub UI y se consumen en workflows.
 

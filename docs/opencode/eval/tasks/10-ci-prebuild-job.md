@@ -18,7 +18,7 @@ the existing DAG semantics.
 ## Inputs
 
 - Current `ci.yml` job graph and `docs/CONTEXT-CICD.md` substage table.
-- `docs/ci-prebuild-substage-structure-phase2-baseline.md` for naming conventions.
+- `openspec/specs/ci-prebuild-substage-structure/spec.md` for naming conventions.
 
 ## Steps expected
 

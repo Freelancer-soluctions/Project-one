@@ -14,7 +14,7 @@ Al terminar esta guía, serás capaz de:
 - ✅ **Desglosar el hook `pre-push`**: `git fetch origin main --depth=1`, verificación de `origin/main`, y `vitest run --changed origin/main` para server y client (tests scoped)
 - ✅ **Entender el gotcha del timeout de bash 120s**: commits `cf5e1bb` y `32d35a8`, falsos positivos, mitigación con `timeout 600 bash -c "git commit ..."`
 - ✅ **Entender el baseline de Semgrep**: 19 findings pre-existentes no bloqueadores; el hook solo falla por findings **nuevos** en archivos staged
-- ✅ **Explicar la config de lint-staged** en `package.json` (prettier + eslint con `--max-warnings 0` sobre archivos staged) y su contexto con [`docs/adr/turborepo-evaluation.md`](../../adr/turborepo-evaluation.md)
+- ✅ **Explicar la config de lint-staged** en `package.json` (prettier + eslint con `--max-warnings 0` sobre archivos staged) y su contexto con [`docs/modules/requirements-engineering/adr/turborepo-evaluation.md`](../../modules/requirements-engineering/adr/turborepo-evaluation.md)
 
 ---
 
@@ -171,7 +171,7 @@ fi
 1. **Prettier** --write: Formatea **todos** los archivos staged (JS, TS, JSON, MD, etc.)
 2. **ESLint** --fix --max-warnings 0: Lint + autofix solo en archivos JS/JSX/CJS/MJS, **cero warnings permitidos**
 
-> 📖 **Contexto**: Esta config existe porque el proyecto usa **npm workspaces nativo** (no Turborepo aún). Ver [`docs/adr/turborepo-evaluation.md`](../../adr/turborepo-evaluation.md) § "Problemática actual" — `lint-staged` es la solución actual para lint rápido en staged files. Si se migra a Turborepo, `turbo run lint` con cache inteligente podría reemplazar/paralelizar esto.
+> 📖 **Contexto**: Esta config existe porque el proyecto usa **npm workspaces nativo** (no Turborepo aún). Ver [`docs/modules/requirements-engineering/adr/turborepo-evaluation.md`](../../modules/requirements-engineering/adr/turborepo-evaluation.md) § "Problemática actual" — `lint-staged` es la solución actual para lint rápido en staged files. Si se migra a Turborepo, `turbo run lint` con cache inteligente podría reemplazar/paralelizar esto.
 
 ---
 
@@ -200,7 +200,7 @@ documentada con sus 93 reglas `r/...`. Ver `docs/security/semgrep-rules.md` para
 - Semgrep reporta **19 findings** en el repo que son **baseline** (pre-existentes, no introducidos por tu cambio)
 - **No son bloqueadores** — el hook está configurado para fallar **solo por findings nuevos en archivos staged**
 - **No intentes "arreglar" los 19** a menos que se planifique un sprint dedicado de remediation
-- Ver [`docs/workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales`](../../workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales) — "Semgrep baseline"
+- Ver [`docs/learning/ci-cd/workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales`](workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales) — "Semgrep baseline"
 
 ---
 
@@ -254,7 +254,7 @@ if [ $FAILED -ne 0 ]; then exit 1; fi
 - **`|| { ...; FAILED=1; }`**: Si `wait` devuelve non-zero, ejecuta el bloque y marca fallo
 - **Ambos `wait` se ejecutan**: Aunque el primero falle, el segundo **también se espera** (no "short-circuit") — quieres ver TODOS los errores, no solo el primero
 
-> 📖 **Referencia**: [`docs/workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales`](../../workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales) — sección "Pre-commit hooks actuales"
+> 📖 **Referencia**: [`docs/learning/ci-cd/workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales`](workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales) — sección "Pre-commit hooks actuales"
 
 ---
 
@@ -425,7 +425,7 @@ Durante los commits **`cf5e1bb`** y **`32d35a8`** (agosto 2026), la ejecución p
 
 El hook fallaba con "exit 128" o "timeout" **falso positivo** — los checks eran correctos, solo necesitaban más tiempo en repos grandes.
 
-> 📖 **Documentado en**: [`docs/workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales`](../../workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales) — sección "⚠️ TIMEOUT GOTCHA — bash default 120s"
+> 📖 **Documentado en**: [`docs/learning/ci-cd/workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales`](workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales) — sección "⚠️ TIMEOUT GOTCHA — bash default 120s"
 
 ---
 
@@ -504,15 +504,15 @@ npm run sast:semgrep:full
 node scripts/sast-diff.mjs
 ```
 
-> 📖 **Referencia**: [`docs/workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales`](../../workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales) — "Semgrep baseline"
+> 📖 **Referencia**: [`docs/learning/ci-cd/workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales`](workflows-mantenimiento-guia.md#8-mantenimiento-de-pre-commit-hooks-locales) — "Semgrep baseline"
 
 ---
 
-## 7. Contexto: `lint-staged` y `docs/adr/turborepo-evaluation.md`
+## 7. Contexto: `lint-staged` y `docs/modules/requirements-engineering/adr/turborepo-evaluation.md`
 
 ### 7.1 Por qué `lint-staged` existe en este proyecto
 
-El ADR [`docs/adr/turborepo-evaluation.md`](../../adr/turborepo-evaluation.md) documenta la evaluación de migrar a **Turborepo** para cache inteligente de tasks.
+El ADR [`docs/modules/requirements-engineering/adr/turborepo-evaluation.md`](../../modules/requirements-engineering/adr/turborepo-evaluation.md) documenta la evaluación de migrar a **Turborepo** para cache inteligente de tasks.
 
 **Estado actual (sin Turborepo)**:
 
@@ -529,7 +529,7 @@ El ADR [`docs/adr/turborepo-evaluation.md`](../../adr/turborepo-evaluation.md) d
 - `turbo run test` paraleliza y cachea resultados
 - `lint-staged` podría simplificarse o reemplazarse por `turbo run lint --filter=...`
 
-> 📖 **Ver ADR completo**: [`docs/adr/turborepo-evaluation.md`](../../adr/turborepo-evaluation.md) — § "Problemática actual", "Recommendation: Option A — Turborepo"
+> 📖 **Ver ADR completo**: [`docs/modules/requirements-engineering/adr/turborepo-evaluation.md`](../../modules/requirements-engineering/adr/turborepo-evaluation.md) — § "Problemática actual", "Recommendation: Option A — Turborepo"
 
 ---
 
@@ -565,7 +565,7 @@ Antes de pasar a la siguiente guía, verifica que puedes:
 - [ ] Explicar por qué `--depth=1` en pre-push vs `fetch-depth: 0` en CI
 - [ ] Explicar el gotcha timeout bash 120s (commits `cf5e1bb`, `32d35a8`) y mitigación `timeout 600`
 - [ ] Explicar el baseline Semgrep: 19 findings pre-existentes no bloqueadores
-- [ ] Conectar `lint-staged` con `docs/adr/turborepo-evaluation.md` (solución actual vs futuro Turborepo)
+- [ ] Conectar `lint-staged` con `docs/modules/requirements-engineering/adr/turborepo-evaluation.md` (solución actual vs futuro Turborepo)
 
 Si tienes dudas en algún punto, relee la sección correspondiente. La guía 06 asume estos conceptos claros.
 
@@ -820,7 +820,7 @@ Los git hooks no son exclusivos de Husky ni de Node. Conocer el panorama te ayud
 
 **¿Por qué este repo NO usa `pre-commit` (framework Python)?** Porque todo el toolchain ya es Node (npm scripts, Vitest, ESLint, Prettier, Semgrep via Docker). Añadir un gestor Python sumaría una dependencia de entorno extra. Husky se integra con `npm install` sin pasos manuales.
 
-> 📖 **Referencia**: [`docs/workflows-mantenimiento-guia.md`](../../workflows-mantenimiento-guia.md) § "Elección del gestor de hooks" — justificación histórica de por qué se adoptó Husky sobre scripts raw `.git/hooks/`.
+> 📖 **Referencia**: [`docs/learning/ci-cd/workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) § "Elección del gestor de hooks" — justificación histórica de por qué se adoptó Husky sobre scripts raw `.git/hooks/`.
 
 ---
 
@@ -892,14 +892,14 @@ entorno): el contrato de exit codes del script (0/1/otro) existe exactamente par
 
 ## 📚 15. Lecturas complementarias (en el repo)
 
-| Recurso                              | Para qué                                                   | Enlace                                                                           |
-| ------------------------------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `workflows-mantenimiento-guia.md` §8 | Hooks locales, baseline Semgrep, timeout gotcha            | [`../../workflows-mantenimiento-guia.md`](../../workflows-mantenimiento-guia.md) |
-| `adr/turborepo-evaluation.md`        | Por qué `lint-staged` y no `turbo` (todavía)               | [`../../adr/turborepo-evaluation.md`](../../adr/turborepo-evaluation.md)         |
-| `code-style.md`                      | Estándares que ESLint/`--max-warnings 0` hace obligatorios | [`../../code-style.md`](../../code-style.md)                                     |
-| `testing-architecture.md`            | Pirámide de tests y `--changed` en profundidad             | [`../../testing-architecture.md`](../../testing-architecture.md)                 |
-| `commitlint.config.js`               | Regla activa de Conventional Commits en el repo            | [`../../../commitlint.config.js`](../../../commitlint.config.js)                 |
-| `.gitleaks.toml`                     | Reglas custom + allowlist de secret scanning               | [`../../../.gitleaks.toml`](../../../.gitleaks.toml)                             |
+| Recurso                              | Para qué                                                   | Enlace                                                                                                                                    |
+| ------------------------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `workflows-mantenimiento-guia.md` §8 | Hooks locales, baseline Semgrep, timeout gotcha            | [`workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md)                                                                      |
+| `adr/turborepo-evaluation.md`        | Por qué `lint-staged` y no `turbo` (todavía)               | [`docs/modules/requirements-engineering/adr/turborepo-evaluation.md`](../../modules/requirements-engineering/adr/turborepo-evaluation.md) |
+| `code-style.md`                      | Estándares que ESLint/`--max-warnings 0` hace obligatorios | [`../../code-style.md`](../../code-style.md)                                                                                              |
+| `testing-architecture.md`            | Pirámide de tests y `--changed` en profundidad             | [`../../testing-architecture.md`](../../testing-architecture.md)                                                                          |
+| `commitlint.config.js`               | Regla activa de Conventional Commits en el repo            | [`../../../commitlint.config.js`](../../../commitlint.config.js)                                                                          |
+| `.gitleaks.toml`                     | Reglas custom + allowlist de secret scanning               | [`../../../.gitleaks.toml`](../../../.gitleaks.toml)                                                                                      |
 
 ---
 

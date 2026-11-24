@@ -404,7 +404,7 @@ services:
 >   backend/package-lock.json
 > ```
 >
-> **Esos paths `frontend/` y `backend/` NO EXISTEN en este monorepo** (usamos `apps/client`, `apps/server`). Resultado: **cache miss en cada run**. Documentado como gap **A3** en `cicd-estado-actual.md`. No arreglar (workflow no aplica a este repo), pero mantener la nota para no copiar el patrón.
+> **Esos paths `frontend/` y `backend/` NO EXISTEN en este monorepo** (usamos `apps/client`, `apps/server`). Resultado: **cache miss en cada run**. Documentado como gap **A3** en `CONTEXT-CICD.md`. No arreglar (workflow no aplica a este repo), pero mantener la nota para no copiar el patrón.
 
 ---
 
@@ -607,11 +607,11 @@ gh run view <run-id> --log
 ## 20. Referencias
 
 - **CONTEXT-CICD.md** — **FUENTE CENTRAL de la verdad operativa de CI/CD** (auto-cargado cada sesión). Estado de implementación, archivos verificados con `gh api`, reglas de oro para nuevos changes. **Leer antes de crear/implementar cualquier change de CI/CD.**
-- [Estado actual de CI/CD](cicd-estado-actual.md) — Documento base de auditoría (histórico, mantener como referencia)
-- [Plan de implementación CI/CD](cicd-plan-implementacion.md) — Roadmap de sprints (histórico, mantener como referencia)
+- [Estado actual de CI/CD](CONTEXT-CICD.md) — Documento base de auditoría (histórico, mantener como referencia)
+- [Plan de implementación CI/CD](CONTEXT-CICD.md) — Roadmap de sprints (histórico, mantener como referencia)
 - [Arquitectura de testing](testing-architecture.md) — Pirámide unit/integration/E2E
 - [AWS CD Learning Path](aws-cd-learning-path.md) — Fases Floci → ECS
-- [AWS Dev Local con Floci](aws-dev-local-floci.md) — Emulador local
+- [AWS Learning with Floci](../../aws-learning-with-floci.md) — Emulador local y setup dev
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [dorny/test-reporter issue #67](https://github.com/dorny/test-reporter/issues/67) — fetch-depth context
 - [actions/checkout fetch-depth docs](https://github.com/actions/checkout#fetch-depth)

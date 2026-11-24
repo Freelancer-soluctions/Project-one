@@ -58,27 +58,29 @@
 
 ## Convenciones transversales
 
-| Aspecto | Patrón |
-| -------------- | ----------------------------------------------- |
-| Arquitectura | `routes → controller → service → dao` |
-| ORM | Prisma ORM + `$queryRaw` (Warehouse, Employees, Attendance, Vacation, Expenses) |
-| Auth | `verifyToken` global + `checkRoleAuthOrPermisssion` por endpoint |
-| User ID | `req.userId` en controller middleware |
-| Pagination | `getSafePagination({page, limit})` |
-| Validation | Joi (server) + Zod (client) |
-| State mgmt | Redux Toolkit + RTK Query |
-| Date format | `date-fns` |
-| i18n | `react-i18next` (cliente) |
+| Aspecto      | Patrón                                                                          |
+| ------------ | ------------------------------------------------------------------------------- |
+| Arquitectura | `routes → controller → service → dao`                                           |
+| ORM          | Prisma ORM + `$queryRaw` (Warehouse, Employees, Attendance, Vacation, Expenses) |
+| Auth         | `verifyToken` global + `checkRoleAuthOrPermisssion` por endpoint                |
+| User ID      | `req.userId` en controller middleware                                           |
+| Pagination   | `getSafePagination({page, limit})`                                              |
+| Validation   | Joi (server) + Zod (client)                                                     |
+| State mgmt   | Redux Toolkit + RTK Query                                                       |
+| Date format  | `date-fns`                                                                      |
+| i18n         | `react-i18next` (cliente)                                                       |
 
 ## Módulos con bugs conocidos
 
-| Módulo | Bug | Severidad |
-| ----------- | --- | --------- |
-| Events | `updateEventById` no puede actualizar FK `type` | HIGH |
-| Notes | `updateNoteById` llamada recursiva para `hasMentions: true` | HIGH |
-| PerformanceEvaluation | URL mismatch client (`/performance-evaluation`) vs server (`/performance-evaluations`) → 404 | HIGH |
-| Expenses | Category enum spaces vs underscores (`BANK FEES` vs `BANK_FEES`) | HIGH |
-| Vacation | `createdBy`/`updatedBy` nunca seteados | HIGH |
-| Payroll | `ILIKE` en columnas Int (month, year) | HIGH |
-| ProviderOrder | Middleware registrado pero rutas no montadas en v1/index.js | HIGH |
-| ClientOrder | `routes.js` vacío | HIGH |
+Estado verificado contra código (2026-11-23). Ver `docs/application-context.md` §15.
+
+| Módulo                | Bug                                                                                                                                    | Severidad | Estado                                                                       |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------- |
+| Events                | `updateEventById` no puede actualizar FK `type` (dao reconecta solo si `data.type !== undefined`, pero el service lo saca del payload) | HIGH      | Abierto (fix incompleto)                                                     |
+| Notes                 | `updateNoteById` llamada recursiva para `hasMentions: true`                                                                            | HIGH      | Resuelto (ahora llama a `notesDao.updateNoteById`)                           |
+| PerformanceEvaluation | URL mismatch client (`/performance-evaluation`) vs server                                                                              | HIGH      | Resuelto (server monta `/performance-evaluation` en `routes/v1/index.ts:47`) |
+| Expenses              | Category enum spaces vs underscores (`BANK FEES` vs `BANK_FEES`)                                                                       | HIGH      | Abierto                                                                      |
+| Vacation              | `createdBy`/`updatedBy` nunca seteados (controller sin `req.userId`)                                                                   | HIGH      | Abierto                                                                      |
+| Payroll               | `ILIKE` en columnas Int (month, year)                                                                                                  | HIGH      | Resuelto (igualdad en `payroll/dao.ts`)                                      |
+| ProviderOrder         | No hay módulo backend en absoluto (solo frontend) → 404                                                                                | HIGH      | Abierto                                                                      |
+| ClientOrder           | No hay módulo backend en absoluto (solo frontend) → 404                                                                                | HIGH      | Abierto                                                                      |

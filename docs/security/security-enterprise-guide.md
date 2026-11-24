@@ -15,7 +15,7 @@
 Esta guía establece el **marco de seguridad enterprise** para el monorepo **Project One** (Node.js/Express + Prisma + PostgreSQL + React/Vite + JWT + GitHub Actions + AWS ECS/RDS + Vercel + Floci). Su objetivo es:
 
 - **Unificar** criterios, estándares y prácticas de seguridad en un solo documento de referencia
-- **Complementar** (no duplicar) la documentación existente: `SECURITY.md` (políticas OWASP Top 10 implementadas), `security-design.md` (defense in depth post-implementación), `semgrep-rules.md` (reglas Semgrep SAST)
+- **Complementar** (no duplicar) la documentación existente: `SECURITY.md` (políticas OWASP Top 10 implementadas y defense in depth post-implementación), `semgrep-rules.md` (reglas Semgrep SAST)
 - **Proveer** una hoja de ruta madurez seguridad (niveles 1–5) con gap analysis accionable
 - **Servir** como evidencia para auditorías (ISO 27001, SOC 2, FedRAMP, PCI-DSS, GDPR/CCPA)
 
@@ -31,14 +31,14 @@ Esta guía establece el **marco de seguridad enterprise** para el monorepo **Pro
 
 ### 1.3 Alcance
 
-| Incluido                                                       | Excluido (docs separados)                                      |
-| -------------------------------------------------------------- | -------------------------------------------------------------- |
-| Arquitectura Zero Trust, IAM enterprise, criptografía aplicada | Políticas OWASP Top 10 detalle implementación (`SECURITY.md`)  |
-| SSDLC, threat modeling metodologías, secure coding standards   | Diseño defensa en profundidad post-impl (`security-design.md`) |
-| CI/CD security enterprise (SLSA, sigstore, SBOM, VEX)          | Reglas Semgrep específicas (`semgrep-rules.md`)                |
-| Cloud/container/K8s security, runtime observability            | Estado actual CI/CD (`cicd-estado-actual.md`)                  |
-| Vulnerability management, incident response, compliance        | Plan implementación CI/CD (`cicd-plan-implementacion.md`)      |
-| Cultura DevSecOps, roadmap madurez, catálogo herramientas      |                                                                |
+| Incluido                                                       | Excluido (docs separados)                                     |
+| -------------------------------------------------------------- | ------------------------------------------------------------- |
+| Arquitectura Zero Trust, IAM enterprise, criptografía aplicada | Políticas OWASP Top 10 detalle implementación (`SECURITY.md`) |
+| SSDLC, threat modeling metodologías, secure coding standards   | Diseño defensa en profundidad post-impl (`SECURITY.md`)       |
+| CI/CD security enterprise (SLSA, sigstore, SBOM, VEX)          | Reglas Semgrep específicas (`semgrep-rules.md`)               |
+| Cloud/container/K8s security, runtime observability            | Estado actual CI/CD (`CONTEXT-CICD.md`)                       |
+| Vulnerability management, incident response, compliance        | Plan implementación CI/CD (`CONTEXT-CICD.md`)                 |
+| Cultura DevSecOps, roadmap madurez, catálogo herramientas      |                                                               |
 
 ### 1.4 Cómo leer esta guía
 
@@ -356,9 +356,9 @@ El proyecto usa **Specification-Driven Development (SDD)** con artefactos OpenSp
 
 ## 6. Defense in Depth Enterprise
 
-### 6.1 Capas de Defensa (Cross-ref: `security-design.md` Section 1)
+### 6.1 Capas de Defensa (Cross-ref: `SECURITY.md` Section 1)
 
-| Capa            | Descripción                                          | Controles Project One                                               | Referencia security-design.md                           |
+| Capa            | Descripción                                          | Controles Project One                                               | Referencia SECURITY.md                                  |
 | --------------- | ---------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------- |
 | **Perimeter**   | Edge network, WAF, DDoS protection                   | CloudFlare/AWS Shield (proyectado), rate limiting global            | Section 1: "Network layer: CORS configuration"          |
 | **Network**     | Segmentación, mTLS, zero trust network               | VPC, Security Groups, NACLs, mTLS service-to-service (proyectado)   | Section 1: "Network layer"                              |
@@ -2845,7 +2845,7 @@ jobs:
 
 **Jerarquía de Secrets**: `Repository secrets` < `Environment secrets` < `Organization secrets`. Las environment secrets solo se inyectan en jobs con ese `environment:` — un atacante que comprometa un PR **no puede** acceder a secrets de producción si el job no las declara.
 
-**Cross-ref**: ver `../cicd-plan-implementacion.md` sección 6 para los 4 entornos definidos (Local, Preview, Staging, Prod).
+**Cross-ref**: ver `../CONTEXT-CICD.md` sección 6 para los 4 entornos definidos (Local, Preview, Staging, Prod).
 
 ### 16.7 Pipeline Attack Vectors (Cómo te Atacan el CI/CD)
 
@@ -2965,7 +2965,7 @@ Las métricas DORA miden el **rendimiento de entrega** y se integran con segurid
 | **MTTR**                 | Runbooks de IR listos, rollback automatizado (blue/green), observabilidad (Falco, SIEM) detectan antes                   |
 | **CFR**                  | Scanning automático en CI atrapa vulnerabilidades antes del merge, reduciendo fallos en prod                             |
 
-**Cross-ref**: ver KPIs y estado actual en `../cicd-estado-actual.md` sección 12. Objetivo Project One: **High tier** en las 4 métricas con cero regresiones de seguridad.
+**Cross-ref**: ver KPIs y estado actual en `../CONTEXT-CICD.md` sección 12. Objetivo Project One: **High tier** en las 4 métricas con cero regresiones de seguridad.
 
 ### 16.10 Pipeline YAML Seguro Completo (Node/Express + React + Prisma + GH Actions + AWS)
 
@@ -3558,7 +3558,7 @@ function logAuditEvent({ actor, action, target, outcome, ip, metadata = {} }) {
 | **RDS**             | Encryption at rest (KMS), IAM database auth, Secrets Manager integration |
 | **Secrets Manager** | Rotación automática de credenciales DB                                   |
 
-**Cross-ref**: ver `../cicd-plan-implementacion.md` sección 9 (AWS + Floci para desarrollo local).
+**Cross-ref**: ver `../CONTEXT-CICD.md` sección 9 (AWS + Floci para desarrollo local).
 
 ---
 
@@ -4127,7 +4127,7 @@ La tecnología sin cultura falla. DevSecOps es **compartir la responsabilidad de
 | **Trimestral**            | Revisión de threat models existentes          | Actualizaciones             |
 | **Post-incidente**        | Re-threat model del vector explotado          | Reglas Falco/Semgrep nuevas |
 
-**Cross-ref**: integración con OpenSpec en sección 5.3 y `../cicd-plan-implementacion.md` Sprint 4.
+**Cross-ref**: integración con OpenSpec en sección 5.3 y `../CONTEXT-CICD.md` Sprint 4.
 
 ---
 
@@ -4145,17 +4145,17 @@ La tecnología sin cultura falla. DevSecOps es **compartir la responsabilidad de
 
 ### 25.2 Matriz de Madurez por Área (Project One)
 
-| Área                  | Nivel Actual | Target (12m) | Gaps a Cerrar                                                            |
-| --------------------- | ------------ | ------------ | ------------------------------------------------------------------------ |
-| **Governance**        | 2            | 3            | Políticas documentadas, control owners, cadencia auditoría               |
-| **Threat Modeling**   | 1            | 3            | STRIDE/PASTA en design phase OpenSpec (gap `security-design.md` A04)     |
-| **SAST**              | 3            | 4            | Semgrep+CodeQL en CI ✅; añadir métricas de coverage y drift             |
-| **SCA**               | 1            | 3            | **Sin Dependabot** (gap `cicd-estado-actual.md`), sin SBOM, Trivy manual |
-| **Secret Management** | 2            | 4            | Gitleaks ✅; añadir rotation automática, Vault/Secrets Manager           |
-| **CI/CD Security**    | 1            | 3            | **Sin CD**, sin cosign, sin SLSA, sin .dockerignore (gaps CI/CD doc)     |
-| **Incident Response** | 1            | 3            | Runbooks, equipo IR, tabletop, SIEM                                      |
-| **Compliance**        | 1            | 2            | Control mapping, evidence automation, auditoría interna                  |
-| **Runtime Security**  | 1            | 3            | Falco/eBPF, RASP, SIEM integration                                       |
+| Área                  | Nivel Actual | Target (12m) | Gaps a Cerrar                                                        |
+| --------------------- | ------------ | ------------ | -------------------------------------------------------------------- |
+| **Governance**        | 2            | 3            | Políticas documentadas, control owners, cadencia auditoría           |
+| **Threat Modeling**   | 1            | 3            | STRIDE/PASTA en design phase OpenSpec (gap A04)                      |
+| **SAST**              | 3            | 4            | Semgrep+CodeQL en CI ✅; añadir métricas de coverage y drift         |
+| **SCA**               | 1            | 3            | **Sin Dependabot** (gap `CONTEXT-CICD.md`), sin SBOM, Trivy manual   |
+| **Secret Management** | 2            | 4            | Gitleaks ✅; añadir rotation automática, Vault/Secrets Manager       |
+| **CI/CD Security**    | 1            | 3            | **Sin CD**, sin cosign, sin SLSA, sin .dockerignore (gaps CI/CD doc) |
+| **Incident Response** | 1            | 3            | Runbooks, equipo IR, tabletop, SIEM                                  |
+| **Compliance**        | 1            | 2            | Control mapping, evidence automation, auditoría interna              |
+| **Runtime Security**  | 1            | 3            | Falco/eBPF, RASP, SIEM integration                                   |
 
 ### 25.3 Diagrama Roadmap
 
@@ -4200,7 +4200,7 @@ flowchart LR
     style L5 fill:#a5f3fc,stroke:#0891b2
 ```
 
-### 25.4 Gap Analysis (desde `../cicd-estado-actual.md`)
+### 25.4 Gap Analysis (desde `../CONTEXT-CICD.md`)
 
 | Gap Identificado                  | Acción                                                  | Nivel Destino |
 | --------------------------------- | ------------------------------------------------------- | ------------- |
@@ -4479,8 +4479,8 @@ flowchart LR
 
 ## Changelog
 
-| Versión | Fecha      | Cambios                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Autores                                                                                 |
-| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| 1.0     | 2026-08-02 | Documento creado. Investiga y sintetiza marcos enterprise (NIST CSF 2.0, SLSA v1.0, OWASP API Top 10 2023, sigstore, CycloneDX 1.6, SPDX 3.0), threat modeling, SSDLC, Zero Trust, IAM, seguridad API/Node/React/PostgreSQL, criptografía, secret management, AST family, CI/CD security, runtime, cloud AWS, container/K8s, vuln management, incident response, compliance, secure coding, cultura DevSecOps, roadmap madurez y catálogo de herramientas. Complementa SECURITY.md, security-design.md, semgrep-rules.md y cicd-estado-actual.md + cicd-plan-implementacion.md. | @researcher (investigación), @developer (escritura parcial), @orchestrator (completado) |
+| Versión | Fecha      | Cambios                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Autores                                                                                 |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 1.0     | 2026-08-02 | Documento creado. Investiga y sintetiza marcos enterprise (NIST CSF 2.0, SLSA v1.0, OWASP API Top 10 2023, sigstore, CycloneDX 1.6, SPDX 3.0), threat modeling, SSDLC, Zero Trust, IAM, seguridad API/Node/React/PostgreSQL, criptografía, secret management, AST family, CI/CD security, runtime, cloud AWS, container/K8s, vuln management, incident response, compliance, secure coding, cultura DevSecOps, roadmap madurez y catálogo de herramientas. Complementa SECURITY.md, semgrep-rules.md y CONTEXT-CICD.md. | @researcher (investigación), @developer (escritura parcial), @orchestrator (completado) |
 
 > Documento vivo. Próxima revisión: Q4 2026 o ante cambio mayor en estándares (NIST, OWASP, SLSA).

@@ -734,7 +734,7 @@ El run termina en verde, pero los notices explican que no hubo despliegue.
 | **Secret**   | `secrets.NOMBRE` | Enmascarado en logs | Contraseñas, tokens, claves                         |
 | **Variable** | `vars.NOMBRE`    | Visible en logs     | Configuración no sensible (ARNs, regiones, nombres) |
 
-> 💡 Referencia completa: [Guía 03 — Secrets y variables](./03-secrets-variables.md) y la sección 14 de `docs/workflows-mantenimiento-guia.md`.
+> 💡 Referencia completa: [Guía 03 — Secrets y variables](./03-secrets-variables.md) y la sección 14 de `docs/learning/ci-cd/workflows-mantenimiento-guia.md`.
 
 ### 7.2 Variables de configuración (`vars.*`)
 
@@ -811,7 +811,7 @@ GitHub Secrets → deploy.yml → task-definition JSON → ECS Fargate → env v
 1. **Nunca** pongas un secret en `vars.*` (sería visible en logs).
 2. **Prefija** los secrets por entorno (`STAGING_`, `PROD_`) para evitar colisiones.
 3. **Rota** los secrets periódicamente (especialmente `SECRETKEY`).
-4. **Documenta** cada secret en `docs/workflows-mantenimiento-guia.md` sección 14.
+4. **Documenta** cada secret en `docs/learning/ci-cd/workflows-mantenimiento-guia.md` sección 14.
 5. Usa **Parameter Store** para valores que cambian sin redeploy.
 
 > ⚠️ **Ojo**: si un secret aparece en los logs, GitHub lo enmascara automáticamente, pero eso no es una excusa para filtrarlo. El enmascarado es un parche, no una solución.

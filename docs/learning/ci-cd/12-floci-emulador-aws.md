@@ -58,10 +58,7 @@ Con esa variable, la AWS CLI y los SDKs envían las peticiones a Floci en lugar 
 
 ### 1.4 Enlaces de referencia
 
-Floci está documentado en el repo en dos documentos que te recomendamos consultar:
-
-- `docs/aws-dev-local-floci.md` — Floci para desarrollo local.
-- `docs/aws-learning-with-floci.md` — Aprender AWS con Floci.
+Floci está documentado en el repo en `docs/aws-learning-with-floci.md`, que cubre tanto el aprendizaje de AWS como el setup de desarrollo local (host vs contenedor).
 
 Esta guía es la versión didáctica de esos documentos: explica los conceptos desde cero y te guía paso a paso.
 
@@ -383,7 +380,7 @@ Floci es un **emulador de la API de AWS** para desarrollo y CI. Emula servicios 
 
 Los documentos de referencia lo dicen literalmente:
 
-> **# Source:** `docs/aws-dev-local-floci.md:21` — Floci es un emulador para desarrollo local, no un sustituto de AWS en producción.
+> **# Source:** `docs/aws-learning-with-floci.md` — Floci es un emulador para desarrollo local, no un sustituto de AWS en producción.
 
 > **# Source:** `docs/aws-learning-with-floci.md:21` — Floci sirve para aprender la API de AWS, no para alojar aplicaciones.
 

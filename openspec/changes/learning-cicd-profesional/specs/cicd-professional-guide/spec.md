@@ -65,7 +65,7 @@ La guía `25-security-yml-sast-sca-sbom.md` SHALL hacer un walkthrough profundo 
 #### Scenario: Explica el autobuild comentado
 
 - **WHEN** la guía trata el job `sast`
-- **THEN** explica por qué `github/codeql-action/autobuild@v4` está comentado en `security.yml` y por qué se usa `npm ci` manual en su lugar (fiabilidad en monorepos con workspaces), citando la ruta fuente y `docs/workflows-mantenimiento-guia.md`
+- **THEN** explica por qué `github/codeql-action/autobuild@v4` está comentado en `security.yml` y por qué se usa `npm ci` manual en su lugar (fiabilidad en monorepos con workspaces), citando la ruta fuente y `docs/learning/ci-cd/workflows-mantenimiento-guia.md`
 
 #### Scenario: Introduce SCA desde cero
 
@@ -85,7 +85,7 @@ La guía `25-security-yml-sast-sca-sbom.md` SHALL hacer un walkthrough profundo 
 #### Scenario: Cubre el gotcha del secret GIT_LEAKS
 
 - **WHEN** la guía trata el secret opcional GIT_LEAKS
-- **THEN** explica que si el secret no está configurado el licensed scan se salta silenciosamente con un warning (`::warning::`) sin fallar el job, y que el secret debe verificarse/rotarse trimestralmente (referenciando `docs/workflows-mantenimiento-guia.md`)
+- **THEN** explica que si el secret no está configurado el licensed scan se salta silenciosamente con un warning (`::warning::`) sin fallar el job, y que el secret debe verificarse/rotarse trimestralmente (referenciando `docs/learning/ci-cd/workflows-mantenimiento-guia.md`)
 
 #### Scenario: Explica Dependency Review
 
@@ -95,7 +95,7 @@ La guía `25-security-yml-sast-sca-sbom.md` SHALL hacer un walkthrough profundo 
 #### Scenario: Explica la política de permisos del workflow
 
 - **WHEN** la guía trata los permisos de `security.yml`
-- **THEN** explica que `security-events: write` está presente en los workflows que suben SARIF (security.yml + scheduled-security.yml) Y en ci-enterprise.yml (excepción — workflow de referencia no-operacional; deberías notar esto como excepción/violación del 'mínimo privilegio'), y que security-digest.yml NO lo necesita (sube artifacts, no SARIF) — conectando con el principio de mínimo privilegio de `docs/workflows-mantenimiento-guia.md` sección 16
+- **THEN** explica que `security-events: write` está presente en los workflows que suben SARIF (security.yml + scheduled-security.yml) Y en ci-enterprise.yml (excepción — workflow de referencia no-operacional; deberías notar esto como excepción/violación del 'mínimo privilegio'), y que security-digest.yml NO lo necesita (sube artifacts, no SARIF) — conectando con el principio de mínimo privilegio de `docs/learning/ci-cd/workflows-mantenimiento-guia.md` sección 16
 
 ### Requirement: Contenido didáctico de 26-scheduled-security-yml
 
@@ -287,7 +287,7 @@ Las guías SHALL usar español, tono de enseñanza de nivel profesional, tablas 
 
 Las guías SHALL referenciar con enlaces la documentación existente (`docs/learning/ci-cd/workflows-mantenimiento-guia.md`
 con uso intensivo, `docs/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`, `docs/security/security-enterprise-guide.md`,
-`docs/aws-*.md`) en lugar de copiar su contenido. `docs/cicd-estado-actual.md` y `docs/cicd-plan-implementacion.md`
+`docs/aws-*.md`) en lugar de copiar su contenido. `docs/CONTEXT-CICD.md` y `docs/CONTEXT-CICD.md`
 NO son referenciables: no existen en el repo.
 
 #### Scenario: Se enlaza en lugar de copiar

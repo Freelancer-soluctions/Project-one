@@ -141,16 +141,14 @@ Para decisiones menores o resúmenes ejecutivos, usar el formato Y-Statement:
 Los ADRs viven **fuera** de los change folders de OpenSpec. Son artefactos persistentes que sobreviven a los cambios.
 
 ```
-docs/
+openspec/
 ├── adr/
+│   ├── TEMPLATE.md                 ← Esta plantilla
 │   ├── index.md                    ← Índice de todos los ADRs
 │   ├── 0001-use-postgresql.md
 │   ├── 0002-adopt-jwt-auth.md
 │   └── ...
 ├── specs/
-└── ...
-
-openspec/
 └── changes/
     └── {change-name}/
         └── proposal.md           ← Puede referenciar ADR-NNN
@@ -158,7 +156,7 @@ openspec/
 
 **Regla**: Cuando un change hace una decisión arquitectural, debe:
 
-1. Escribir o referenciar un ADR en `docs/adr/`
+1. Escribir o referenciar un ADR en `openspec/adr/`
 2. El PR del change debe incluir el ADR o una referencia a uno existente
 
 ---
@@ -172,7 +170,7 @@ Para proyectos que usan agentes de IA, se recomienda añadir un gate en CI:
 # Verifica que cambios en archivos con patrón .ts,.js citen un ADR si toca lógica arquitectural
 
 if git diff --name-only | grep -E '\.(ts|js)$' | xargs grep -l 'newDep\|pattern' > /dev/null; then
-  if ! grep -r 'ADR-' docs/adr/ .github/ADR* 2>/dev/null; then
+  if ! grep -r 'ADR-' openspec/adr/ .github/ADR* 2>/dev/null; then
     echo "ERROR: Cambios detectados sin ADR referenciado"
     exit 1
   fi
@@ -181,7 +179,7 @@ fi
 
 ---
 
-## Índice de ADRs (`docs/adr/index.md`)
+## Índice de ADRs (`openspec/adr/index.md`)
 
 ```markdown
 # Architecture Decision Records
@@ -203,7 +201,7 @@ Nombre de archivo: `NNNN-title-with-dashes.md`
 
 - Un ADR **nunca se elimina**. Si una decisión cambia, se crea un nuevo ADR que marca el anterior como `superseded by ADR-NNN`.
 - El campo **Status** es obligatorio: `proposed` → `accepted` → `deprecated`/`superseded`
-- Todos los ADRs viven en `docs/adr/` para que los agentes puedan indexarlos.
+- Todos los ADRs viven en `openspec/adr/` para que los agentes puedan indexarlos.
 ```
 
 ---

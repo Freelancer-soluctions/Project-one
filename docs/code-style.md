@@ -22,6 +22,43 @@ Prettier handles all formatting. Run `npm run format` before committing.
 3. **Named exports** for utilities and hooks
 4. **Default exports** for page components
 
+### RTK Query data and loading standard (Option C)
+
+All data access from RTK Query hooks follows the shared utilities in `apps/client/src/hooks/` (exported from `apps/client/src/hooks/index.js`):
+
+- `useQueryData(queryResult, defaultValue?)` — unwraps the backend envelope (`data?.data ?? defaultValue`), memoized with `useMemo`.
+- `useLoadingState(queryStates[])` — aggregates `isLoading`/`isFetching` across several queries with `Array.some()`.
+
+**Lazy query pattern (paginated modules):**
+
+```js
+const [trigger, queryState] = useLazyGetAllXxxQuery();
+const { data: dataItems, isLoading, isFetching } = useQueryData(queryState);
+
+useEffect(() => {
+  trigger({ page, limit, ...filters });
+}, [page, limit, filters, trigger]);
+```
+
+**Loading spinner pattern:**
+
+```js
+// Queries: useLoadingState
+const { isLoading: isLoadingAny, isFetching: isFetchingAny } = useLoadingState([
+  { isLoading, isFetching },
+]);
+
+// Mutations: keep the || chain
+const isLoadingMutations = isLoadingPost || isLoadingPut || isLoadingDelete;
+```
+
+Rules:
+
+1. **Queries unwrap the envelope** with `useQueryData`; children receive plain data, never `.data` / `.data.dataList`.
+2. **Mutations stay in page components** with their `||` loading chain; they are out of scope for these utilities.
+3. **Datatables use `PropTypes.shape({ dataList: PropTypes.array, total: PropTypes.number })`**, not `PropTypes.array` — the unwrapped value is still `{ dataList, total }`.
+4. **Cross-module imports stay direct** (e.g. Attendance importing employees filters); do not move or duplicate hooks.
+
 ## Import Order
 
 1. React/core

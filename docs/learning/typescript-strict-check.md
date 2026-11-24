@@ -4,9 +4,9 @@
 
 ## 1. Contexto y estado actual
 
-El monorepo `project-one` (React/Express) tiene `typescript: 5.9.3` en `dependencies` de raíz (`package.json` L858) y `apps/server/` adquiere `typescript-migration-server.md` como change activo. Actualmente `apps/server/` NO tiene `tsconfig.json`; `lint-staged` cubre `*.ts,tsx` solo para `prettier`; `eslint.config.js` no incluye `ts` en glob (`*.js`; falta `*.ts`); `server-typecheck` en `.github/workflows/ci.yml` (L538) tiene `if: false` y `|| echo "TypeCheck: no-op..."`; `package.json` raíz NO tiene script `type-check`; `lint-staged` raíz (l.91-94) cubre `*.{js,jsx,cjs,mjs}` pero NO `*.ts` para `eslint`.
+El monorepo `project-one` (React/Express) tiene `typescript: 5.9.3` en `dependencies` de raíz (`package.json` L858) y `apps/server/` tiene el change `server-typescript-migration` activo. Actualmente `apps/server/` NO tiene `tsconfig.json`; `lint-staged` cubre `*.ts,tsx` solo para `prettier`; `eslint.config.js` no incluye `ts` en glob (`*.js`; falta `*.ts`); `server-typecheck` en `.github/workflows/ci.yml` (L538) tiene `if: false` y `|| echo "TypeCheck: no-op..."`; `package.json` raíz NO tiene script `type-check`; `lint-staged` raíz (l.91-94) cubre `*.{js,jsx,cjs,mjs}` pero NO `*.ts` para `eslint`.
 
-Referencia: `docs/learning/typescript-migration-server.md` (219 líneas, creado 2026-09-23, verificado 2026-09-23); `package.json` (typescript L858); `.github/workflows/ci.yml` (L450 `client-typecheck`, L538 `server-typecheck`, L750 `needs`, L1099-1105 agregadores `prebuild-quality-complete`); `docs/CONTEXT-CICD.md` (§13.4, estados de CI).
+Referencia: `docs/server-typescript-migration-research.md` (investigación vigente, 2026-10-14); `package.json` (typescript L858); `.github/workflows/ci.yml` (L450 `client-typecheck`, L538 `server-typecheck`, L750 `needs`, L1099-1105 agregadores `prebuild-quality-complete`); `docs/CONTEXT-CICD.md` (§13.4, estados de CI).
 
 ## 2. Por qué `strict` y por qué gradual
 
@@ -54,14 +54,14 @@ Referencia: `typescriptlang.org/tsconfig/strict` (definición de `strictNullChec
 - **`req.body['field']`**: `req.body['name']` → `string | undefined`; obliga a usar `req.body.name` (si está declarado en interface) o verificar existencia.
 - **Costo estimado**: ~19 accesos por archivo típico de controller; con 50 controllers → ~950 cambios de tipo; recomendable usar `// @ts-ignore` temporal con `reason` solo para casos críticos (no como solución permanente).
 
-Referencia: `typescriptlang.org/tsconfig/` (lista de flags, `noUncheckedIndexedAccess`); `docs/learning/typescript-migration-server.md` (§4.4 orden de flags).
+Referencia: `typescriptlang.org/tsconfig/` (lista de flags, `noUncheckedIndexedAccess`); `docs/server-typescript-migration-research.md` (§4.4 orden de flags).
 
 ### 4.3 `noImplicitAny` (TS 1.0+)
 
 - **Impacto más grande**: cualquier parámetro sin tipo explícito en `.js` con `checkJs: true` o en `.ts` sin anotación se convierte en error. El repo tiene ~2.556 anotaciones JSDoc en `apps/server/`; si se activa antes de completar la conversión a `.ts`, los errores serán masivos.
-- **Solución**: completar `typescript-migration-server.md` (crear `tsconfig.json`, ampliar regexes, convertir archivos `.js` → `.ts`) antes de activar `noImplicitAny`.
+- **Solución**: completar `server-typescript-migration-research.md` (crear `tsconfig.json`, ampliar regexes, convertir archivos `.js` → `.ts`) antes de activar `noImplicitAny`.
 
-Referencia: `typescriptlang.org/tsconfig/strict` (`noImplicitAny`); `docs/learning/typescript-migration-server.md` (§3.1 tsconfig propuesto).
+Referencia: `typescriptlang.org/tsconfig/strict` (`noImplicitAny`); `docs/server-typescript-migration-research.md` (§3.1 tsconfig propuesto).
 
 ### 4.4 `strictBindCallApply` (TS 3.2+)
 
@@ -117,9 +117,9 @@ Nota: `needs: repo-discovery` debe mantenerse; `prebuild-quality-complete` debe 
 
 Referencia: `docs/CONTEXT-CICD.md`; `.github/workflows/ci.yml` (L450, L538, L750, L1099-1105).
 
-## 6. Plan gradual verificado (`typescript-migration-server.md` alineado)
+## 6. Plan gradual verificado (`server-typescript-migration-research.md` alineado)
 
-El doc existente `typescript-migration-server.md` (219 líneas) propone:
+El doc existente `server-typescript-migration-research.md` (219 líneas) propone:
 
 - Fase 1: `strict: false` + `allowJs` + `checkJs` + `noEmit` + `nodenext` (config propuesta en §3.1).
 - Fase 3.4: orden `noImplicitAny` → `strictNullChecks` → `noUncheckedIndexedAccess` → `strict: true`.
@@ -144,9 +144,9 @@ Este documento (`typescript-strict-check.md`) complementa ese orden con:
 - `https://github.com/microsoft/TypeScript`
 - `https://github.com/microsoft/TypeScript-Website/tree/v2/packages/tsconfig-reference`
 - `https://json.schemastore.org/tsconfig`
-- `file: docs/learning/typescript-migration-server.md`
+- `file: docs/server-typescript-migration-research.md`
 - `file: openspec/changes/server-typescript-migration/proposal.md`
 - `file: package.json`
 - `file: .github/workflows/ci.yml`
 
-Referencia de datos de investigación: hallazgos del `@researcher` sobre TypeScript `strict`, `tsconfig.json`, `noUncheckedIndexedAccess`, CI `server-typecheck`, `docs/learning/typescript-migration-server.md`, `typescript` 5.9.3 / 6.0.
+Referencia de datos de investigación: hallazgos del `@researcher` sobre TypeScript `strict`, `tsconfig.json`, `noUncheckedIndexedAccess`, CI `server-typecheck`, `docs/server-typescript-migration-research.md`, `typescript` 5.9.3 / 6.0.

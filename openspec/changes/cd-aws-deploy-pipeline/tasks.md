@@ -34,7 +34,7 @@
 
 - [x] 3.1 Crear `docs/aws-deploy-architecture.md` (NUEVO): inventario de componentes (ECS Fargate, ALB con stickiness para Socket.IO e idle timeout ≥ 65s, RDS PostgreSQL, ECR, IAM OIDC, VPC/security groups), relaciones y layout de red
 - [x] 3.2 Incluir en `docs/aws-deploy-architecture.md` un Terraform reference (state en S3) que cubra los componentes como punto de partida para el provisionamiento real (D9)
-- [x] 3.3 Crear `docs/aws-cd-learning-path.md` (NUEVO): hitos por servicio (ECR → ECS → RDS → OIDC), cada uno con práctica emulada en Floci + checkpoint task verificable; referencia cruzada a `docs/aws-learning-with-floci.md` y `docs/aws-dev-local-floci.md` de los siblings
+- [x] 3.3 Crear `docs/aws-cd-learning-path.md` (NUEVO): hitos por servicio (ECR → ECS → RDS → OIDC), cada uno con práctica emulada en Floci + checkpoint task verificable; referencia cruzada a `docs/aws-learning-with-floci.md` (que incluye el setup dev-local)
 - [x] 3.4 Documentar en el learning path: secuencia pedagógica consola-guiada → Terraform (D9), costo esperado de fase 2 y mitigación (RDS mínima, apagado fuera de horario), y que todo el aprendizaje es ejecutable sin cuenta AWS (cero costo cloud)
 
 ## 4. Fase 1 — Validación

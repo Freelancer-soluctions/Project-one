@@ -121,7 +121,7 @@ EXPOSE 3000
 # /health (src/app.ts): 200 si la DB responde, 503 si degradado. BusyBox wget ya
 #   viene en Alpine; nada que instalar. (CKV_DOCKER_2; gate checkov-iac blocking.)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
-  CMD wget -q -O /dev/null http://127.0.0.1:3000/health || exit 1
+  CMD ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/health || exit 1"]
 
 # production por defecto (fail-closed: CSP estricta + HSTS de helmet, sin detalles
 #   dev en los 500). NO se hornean secretos aquí (PRD: nada de secretos en ARG/ENV;

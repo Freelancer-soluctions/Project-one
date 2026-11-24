@@ -88,6 +88,10 @@ reviewed run.
 
 ## JSDoc Documentation Validation
 
+> **⚠️ Temporal (migración TS total, 2026-10-14):** el JSDoc de `apps/server` es provisional y **muere por archivo convertido** a `.ts`. Hoy `src/` solo usa `@param`/`@returns` (~2.586); `@typedef`/`@type` = 0 — no exigir `@typedef` en review. Fuente: `docs/server-typescript-migration-research.md` §9.
+
+Use this dedicated section when reviewing JSDoc documentation in pull requests. It focuses exclusively on JSDoc standards.
+
 ### Controller Functions
 
 - [ ] All controller functions have `@param {Object} req` with specific properties
@@ -152,14 +156,26 @@ reviewed run.
 - [ ] Similar functions have consistent documentation structure
 - [ ] Type annotations are consistent across modules
 
+### Quick Validation Checklist
+
+- [ ] All controller functions have `@param {Object} req` with specific properties
+- [ ] All controller functions have `@param {Object} res`
+- [ ] All controller functions use `@returns {Promise<void>}`
+- [ ] All service functions document data object properties
+- [ ] All service functions use Promise return types
+- [ ] All functions with throw statements have `@throws` tags
+- [ ] No `@function`, `@async`, or `@description` tags used
+- [ ] No `routes.js` files modified
+- [ ] Optional parameters use square brackets `[param]`
+- [ ] Complex functions have `@example` tags (recommended, not required)
+
 ---
 
 ## Reference Documents
 
 - **JSDoc Reference Guide**: `docs/jsdoc-reference-guide.md`
 - **Code Style Guide**: `docs/code-style.md`
-- **JSDoc Migration Notes**: `docs/jsdoc-migration-notes.md`
-- **JSDoc Review Checklist**: `docs/jsdoc-review-checklist.md` (dedicated checklist)
+- **JSDoc migration and standard**: `docs/server-typescript-migration-research.md` §9
 
 ---
 

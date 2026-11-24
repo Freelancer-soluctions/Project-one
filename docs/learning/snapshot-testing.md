@@ -6,7 +6,7 @@
 > **Fuentes:** Vitest v4 (`/guide/snapshot`, `/config/update`, `/config/snapshotformat`, `/api/expect`, `/guide/cli`),
 > Jest 30.5 Snapshot Testing, testing-library.com (Guiding Principles + FAQ RTL), Airbnb JS Style Guide, inventario
 > real de `apps/client/src` (228 `.jsx`), `apps/client/vitest.config.js`, `tests/setup/*`, y docs previas del repo
-> (`unit-tests-enterprise.md`, `panorama-resumen.md`).
+> (`unit-tests-enterprise.md`).
 > **Veredicto corto:** el repo tiene **0 snapshots hoy** (0 `.snap`, 0 `__snapshots__`, 0 `toMatchSnapshot`) — gap
 > **P3** ya registrado en `docs/learning/unit-tests-enterprise.md`. Adopción recomendada y **limitada**: ~29 primitivas
 > shadcn/ui + ~21 Datatables + ~15 componentes puros (**~65 de 180 ficheros = 36%**), **inline snapshots** para lo
@@ -489,8 +489,6 @@ es < ~100 líneas? · ¿se ven las clases/estructura **esperadas** (no "lo que s
 - `apps/client/tests/setup/test-utils.js` — `customRender` con `I18nextProvider`.
 - `apps/client/tests/setup/msw/{server,handlers/handlers,fixtures/auth}.js`.
 - `docs/learning/unit-tests-enterprise.md` — gap **P3** «Snapshot tests — 0 `.snap` / `toMatchSnapshot`» (§5.8/§5.9).
-- `docs/learning/panorama-resumen.md` — «Snapshot: 0 `.snap`, 0 `__snapshots__`, 0 `toMatchSnapshot`».
-- `docs/nivel-experiencia-analisis.md` — «Sin snapshot testing».
 - Inventario: `find apps/client/src -name '*.jsx'` → 228 / 180 / 26 / 22; métricas por fichero (`R/F/N/D/L`).
 
 **Externas (consultadas 2026-10-05):**

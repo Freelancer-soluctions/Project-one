@@ -111,13 +111,13 @@
       `29-dora-metrics-performance-tuning.md`, conservando el orden relativo del plan y sin renombrar archivos publicados.
       Las tareas 2.x-6.x y los cross-links ya usan los números nuevos; `workflows-mantenimiento-guia.md` no se renombra
       (132 referencias).
-- [ ] 12.2 Reemplazar en todo el cambio las referencias a `docs/cicd-estado-actual.md` y
-      `docs/cicd-plan-implementacion.md` (inexistentes) por `docs/ci-cd-pipeline-empresarial.md` y
+- [ ] 12.2 Reemplazar en todo el cambio las referencias a `docs/CONTEXT-CICD.md` y
+      `docs/CONTEXT-CICD.md` (inexistentes) por `docs/ci-cd-pipeline-empresarial.md` y
       `docs/CONTEXT-CICD.md`. Auditado 2026-11-07: proposal y specs ya corregidos; revisar las tareas 2.x-6.x al ejecutarlas.
 - [ ] 12.3 Eliminar el "gap G18" de cualquier requisito o tarea (no existe en ninguna parte del repo) y, si se quiere un
       identificador de gap, definirlo contra la lista real de `docs/CONTEXT-CICD.md`.
-- [ ] 12.4 Corregir en `profesional-README.md` los enlaces a docs inexistentes (`docs/cicd-estado-actual.md`,
-      `docs/cicd-plan-implementacion.md`) y la afirmación "SLSA nivel 2-3" → Build L1.
+- [ ] 12.4 Corregir en `profesional-README.md` los enlaces a docs inexistentes (`docs/CONTEXT-CICD.md`,
+      `docs/CONTEXT-CICD.md`) y la afirmación "SLSA nivel 2-3" → Build L1.
 - [ ] 12.5 Sustituir el conteo "9 workflows" del README y del nivel por la tabla de cuatro métricas (15/94/9/4) y anotar
       que cualquier número de workflows caduca, con la fuente `CONTEXT-CICD.md` §3.4.
 - [ ] 12.6 Verificar en CI el gate de prosa `npm run docs:vale` sobre la guía 23 y el README (no ejecutable en local:

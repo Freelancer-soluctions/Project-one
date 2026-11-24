@@ -16,7 +16,7 @@
 | **Container Registry**      | ECR (Private)                                                            | Store Docker images tagged by SHA + `latest`                                                                                                                                                                                                                                                | Repo: `project-one-server`; Lifecycle policy: keep last 30 tags / 30 days; Image scan on push                                                                                                                                                 |
 | **Identity & Access**       | IAM OIDC Provider + Role                                                 | GitHub Actions → AWS authentication without long-lived keys                                                                                                                                                                                                                                 | Provider: `token.actions.githubusercontent.com`; Audience: `sts.amazonaws.com`; Role trust policy restricted to `repo:<owner>/<repo>` + environment filter; Least-privilege policy (ECR push/pull, ECS update/describe on project clusters)   |
 | **Network**                 | VPC + Subnets + Security Groups                                          | Isolated network for all resources                                                                                                                                                                                                                                                          | VPC with public + private subnets (2 AZs); NAT Gateway for private egress; SG: ALB (80/443 from internet), ECS tasks (3000 from ALB SG), RDS (5432 from ECS tasks SG)                                                                         |
-| **Secrets**                 | GitHub Environment Secrets (Phase 1–2a) → AWS Secrets Manager (Phase 2c) | DATABASE*URL, **SECRETKEY** (env var — el ARN legacy se llama `*_JWT_SECRET_SECRET_ARN` pero el nombre del env var inyectado es `SECRETKEY`, NO `JWT_SECRET`), REFRESHSECRETKEY, AES_GCM_KEY, AWS_REGION + runtime vars (ORIGIN_CORS, FRONTEND_URL, BCRYPT_SALT, CLOUD*\*, SECRETCOOKIEKEY) | Phase 1–2a: injected via ECS task `secrets` from GitHub env secrets; Phase 2c: task execution role reads from Secrets Manager, app loads via `loadSecrets()` (code wiring required). Referencia completa: `docs/server-bootstrap-env-vars.md` |
+| **Secrets**                 | GitHub Environment Secrets (Phase 1–2a) → AWS Secrets Manager (Phase 2c) | DATABASE*URL, **SECRETKEY** (env var — el ARN legacy se llama `*\_JWT_SECRET_SECRET_ARN`pero el nombre del env var inyectado es`SECRETKEY`, NO `JWT_SECRET`), REFRESHSECRETKEY, AES_GCM_KEY, AWS_REGION + runtime vars (ORIGIN_CORS, FRONTEND_URL, BCRYPT_SALT, CLOUD\*\*, SECRETCOOKIEKEY) | Phase 1–2a: injected via ECS task `secrets` from GitHub env secrets; Phase 2c: task execution role reads from Secrets Manager, app loads via `loadSecrets()` (code wiring required). Referencia completa: `docs/server-bootstrap-env-vars.md` |
 | **Observability**           | CloudWatch Logs + Metrics                                                | Container logs, health checks, custom metrics                                                                                                                                                                                                                                               | Log groups: `/ecs/project-one-staging`, `/ecs/project-one-prod`; Container health check: `curl -f http://localhost:3000/health \|\| exit 1` (interval 30s, timeout 5s, retries 3, startPeriod 60s)                                            |
 
 ---
@@ -853,13 +853,12 @@ aws ecs run-task \
 
 ## 📋 Cross-References
 
-| Document                                            | Purpose                                                                 |
-| --------------------------------------------------- | ----------------------------------------------------------------------- |
-| `docs/aws-cd-learning-path.md`                      | Milestone-based Floci practice to unlock each Phase 2 component         |
-| `docs/aws-learning-with-floci.md`                   | Progressive AWS learning with Floci (sibling `ci-preview-environments`) |
-| `docs/aws-dev-local-floci.md`                       | Local dev setup with Floci (sibling `ci-floci-migration`)               |
-| `openspec/changes/cd-aws-deploy-pipeline/design.md` | Design decisions D1-D10                                                 |
-| `.github/workflows/deploy.yml`                      | Pipeline implementation (Phase 1 scaffold + Phase 2 gated jobs)         |
+| Document                                            | Purpose                                                         |
+| --------------------------------------------------- | --------------------------------------------------------------- |
+| `docs/aws-cd-learning-path.md`                      | Milestone-based Floci practice to unlock each Phase 2 component |
+| `docs/aws-learning-with-floci.md`                   | Progressive AWS learning with Floci + dev-local setup           |
+| `openspec/changes/cd-aws-deploy-pipeline/design.md` | Design decisions D1-D10                                         |
+| `.github/workflows/deploy.yml`                      | Pipeline implementation (Phase 1 scaffold + Phase 2 gated jobs) |
 
 ---
 

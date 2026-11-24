@@ -57,7 +57,7 @@ La documentación del repositorio SHALL explicar cómo levantar Floci junto con 
 
 #### Scenario: Guía de activación disponible
 
-- **WHEN** un desarrollador sigue `docs/aws-dev-local-floci.md`
+- **WHEN** un desarrollador sigue la sección de activación dev-local de `docs/aws-learning-with-floci.md`
 - **THEN** puede levantar el servicio `floci` con `docker compose up` desde `apps/server`
 - **AND** puede verificar que el puerto 4566 responde (healthcheck de Floci)
 - **AND** encuentra las variables de entorno AWS necesarias para el setup local
