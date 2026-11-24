@@ -25,4 +25,4 @@
 - [x] 4.1 Ejecutar `rg` por cada path viejo y confirmar 0 referencias residuales (excluyendo archived changes)
 - [x] 4.2 Ejecutar `openspec validate docs-reorganize-by-area` y confirmar que pasa
 - [x] 4.3 Verificar que `CONTEXT-CICD.md` y `application-context.md` siguen en la raíz de `docs/`
-- [ ] 4.4 Commit único con mensaje `docs(docs): reorganize docs into area folders`
+- [x] 4.4 Commit único con mensaje `docs(docs): reorganize docs into area folders`
