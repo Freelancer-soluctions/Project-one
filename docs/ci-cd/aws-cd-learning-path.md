@@ -19,7 +19,7 @@
 
 > **Cross-references**:
 >
-> - `docs/aws-learning-with-floci.md` — Progressive AWS learning levels 1–5 (sibling `ci-preview-environments`), including the dev-local Floci setup (host vs container, Secrets Manager path)
+> - `docs/ci-cd/aws-learning-with-floci.md` — Progressive AWS learning levels 1–5 (sibling `ci-preview-environments`), including the dev-local Floci setup (host vs container, Secrets Manager path)
 >
 > **Note**: The Floci tag used throughout this learning path is `floci/floci:1.5.31` (the actual published tag on Docker Hub), not `v1.5.11` which does not exist.
 
@@ -27,7 +27,7 @@
 
 ## 📚 Pedagogical Sequence: Console-Guided → Terraform
 
-> **Design Decision D9**: Learn by touching services in the AWS Console first, then codify in Terraform. This document guides the **console-guided practice**; `docs/aws-deploy-architecture.md` provides the **Terraform reference** for reproducibility.
+> **Design Decision D9**: Learn by touching services in the AWS Console first, then codify in Terraform. This document guides the **console-guided practice**; `docs/ci-cd/aws-deploy-architecture.md` provides the **Terraform reference** for reproducibility.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -65,7 +65,7 @@ Private Docker registry for immutable SHA-tagged images. The CD pipeline pushes 
 ### Floci Emulated Practice
 
 ```bash
-# Prereq: Floci running (see aws-learning-with-floci.md)
+# Prereq: Floci running (see docs/ci-cd/aws-learning-with-floci.md)
 cd apps/server
 
 # 1. Build the image locally
@@ -495,7 +495,7 @@ Copy this to your local notes and check off as you complete each milestone:
 ☐ Floci practice completed
 ☐ M1-ECR-CHECKPOINT passed
 ☐ Console-guided: Created real ECR repo + lifecycle policy
-☐ Terraform: Added ECR module to aws-deploy-architecture.md reference
+☐ Terraform: Added ECR module to docs/ci-cd/aws-deploy-architecture.md reference
 
 ## Milestone 2: ECS Fargate (Staging)
 ☐ Read concept
@@ -533,8 +533,8 @@ Copy this to your local notes and check off as you complete each milestone:
 
 | Document                                            | Purpose                                                           |
 | --------------------------------------------------- | ----------------------------------------------------------------- |
-| `docs/aws-deploy-architecture.md`                   | Component inventory, network layout, **Terraform reference** (D9) |
-| `docs/aws-learning-with-floci.md`                   | Progressive AWS learning levels 1–5 + dev-local Floci setup       |
+| `docs/ci-cd/aws-deploy-architecture.md`             | Component inventory, network layout, **Terraform reference** (D9) |
+| `docs/ci-cd/aws-learning-with-floci.md`             | Progressive AWS learning levels 1–5 + dev-local Floci setup       |
 | `openspec/changes/cd-aws-deploy-pipeline/tasks.md`  | Phase 2 tasks unlocked by milestones (5.x–9.x)                    |
 | `openspec/changes/cd-aws-deploy-pipeline/design.md` | Design decisions D1–D10                                           |
 | `.github/workflows/deploy.yml`                      | Pipeline with gated jobs (Phase 1 scaffold + Phase 2 real)        |

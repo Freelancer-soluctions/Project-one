@@ -143,7 +143,7 @@ La latencia de review es una de las **4 métricas DORA** (Lead Time for Changes)
 
 ## 🏗️ Parte 3 — Las 6 dimensiones del análisis
 
-Cada review debe cubrir **6 dimensiones**. El checklist operativo se encuentra en `docs/code-review-checklist.md`, que esta guía amplía y ordena según estas dimensiones.
+Cada review debe cubrir **6 dimensiones**. El checklist operativo se encuentra en `docs/quality/code-review-checklist.md`, que esta guía amplía y ordena según estas dimensiones.
 
 ### Dimensión 1: Funcionalidad
 
@@ -178,7 +178,7 @@ Cada review debe cubrir **6 dimensiones**. El checklist operativo se encuentra e
 
 ### Dimensión 5: Estilo y formato
 
-- ¿Sigue la **guía de estilo** (`docs/code-style.md`)?
+- ¿Sigue la **guía de estilo** (`docs/quality/code-style.md`)?
 - ¿Prettier aplicado (`npm run format`)?
 - ¿Sin errores de lint (`npm run lint`)?
 - ¿Indentación y espaciado **consistentes**?
@@ -187,7 +187,7 @@ Cada review debe cubrir **6 dimensiones**. El checklist operativo se encuentra e
 
 - ¿Las funciones **nuevas o modificadas** tienen JSDoc correcto (`@param`, `@returns`, `@throws`)?
 - ¿Los tipos son correctos y consistentes entre módulos?
-- Ver sección específica al final de esta guía y `docs/code-review-checklist.md`.
+- Ver sección específica al final de esta guía y `docs/quality/code-review-checklist.md`.
 
 ---
 
@@ -314,7 +314,7 @@ Es el caso **real de este proyecto** (repo didáctico, un solo dev). La regla de
 
 La **mejor práctica realista** para un dev solo es combinar:
 
-1. **Self-review estricta** con `docs/code-review-checklist.md` (la guía presente + el checklist asociado).
+1. **Self-review estricta** con `docs/quality/code-review-checklist.md` (la guía presente + el checklist asociado).
 2. **Diferenciar severidades**: no bloquear tu propio flujo por nits.
 3. **Revisión diferida** para código crítico (esperar 24h antes de mergear auth/migraciones).
 4. **IA como segunda pasada** mecánica.
@@ -326,7 +326,7 @@ La **mejor práctica realista** para un dev solo es combinar:
 
 ## 🏗️ Parte 8 — La sección JSDoc (validación de documentación)
 
-Este proyecto tiene una **guía de documentación estricta** para controller/service/DAO (ver `docs/code-review-checklist.md` sección JSDoc y `docs/jsdoc-reference-guide.md`). El revisor debe verificar:
+Este proyecto tiene una **guía de documentación estricta** para controller/service/DAO (ver `docs/quality/code-review-checklist.md` sección JSDoc y `docs/backend/jsdoc-reference-guide.md`). El revisor debe verificar:
 
 ### Controladores (Controller)
 
@@ -352,7 +352,7 @@ Este proyecto tiene una **guía de documentación estricta** para controller/ser
 - **No** documentar `routes.js` (se usa Swagger/OpenAPI).
 - **No** añadir JSDoc a archivos de definición de rutas.
 
-> **Regla de oro JSDoc**: el propósito se dice en la **primera línea** (no `@description`), la firma se autodocumenta (no `@function` ni `@async`), y los tipos usan el formato `@param {type} name - description`. La consistencia se valida contra `docs/jsdoc-reference-guide.md`.
+> **Regla de oro JSDoc**: el propósito se dice en la **primera línea** (no `@description`), la firma se autodocumenta (no `@function` ni `@async`), y los tipos usan el formato `@param {type} name - description`. La consistencia se valida contra `docs/backend/jsdoc-reference-guide.md`.
 
 ---
 
@@ -411,7 +411,7 @@ Es una señal de **deuda de review** — el proceso se está saltando la regla d
 
 **Inicialmente sí**, pero es **falsa economía** evitarla: encontrar 1 bug en review cuesta minutos; encontrarlo en producción cuesta horas o dinero real (ley de Boehm). Además, la review que **comparte conocimiento** reduce preguntas futuras y defectos recurrentes. La latencia de review se gestiona (objetivo < 24h), no se elimina.
 
-### ¿Qué diferencia hay entre esta guía y el `docs/code-review-checklist.md` existente?
+### ¿Qué diferencia hay entre esta guía y el `docs/quality/code-review-checklist.md` existente?
 
 El **checklist** es la herramienta operativa (las casillas que marcas); esta **guía** es el documento educativo que te enseña **por qué** cada dimensión importa, las técnicas, las métricas y el caso de un solo dev. Se usan juntos: lees esta guía, aplicas el checklist.
 
@@ -446,13 +446,13 @@ El **checklist** es la herramienta operativa (las casillas que marcas); esta **g
 | GitHub PR reviews (actions)   | https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews |
 | Define feature branch PR      | https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/collaborating-with-issues-and-pull-requests/about-pull-requests  |
 | DORA metrics (guía 22)        | https://dora.dev/                                                                                                                                           |
-| CheckList del proyecto        | `docs/code-review-checklist.md`                                                                                                                             |
+| CheckList del proyecto        | `docs/quality/code-review-checklist.md`                                                                                                                     |
 | Guía de governance gates      | `docs/learning/ci-cd/19-governance-gates.md`                                                                                                                |
 
 ---
 
 ## ➡️ Siguiente
 
-> **Has dominado la práctica de code review** — la técnica de QA nº 1, sus 8 beneficios, las 6 dimensiones, las técnicas, el rol de la IA, las métricas y el caso single-dev. Estás listo para aplicar `docs/code-review-checklist.md` y para el entendimiento de governance (guía 19) y métricas (guía 22).
+> **Has dominado la práctica de code review** — la técnica de QA nº 1, sus 8 beneficios, las 6 dimensiones, las técnicas, el rol de la IA, las métricas y el caso single-dev. Estás listo para aplicar `docs/quality/code-review-checklist.md` y para el entendimiento de governance (guía 19) y métricas (guía 22).
 
 > **Índice**: [README Profesional](./profesional-README.md) · **Anterior**: [20-governance-stage.md](./20-governance-stage.md)

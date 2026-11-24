@@ -1226,12 +1226,12 @@ Este design system sigue el versionado semántico del proyecto (`package.json`).
 
 ### 11.5 Recursos Relacionados
 
-| Documento                        | Contenido                                      |
-| -------------------------------- | ---------------------------------------------- |
-| `docs/code-style.md`             | Convenciones de código y formato               |
-| `docs/architectural-approach.md` | Patrones de arquitectura y decisiones técnicas |
-| `docs/testing-architecture.md`   | Estrategia completa de testing                 |
-| `AGENTS.md`                      | Guías de desarrollo asistido por agentes       |
+| Documento                                     | Contenido                                      |
+| --------------------------------------------- | ---------------------------------------------- |
+| `docs/quality/code-style.md`                  | Convenciones de código y formato               |
+| `docs/architecture/architectural-approach.md` | Patrones de arquitectura y decisiones técnicas |
+| `docs/quality/testing-architecture.md`        | Estrategia completa de testing                 |
+| `AGENTS.md`                                   | Guías de desarrollo asistido por agentes       |
 
 ---
 

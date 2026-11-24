@@ -45,7 +45,7 @@ cd apps/server && npm run test:unit         # Unit tests
 cd apps/server && npm run test:integration  # Integration tests
 ```
 
-> **Migración TS completada** (2026-11-13): `apps/server` es 100% `.ts` (230 archivos, 0 `.js`/`.cjs`/`.mjs`). Runtime: `tsx` (`dev: tsx watch src/bin/index.ts`, `start: node dist/bin/index.js` via `tsc -b`). Strict activo en `tsconfig.base.json` + `apps/server/tsconfig.json` (composite, outDir dist). Fuente: `docs/server-typescript-migration-research.md`.
+> **Migración TS completada** (2026-11-13): `apps/server` es 100% `.ts` (230 archivos, 0 `.js`/`.cjs`/`.mjs`). Runtime: `tsx` (`dev: tsx watch src/bin/index.ts`, `start: node dist/bin/index.js` via `tsc -b`). Strict activo en `tsconfig.base.json` + `apps/server/tsconfig.json` (composite, outDir dist). Fuente: `docs/backend/server-typescript-migration-research.md`.
 
 ### E2E
 
@@ -65,8 +65,10 @@ cd e2e && npm run test
 
 - **Commits**: Conventional Commits enforced by Husky
 - **Commit Signing & DCO**: Cada commit debe firmarse con la SSH key ed25519 dedicada y llevar signoff DCO: convención `git commit -S -s`. El hook `.husky/prepare-commit-msg` añade el trailer `Signed-off-by:` automáticamente con la identidad real de git (el mito `commit.signoff` es un no-op: no existe en git), y `.husky/commit-msg` es el único gate local que valida su presencia; CI `DCO` (required + blocking) es el backstop. El gate local de `pre-push` verifica la firma de cada commit contra el trust store versionado `allowed_signers` (raíz del repo, solo claves públicas) y bloquea los commits sin firma o con firma corrupta posteriores al cutoff. **Nunca usar `--no-verify` ni commits sin firmar** — rompe el ruleset `Main Branch Protection` y la cadena de suministro. Ver docs/learning/ci-cd/05b-commit-signing.md (setup de firma), docs/learning/dco.md (DCO) y docs/CONTEXT-CICD.md §10.7 (gate).
-- **Testing**: See [docs/testing-architecture.md](docs/testing-architecture.md)
-- **Code Style**: See [docs/code-style.md](docs/code-style.md)
+- **Testing**: See [docs/quality/testing-architecture.md](docs/quality/testing-architecture.md)
+- **Code Style**: See [docs/quality/code-style.md](docs/quality/code-style.md)
+- **Requirements framework**: PRD→changes decomposition, DoR/DoD gates, RTM traceability — see [docs/product/De-stakeholder-a-producción-flujo-completo-de una-feature.md](docs/product/De-stakeholder-a-producción-flujo-completo-de%20una-feature.md) (sección "Framework operativo para Project One")
+- **Application context**: what the app is, domain, architecture, modules, data model, business rules, limitations — see [docs/application-context.md](docs/application-context.md)
 
 ## Available Skills
 

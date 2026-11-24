@@ -129,14 +129,14 @@ Esta ruta sigue un método pedagógico fijo, igual en todas las guías:
 
 Las guías **referencian** (no copian) la documentación técnica existente. Estos documentos son la fuente de verdad técnica:
 
-| Documento                         | Qué cubre                                             | Enlace                                                                 |
-| --------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------- |
-| `CONTEXT-CICD.md`                 | Estado completo del pipeline CI/CD (1979 líneas)      | [`../../CONTEXT-CICD.md`](../../CONTEXT-CICD.md)                       |
-| `CONTEXT-CICD.md`                 | Plan original de 8 semanas (3149 líneas)              | [`../../CONTEXT-CICD.md`](../../CONTEXT-CICD.md)                       |
-| `workflows-mantenimiento-guia.md` | Mantenimiento de workflows, anti-patterns, inventario | [`workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md)   |
-| `aws-deploy-architecture.md`      | Arquitectura de despliegue AWS + ECS                  | [`../../aws-deploy-architecture.md`](../../aws-deploy-architecture.md) |
-| `aws-cd-learning-path.md`         | Ruta de aprendizaje AWS/CD                            | [`../../aws-cd-learning-path.md`](../../aws-cd-learning-path.md)       |
-| `aws-learning-with-floci.md`      | Aprendizaje AWS usando Floci + desarrollo local       | [`../../aws-learning-with-floci.md`](../../aws-learning-with-floci.md) |
+| Documento                               | Qué cubre                                             | Enlace                                                                       |
+| --------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `CONTEXT-CICD.md`                       | Estado completo del pipeline CI/CD (1979 líneas)      | [`../../CONTEXT-CICD.md`](../../CONTEXT-CICD.md)                             |
+| `CONTEXT-CICD.md`                       | Plan original de 8 semanas (3149 líneas)              | [`../../CONTEXT-CICD.md`](../../CONTEXT-CICD.md)                             |
+| `workflows-mantenimiento-guia.md`       | Mantenimiento de workflows, anti-patterns, inventario | [`workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md)         |
+| `docs/ci-cd/aws-deploy-architecture.md` | Arquitectura de despliegue AWS + ECS                  | [`../../aws-deploy-architecture.md`](../../ci-cd/aws-deploy-architecture.md) |
+| `docs/ci-cd/aws-cd-learning-path.md`    | Ruta de aprendizaje AWS/CD                            | [`../../aws-cd-learning-path.md`](../../ci-cd/aws-cd-learning-path.md)       |
+| `docs/ci-cd/aws-learning-with-floci.md` | Aprendizaje AWS usando Floci + desarrollo local       | [`../../aws-learning-with-floci.md`](../../ci-cd/aws-learning-with-floci.md) |
 
 **Archivos de código fuente que las guías citan** (lee estos cuando la guía los mencione):
 

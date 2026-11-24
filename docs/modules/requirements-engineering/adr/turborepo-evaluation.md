@@ -155,7 +155,7 @@
 | 3    | Ajustar `package.json` scripts: agregar `turbo run` wrappers opcionales            | 15 min   | `npm run test` sigue funcionando         |
 | 4    | Configurar `outputs` en `turbo.json` para cache de `coverage/`, `dist/`, `.turbo/` | 15 min   | `turbo run test` segunda vez = cache hit |
 | 5    | (Opcional) Habilitar Turborepo Remote Cache en Vercel                              | 30 min   | CI muestra "Remote cache hit"            |
-| 6    | Documentar en `docs/testing-architecture.md` § Workspaces y Orquestación           | 20 min   | PR merged                                |
+| 6    | Documentar en `docs/quality/testing-architecture.md` § Workspaces y Orquestación   | 20 min   | PR merged                                |
 | 7    | CI: migrar GitHub Actions a `turbo run test:ci`                                    | 30 min   | Pipeline verde, tiempo reducido          |
 
 **Total estimado:** **1-2 días de trabajo** (incluye testing, doc, CI migration)

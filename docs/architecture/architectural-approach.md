@@ -377,6 +377,6 @@ Systematic changes follow this workflow:
 
 | Document                                                              | Covers                            |
 | --------------------------------------------------------------------- | --------------------------------- |
-| [Code Style](./code-style.md)                                         | Coding conventions and formatting |
-| [Testing Architecture](./testing-architecture.md)                     | Testing strategy and patterns     |
+| [Code Style](../quality/code-style.md)                                | Coding conventions and formatting |
+| [Testing Architecture](../quality/testing-architecture.md)            | Testing strategy and patterns     |
 | [WebSocket Implementation Guide](./websocket-implementation-guide.md) | Socket communication patterns     |

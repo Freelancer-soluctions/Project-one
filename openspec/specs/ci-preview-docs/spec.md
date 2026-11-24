@@ -8,7 +8,7 @@ Provee una guía de aprendizaje de AWS con Floci para desarrolladores: cómo lev
 
 ### Requirement: Guía del stack emulado local
 
-El repositorio SHALL contener documentación (`docs/aws-learning-with-floci.md`) que explique cómo levantar y verificar el stack AWS emulado con Floci en local.
+El repositorio SHALL contener documentación (`docs/ci-cd/aws-learning-with-floci.md`) que explique cómo levantar y verificar el stack AWS emulado con Floci en local.
 
 #### Scenario: Desarrollador levanta el stack emulado
 

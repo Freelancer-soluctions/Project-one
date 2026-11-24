@@ -96,7 +96,7 @@ being gated is not negotiable.
 
 #### Scenario: Three-tier strategy documented
 
-- **WHEN** a developer reads `docs/testing-architecture.md` §7.5 after this change
+- **WHEN** a developer reads `docs/quality/testing-architecture.md` §7.5 after this change
 - **THEN** the CI tier documents diff-scoped execution, the nightly full-suite safety net and the local pre-push tier as one coherent strategy
 
 ### Requirement: ADDED Shadow-mode selection metric
@@ -200,7 +200,7 @@ pre-push tier stays unit-only and DB/e2e-free as specified by `pre-push-scoped-t
 
 Scoped runs SHALL order the selected test files so that files with a recorded failure in the recent
 history run first, surfacing the first failure as early as possible (rule 21 / smart ordering of
-`docs/ci-cd-pipeline-empresarial.md` §23.3). Ordering SHALL NOT change _which_ tests run, and with
+`docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3). Ordering SHALL NOT change _which_ tests run, and with
 no history available the order SHALL be deterministic (stable across runs on the same input) so
 order-dependence bugs stay reproducible.
 

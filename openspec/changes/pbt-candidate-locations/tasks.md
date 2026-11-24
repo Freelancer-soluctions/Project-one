@@ -2,7 +2,7 @@
 
 ## 0. Catálogo (artefacto)
 
-- [ ] 0.1 Crear y mantener el catálogo en `docs/pbt-candidate-analysis.md` (ya creado) con todos los candidatos, invariantes y prioridad.
+- [ ] 0.1 Crear y mantener el catálogo en `docs/backend/pbt-candidate-analysis.md` (ya creado) con todos los candidatos, invariantes y prioridad.
 - [ ] 0.2 Verificar que cada entrada del catálogo corresponde a un símbolo exportado real del repo.
 
 ## 1. Alta prioridad — Utils (server + client)

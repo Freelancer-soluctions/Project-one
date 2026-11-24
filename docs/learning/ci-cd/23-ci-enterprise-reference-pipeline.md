@@ -89,7 +89,7 @@ El detalle instructivo: **al consolidar, el número de archivos bajó y el de jo
 
 ## 3. Qué significa "enterprise" de verdad
 
-`docs/ci-cd-pipeline-empresarial.md` describe el **pipeline genérico de 14 stages** (§2.3). Los 14 no son 14 jobs: son
+`docs/ci-cd/ci-cd-pipeline-empresarial.md` describe el **pipeline genérico de 14 stages** (§2.3). Los 14 no son 14 jobs: son
 14 _responsabilidades_ que un pipeline enterprise cubre explícitamente.
 
 | Stage (doc empresarial §2.3) | ¿Lo tiene este repo? | Dónde                                                                    |
@@ -453,7 +453,7 @@ SLSA se usa a menudo como argumento de staffing.
 | Siguiente        | [24 — Infraestructura del DAG](./24-dag-infraestructura.md) |
 | Índice del nivel | [Profesional](./profesional-README.md)                      |
 
-**Referencias del repo**: [`docs/ci-cd-pipeline-empresarial.md`](../../ci-cd-pipeline-empresarial.md) (§2.3 los 14
+**Referencias del repo**: [`docs/ci-cd/ci-cd-pipeline-empresarial.md`](../../ci-cd/ci-cd-pipeline-empresarial.md) (§2.3 los 14
 stages, §25 supply chain, §26 DORA y coste, §27 progressive delivery), [`docs/CONTEXT-CICD.md`](../../CONTEXT-CICD.md)
 (inventario §3.4/§5.9, pins §13.5), guías [02 §7.1](./02-github-actions-base.md) y [09 §6](./09-caching-y-performance.md).
 

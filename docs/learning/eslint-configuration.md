@@ -577,7 +577,7 @@ import importPlugin from 'eslint-plugin-import';
 - **Prettier** → formato (indentación, comas, saltos de línea). **ESLint** → calidad (bugs, malas prácticas, estilo _semántico_ como `eqeqeq`).
 - `eslint-config-prettier` **siempre al final** del array (como en este repo).
 - **No** usar `eslint-plugin-prettier` (correr Prettier como regla ESLint): lento y convierte issues de formato en errores de lint.
-- Flujo de defensa en profundidad de este repo ([docs/code-style.md](../code-style.md)):
+- Flujo de defensa en profundidad de este repo ([docs/quality/code-style.md](../quality/code-style.md)):
   1. Editor → save con Prettier (formato).
   2. `format:check` en CI → Prettier verifica.
   3. Commit (Husky + lint-staged) → `prettier --write` + `eslint --fix --max-warnings 0 --no-warn-ignored` **solo sobre staged files**.
@@ -722,7 +722,7 @@ Referencia: [Configuration Migration Guide](https://eslint.org/docs/latest/use/c
 
 ### Documentación interna relacionada
 
-- [docs/code-style.md](../code-style.md) — política de formato, lint-staged y línea de defensa CRLF.
+- [docs/quality/code-style.md](../quality/code-style.md) — política de formato, lint-staged y línea de defensa CRLF.
 - [docs/learning/eslint-complexity-configuration.md](eslint-complexity-configuration.md) — umbrales de complejidad por capa, `max-lines-per-function` sin patrón de exención interno, y wiring e2e lint.
-- [docs/testing-architecture.md](../testing-architecture.md) — arquitectura de tests (Vitest/Playwright) que motivan los globals de test.
+- [docs/quality/testing-architecture.md](../quality/testing-architecture.md) — arquitectura de tests (Vitest/Playwright) que motivan los globals de test.
 - `.github/workflows/ci.yml` — jobs `client-lint`, `server-lint`, `e2e-lint`, `*-complexity`.

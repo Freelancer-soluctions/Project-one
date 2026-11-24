@@ -3,7 +3,7 @@
 > Full-Stack ERP System — Inventory, Sales, HR, and Business Process Management
 
 [![CI](https://img.shields.io/github/actions/workflow/status/Freelancer-soluctions/Project-one/ci.yml?branch=main&style=flat-square)](https://github.com/Freelancer-soluctions/Project-one/actions)
-[![Node](https://img.shields.io/badge/node-18.x-339933?style=flat-square&logo=nodedotjs)]()
+[![Node](https://img.shields.io/badge/node-%3E%3D22.11-339933?style=flat-square&logo=nodedotjs)]()
 [![License](https://img.shields.io/badge/license-ISC-blue?style=flat-square)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](http://makeapullrequest.com)
 
@@ -76,18 +76,18 @@
 
 ## Tech Stack
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Frontend** | React 18, Vite 6, Tailwind 4, shadcn/ui | UI framework, bundler, component library |
-| **State** | Redux Toolkit, RTK Query, Redux Persist | Global state, API caching, persistence |
-| **Forms** | React Hook Form + Zod | Form validation |
-| **i18n** | i18next + react-i18next | Internationalization (EN/ES) |
-| **Backend** | Express 4, Node 18 | REST API |
-| **Database** | PostgreSQL 16, Prisma ORM | Data persistence |
-| **Auth** | JWT, bcrypt, AES-GCM | Authentication, encryption |
-| **API Docs** | Swagger/OpenAPI + JSDoc | API documentation |
-| **Testing** | Vitest, Testing Library, Playwright, MSW | Unit, integration, E2E |
-| **Security** | Semgrep, Trivy, Gitleaks, Helmet | SAST, dependency scan, secrets |
+| Layer        | Technology                                | Purpose                                  |
+| ------------ | ----------------------------------------- | ---------------------------------------- |
+| **Frontend** | React 18, Vite 6, Tailwind 3.4, shadcn/ui | UI framework, bundler, component library |
+| **State**    | Redux Toolkit, RTK Query, Redux Persist   | Global state, API caching, persistence   |
+| **Forms**    | React Hook Form + Zod                     | Form validation                          |
+| **i18n**     | i18next + react-i18next                   | Internationalization (EN/ES)             |
+| **Backend**  | Express 4, Node 18                        | REST API                                 |
+| **Database** | PostgreSQL 16, Prisma ORM                 | Data persistence                         |
+| **Auth**     | JWT, bcrypt, AES-GCM                      | Authentication, encryption               |
+| **API Docs** | Swagger/OpenAPI + JSDoc                   | API documentation                        |
+| **Testing**  | Vitest, Testing Library, Playwright, MSW  | Unit, integration, E2E                   |
+| **Security** | Semgrep, Trivy, Gitleaks, Helmet          | SAST, dependency scan, secrets           |
 
 ---
 
@@ -128,11 +128,11 @@ npm run dev
 
 ### Verify
 
-| Service | URL |
-|---------|-----|
-| Client | `http://localhost:5173` |
-| Server | `http://localhost:3000/api/v1/health` |
-| API Docs | `http://localhost:3000/api-docs` |
+| Service   | URL                                   |
+| --------- | ------------------------------------- |
+| Client    | `http://localhost:5173`               |
+| Server    | `http://localhost:3000/api/v1/health` |
+| API Docs  | `http://localhost:3000/api-docs`      |
 | Storybook | `cd apps/client && npm run storybook` |
 
 ---
@@ -155,7 +155,7 @@ project-one/
 │   │
 │   ├── server/                  # Express backend
 │   │   ├── src/
-│   │   │   ├── modules/         # 24 feature modules
+│   │   │   ├── modules/         # 22 feature modules:
 │   │   │   ├── middleware/      # Auth, validation, security
 │   │   │   ├── common/          # Shared utilities (HOF, errors)
 │   │   │   ├── config/          # App configuration
@@ -180,29 +180,34 @@ project-one/
 ## Features
 
 ### Inventory Management
+
 - Multi-warehouse stock control with lot and expiry tracking
 - Stock valuation (FIFO, LIFO, Weighted Average)
 - Auto stock updates on sales/purchases
 - Low-stock alerts and reorder automation
 
 ### Sales & Purchases
+
 - Customer and supplier order management
 - Invoice and expense tracking
 - Automatic inventory synchronization
 
 ### Human Resources
+
 - Employee management with role-based access
 - Payroll processing and attendance tracking
 - Performance evaluations
 - Vacation request and approval workflows
 
 ### Access Control
-- **RBAC + ABAC** hybrid authorization
+
+- **RBAC** authorization (per-user permissions; ABAC not implemented)
 - 45+ granular permissions across 20 modules
 - Role-based dashboards and module visibility
 - Audit logging for sensitive operations
 
 ### Internationalization
+
 - English and Spanish support
 - Locale-based date/number formatting
 
@@ -212,17 +217,17 @@ project-one/
 
 Defense-in-depth strategy across the development lifecycle.
 
-| Layer | Tool / Method |
-|-------|--------------|
-| HTTP headers | Helmet |
-| Encryption | JWT + AES-GCM (field-level) |
-| Rate limiting | express-rate-limit (critical endpoints) |
-| Input validation | Joi (server) + Zod (client) |
-| Authorization | RBAC + ABAC with 45+ permissions |
-| Password hashing | bcrypt |
-| **SAST** | Semgrep (Docker) |
-| **Dependency scan** | Trivy (Docker) |
-| **Secret detection** | Gitleaks (pre-commit hook) |
+| Layer                | Tool / Method                           |
+| -------------------- | --------------------------------------- |
+| HTTP headers         | Helmet                                  |
+| Encryption           | JWT + AES-GCM (field-level)             |
+| Rate limiting        | express-rate-limit (critical endpoints) |
+| Input validation     | Joi (server) + Zod (client)             |
+| Authorization        | RBAC + ABAC with 45+ permissions        |
+| Password hashing     | bcrypt                                  |
+| **SAST**             | Semgrep (Docker)                        |
+| **Dependency scan**  | Trivy (Docker)                          |
+| **Secret detection** | Gitleaks (pre-commit hook)              |
 
 All security tools run as **pre-commit hooks** (Husky) and in CI/CD. See [Security Documentation](docs/security/SECURITY.md).
 
@@ -244,13 +249,13 @@ flowchart LR
     H --> I[Deploy]
 ```
 
-| Workflow | Trigger | Scope |
-|----------|---------|-------|
-| `ci.yml` | PR to `main` | Lint, format, test, build |
-| `quality.yml` | Reusable (called) | Code quality |
-| `security.yml` | PR to `main`, push to `main` | Semgrep, Trivy, Gitleaks, SBOM, Dependency Review |
-| `release.yml` | Push to `main` | Changesets release + npm publish |
-| `ci-enterprise.yml` | Push to `main` | Full CI + security (reference) |
+| Workflow            | Trigger                      | Scope                                             |
+| ------------------- | ---------------------------- | ------------------------------------------------- |
+| `ci.yml`            | PR to `main`                 | Lint, format, test, build                         |
+| `quality.yml`       | Reusable (called)            | Code quality                                      |
+| `security.yml`      | PR to `main`, push to `main` | Semgrep, Trivy, Gitleaks, SBOM, Dependency Review |
+| `release.yml`       | Push to `main`               | Changesets release + npm publish                  |
+| `ci-enterprise.yml` | Push to `main`               | Full CI + security (reference)                    |
 
 ---
 
@@ -288,15 +293,16 @@ git push origin feature/my-feature
 
 ## Documentation
 
-| Resource | Location |
-|----------|----------|
-| Module guides | [docs/modules/](docs/modules/INDEX.md) |
-| API docs (dev) | `/api-docs` (Swagger) |
-| Storybook | `cd apps/client && npm run storybook` |
-| Security | [docs/security/](docs/security/SECURITY.md) |
-| Testing architecture | [docs/testing-architecture.md](docs/testing-architecture.md) |
-| Code style | [docs/code-style.md](docs/code-style.md) |
-| OpenSpec SDD | [openspec/](openspec/) |
+| Resource             | Location                                                                     |
+| -------------------- | ---------------------------------------------------------------------------- |
+| Application context  | [docs/application-context.md](docs/application-context.md)                   |
+| Module guides        | [docs/modules/](docs/modules/INDEX.md)                                       |
+| API docs (dev)       | `/api-docs` (Swagger)                                                        |
+| Storybook            | `cd apps/client && npm run storybook`                                        |
+| Security             | [docs/security/](docs/security/SECURITY.md)                                  |
+| Testing architecture | [docs/quality/testing-architecture.md](docs/quality/testing-architecture.md) |
+| Code style           | [docs/quality/code-style.md](docs/quality/code-style.md)                     |
+| OpenSpec SDD         | [openspec/](openspec/)                                                       |
 
 ---
 

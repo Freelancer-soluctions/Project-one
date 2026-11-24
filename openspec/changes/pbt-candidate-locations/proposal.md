@@ -6,7 +6,7 @@ El change `pbt-hardening` cerró gaps de cobertura y spec drift, pero la adopci�
 
 ## What Changes
 
-- Catalogar candidatos por capa (utils, parsers, schemas, services, store) en `docs/pbt-candidate-analysis.md`.
+- Catalogar candidatos por capa (utils, parsers, schemas, services, store) en `docs/backend/pbt-candidate-analysis.md`.
 - Priorizar: alta (utils/parsers), media (schemas/services), baja (store).
 - Implementar propiedades sobre SUT reales (no reimplementar lógica), incluyendo negativas.
 - Mantener gate blocking, numRuns 100/1000, seed 42 en CI.

@@ -89,7 +89,7 @@ Las guías están ordenadas de forma **acumulativa**: cada una asume los concept
   workflows activos en el registro (9) y required checks (4).
 - El drift de conteo: `quality.yml` eliminado (jobs inline `if: false`) y `ci-enterprise.yml` retirado → los archivos
   bajaron y los jobs de `ci.yml` subieron; la comparación "9 vs 30+ jobs" queda obsoleta.
-- Los 14 stages del pipeline genérico (`ci-cd-pipeline-empresarial.md` §2.3) frente a lo que el repo cubre hoy.
+- Los 14 stages del pipeline genérico (`docs/ci-cd/ci-cd-pipeline-empresarial.md` §2.3) frente a lo que el repo cubre hoy.
 - SLSA: tabla L1-L4, posición real del proyecto (Build L1: SBOM sin provenance firmada) y qué falta para L3.
 - VEX: los 4 statuses (not_affected, affected, fixed, under_investigation) y por qué `ignore-unfixed` de Trivy es un
   sustituto pobre.
@@ -171,7 +171,7 @@ actual de pins (`setup-node` en dos versiones vs `paths-filter` en una) y audita
 **Contenido destacado**:
 
 - Las 4 métricas DORA en tabla: Deployment Frequency, Lead Time for Changes, Change Failure Rate, MTTR.
-- Cómo el pipeline del proyecto afecta cada métrica (conexión con `docs/ci-cd-pipeline-empresarial.md` §26).
+- Cómo el pipeline del proyecto afecta cada métrica (conexión con `docs/ci-cd/ci-cd-pipeline-empresarial.md` §26).
 - SLSA desde cero: niveles 1-4 y dónde se ubica el proyecto (Build L1: SBOM + dependency review sin provenance firmada; L2 = un job `actions/attest`).
 - Framing Staff-level: DORA y SLSA como marcadores de la transición Senior → Staff.
 - Performance tuning: jobs paralelos, cache hit ratio (npm/Vitest/Playwright), path filtering (`dorny/paths-filter`), cancelación por `concurrency`, composite actions.
@@ -205,10 +205,10 @@ Estas guías se apoyan en la documentación técnica existente del proyecto. No 
 | ----------------------------------------------------- | --------------------------------------------------------------------- | --------------- |
 | `docs/learning/ci-cd/workflows-mantenimiento-guia.md` | Playbook de mantenimiento de workflows (casos, checklist, inventario) | Guías 25-28     |
 | `docs/CONTEXT-CICD.md`                                | Inventario de workflows (§3.4, §5.9), pins y drift (§13.5)            | Guías 23, 25-27 |
-| `docs/ci-cd-pipeline-empresarial.md`                  | 14 stages (§2.3), supply chain §25, métricas DORA y costo (§26)       | Guías 23, 29    |
+| `docs/ci-cd/ci-cd-pipeline-empresarial.md`            | 14 stages (§2.3), supply chain §25, métricas DORA y costo (§26)       | Guías 23, 29    |
 | `docs/security/security-enterprise-guide.md`          | Guía enterprise de seguridad (SLSA, VEX, SBOM)                        | Guías 23, 29    |
-| `docs/aws-deploy-architecture.md`                     | Arquitectura de despliegue AWS                                        | Guía 23         |
-| `docs/aws-cd-learning-path.md`                        | Ruta pedagógica AWS: Floci → Consola → Terraform                      | Guía 23         |
+| `docs/ci-cd/aws-deploy-architecture.md`               | Arquitectura de despliegue AWS                                        | Guía 23         |
+| `docs/ci-cd/aws-cd-learning-path.md`                  | Ruta pedagógica AWS: Floci → Consola → Terraform                      | Guía 23         |
 
 ### Archivos fuente que analizarás
 

@@ -2,7 +2,7 @@
 
 > **Fecha:** 2026-10-01
 > **Alcance:** Unit testing enterprise/profesional en el monorepo (Vitest + GitHub Actions).
-> **Fuentes:** `docs/ci-cd-pipeline-empresarial.md` §23.3/§23.6, `docs/testing-architecture.md`,
+> **Fuentes:** `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3/§23.6, `docs/quality/testing-architecture.md`,
 > `docs/learning/quality-gates.md`, `vitest.shared.js`,
 > `apps/{client,server}/vitest.config.js`, `.github/workflows/ci.yml`, `.husky/pre-push`, `.husky/pre-commit`, docs
 > Vitest v4 (CLI, coverage, sequence, improving-performance).
@@ -44,7 +44,7 @@ Los tests se seleccionan **por sufijo de filename**, no por carpeta — robusto 
 | server    | `src/**/*.unit.test.js`, `tests/integration/**/*.integration.test.js`                            | unit colocated, integration por módulo en `tests/integration/<module>/` |
 | client    | `src/**/*.unit.test.{js,jsx}`, `src/**/*.ui.test.{js,jsx}`, `src/**/*.integration.test.{js,jsx}` | unit (vi.mock puro), ui (RTL), integration (MSW + Redux real)           |
 
-- Prohibido `*.test.js` / `*.spec.js` genérico sin contexto (`testing-architecture.md` §7).
+- Prohibido `*.test.js` / `*.spec.js` genérico sin contexto (`docs/quality/testing-architecture.md` §7).
 - Scripts npm refuerzan el filtro por sufijo: `test:unit` = `vitest run ".unit.test.js"` (server), `test:integration` =
   `vitest run ".integration.test.js"`.
 - Config compartida vía `mergeConfig(sharedConfig, …)` en `vitest.shared.js`: `globals: true`, timeouts globales
@@ -72,7 +72,7 @@ Política (§23.3 regla 5, línea de análisis 520):
 - Guard ejecutable: `scripts/ci/check-coverage.mjs <workspace>` lee los thresholds **del propio `vitest.config.js`**
   (single source of truth) y los compara contra `coverage-summary.json` (`total`). Exit 1 si baja. Usado por los jobs
   `client-coverage`/`server-coverage` (hoy `if: false`).
-- Targets por criticidad (no un global): CRÍTICO ≥80%, ALTO ≥60%, NORMAL best-effort (`testing-architecture.md` §16.1).
+- Targets por criticidad (no un global): CRÍTICO ≥80%, ALTO ≥60%, NORMAL best-effort (`docs/quality/testing-architecture.md` §16.1).
   El global bajo es intencional.
 - Vitest 4 permite thresholds por glob (`coverage.thresholds['src/critical/**']`) y `perFile: true` — **no
   implementados**; hoy solo globales por workspace.
@@ -93,7 +93,7 @@ Política (§23.3 regla 5, línea de análisis 520):
   base de datos, así que corre también en local. Antes de 2026-10-03 el hook invocaba vitest con la config completa de
   cada workspace, sin ese filtro: eso no lo convertía en "suite entera", seguía siendo diff-scoped, pero su selección
   incluía los tests de integración relacionados con el diff — un gate local MÁS estricto que el de CI y en dirección
-  contraria a la intención de esta doc (§7.5 de `testing-architecture.md`: CI como fallback obligatorio). La
+  contraria a la intención de esta doc (§7.5 de `docs/quality/testing-architecture.md`: CI como fallback obligatorio). La
   integración se cubre en el job `test-integration` de `ci.yml`, que sí levanta el service container. Detalle completo
   en `docs/CONTEXT-CICD.md` §10.6.
 - **CI (implementado en P1, change `coverage-tripwire-stage-2d`):** scripts `test:changed:ci` en ambos
@@ -245,7 +245,7 @@ ese patrón al re-activar los jobs de test.
 | Pre-push   | ~30s (límite SSH GitHub) | **SÍ** — `vitest run --changed origin/main` (server + client), bloqueante                                                          | `.husky/pre-push` (L52/L56) |
 | CI         | ilimitado                | Suite completa + coverage + security                                                                                               | `ci.yml`                    |
 
-Razones (§23.3 regla 16, `testing-architecture.md` §7.5):
+Razones (§23.3 regla 16, `docs/quality/testing-architecture.md` §7.5):
 
 - Los tests van en **pre-push**, no en pre-commit: lint/fix es <10s y puede mutar archivos (lint-staged autofix); los
   tests con `--changed` necesitan el diff `origin/main..HEAD` que solo es completo en push, y el presupuesto de 30s lo
@@ -273,7 +273,7 @@ Razones (§23.3 regla 16, `testing-architecture.md` §7.5):
 
 ### 3.2 Aislamiento (propiedades FAST)
 
-Fast · Isolated · Repeatable · Self-validating · Timely. En este repo (`testing-architecture.md` §6):
+Fast · Isolated · Repeatable · Self-validating · Timely. En este repo (`docs/quality/testing-architecture.md` §6):
 
 - Sin estado compartido entre tests; determinismo (reloj, red, DB siempre dobleados o controlados).
 - Server: `pool: 'forks'`, en CI `maxWorkers: 1` (server además `retry: 2`). **`isolate: false` se eliminó el
@@ -336,14 +336,14 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 | Thresholds de cobertura por workspace + guard ejecutable                                         | thresholds en configs; `scripts/ci/check-coverage.mjs`                                                                                         |
 | TIA changed-only **local** (pre-push, bloqueante, base `origin/main`)                            | `.husky/pre-push:52,56`                                                                                                                        |
 | Scripts `test:changed` por workspace                                                             | `apps/{server,client}/package.json`                                                                                                            |
-| Shift-left en 3 capas con presupuestos (<10s / ~30s / ilimitado)                                 | `.husky/pre-commit` (0 tests), `pre-push`, `testing-architecture.md` §7.5                                                                      |
+| Shift-left en 3 capas con presupuestos (<10s / ~30s / ilimitado)                                 | `.husky/pre-commit` (0 tests), `pre-push`, `docs/quality/testing-architecture.md` §7.5                                                         |
 | Topología CI TESTING completa (6 jobs + agregador + merge gate `ci-complete`)                    | `ci.yml` L744 (`if:`), L748 (`COE`), L843 (`if:`), L847 (`COE`), L1514 (`if:`), L1524 (`COE`), L1603 (`if:`), L1610 (`COE`), L1946 (agregador) |
 | JUnit + `dorny/test-reporter` + artifacts de cobertura                                           | `ci.yml` test jobs                                                                                                                             |
 | Integration con `postgres:16-alpine` service + `prisma migrate deploy`                           | `ci.yml` `test-integration`/`test-smoke`                                                                                                       |
-| Organización híbrida completada (161 unit tests colocated)                                       | `testing-architecture.md` §8.4                                                                                                                 |
-| Estrategia de mocks documentada por capa + anti-patrones                                         | `testing-architecture.md` §9                                                                                                                   |
-| Targets de cobertura por criticidad (80/60/best-effort)                                          | `testing-architecture.md` §16.1                                                                                                                |
-| Diagnóstico cross-platform (`hanging-process`, `pool: forks`, timeouts D11, hooks sin `npx` D12) | `testing-architecture.md` §18                                                                                                                  |
+| Organización híbrida completada (161 unit tests colocated)                                       | `docs/quality/testing-architecture.md` §8.4                                                                                                    |
+| Estrategia de mocks documentada por capa + anti-patrones                                         | `docs/quality/testing-architecture.md` §9                                                                                                      |
+| Targets de cobertura por criticidad (80/60/best-effort)                                          | `docs/quality/testing-architecture.md` §16.1                                                                                                   |
+| Diagnóstico cross-platform (`hanging-process`, `pool: forks`, timeouts D11, hooks sin `npx` D12) | `docs/quality/testing-architecture.md` §18                                                                                                     |
 | Patrón de gobierno blocking/advisory (FASE 1 → FASE 2)                                           | `ci.yml`, `quality-gates.md`                                                                                                                   |
 
 ### 4.2 Faltante o desactivado (gap → impacto)
@@ -395,10 +395,10 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 
 **Repo (verificadas):**
 
-- `docs/ci-cd-pipeline-empresarial.md` — §23.3 (diagrama STAGE 2 TESTING L2824-2832; reglas 16/18/20/21
+- `docs/ci-cd/ci-cd-pipeline-empresarial.md` — §23.3 (diagrama STAGE 2 TESTING L2824-2832; reglas 16/18/20/21
   L284/L856/L858/L859; matriz TESTING L3409-3413; costos L3465; coverage tripwire L520), §23.6 Coverage Merge Gate
   (L3469-3494).
-- `docs/testing-architecture.md` — §4 capas, §6 principios, §7.5 estrategia pre-commit/pre-push/CI, §8 híbrido, §9
+- `docs/quality/testing-architecture.md` — §4 capas, §6 principios, §7.5 estrategia pre-commit/pre-push/CI, §8 híbrido, §9
   mocks/anti-patrones, §16 coverage targets, §18 cross-platform.
 - `docs/learning/quality-gates.md` — estado blocking/advisory por job y requisitos de activación.
 - `vitest.shared.js`, `apps/server/vitest.config.js`, `apps/client/vitest.config.js`, `scripts/ci/check-coverage.mjs`.
@@ -407,7 +407,7 @@ cuando el contrato importa (`toHaveBeenCalledTimes(1)`). Tabla mental: Dummy/Stu
 - `.husky/pre-push`, `.husky/pre-commit`, `apps/{server,client}/package.json`.
 - `docs/learning/coverage-tripwire-floor-ratchet.md` — doc fully updated reference (CI + tier local + granularidad).
 - `docs/modules/requirements-engineering/adr/turborepo-evaluation.md` (límites de `--changed`
-  cross-machine), `docs/changelog.md` (migración del hook a scoped).
+  cross-machine), `docs/product/changelog.md` (migración del hook a scoped).
 
 **Externas (consultadas 2026-10-01):**
 

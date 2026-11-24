@@ -1,13 +1,13 @@
 # Pre-merge gates: cómo implementamos governance distribuida en nuestro pipeline
 
-> Artículo técnico basado en la implementación real de governance pre-build/pre-merge de project-one: `.github/workflows/ci.yml` (1049 líneas), ruleset `21227644`, hooks de Husky (`.husky/`), configs locales (`.gitleaks.toml`, `.semgrep/`, `commitlint.config.js`, `scripts/hooks/`) y su contraste con la propuesta enterprise de `docs/ci-cd-pipeline-empresarial.md` §23.3 (STAGE 2 PRE-BUILD — VALIDATE) y el `Governance Lifecycle` de 7 pasos.
+> Artículo técnico basado en la implementación real de governance pre-build/pre-merge de project-one: `.github/workflows/ci.yml` (1049 líneas), ruleset `21227644`, hooks de Husky (`.husky/`), configs locales (`.gitleaks.toml`, `.semgrep/`, `commitlint.config.js`, `scripts/hooks/`) y su contraste con la propuesta enterprise de `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3 (STAGE 2 PRE-BUILD — VALIDATE) y el `Governance Lifecycle` de 7 pasos.
 >
 > **Nota de trazabilidad:** todo lo afirmado aquí fue verificado contra el árbol de trabajo en la rama `ci/governance-gates` (HEAD `3b54db7`). Cuando algo está diseñado pero aún no activo, se dice explícitamente. No asumimos nada.
 >
 > ⚠️ **NOTA DE ACTUALIZACIÓN (2026-10-20, change `pr-metadata-workflow`):** el job `pr-title-lint` (check
 > `PR Title Lint`) ya **NO vive en `ci.yml`** — emigró a `.github/workflows/pr-metadata.yml` junto al nuevo gate
 > `Governance: PR Body Lint` (PR body policy). Las referencias de este artículo a `ci.yml:pr-title-lint` describen el
-> estado **previo** al cambio (HEAD `3b54db7`). Estado real: [`CONTEXT-CICD.md`](./CONTEXT-CICD.md) §3.3/§9.3.3-9.3.4.
+> estado **previo** al cambio (HEAD `3b54db7`). Estado real: [`CONTEXT-CICD.md`](../CONTEXT-CICD.md) §3.3/§9.3.3-9.3.4.
 
 ---
 
@@ -820,7 +820,7 @@ Cada capa falla sola por una razón distinta (olvido, bypaseo, rama forkeada), y
 
 ## 7. Propuesto (§23.3) vs implementado: qué cambió y por qué
 
-La propuesta enterprise (`docs/ci-cd-pipeline-empresarial.md` §23.3, STAGE 2 PRE-BUILD — VALIDATE, Governance Lifecycle de 7 pasos) define un ideal; nuestra implementación lo ajustó a la realidad del monorepo. Contraste punto por punto:
+La propuesta enterprise (`docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3, STAGE 2 PRE-BUILD — VALIDATE, Governance Lifecycle de 7 pasos) define un ideal; nuestra implementación lo ajustó a la realidad del monorepo. Contraste punto por punto:
 
 | Punto propuesto (§23.3)                                                    | Lo que implementamos                                                                                                    | Delta y por qué                                                                                                                                   |
 | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -892,7 +892,7 @@ Para que este artículo no sea un ejercicio de deseos, el estado **verificado** 
 | `security.yml`, `scheduled-security.yml`, `deploy.yml`, `release.yml`, `preview.yml`, etc. | **`disabled_manually`** en GitHub — existen pero no corren                                                                                                          |
 | `opencode-review.yml` (AI code review, §9.3.8 CONTEXT-CICD)                                | ✅ **ACTIVE** desde 2026-09-14 (auditado por API; steps inline tras fix rate-limit `ci-opencode-review-fix`) — capa advisory NO bloqueante, no vinculada al ruleset |
 | `CI_MINIMAL=true`, jobs quality/build `if:false`                                           | Diseño incremental intencional (§3.1 CONTEXT-CICD), no bug                                                                                                          |
-| `docs/pre-merge-gates-governance.md`                                                       | Untracked (este documento, pending de commit)                                                                                                                       |
+| `docs/ci-cd/pre-merge-gates-governance.md`                                                 | Untracked (este documento, pending de commit)                                                                                                                       |
 
 **Implicación práctica:** "implementado" no significa "corriendo hoy". Siempre verificamos con `gh api repos/.../actions/workflows` (§2 CONTEXT-CICD) antes de asumir que un workflow está vivo.
 
@@ -916,7 +916,7 @@ Para que este artículo no sea un ejercicio de deseos, el estado **verificado** 
 - `.semgrep/.semgrep.yml` + `.semgrep/rules/` (5 reglas custom con fixtures) + `scripts/sast-diff.mjs` (SAST diff-scoped del hook `pre-push` y del job `sast` de CI) + `scripts/security/semgrep.ps1` (full scan on-demand, 93 reglas `r/...` pineadas)
 - `scripts/hooks/pr-title-check.js` + `scripts/hooks/pr-create.js` — L2.5
 - `commitlint.config.js` — config Conventional Commits
-- `docs/ci-cd-pipeline-empresarial.md` §23.3 — propuesta enterprise (Governance Lifecycle 7 pasos, GOVERNANCE TRANSVERSAL) y §13.10
+- `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3 — propuesta enterprise (Governance Lifecycle 7 pasos, GOVERNANCE TRANSVERSAL) y §13.10
 - `docs/CONTEXT-CICD.md` — doc central CI/CD auto-cargable (§3.3, §5.3, §9.3.8, §9.3.9, §10-§13)
 - `openspec/changes/` — changes: `ci-governance-pre-merge-gates` (archivado), `ci-commit-signing` (archivado), `ci-commit-lint-governance` (archivado), `ci-pr-metadata-governance` (archivado), `ci-prebuild-substage-structure` + `ci-sast-governance` (activos en la rama)
 - Ruleset `21227644` — verificado por API (read-only): 4 status checks con `integration_id=15368`, `bypass_actors: []`

@@ -398,7 +398,7 @@ Los tests de integración y smoke verifican interacción **real con Postgres** �
 - Casos límite de constraints (`UNIQUE`, `FOREIGN KEY`)
 - Drift entre `schema.prisma` y migraciones
 
-> 📖 **Pirámide de tests en profundidad**: [`docs/testing-architecture.md`](../../../docs/testing-architecture.md) — cobertura unit/integration/e2e y por qué se integra con BD real.
+> 📖 **Pirámide de tests en profundidad**: [`docs/quality/testing-architecture.md`](../../../docs/quality/testing-architecture.md) — cobertura unit/integration/e2e y por qué se integra con BD real.
 
 ---
 

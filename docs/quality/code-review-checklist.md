@@ -72,7 +72,7 @@ reviewed run.
 
 ### Style and Formatting
 
-- [ ] Code follows project style guide (`docs/code-style.md`)
+- [ ] Code follows project style guide (`docs/quality/code-style.md`)
 - [ ] Prettier formatting applied (`npm run format`)
 - [ ] No linting errors (`npm run lint`)
 - [ ] Consistent indentation and spacing
@@ -88,7 +88,7 @@ reviewed run.
 
 ## JSDoc Documentation Validation
 
-> **⚠️ Temporal (migración TS total, 2026-10-14):** el JSDoc de `apps/server` es provisional y **muere por archivo convertido** a `.ts`. Hoy `src/` solo usa `@param`/`@returns` (~2.586); `@typedef`/`@type` = 0 — no exigir `@typedef` en review. Fuente: `docs/server-typescript-migration-research.md` §9.
+> **⚠️ Temporal (migración TS total, 2026-10-14):** el JSDoc de `apps/server` es provisional y **muere por archivo convertido** a `.ts`. Hoy `src/` solo usa `@param`/`@returns` (~2.586); `@typedef`/`@type` = 0 — no exigir `@typedef` en review. Fuente: `docs/backend/server-typescript-migration-research.md` §9.
 
 Use this dedicated section when reviewing JSDoc documentation in pull requests. It focuses exclusively on JSDoc standards.
 
@@ -152,7 +152,7 @@ Use this dedicated section when reviewing JSDoc documentation in pull requests. 
 
 ### Consistency
 
-- [ ] Documentation follows patterns from `docs/jsdoc-reference-guide.md`
+- [ ] Documentation follows patterns from `docs/backend/jsdoc-reference-guide.md`
 - [ ] Similar functions have consistent documentation structure
 - [ ] Type annotations are consistent across modules
 
@@ -173,9 +173,9 @@ Use this dedicated section when reviewing JSDoc documentation in pull requests. 
 
 ## Reference Documents
 
-- **JSDoc Reference Guide**: `docs/jsdoc-reference-guide.md`
-- **Code Style Guide**: `docs/code-style.md`
-- **JSDoc migration and standard**: `docs/server-typescript-migration-research.md` §9
+- **JSDoc Reference Guide**: `docs/backend/jsdoc-reference-guide.md`
+- **Code Style Guide**: `docs/quality/code-style.md`
+- **JSDoc migration and standard**: `docs/backend/server-typescript-migration-research.md` §9
 
 ---
 

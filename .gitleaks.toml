@@ -89,7 +89,7 @@ secretGroup = 1
 tags = ["api","key"]
 
 # Placeholders documentados en tutoriales (p.ej. `sk-omniroute-local` en
-# docs/omniroute-install-tutorial.md). Anclado al VALOR completo: solo exime
+# docs/ci-cd/omniroute-install-tutorial.md). Anclado al VALOR completo: solo exime
 # valores que terminan en `-local`/`-example`/`-placeholder`/`-test`/`-fake`,
 # así que una clave real (aleatoria) sigue disparando el gate.
 [[rules.allowlists]]

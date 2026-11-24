@@ -577,9 +577,9 @@ flowchart LR
 
 > 🔗 **Docs de referencia para profundización (Nivel Avanzado):**
 >
-> - [`../../aws-learning-with-floci.md`](../../aws-learning-with-floci.md) — Aprendizaje AWS usando Floci (incluye el setup dev-local)
-> - [`../../aws-deploy-architecture.md`](../../aws-deploy-architecture.md) — Arquitectura despliegue AWS + ECS
-> - [`../../aws-cd-learning-path.md`](../../aws-cd-learning-path.md) — Ruta aprendizaje AWS/CD
+> - [`../../aws-learning-with-floci.md`](../../ci-cd/aws-learning-with-floci.md) — Aprendizaje AWS usando Floci (incluye el setup dev-local)
+> - [`../../aws-deploy-architecture.md`](../../ci-cd/aws-deploy-architecture.md) — Arquitectura despliegue AWS + ECS
+> - [`../../aws-cd-learning-path.md`](../../ci-cd/aws-cd-learning-path.md) — Ruta aprendizaje AWS/CD
 
 ---
 

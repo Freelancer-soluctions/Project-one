@@ -78,7 +78,7 @@ Rules:
 
 - All controller, service, and dao functions must have complete JSDoc documentation
 - Follow patterns from `auth/controller.js` and `products/service.js`
-- Reference the full guide at `docs/jsdoc-reference-guide.md`
+- Reference the full guide at `docs/backend/jsdoc-reference-guide.md`
 - Do not add JSDoc to `routes.js` files; use Swagger/OpenAPI instead
 - **JSDoc provisional en `apps/server`**: la migración JS→TS total lo sustituye por tipos TS, archivo a archivo (muere al convertir cada archivo; hoy solo `@param`/`@returns`, `@typedef` = 0)
 

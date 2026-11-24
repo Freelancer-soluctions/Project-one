@@ -609,9 +609,9 @@ gh run view <run-id> --log
 - **CONTEXT-CICD.md** — **FUENTE CENTRAL de la verdad operativa de CI/CD** (auto-cargado cada sesión). Estado de implementación, archivos verificados con `gh api`, reglas de oro para nuevos changes. **Leer antes de crear/implementar cualquier change de CI/CD.**
 - [Estado actual de CI/CD](CONTEXT-CICD.md) — Documento base de auditoría (histórico, mantener como referencia)
 - [Plan de implementación CI/CD](CONTEXT-CICD.md) — Roadmap de sprints (histórico, mantener como referencia)
-- [Arquitectura de testing](testing-architecture.md) — Pirámide unit/integration/E2E
-- [AWS CD Learning Path](aws-cd-learning-path.md) — Fases Floci → ECS
-- [AWS Learning with Floci](../../aws-learning-with-floci.md) — Emulador local y setup dev
+- [Arquitectura de testing](../../quality/testing-architecture.md) — Pirámide unit/integration/E2E
+- [AWS CD Learning Path](../../ci-cd/aws-cd-learning-path.md) — Fases Floci → ECS
+- [AWS Learning with Floci](../../ci-cd/aws-learning-with-floci.md) — Emulador local y setup dev
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [dorny/test-reporter issue #67](https://github.com/dorny/test-reporter/issues/67) — fetch-depth context
 - [actions/checkout fetch-depth docs](https://github.com/actions/checkout#fetch-depth)

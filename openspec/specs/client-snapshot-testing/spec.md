@@ -227,7 +227,7 @@ Every generated `.snap` file and inline snapshot SHALL be committed in the same 
 
 ### Requirement: Snapshot coverage gap is tracked in the testing metrics
 
-When phase F1 (primitivas shadcn + layout/errores) completes, the snapshot metric in `docs/learning/unit-tests-enterprise.md` SHALL be updated from "0 snapshots" to the actual count of committed snapshots, and `docs/code-review-checklist.md` SHALL include the snapshot review checklist, linking `docs/learning/snapshot-testing.md` as the reference doc.
+When phase F1 (primitivas shadcn + layout/errores) completes, the snapshot metric in `docs/learning/unit-tests-enterprise.md` SHALL be updated from "0 snapshots" to the actual count of committed snapshots, and `docs/quality/code-review-checklist.md` SHALL include the snapshot review checklist, linking `docs/learning/snapshot-testing.md` as the reference doc.
 
 #### Scenario: The P3 gap is closed
 

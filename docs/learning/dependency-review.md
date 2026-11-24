@@ -8,7 +8,7 @@
 
 **SCA = Software Composition Analysis**. Analiza dependencias de terceros (vulnerabilidades CVE + licencias). Es una capa separada en el pipeline de CI/CD, distinta de SAST (código fuente) y secret-scanning (gitleaks). En `project-one` vive como **substage 2C Security** (`prebuild-security-complete.needs`) junto a `secrets`; bloquea merge si encuentra vulnerabilidades moderadas o mayores.
 
-Referencia pipeline: `docs/ci-cd-pipeline-empresarial.md` §23.5 fila `Dependency Review (security.yml — vuln+license en PR)` — **nota histórica**: ahora vive **inline en `ci.yml`** (job `dependency-review` L765-787), no en `security.yml`. `security.yml` conserva `dependency-scan` (Trivy SCA) como capa separada.
+Referencia pipeline: `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.5 fila `Dependency Review (security.yml — vuln+license en PR)` — **nota histórica**: ahora vive **inline en `ci.yml`** (job `dependency-review` L765-787), no en `security.yml`. `security.yml` conserva `dependency-scan` (Trivy SCA) como capa separada.
 
 Estado actual verificado (repo, 2026-09-25):
 
@@ -18,7 +18,7 @@ security.yml: dependency-scan (Trivy fs, SARIF, exit-code 1) → deshabilitado (
 scheduled-security.yml: gitleaks-full-scan (audit) → activo
 ```
 
-Taxonomía `quality-gates.md` §2: **fila `dependency-review` PRESENTE** (taxonomía `blocking (PR)`, change `dependency-review`, 2026-09-25), misma variante que la fila `secrets`. Los datos de `docs/CONTEXT-CICD.md` §9.3.5 y `docs/pre-merge-gates-governance.md` §4.12 confirman el gate; el §4.12 corregido ya no afirma que el default de la acción es `high` (es `low`).
+Taxonomía `quality-gates.md` §2: **fila `dependency-review` PRESENTE** (taxonomía `blocking (PR)`, change `dependency-review`, 2026-09-25), misma variante que la fila `secrets`. Los datos de `docs/CONTEXT-CICD.md` §9.3.5 y `docs/ci-cd/pre-merge-gates-governance.md` §4.12 confirman el gate; el §4.12 corregido ya no afirma que el default de la acción es `high` (es `low`).
 
 ---
 
@@ -100,7 +100,7 @@ prebuild-security-complete:
 | **Strict (alta seguridad)**  | `high` o `critical` | Solo bloquea severidades altas; útil si hay muchas `moderate` en `devDependencies` inactivas             | Puede dejar pasar `moderate` en `runtime` activo                          |
 | **Baseline / audit**         | `low`               | Todos los findings bloquean; requiere `continue-on-error: true` + ruleset o revisión manual              | Alto ruido; solo si hay baseline limpio y proceso de remediación semanal  |
 
-**Nota crítica**: el default de `actions/dependency-review-action` es **`low`** (no `high` como afirma `docs/pre-merge-gates-governance.md` §4.12, que contiene inexactitud — corregido por inspección de `src/schemas.ts`). El proyecto usa `moderate`, que es más estricto que default, coherente con política enterprise.
+**Nota crítica**: el default de `actions/dependency-review-action` es **`low`** (no `high` como afirma `docs/ci-cd/pre-merge-gates-governance.md` §4.12, que contiene inexactitud — corregido por inspección de `src/schemas.ts`). El proyecto usa `moderate`, que es más estricto que default, coherente con política enterprise.
 
 ### 4.2 Licencias — política configurada (change `dependency-review`, 2026-09-25)
 

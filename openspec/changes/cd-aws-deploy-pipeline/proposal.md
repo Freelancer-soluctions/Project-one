@@ -27,7 +27,7 @@ Project One no tiene CD: un merge a `main` no produce ningún despliegue (brecha
 - **AWS OIDC en vez de access keys**: `aws-actions/configure-aws-credentials@v4` con `role-to-assume` (IAM role federado vía OIDC GitHub) — sin secrets de access keys largoplazo
 - **Infraestructura AWS documentada** (no provisionada en fase 1): arquitectura (ECS Fargate + ALB + RDS + ECR + security groups) + Terraform reference en `docs/` — el provisionamiento real es fase 2 (learning)
 - **Rollback documentado e implementado por fases**: ECS deployment circuit breaker (`deploymentCircuitBreaker.enable=true, rollback=true`) + redeploy del tag anterior desde ECR + `npx prisma migrate down` para BD
-- **Docs de aprendizaje**: `docs/aws-cd-learning-path.md` (hitos Floci → AWS real, referencia cruzada a `docs/aws-learning-with-floci.md` (que incluye el setup dev-local)) + `docs/aws-deploy-architecture.md` (arquitectura + Terraform reference)
+- **Docs de aprendizaje**: `docs/ci-cd/aws-cd-learning-path.md` (hitos Floci → AWS real, referencia cruzada a `docs/ci-cd/aws-learning-with-floci.md` (que incluye el setup dev-local)) + `docs/ci-cd/aws-deploy-architecture.md` (arquitectura + Terraform reference)
 - **BREAKING**: No aplica — es infraestructura/tooling de CD y documentación; no se modifican contratos de API, flujos de usuario ni el comportamiento del server
 
 ## Capabilities
@@ -48,7 +48,7 @@ Project One no tiene CD: un merge a `main` no produce ningún despliegue (brecha
 
 - **`.github/workflows/deploy.yml`** (NUEVO): pipeline CD con environments, OIDC y gates; convive con `release.yml` (Changesets) — el CD espera el tag semver de Changesets como entrada para el tag de Docker cuando aplique
 - **`apps/server/Dockerfile` + `apps/server/.dockerignore`**: fix de build (prisma) y contexto limpio — **misma corrección que `ci-preview-environments` tasks 0.1-0.2; se coordina, no se duplica**
-- **`docs/`**: `docs/aws-deploy-architecture.md` (NUEVO) — arquitectura AWS (ECS Fargate + RDS + ECR + ALB + OIDC) y Terraform reference; `docs/aws-cd-learning-path.md` (NUEVO) — hitos de aprendizaje con Floci
+- **`docs/`**: `docs/ci-cd/aws-deploy-architecture.md` (NUEVO) — arquitectura AWS (ECS Fargate + RDS + ECR + ALB + OIDC) y Terraform reference; `docs/ci-cd/aws-cd-learning-path.md` (NUEVO) — hitos de aprendizaje con Floci
 - **GitHub (fuera del repo, manual)**: environments `staging`/`production` con protection rules, IAM OIDC provider + role, variable de repositorio `AWS_ROLE_ARN` (no secret — D6: `vars` es accesible en `if` de job, `secrets` no); documentado como pasos
 - **Dependencias**: sin nuevas dependencias npm; acciones GitHub pinneadas por tag (consistente con siblings: `actions/checkout@v5`, `aws-actions/*@v4/v2`)
 - **Tests**: sin cambios en tests de la app; se añade validación de boot de imagen (smoke contra emulador) en el job `docker-build`

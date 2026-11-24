@@ -14,16 +14,16 @@ La carpeta `docs/` acumula 216 archivos (~65k líneas) con documentos one-off, p
   - Artículo duplicado: `opencode/output-contracts-article.md` (canónico: `output-contracts.md`).
   - Stubs legacy de módulos: `modules/{client,server}-{auth,notes,stock,users}.md` (×8), ya condenados por el change `2026-04-19-document-system-modules`.
 - **MERGE (9 archivos) en sus docs hermanos:**
-  - `aws-dev-local-floci.md` → `aws-learning-with-floci.md`.
+  - `aws-dev-local-floci.md` → `docs/ci-cd/aws-learning-with-floci.md`.
   - `research/prebuild-security-stage-analysis.md` → `learning/quality-gates.md`.
   - `adr-template.md` → `.opencode/command/create-adr.md` (embed template).
-  - `requirements-engineering-flow.md` → `De-stakeholder-a-producción-flujo-completo-de una-feature.md`.
-  - `trello-card-standards.md` → `trello-workflow-guide.md`.
-  - `estandar-usequerydata-useloadingstate.md` → `code-style.md`.
+  - `requirements-engineering-flow.md` → `docs/product/De-stakeholder-a-producción-flujo-completo-de una-feature.md`.
+  - `trello-card-standards.md` → `docs/ci-cd/trello-workflow-guide.md`.
+  - `estandar-usequerydata-useloadingstate.md` → `docs/quality/code-style.md`.
   - `learning/quality-changes-decision.md` → `learning/quality-gap-analysis.md`.
-  - `jsdoc-review-checklist.md` → `code-review-checklist.md`.
-  - `jsdoc-migration-notes.md` → `server-typescript-migration-research.md`.
-- **SUMMARIZE (diferido, no en este change):** `ci-cd-pipeline-empresarial.md` (10.6k), `security/security-enterprise-guide.md` (4.5k), `pre-merge-gates-governance.md` (922) — bloqueados por refs de anchors y changes activos; se dejan como proyecto a largo plazo.
+  - `jsdoc-review-checklist.md` → `docs/quality/code-review-checklist.md`.
+  - `jsdoc-migration-notes.md` → `docs/backend/server-typescript-migration-research.md`.
+- **SUMMARIZE (diferido, no en este change):** `docs/ci-cd/ci-cd-pipeline-empresarial.md` (10.6k), `security/security-enterprise-guide.md` (4.5k), `docs/ci-cd/pre-merge-gates-governance.md` (922) — bloqueados por refs de anchors y changes activos; se dejan como proyecto a largo plazo.
 - **Reparación de links dangling pre-existentes:** `commit-signing-documentation` spec → `docs/learning/ci-cd/05b-commit-signing.md`; `cicd-estado-actual.md` (10 refs); `cicd-plan-implementacion.md`; old `workflows-mantenimiento-guia.md`/`adr/turborepo` paths (~15+11 refs); verificar `docs/traceability/`.
 - **Limpieza de referencias internas** que apuntan a los archivos eliminados/fusionados (listadas en el reporte de auditoría).
 

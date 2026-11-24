@@ -245,6 +245,6 @@ Coherentes con `openspec/changes/archive/2026-09-27-sca-lockfile-compliance/desi
 - **Pendiente**: run real de hadolint (Docker daemon caído — validar en CI o al reactivar Docker; hallazgos previstos DL3018/DL3059×2 sin ignorar, deuda para FASE 2); FASE 2 (diferida): umbral `warning` + `prebuild-security-complete.needs` tras 2-4 semanas de runs limpios.
 - **Nota de posición (change `ci-security-substage-alignment`, 2026-09-30):** los 3 jobs advisory `actionlint-advisory`,
   `zizmor-advisory` y `typosquat-guarddog` quedan definidos inmediatamente después de `containerfile-lint`, al cierre del
-  bloque security 2C de `ci.yml` (orden del diagrama `ci-cd-pipeline-empresarial.md` §23.3; reubicación física pura, sin
+  bloque security 2C de `ci.yml` (orden del diagrama `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3; reubicación física pura, sin
   cambios de semántica).
 - **Intacto**: `security.yml` (`category: trivy`), `dependabot.yml`, `.checkov.yml`, `checkov-iac`; no se creó `scan-list.txt`.

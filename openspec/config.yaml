@@ -1,20 +1,29 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+# Project context (shown to AI when creating artifacts)
+context: |
+  Project One: full-stack ERP of operations (inventory, sales/purchases, HR, collaboration) as a monorepo (React 18 + Vite 6 + Tailwind 4 + shadcn/ui | Express 4 + Prisma + PostgreSQL 16).
+  Backend layered: routes -> controller -> service -> dao; auth via verifyToken (JWT) + checkRoleAuthOrPermisssion; validation Joi (server) + Zod (client); pagination getSafePagination; i18n EN/ES.
+  Authorization: RBAC with 3 roles (ADMIN C01, USER C02, MANAGER C03) and ~65 permission codes assigned per user (userPermits); no role->permission inheritance (rolePermits commented). ADMIN bypasses. Fail-closed.
+  Data: 43 Prisma models; soft delete in several modules; sensitive fields (employees, payroll) encrypted with AES-GCM; audit fields createdBy/updatedBy.
+  IMPORTANT: This is NOT a full ERP. No finance/accounting, invoicing/tax, manufacturing/MRP, POS, multi-tenant, multi-currency, or external integrations. Do not promise them.
+  Conventions: conventional commits, signed commits + DCO, TDD, trunk-based, OpenSpec spec-driven (proposal -> specs deltas -> design -> tasks). RTM lives in docs/traceability/<change>.md.
+  Full context: docs/application-context.md. Module detail: docs/modules/INDEX.md. RBAC: docs/architecture/rbac-system.md. Product gaps: docs/product/analisis-producto-terminado-erp.md.
 
 # Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - Always include a "Non-goals" section
+    - Always include "Riesgos" and "Dependencias"
+    - Reference the application context (docs/application-context.md) for scope
+  specs:
+    - Every Requirement must be verifiable automatically
+    - Every scenario must name the business rule (RN-xxx) it covers
+    - Include NFR (security, a11y, i18n, performance) when applicable
+  design:
+    - Include ADR/RFC reference for architectural decisions
+    - Include migration plan (expand/contract) and rollback if DB changes
+    - Include threat model review if touching auth/data
+  tasks:
+    - Break tasks into chunks of max 2 hours
+    - Include a final verification section (tests, openspec validate, RTM update)

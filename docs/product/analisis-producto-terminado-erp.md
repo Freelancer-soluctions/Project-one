@@ -218,7 +218,7 @@ EN/ES (`locale/*.json`, i18next); shadcn/ui + Tailwind + DataTable; socketServic
 - **CD real:** `deploy.yml` → build → smoke emulados → push **ECR vía OIDC** (sin keys permanentes) →
   **ECS Fargate staging** + CloudWatch logs. Preview: Vercel para el client.
 - **IaC: NO hay Terraform/CDK/CloudFormation en el repo** (`*.tf` = 0). La arquitectura target está documentada en
-  `docs/aws-deploy-architecture.md` (ECS, ALB+ACM, RDS, VPC, Secrets Manager, OIDC) pero **sin codificar** .
+  `docs/ci-cd/aws-deploy-architecture.md` (ECS, ALB+ACM, RDS, VPC, Secrets Manager, OIDC) pero **sin codificar** .
 - **Observabilidad:** solo CloudWatch de contenedor. APM: change `cd-observability-sentry` **0/26** (no implementado).
 - **Secrets:** GitHub secrets → Secrets Manager con fase de wiring (`loadSecrets()`) pendiente; el server ya depende de
   `@aws-sdk/client-secrets-manager` .
@@ -226,8 +226,8 @@ EN/ES (`locale/*.json`, i18next); shadcn/ui + Tailwind + DataTable; socketServic
 
 ### 3.5 Docs, UX y proceso
 
-- **Docs:** 100+ archivos (`docs/rbac-system.md`, `aws-deploy-architecture.md` , `ci-cd-pipeline-empresarial.md` ,
-  `testing-architecture.md` , `security/` , 1 ADR, 24 guías de learning, **35 guías de módulo** ).
+- **Docs:** 100+ archivos (`docs/architecture/rbac-system.md`, `docs/ci-cd/aws-deploy-architecture.md` , `docs/ci-cd/ci-cd-pipeline-empresarial.md` ,
+  `docs/quality/testing-architecture.md` , `security/` , 1 ADR, 24 guías de learning, **35 guías de módulo** ).
 - **README desalineado:** badge Node 18 vs `engines >=22.11` ; claim "RBAC + ABAC" sin código ABAC; "45+ permisos" vs
   seed hasta 82; "FIFO/LIFO" sin evidencia.
 - **OpenSpec (SDD):** **34 changes activos** (130 specs; ~140 archivados). ~10 casi cerrados; backlog sin empezar
@@ -317,7 +317,7 @@ Objetivo: que cada release sea confiable.
 
 Objetivo: que staging y prod sean reproducibles, observables y recuperables.
 
-- [ ] **IaC Terraform** de la arquitectura ya documentada (`docs/aws-deploy-architecture.md`): VPC, ALB+ACM, ECS
+- [ ] **IaC Terraform** de la arquitectura ya documentada (`docs/ci-cd/aws-deploy-architecture.md`): VPC, ALB+ACM, ECS
       Fargate, RDS PostgreSQL, Secrets Manager, OIDC IAM — estado remoto con bloqueo, por entorno
 - [ ] **Wiring de Secrets Manager** completo (`loadSecrets()`) — fase 2c pendiente
 - [ ] **Observabilidad** : Sentry (o equivalente) + trazas (OpenTelemetry), dashboards RED/USE, logs correlacionados con
@@ -555,8 +555,8 @@ OpenSpec, los pending.txt y esta hoja de ruta para ejecutarse sin sorpresas.
 - `apps/client/src/{App.jsx,modules,redux,components}`, `apps/client/vitest.config.js`
 - `e2e/tests/`, `.husky/{pre-commit,pre-push,commit-msg}`, `.github/workflows/*.yml` (11 workflows)
 - `openspec/changes/` (34 activos + ~140 archivados), `openspec/specs/` (130)
-- `docs/` (rbac-system, aws-deploy-architecture, ci-cd-pipeline-empresarial, testing-architecture,
-  security/, openspec/adr/, learning/, modules/), `reports/` , `.changeset/config.json`
+- `docs/` (architecture/rbac-system, ci-cd/aws-deploy-architecture, ci-cd/ci-cd-pipeline-empresarial, quality/testing-architecture,
+  security/, modules/requirements-engineering/adr/, learning/, modules/), `reports/` , `.changeset/config.json`
 - Documentos de trabajo: `C:\Users\user\AppData\Local\Temp\opencode\analisis-erp-publicacion-internet.md` y
   `analisis-codebase-estado.md` (2026-10-11)
 

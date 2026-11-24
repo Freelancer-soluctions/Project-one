@@ -53,12 +53,12 @@
    - El job `test-integration` de `ci.yml` ya corre en `ubuntu-latest` con Docker; Testcontainers levanta el contenedor dentro del job. La config CI de Vitest (`maxWorkers: 1, isolate: false`) es compatible con Testcontainers.
    - Alternativa rechazada: service container `floci` en el job — duplica lo que Testcontainers ya gestiona y acopla el workflow a la imagen.
 
-7. **Docs: actualizar `docs/aws-learning-with-floci.md`**
+7. **Docs: actualizar `docs/ci-cd/aws-learning-with-floci.md`**
    - La sección "Follow-up: Ampliación de Tests AWS" (L-244-254) se marca como implementada (ítem 2.4) y se documenta el patrón de tests AWS con Testcontainers (cómo correrlos, prerequisito Docker, nota de conflicto de puerto con el compose dev).
 
 ## Risks / Trade-offs
 
-- [Docker no disponible en el entorno local del dev] → Mitigation: los tests AWS fallan con mensaje claro de prerequisito (Docker Desktop/Engine); se documenta en `docs/aws-learning-with-floci.md`; en CI el runner siempre tiene Docker
+- [Docker no disponible en el entorno local del dev] → Mitigation: los tests AWS fallan con mensaje claro de prerequisito (Docker Desktop/Engine); se documenta en `docs/ci-cd/aws-learning-with-floci.md`; en CI el runner siempre tiene Docker
 - [Conflicto de puerto 4566 si el compose dev-local (`floci`) corre en paralelo] → Mitigation: se documenta `docker compose stop floci` antes de correr los tests AWS; en CI no corre el compose dev
 - [`@floci/testcontainers` en `latest` puede romper compatibilidad] → Mitigation: pinning en lockfile + bump controlado como cualquier dependencia; el módulo es oficial de Floci
 - [Smoke tests S3/DynamoDB contra emulador no garantizan paridad con AWS real] → Mitigation: son smoke/integración de contrato (endpoint, creds, operaciones básicas); la paridad real se cubre en staging (ítem 3.5 del plan, fuera de scope)
@@ -71,7 +71,7 @@
 3. Añadir variables AWS de test a `apps/server/.env.test`
 4. Crear smoke tests en `apps/server/tests/integration/aws/` (S3, DynamoDB, Secrets Manager)
 5. Correr `npm run test:integration` en local (con Docker) y verificar que los tests AWS pasan
-6. Actualizar `docs/aws-learning-with-floci.md` (sección follow-up → implementado)
+6. Actualizar `docs/ci-cd/aws-learning-with-floci.md` (sección follow-up → implementado)
 7. Rollback: `git revert` del cambio (solo dependencias + tests + docs; sin datos ni migraciones)
 
 ## Open Questions

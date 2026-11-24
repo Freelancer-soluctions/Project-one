@@ -186,7 +186,7 @@ if (!dotenv('AES_GCM_KEY')) {
     'AES_GCM_KEY no está definida. Requerido por encription-prisma-middleware. ' +
       'CI/preview: añadir -e AES_GCM_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= al docker run. ' +
       'Staging/prod: configurar el secret en AWS Secrets Manager. ' +
-      'Ver docs/server-bootstrap-env-vars.md.'
+      'Ver docs/backend/server-bootstrap-env-vars.md.'
   );
 }
 ```

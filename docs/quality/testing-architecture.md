@@ -129,7 +129,7 @@ test: {
 > **Nota gap C2 (migración TS, Fase 0):** los `include` anteriores y los filtros por
 > substring de `apps/server/package.json` (`".unit.test.js"` / `".integration.test.js"`)
 > deben ampliarse a `.{js,ts}` ANTES del primer test convertido; si no, los tests `.ts`
-> quedan fuera de la suite en silencio. Fuente: `docs/server-typescript-migration-research.md`.
+> quedan fuera de la suite en silencio. Fuente: `docs/backend/server-typescript-migration-research.md`.
 
 ---
 

@@ -40,7 +40,7 @@ if (
   throw new Error(
     '❌ AES_GCM_KEY dummy de CI detectada en NODE_ENV=production. ' +
       'La dummy key (32 bytes cero) SOLO es válida para stacks emulados (preview.yml, docker-build). ' +
-      'Configura la clave real en AWS Secrets Manager. Ver docs/server-bootstrap-env-vars.md'
+      'Configura la clave real en AWS Secrets Manager. Ver docs/backend/server-bootstrap-env-vars.md'
   );
 }
 

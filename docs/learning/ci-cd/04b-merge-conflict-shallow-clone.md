@@ -100,7 +100,7 @@ git status                        # lista los archivos en conflicto
 git status --short   # columnas como UU / AA / DU / DD / AU / UA (ver glosario)
 
 # 5b. Resolver LOS ARCHIVOS DE CONTENIDO uno a uno (conserva tu versión):
-git checkout --ours docs/ci-cd-pipeline-empresarial.md
+git checkout --ours docs/ci-cd/ci-cd-pipeline-empresarial.md
 git checkout --ours docs/cicd-plantilla-completa.md
 git checkout --ours docs/learning/ci-cd/20-governance-stage.md
 git checkout --ours opencode.jsonc
@@ -143,13 +143,13 @@ git push origin ci/governance-gates
 - **Rama de trabajo**: `ci/governance-gates` (cambios de documentación CI/CD: `docs/CONTEXT-CICD.md` y 3 commits más).
 - **PR**: #120 (rama `ci/governance-gates` → `main`).
 - **Conflicto reportado por GitHub** en 4 archivos:
-  - `docs/ci-cd-pipeline-empresarial.md`
+  - `docs/ci-cd/ci-cd-pipeline-empresarial.md`
   - `docs/cicd-plantilla-completa.md`
   - `docs/learning/ci-cd/20-governance-stage.md`
   - `opencode.jsonc`
 - **Estado de la rama**: `ci/governance-gates` = `origin/ci/governance-gates` (sincronizada, ni ahead ni behind).
 
-> **Regla operativa del repo**: estos 2 de los 4 archivos son sensibles — `docs/ci-cd-pipeline-empresarial.md` (INTOCABLE, no se modifica) y `docs/cicd-plantilla-completa.md` (RETENIDA, contiene datos únicos). Por eso la resolución debía **conservar** la versión de la rama, no la de `main`.
+> **Regla operativa del repo**: estos 2 de los 4 archivos son sensibles — `docs/ci-cd/ci-cd-pipeline-empresarial.md` (INTOCABLE, no se modifica) y `docs/cicd-plantilla-completa.md` (RETENIDA, contiene datos únicos). Por eso la resolución debía **conservar** la versión de la rama, no la de `main`.
 
 ---
 
@@ -274,7 +274,7 @@ Como el objetivo era **conservar los cambios de `ci/governance-gates`**, se usó
 ### 4 conflictos de contenido
 
 ```bash
-git checkout --ours docs/ci-cd-pipeline-empresarial.md
+git checkout --ours docs/ci-cd/ci-cd-pipeline-empresarial.md
 git checkout --ours docs/cicd-plantilla-completa.md
 git checkout --ours docs/learning/ci-cd/20-governance-stage.md
 git checkout --ours opencode.jsonc
@@ -284,7 +284,7 @@ Los estados de conflicto (letras) que se vieron:
 
 | Archivo                                      | Estado git                             | Resolución                                    |
 | -------------------------------------------- | -------------------------------------- | --------------------------------------------- |
-| `docs/ci-cd-pipeline-empresarial.md`         | `UU` (both modified)                   | `--ours` (conservar local)                    |
+| `docs/ci-cd/ci-cd-pipeline-empresarial.md`   | `UU` (both modified)                   | `--ours` (conservar local)                    |
 | `opencode.jsonc`                             | `UU` (both modified)                   | `--ours`                                      |
 | `docs/learning/ci-cd/20-governance-stage.md` | `AA` (both added)                      | `--ours`                                      |
 | `docs/cicd-plantilla-completa.md`            | `DU` (deleted by us, modified by them) | `--ours` → **deleted** (como en nuestra rama) |

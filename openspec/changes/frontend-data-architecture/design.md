@@ -7,7 +7,7 @@ The client app uses RTK Query across 24 API slice files but has two architectura
 
 Both issues share the same root cause: the data layer grew organically without centralized patterns.
 
-**Reference:** `docs/architectural-approach.md` — general document explaining the architectural principles (includes the data co-location pattern)
+**Reference:** `docs/architecture/architectural-approach.md` — general document explaining the architectural principles (includes the data co-location pattern)
 
 ## Goals
 
@@ -39,24 +39,31 @@ This prevents duplicate middleware entries that would occur if modules using `ba
 ## Decisions
 
 ### Decision 1: Co-location enabled by RTKQ deduplication
+
 RTK Query deduplicates identical requests globally. Two components calling `useGetXQuery({ id: 1 })` produce one HTTP request. Moving queries into leaf components has zero network cost.
 
 ### Decision 2: baseApi location
+
 Create `apps/client/src/config/baseApi.js` as single `createApi()` with `tagTypes: []` (auto-inference: `injectEndpoints` registers tag types automatically from endpoint definitions). All 24 module APIs use `injectEndpoints`. Single `.concat(api.middleware)` in store.
 
 ### Decision 3: Retry configuration
+
 Invoke `axiosPrivateBaseQuery({ baseUrl })` first (it is a function factory, not a raw baseQuery), then wrap the returned function with `retry(baseQuery, { maxRetries: 3 })` with exponential backoff. Non-idempotent endpoints opt out via `extraOptions: { maxRetries: 0 }`.
 
 ### Decision 4: Migration execution order
+
 1. Store.js update (baseApi.middleware, reducer, setupListeners, serializableCheck) → 2. Notes, Products, Sales, Stock (high-traffic first) → 3. Remaining 20 modules (batch)
 
 ### Decision 5: Store.js migration (executed FIRST)
+
 Before any module migration: replace 22 individual `.concat()` with single `baseApi.middleware`. Replace individual `[notesAPI.reducerPath]: notesAPI.reducer` entries with `[api.reducerPath]: api.reducer`. Add `setupListeners(store.dispatch)`. Fix `serializableCheck: false` → targeted ignores. This is step one because migrated modules' `.middleware` references `baseApi.middleware` — switching store first avoids duplicate registrations.
 
 ### Decision 6: transformResponse
+
 Add `transformResponse: (res) => res.data` where API response always wraps in `{ data: ... }`. Skip where `meta` is also needed by consumers.
 
 ### Decision 7: Prevent retry on auth errors
+
 The retry wrapper SHALL NOT retry 401 (Unauthorized) or 403 (Forbidden) responses, as these are non-transient. Implement a custom check inside the baseQuery before returning the error shape:
 
 ```js
@@ -71,4 +78,5 @@ const baseQueryWithRetry = retry(selectiveRetry, { maxRetries: 3 });
 ```
 
 ### Decision 8: Co-location audit-first approach
+
 Grep for props named after API data that pass through intermediaries unchanged. Fix one module at a time.

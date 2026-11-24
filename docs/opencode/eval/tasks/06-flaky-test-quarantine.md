@@ -19,7 +19,7 @@ exclude mechanism, with a linked tracking issue.
 ## Inputs
 
 - A failing test with at least 3 recorded failing runs and the error signature.
-- `docs/testing-architecture.md` and the quarantine exclude script.
+- `docs/quality/testing-architecture.md` and the quarantine exclude script.
 
 ## Steps expected
 

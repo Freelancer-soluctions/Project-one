@@ -433,7 +433,7 @@ fc.configureGlobal({
 | Candidatos server (Joi)          | 24 schemas `src/modules/*/schemas/*.joi.js` + `src/utils/joiSchemas`                                                                  |
 | Candidatos client (zod)          | 23 schemas `src/modules/*/utils/schema.js`, `zod-i18n.js`                                                                             |
 | Stack de tests                   | Vitest 4.1.11 (root), naming `*.unit.test.js` (server, colocated) / `*.unit.test.{js,jsx}` (client)                                   |
-| PBT ya posicionado en CI docs    | `ci-cd-pipeline-empresarial.md` §36.3 item 14 → **STAGE 2 PRE-Build**, < 1–2 min, complemento de unit tests                           |
+| PBT ya posicionado en CI docs    | `docs/ci-cd/ci-cd-pipeline-empresarial.md` §36.3 item 14 → **STAGE 2 PRE-Build**, < 1–2 min, complemento de unit tests                |
 
 ### 5.2 Plan priorizado
 
@@ -513,7 +513,7 @@ describe('money properties', () => {
 
 - [`docs/learning/unit-tests-enterprise.md`][ute] (§23.3 — gap P2 "Property-based con
   fast-check"; **corregir** afirmación "3.23.2 instalado")
-- [`docs/ci-cd-pipeline-empresarial.md`][emp] ("Property-Based Testing (fast-check) — invariantes,
+- [`docs/ci-cd/ci-cd-pipeline-empresarial.md`][emp] ("Property-Based Testing (fast-check) — invariantes,
   parsers, lógica **[SL]**", §36.3 item 14 — STAGE 2 PRE-Build, < 1–2 min)
 - [`docs/learning/test-impact-analysis.md`][tia] (TIA changed-only — PBT viaja con
   `test:changed`)
@@ -522,7 +522,7 @@ describe('money properties', () => {
 - [`docs/learning/test-sharding.md`][shard] (reparto de properties entre shards)
 
 [ute]: unit-tests-enterprise.md
-[emp]: ../ci-cd-pipeline-empresarial.md
+[emp]: ../ci-cd/ci-cd-pipeline-empresarial.md
 [tia]: test-impact-analysis.md
 [qg]: quality-gates.md
 [snap]: snapshot-testing.md

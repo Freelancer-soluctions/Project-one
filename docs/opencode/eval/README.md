@@ -35,7 +35,7 @@ survives a clean clone.
 - Git signing set up as described in `docs/learning/ci-cd/05b-commit-signing.md`
   (`git commit -S -s`). A run whose commit cannot be signed is a score-0 commit,
   not a skipped step.
-- Trello/Composio access for the card phase (`docs/trello-workflow-guide.md`).
+- Trello/Composio access for the card phase (`docs/ci-cd/trello-workflow-guide.md`).
 
 ## 1. Run a task (twice)
 

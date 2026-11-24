@@ -17,7 +17,7 @@ used in the client.
 ## Inputs
 
 - The composed shadcn dialog component and an existing RTL test helper.
-- `docs/code-review-checklist.md` accessibility expectations.
+- `docs/quality/code-review-checklist.md` accessibility expectations.
 
 ## Steps expected
 

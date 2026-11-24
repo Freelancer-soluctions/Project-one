@@ -16,7 +16,7 @@
 | **Lockfile** (`package-lock.json`) | Resolución exacta + árbol transitive | CVE reales en versiones instaladas | ❌ **No auditado sistemáticamente** (solo `npm audit` en `ci-enterprise.yml`, workflow `disabled_manually`) | `npm audit` / `snyk` no configurados en workflows activos; `dependabot.yml` YA existe (ver §3.3) |
 | **Filesystem / node_modules**      | Archivos físicos de librería         | Código fuente + licencia + CVE     | Trivy `security.yml` `dependency-scan` (✅ activo desde 2026-09-25, audit mode)                             | Requiere `npm ci`; más lento; no es lockfile puro; `continue-on-error: true` no bloquea          |
 
-Referencia pipeline: `docs/ci-cd-pipeline-empresarial.md` §23.3 `Stage 2` (`Security`); `docs/learning/dependency-review.md` §3.1 (job `dependency-review` blocking `moderate`, `deny-licenses` L795, `comment-summary-in-pr: on-failure`); `docs/learning/quality-gates.md` §2 (fila `dependency-review`: `blocking (PR)`).
+Referencia pipeline: `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3 `Stage 2` (`Security`); `docs/learning/dependency-review.md` §3.1 (job `dependency-review` blocking `moderate`, `deny-licenses` L795, `comment-summary-in-pr: on-failure`); `docs/learning/quality-gates.md` §2 (fila `dependency-review`: `blocking (PR)`).
 
 ---
 

@@ -51,11 +51,11 @@ When `origin/main` is not available locally (e.g., fresh clone without fetch), t
 
 ### Requirement: Three-tier strategy documented
 
-The `docs/testing-architecture.md` file SHALL document the three-tier execution strategy so developers understand which tests run at each stage.
+The `docs/quality/testing-architecture.md` file SHALL document the three-tier execution strategy so developers understand which tests run at each stage.
 
 #### Scenario: Three-tier strategy is documented
 
-- **WHEN** a developer reads `docs/testing-architecture.md`
+- **WHEN** a developer reads `docs/quality/testing-architecture.md`
 - **THEN** they SHALL find a section titled "7.5. Estrategia de Ejecución por Capas (Pre-commit / Pre-push / CI)"
 - **AND** the section SHALL document:
   - Pre-commit: ESLint + Prettier + type-check on staged files (< 10s)
@@ -74,11 +74,11 @@ The `docs/testing-architecture.md` file SHALL document the three-tier execution 
 
 ### Requirement: Architectural decisions updated
 
-Section 11 "Decisiones Arquitectónicas" in `docs/testing-architecture.md` SHALL be updated with new ADR rows documenting the execution tier strategy.
+Section 11 "Decisiones Arquitectónicas" in `docs/quality/testing-architecture.md` SHALL be updated with new ADR rows documenting the execution tier strategy.
 
 #### Scenario: New ADR rows present
 
-- **WHEN** a developer reads section 11 of `docs/testing-architecture.md`
+- **WHEN** a developer reads section 11 of `docs/quality/testing-architecture.md`
 - **THEN** they SHALL find new rows documenting:
   - Three-tier hook strategy adopted (pre-commit / pre-push / CI)
   - `origin/main` as diff base for scoped testing

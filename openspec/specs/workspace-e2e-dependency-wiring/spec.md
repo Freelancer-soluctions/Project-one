@@ -14,7 +14,7 @@ Antes de anadir dependencias `file:`, se SHALL investigar si el workspace `e2e` 
 
 - **WHEN** se inspecciona el codigo fuente en `e2e/`
 - **THEN** se MUST buscar cualquier `import` o `require` que referencia a `client-react` o `server-express`
-- **AND** se MUST documentar los hallazgos en `docs/workspaces.md`
+- **AND** se MUST documentar los hallazgos en `docs/architecture/workspaces.md`
 
 ### Requirement: Anadir dependencia file: a client (condicional)
 
@@ -29,7 +29,7 @@ SI `e2e` importa directamente de `client-react`, se SHALL anadir la entrada `"cl
 #### Scenario: e2e NO importa de client
 
 - **WHEN** la auditoria no revela imports hacia `client-react`
-- **THEN** se MUST omitir la dependencia `file:` y documentar la decision en `docs/workspaces.md` seccion 9
+- **THEN** se MUST omitir la dependencia `file:` y documentar la decision en `docs/architecture/workspaces.md` seccion 9
 
 ### Requirement: Anadir dependencia file: a server (condicional)
 

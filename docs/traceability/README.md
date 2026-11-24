@@ -13,5 +13,5 @@ Este directorio alberga las matrices de trazabilidad de requisitos (RTM) de los 
 ## Estado actual
 
 Todavía no hay RTM materializadas; el directorio existe para que las referencias de
-`docs/De-stakeholder-a-producción-flujo-completo-de una-feature.md` y
+`docs/product/De-stakeholder-a-producción-flujo-completo-de una-feature.md` y
 `openspec/config.yaml` resuelvan. La primera RTM se añadirá cuando un change la requiera.

@@ -2,7 +2,7 @@
 
 Express.js API with Prisma ORM and PostgreSQL.
 
-> **Migración a TypeScript completada** (2026-11-13): alcance total — 0 `.js`/`.cjs`/`.mjs` al final; hoy **100% `.ts`** (230 archivos). Runtime: `tsx` (`dev: tsx watch src/bin/index.ts`, `start: node dist/bin/index.js` via `tsc -b`). Strict activo en `tsconfig.base.json` + `apps/server/tsconfig.json` (composite, outDir dist). Fuente: `docs/server-typescript-migration-research.md`.
+> **Migración a TypeScript completada** (2026-11-13): alcance total — 0 `.js`/`.cjs`/`.mjs` al final; hoy **100% `.ts`** (230 archivos). Runtime: `tsx` (`dev: tsx watch src/bin/index.ts`, `start: node dist/bin/index.js` via `tsc -b`). Strict activo en `tsconfig.base.json` + `apps/server/tsconfig.json` (composite, outDir dist). Fuente: `docs/backend/server-typescript-migration-research.md`.
 
 ## Commands
 
@@ -33,7 +33,7 @@ npm exec prisma -- migrate reset
 
 ## Testing
 
-See root [docs/testing-architecture.md](../../docs/testing-architecture.md) — **section 8 covers the hybrid test organization in depth.**
+See root [docs/quality/testing-architecture.md](../../docs/quality/testing-architecture.md) — **section 8 covers the hybrid test organization in depth.**
 
 ### Hybrid Test Organization (Consensus 2025-2026)
 

@@ -2,9 +2,9 @@
 
 ## 1. Contexto y estado actual
 
-El proyecto `project-one` usa un pipeline CI/CD con substage 2B (`prebuild-quality-complete`) que agrega jobs de calidad (`lint`, `format-check`, `complexity-check`, `dead-code`, `import-bounds`, `typecheck`, etc.) bajo un agregador (`needs`) y un paso de `prebuild-quality-complete` que evalúa `contains(needs.*.result, 'failure')`. El `ci-complete` (required check) es el único bloque del merge gate. Según `docs/CONTEXT-CICD.md` (§13.4) y `docs/pre-merge-gates-governance.md`, no todos los jobs de calidad son bloqueantes (`if: false` o `continue-on-error: true`); el objetivo es que `quality-gates.md` documente qué jobs son `gate` (bloquean merge si fallan), cuáles son `advisory` (informan, permiten `continue-on-error`), y cómo lograr que `ci-complete` refleje la salud real.
+El proyecto `project-one` usa un pipeline CI/CD con substage 2B (`prebuild-quality-complete`) que agrega jobs de calidad (`lint`, `format-check`, `complexity-check`, `dead-code`, `import-bounds`, `typecheck`, etc.) bajo un agregador (`needs`) y un paso de `prebuild-quality-complete` que evalúa `contains(needs.*.result, 'failure')`. El `ci-complete` (required check) es el único bloque del merge gate. Según `docs/CONTEXT-CICD.md` (§13.4) y `docs/ci-cd/pre-merge-gates-governance.md`, no todos los jobs de calidad son bloqueantes (`if: false` o `continue-on-error: true`); el objetivo es que `quality-gates.md` documente qué jobs son `gate` (bloquean merge si fallan), cuáles son `advisory` (informan, permiten `continue-on-error`), y cómo lograr que `ci-complete` refleje la salud real.
 
-Referencia: `.github/workflows/ci.yml`; `docs/CONTEXT-CICD.md`; `docs/pre-merge-gates-governance.md`; `docs/learning/import-boundaries.md` (§4.2 CI, §5 pipeline); `docs/learning/knip-configuration.md`; `docs/learning/eslint-complexity-configuration.md`; `docs/learning/prettier-configuration.md`; `docs/learning/typescript-strict-check.md`; `docs/learning/docs-changelog-validation.md`; `docs/learning/license-policy.md` (fuente canónica de la política de licencias). Estado de cambio: `docs-changelog-validation` (propuesta activa) y `typescript-strict-check` (nuevo, `tsconfig.json` + `strict` gradual).
+Referencia: `.github/workflows/ci.yml`; `docs/CONTEXT-CICD.md`; `docs/ci-cd/pre-merge-gates-governance.md`; `docs/learning/import-boundaries.md` (§4.2 CI, §5 pipeline); `docs/learning/knip-configuration.md`; `docs/learning/eslint-complexity-configuration.md`; `docs/learning/prettier-configuration.md`; `docs/learning/typescript-strict-check.md`; `docs/learning/docs-changelog-validation.md`; `docs/learning/license-policy.md` (fuente canónica de la política de licencias). Estado de cambio: `docs-changelog-validation` (propuesta activa) y `typescript-strict-check` (nuevo, `tsconfig.json` + `strict` gradual).
 
 ## 2. Taxonomía de gates (definición de referencia)
 
@@ -96,7 +96,7 @@ Referencia oficial: `docs.github.com/en/actions/reference/workflows-and-actions/
 
 ### 4.3 Diseño profesional recomendado (porque el snippet del usuario sugiere un diseño)
 
-Según los hallazgos de `@researcher` (`dependency-cruiser` config, `prettier` config, `knip` config, `eslint` config, `typescript-strict-check` doc) y el esquema de `docs/CONTEXT-CICD.md` (§3.3, §13.4) y `docs/pre-merge-gates-governance.md` (sección de ruleset):
+Según los hallazgos de `@researcher` (`dependency-cruiser` config, `prettier` config, `knip` config, `eslint` config, `typescript-strict-check` doc) y el esquema de `docs/CONTEXT-CICD.md` (§3.3, §13.4) y `docs/ci-cd/pre-merge-gates-governance.md` (sección de ruleset):
 
 ```yaml
 # Calidad gates (substage 2B, dentro de ci.yml)

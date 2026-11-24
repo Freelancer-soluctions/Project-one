@@ -145,10 +145,10 @@ Con OIDC, el **Principal** ya no es un user concreto, sino el **proveedor OIDC d
 
 ### 3.2 La trust policy del proyecto (`github-oidc.tf`)
 
-El proyecto define el role de deploy con Terraform. La trust policy real (fuente: `docs/aws-deploy-architecture.md`, módulo `modules/iam/github-oidc.tf`) es:
+El proyecto define el role de deploy con Terraform. La trust policy real (fuente: `docs/ci-cd/aws-deploy-architecture.md`, módulo `modules/iam/github-oidc.tf`) es:
 
 ```hcl
-# Source: docs/aws-deploy-architecture.md (módulo modules/iam/github-oidc.tf)
+# Source: docs/ci-cd/aws-deploy-architecture.md (módulo modules/iam/github-oidc.tf)
 resource "aws_iam_role" "github_oidc" {
   name = "project-one-github-actions"
 
@@ -203,10 +203,10 @@ Esto significa que la _autorización_ (quién puede asumir el role) la decide IA
 
 Durante la investigación de este nivel se detectó una **inconsistencia real** entre la documentación y la implementación:
 
-| Fuente                                       | Qué dice                                                                                           |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `docs/CONTEXT-CICD.md:1340`                  | La trust policy usa `:ref:refs/heads/main` — es decir, **solo la rama main** puede asumir el role. |
-| `docs/aws-deploy-architecture.md` (HCL real) | La trust policy usa `repo:owner/repo:*` con `StringLike` — **cualquier ref** del repo.             |
+| Fuente                                             | Qué dice                                                                                           |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `docs/CONTEXT-CICD.md:1340`                        | La trust policy usa `:ref:refs/heads/main` — es decir, **solo la rama main** puede asumir el role. |
+| `docs/ci-cd/aws-deploy-architecture.md` (HCL real) | La trust policy usa `repo:owner/repo:*` con `StringLike` — **cualquier ref** del repo.             |
 
 ### 4.2 ¿Por qué importa?
 
@@ -227,7 +227,7 @@ Este es exactamente el tipo de discrepancia que un **revisión de seguridad** (c
 
 ```bash
 # 1. Localiza el HCL real
-grep -n "StringLike\|StringEquals\|sub\|aud" docs/aws-deploy-architecture.md
+grep -n "StringLike\|StringEquals\|sub\|aud" docs/ci-cd/aws-deploy-architecture.md
 
 # 2. Compara con la documentación
 grep -n "refs/heads/main\|repo:" docs/CONTEXT-CICD.md | head -20
@@ -242,7 +242,7 @@ grep -n "refs/heads/main\|repo:" docs/CONTEXT-CICD.md | head -20
 La trust policy dice _quién entra_; la **policy de permisos** dice _qué puede hacer dentro_. El role `project-one-github-actions` del proyecto sigue el principio de **mínimo privilegio**: solo las acciones necesarias para desplegar, y solo sobre los recursos del proyecto.
 
 ```hcl
-# Source: docs/aws-deploy-architecture.md (módulo modules/iam/github-oidc.tf, policy de permisos resumida)
+# Source: docs/ci-cd/aws-deploy-architecture.md (módulo modules/iam/github-oidc.tf, policy de permisos resumida)
 resource "aws_iam_role_policy" "github_oidc_deploy" {
   name = "project-one-github-actions-cd"
   role = aws_iam_role.github_oidc.id
@@ -410,7 +410,7 @@ El flujo OIDC se valida **en staging real** (AWS), no localmente:
 El proveedor OIDC de GitHub debe existir en IAM (una vez por cuenta):
 
 ```hcl
-# Source: docs/aws-deploy-architecture.md (módulo modules/iam/github-oidc.tf, extracto)
+# Source: docs/ci-cd/aws-deploy-architecture.md (módulo modules/iam/github-oidc.tf, extracto)
 resource "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
   client_id_list = ["sts.amazonaws.com"]
@@ -461,7 +461,7 @@ Esto responde a la pregunta de auditoría: **"¿quién desplegó qué, desde qu�
 
 **Objetivo**: verificar la discrepancia documentada por ti mismo.
 
-1. Abre `docs/aws-deploy-architecture.md`.
+1. Abre `docs/ci-cd/aws-deploy-architecture.md`.
 2. Localiza la trust policy del role `project-one-github-actions`.
 3. Anota: ¿qué `Action` permite? ¿Qué condiciones usa (`StringEquals`/`StringLike`)? ¿Qué claims compara?
 4. Compara con lo que dice `docs/CONTEXT-CICD.md:1340`.
@@ -810,10 +810,10 @@ StringLike = {
 
 | Tema                            | Fuente                                                             |
 | ------------------------------- | ------------------------------------------------------------------ |
-| Trust policy y role             | `docs/aws-deploy-architecture.md`                                  |
+| Trust policy y role             | `docs/ci-cd/aws-deploy-architecture.md`                            |
 | Workflow de deploy              | `.github/workflows/deploy.yml`                                     |
 | Documentación del estado actual | `docs/CONTEXT-CICD.md` (sección 11.2, línea 1340)                  |
-| Limitación de Floci con STS     | `docs/aws-cd-learning-path.md` (módulo M4)                         |
+| Limitación de Floci con STS     | `docs/ci-cd/aws-cd-learning-path.md` (módulo M4)                   |
 | Guía 12 (Floci)                 | [12-floci-emulador-aws.md](./12-floci-emulador-aws.md)             |
 | Guía 13 (deploy.yml)            | [13-deploy-yml-walkthrough.md](./13-deploy-yml-walkthrough.md)     |
 | Guía 14 (preview)               | [14-preview-environments-yml.md](./14-preview-environments-yml.md) |

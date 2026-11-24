@@ -58,7 +58,7 @@ Con esa variable, la AWS CLI y los SDKs envían las peticiones a Floci en lugar 
 
 ### 1.4 Enlaces de referencia
 
-Floci está documentado en el repo en `docs/aws-learning-with-floci.md`, que cubre tanto el aprendizaje de AWS como el setup de desarrollo local (host vs contenedor).
+Floci está documentado en el repo en `docs/ci-cd/aws-learning-with-floci.md`, que cubre tanto el aprendizaje de AWS como el setup de desarrollo local (host vs contenedor).
 
 Esta guía es la versión didáctica de esos documentos: explica los conceptos desde cero y te guía paso a paso.
 
@@ -335,9 +335,9 @@ Esto verifica que el server arrancó, conectó con Postgres y responde. Los deta
 
 ## 6. La secuencia pedagógica: Floci → Consola → Terraform
 
-Floci no es un fin en sí mismo: es el **primer escalón** de una ruta de aprendizaje hacia AWS real. El documento `docs/aws-cd-learning-path.md` define esta secuencia:
+Floci no es un fin en sí mismo: es el **primer escalón** de una ruta de aprendizaje hacia AWS real. El documento `docs/ci-cd/aws-cd-learning-path.md` define esta secuencia:
 
-**# Source:** `docs/aws-cd-learning-path.md`
+**# Source:** `docs/ci-cd/aws-cd-learning-path.md`
 
 ### 6.1 Los tres escalones
 
@@ -380,9 +380,9 @@ Floci es un **emulador de la API de AWS** para desarrollo y CI. Emula servicios 
 
 Los documentos de referencia lo dicen literalmente:
 
-> **# Source:** `docs/aws-learning-with-floci.md` — Floci es un emulador para desarrollo local, no un sustituto de AWS en producción.
+> **# Source:** `docs/ci-cd/aws-learning-with-floci.md` — Floci es un emulador para desarrollo local, no un sustituto de AWS en producción.
 
-> **# Source:** `docs/aws-learning-with-floci.md:21` — Floci sirve para aprender la API de AWS, no para alojar aplicaciones.
+> **# Source:** `docs/ci-cd/aws-learning-with-floci.md:21` — Floci sirve para aprender la API de AWS, no para alojar aplicaciones.
 
 ### 7.4 El flujo real de producción
 

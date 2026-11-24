@@ -196,12 +196,12 @@ La guía `29-dora-metrics-performance-tuning.md` SHALL explicar las 4 métricas 
 #### Scenario: Explica las 4 métricas DORA
 
 - **WHEN** un lector lee la guía
-- **THEN** entiende las 4 métricas DORA (frecuencia de despliegue, lead time para cambios, tasa de fallos de cambio, tiempo medio de recuperación) con una tabla y cómo el pipeline del proyecto afecta a cada una, conectando con `docs/ci-cd-pipeline-empresarial.md` §26
+- **THEN** entiende las 4 métricas DORA (frecuencia de despliegue, lead time para cambios, tasa de fallos de cambio, tiempo medio de recuperación) con una tabla y cómo el pipeline del proyecto afecta a cada una, conectando con `docs/ci-cd/ci-cd-pipeline-empresarial.md` §26
 
 #### Scenario: Explica SLSA desde cero
 
 - **WHEN** la guía trata la cadena de suministro
-- **THEN** explica qué es SLSA, sus niveles 1-4 y dónde se ubica el proyecto (**Build L1**: SBOM + dependency review sin provenance firmada; el OIDC hacia AWS no cuenta como SLSA Build), referenciando `docs/ci-cd-pipeline-empresarial.md` §25.2 y `docs/security/security-enterprise-guide.md`
+- **THEN** explica qué es SLSA, sus niveles 1-4 y dónde se ubica el proyecto (**Build L1**: SBOM + dependency review sin provenance firmada; el OIDC hacia AWS no cuenta como SLSA Build), referenciando `docs/ci-cd/ci-cd-pipeline-empresarial.md` §25.2 y `docs/security/security-enterprise-guide.md`
 
 #### Scenario: Explica el framing Staff-level
 
@@ -281,18 +281,18 @@ Las guías SHALL usar español, tono de enseñanza de nivel profesional, tablas 
 #### Scenario: Extensión dentro del rango
 
 - **WHEN** se mide la extensión de cada guía
-- **THEN** cada archivo tiene entre 800 y 1500 líneas, salvo la guía 23 (469 líneas documentadas como excepción: delega la profundidad en `docs/ci-cd-pipeline-empresarial.md` por la regla link-don't-copy)
+- **THEN** cada archivo tiene entre 800 y 1500 líneas, salvo la guía 23 (469 líneas documentadas como excepción: delega la profundidad en `docs/ci-cd/ci-cd-pipeline-empresarial.md` por la regla link-don't-copy)
 
 ### Requirement: Sin duplicación de documentación existente
 
 Las guías SHALL referenciar con enlaces la documentación existente (`docs/learning/ci-cd/workflows-mantenimiento-guia.md`
-con uso intensivo, `docs/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`, `docs/security/security-enterprise-guide.md`,
+con uso intensivo, `docs/ci-cd/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`, `docs/security/security-enterprise-guide.md`,
 `docs/aws-*.md`) en lugar de copiar su contenido. `docs/CONTEXT-CICD.md` y `docs/CONTEXT-CICD.md`
 NO son referenciables: no existen en el repo.
 
 #### Scenario: Se enlaza en lugar de copiar
 
-- **WHEN** una guía necesita contenido que ya existe en `docs/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`,
+- **WHEN** una guía necesita contenido que ya existe en `docs/ci-cd/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`,
   `docs/learning/ci-cd/workflows-mantenimiento-guia.md` o docs de AWS
 - **THEN** enlaza al documento existente en lugar de duplicar el contenido
 

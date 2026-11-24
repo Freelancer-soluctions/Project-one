@@ -19,7 +19,7 @@ frozen return shape.
 
 - Existing `evaluateBody({ body, author }) -> { verdict, failures, warnings }`
   contract; `failures: [{ rule, section, message }]`.
-- `.github/PULL_REQUEST_TEMPLATE.md` and `docs/pre-merge-gates-governance.md`.
+- `.github/PULL_REQUEST_TEMPLATE.md` and `docs/ci-cd/pre-merge-gates-governance.md`.
 
 ## Steps expected
 

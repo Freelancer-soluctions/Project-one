@@ -34,10 +34,10 @@ Estado que condiciona el diseño:
 
 **Decisión**: implementación **por dos fases**. La fase 1 (sin cuenta AWS) se implementa en este change; la fase 2 (cloud real) queda como tareas explícitas en `tasks.md` que el usuario activa al completar hitos del learning path con Floci.
 
-| Fase                  | Requiere                 | Qué implementa                                                                                                                                                                                               | Desbloqueo                                                              |
-| --------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| **1 (YA)**            | Nada de AWS              | Dockerfile fix + `.dockerignore`, job `docker-build` (build + boot validation vs Floci+Postgres), `deploy.yml` con jobs cloud gated, environments, docs (arquitectura + Terraform reference + learning path) | Merge del change                                                        |
-| **2 (post-learning)** | Cuenta AWS + hitos Floci | ECR push, ECS Fargate, RDS, OIDC, activación de deploy staging/prod, verificación de rollback                                                                                                                | Hitos del learning path (docs/aws-cd-learning-path.md) + infra presente |
+| Fase                  | Requiere                 | Qué implementa                                                                                                                                                                                               | Desbloqueo                                                                    |
+| --------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| **1 (YA)**            | Nada de AWS              | Dockerfile fix + `.dockerignore`, job `docker-build` (build + boot validation vs Floci+Postgres), `deploy.yml` con jobs cloud gated, environments, docs (arquitectura + Terraform reference + learning path) | Merge del change                                                              |
+| **2 (post-learning)** | Cuenta AWS + hitos Floci | ECR push, ECS Fargate, RDS, OIDC, activación de deploy staging/prod, verificación de rollback                                                                                                                | Hitos del learning path (docs/ci-cd/aws-cd-learning-path.md) + infra presente |
 
 **Por qué**: respeta la decisión del usuario ("aprender AWS antes de usarlo") sin cancelar el CD: el pipeline queda diseñado y la parte no-cloud verificable, y las tareas cloud son en sí mismas el vehículo de aprendizaje. Evita dos extremos malos: implementar cloud real a ciegas (riesgo/costo sin conocimiento) o solo documentar sin código (cero progreso, pipeline ficticio).
 
@@ -100,7 +100,7 @@ Estado que condiciona el diseño:
 
 ### D9. Infraestructura como código: consola guiada primero (learning), Terraform reference después
 
-**Decisión**: la fase 2 provisiona **primero por consola AWS guiada** (el usuario aprende los servicios tocándolos) y **codifica después en Terraform** (reference en `docs/aws-deploy-architecture.md`, state en S3). Terraform es el IaC del plan (glosario sección 2), no CloudFormation.
+**Decisión**: la fase 2 provisiona **primero por consola AWS guiada** (el usuario aprende los servicios tocándolos) y **codifica después en Terraform** (reference en `docs/ci-cd/aws-deploy-architecture.md`, state en S3). Terraform es el IaC del plan (glosario sección 2), no CloudFormation.
 
 **Por qué**: para un aprendiz, consola → comprensión → IaC es la secuencia pedagógica correcta; Terraform reference documentada permite reproducir y revisar (requisito `cd-aws-learning-path`). CloudFormation descartado: vendor-lock y menos ecosistema de examples que Terraform.
 
@@ -127,7 +127,7 @@ Estado que condiciona el diseño:
 1. Coordinar/verificar Dockerfile fix + `.dockerignore` (tasks 0.1-0.2 de `ci-preview-environments`)
 2. Implementar job `docker-build` (build + boot validation vs Floci + Postgres efímera) — verde sin AWS
 3. Crear `deploy.yml` con jobs cloud gated (skippean limpio) + `concurrency`
-4. Documentar: `docs/aws-deploy-architecture.md` + `docs/aws-cd-learning-path.md`
+4. Documentar: `docs/ci-cd/aws-deploy-architecture.md` + `docs/ci-cd/aws-cd-learning-path.md`
 5. Validar `openspec validate --strict`
 
 **Fase 2 (activación por hitos de learning):** 6. Hito ECR (Floci practice) → crear repo ECR + OIDC role + `AWS_ROLE_ARN` repository variable → job `ecr-push` se activa solo 7. Hito ECS (Floci practice) → provisionar ECS Fargate staging (consola guiada) + environment `staging` secrets → `deploy-staging` activo 8. Hito RDS (Floci practice) → provisionar RDS + `DATABASE_URL` de staging → smoke tests reales 9. Hito producción → environment `production` con reviewers + ALB + dominios → `deploy-production` activo 10. Verificar rollback: simular deploy fallido → circuit breaker revierte; `prisma migrate down` documentado

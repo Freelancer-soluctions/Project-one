@@ -79,7 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | **origin/main check** | ❌ No check — would fail with cryptic error if missing         | ✅ `git rev-parse --verify origin/main` with clear error + `git fetch origin main --depth=1` |
 | **Failure feedback**  | ❌ `set -e` suppressed echo on failure                         | ✅ `                                                                                         |     | { echo "❌ ...failed"; exit 1; }` pattern per command |
 
-**`docs/testing-architecture.md`** — New section 7.5 "Estrategia de Ejecución por Capas" documenting three-tier testing strategy (pre-commit <10s / pre-push ~30s / CI unlimited) and updated section 11 ADR table.
+**`docs/quality/testing-architecture.md`** — New section 7.5 "Estrategia de Ejecución por Capas" documenting three-tier testing strategy (pre-commit <10s / pre-push ~30s / CI unlimited) and updated section 11 ADR table.
 
 ---
 

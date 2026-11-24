@@ -2,7 +2,7 @@
 
 ## 1. Config markdownlint
 
-- [ ] 1.1 Crear `.markdownlint.json` en la raíz con `default: true`, MD013 (`line_length: 120`, `tables: false`), MD033 (`allowed_elements`), MD049/MD014/MD024/MD036/MD044/MD052 en `false` y `overrides` para `docs/changelog.md` — verificar: `npx markdownlint-cli --config .markdownlint.json "docs/**/*.md" "docs/changelog.md"` corre con esa config (sin "Configuration file not found") y `node -e "JSON.parse(require('fs').readFileSync('.markdownlint.json','utf8'))"` valida JSON.
+- [ ] 1.1 Crear `.markdownlint.json` en la raíz con `default: true`, MD013 (`line_length: 120`, `tables: false`), MD033 (`allowed_elements`), MD049/MD014/MD024/MD036/MD044/MD052 en `false` y `overrides` para `docs/product/changelog.md` — verificar: `npx markdownlint-cli --config .markdownlint.json "docs/**/*.md" "docs/product/changelog.md"` corre con esa config (sin "Configuration file not found") y `node -e "JSON.parse(require('fs').readFileSync('.markdownlint.json','utf8'))"` valida JSON.
 
 ## 2. Ignored files
 
@@ -10,12 +10,12 @@
 
 ## 3. Config vale + estilos
 
-- [ ] 3.1 Crear `.vale.ini` (`StylesPath = .github/styles`, `MinAlertLevel = warning`, secciones `[*]`, `[*.{md,mdx}]`, `[docs/learning/*.md]`, `[docs/changelog.md]`, `[*.*.md]` con `BasedOnStyles = Vale, MiEstiloES`) — verificar: `vale --config .vale.ini --minAlertLevel=warning docs/learning/prettier-configuration.md` arranca y reporta sin error de config.
+- [ ] 3.1 Crear `.vale.ini` (`StylesPath = .github/styles`, `MinAlertLevel = warning`, secciones `[*]`, `[*.{md,mdx}]`, `[docs/learning/*.md]`, `[docs/product/changelog.md]`, `[*.*.md]` con `BasedOnStyles = Vale, MiEstiloES`) — verificar: `vale --config .vale.ini --minAlertLevel=warning docs/learning/prettier-configuration.md` arranca y reporta sin error de config.
 - [ ] 3.2 Crear `.github/styles/` con vocabulario (`config/vocabularies/Base/accept.txt` + `reject.txt` con términos técnicos del repo: workspaces, prisma, lint-staged, markdownlint…) y estilo `MiEstiloES/` — verificar: `vale ls-config` muestra `StylesPath` correcto y `vale` no marca términos de `accept.txt` como `Vale.Spelling`.
 
 ## 4. Doc de referencia (ES)
 
-- [ ] 4.1 Actualizar `docs/learning/docs-changelog-validation.md` como referencia del change: sustituir las citas inexistentes `CHANGELOG.md` por `docs/changelog.md`, reflejar los scripts `docs:*` realmente creados, el job `docs-validation` real y las fases de adopción aplicadas — verificar: `grep -n "CHANGELOG.md" docs/learning/docs-changelog-validation.md` solo matchea menciones históricas/explicitas, y el doc cita `.markdownlint.json`, `.vale.ini`, `docs:check` y `docs-validation` coherentes con los archivos creados (`npm run docs:check` documentado == script real).
+- [ ] 4.1 Actualizar `docs/learning/docs-changelog-validation.md` como referencia del change: sustituir las citas inexistentes `CHANGELOG.md` por `docs/product/changelog.md`, reflejar los scripts `docs:*` realmente creados, el job `docs-validation` real y las fases de adopción aplicadas — verificar: `grep -n "CHANGELOG.md" docs/learning/docs-changelog-validation.md` solo matchea menciones históricas/explicitas, y el doc cita `.markdownlint.json`, `.vale.ini`, `docs:check` y `docs-validation` coherentes con los archivos creados (`npm run docs:check` documentado == script real).
 
 ## 5. Scripts npm
 

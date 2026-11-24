@@ -290,7 +290,7 @@ inexistente), y `incremental: true` se asume en el design pero no está en ning�
 | 1   | **ESLint sin parser TS** (`typescript-eslint` ausente)                                                                                                | ❌ task 1.2 amplía globs a `{js,ts}` sin instalar parser → primer `.ts` = `Parsing error` en lint, contradice el spec "First converted file is covered by every gate" | **Alta — bloqueante Fase 0**                                                   |
 | 2   | **Filtro de tests por substring `.unit.test.js`**                                                                                                     | ❌ task 1.2 no toca scripts `test:unit`/`test:integration`/`test:changed` → tests convertidos no se ejecutan (pérdida silenciosa)                                     | **Alta**                                                                       |
 | 3   | **Runtime endgame: Node 20 EOL + strip-types exige `.ts` specifiers**                                                                                 | ❌ design lo declara Non-Goal ("Node ejecuta los `.js` nativos" solo cierta mientras queden `.js`); no resuelve cómo corre `bin/index.ts` (§6 de este doc)            | **Alta — decisión de usuario**                                                 |
-| 4   | **`design.md` §8 falso**: afirma "eslint [de lint-staged] ya lista `ts` en sus globs — verificado 2026-10-01"                                         | ❌ real: `"*.{js,jsx,cjs,mjs}"` (confirmado en `docs/code-style.md` L72); task 5.8 fallaría tal como está escrita                                                     | **Media — error factual**                                                      |
+| 4   | **`design.md` §8 falso**: afirma "eslint [de lint-staged] ya lista `ts` en sus globs — verificado 2026-10-01"                                         | ❌ real: `"*.{js,jsx,cjs,mjs}"` (confirmado en `docs/quality/code-style.md` L72); task 5.8 fallaría tal como está escrita                                             | **Media — error factual**                                                      |
 | 5   | **Target de dep-cruiser equivocado** (task 1.2/impact: `apps/server/.dependency-cruiser.cjs`)                                                         | ❌ ese archivo no tiene regexes (solo `extends`); la raíz ya cubre `(js                                                                                               | ts)`; lo único real: añadir `options.tsConfig.fileName` en server si se quiere | **Media — error factual** |
 | 6   | **Dockerfile `CMD ["node","src/bin/index.js"]` ausente** de impact/tasks 4.1                                                                          | ❌ tasks 4.1 menciona `main`/`ecosystem`/nodemon pero no Dockerfile ni compose → Fase 3 rompe el contenedor                                                           | **Media**                                                                      |
 | 7   | **`@types/express` sin pinear `^4`** (task 1.4)                                                                                                       | ❌ instalar `@types/express` sin versión tira 5.0.6 → ruido de errores ajenos al baseline 1.3                                                                         | **Media**                                                                      |
@@ -375,9 +375,9 @@ la Fase D.
   [`openspec/changes/server-typescript-migration/`](../openspec/changes/server-typescript-migration/README.md) —
   `proposal.md`, `design.md`, `tasks.md`, `specs/server-typescript-incremental-migration/spec.md`,
   `specs/config-correctness/spec.md`
-- Estado CI/CD y métricas de progreso: [`docs/CONTEXT-CICD.md`](CONTEXT-CICD.md)
-- Glosario de tooling (incluye el glob real de lint-staged): [`docs/code-style.md`](code-style.md)
-- Strict flags doc absorbido: [`docs/learning/typescript-strict-check.md`](learning/typescript-strict-check.md)
+- Estado CI/CD y métricas de progreso: [`docs/CONTEXT-CICD.md`](../CONTEXT-CICD.md)
+- Glosario de tooling (incluye el glob real de lint-staged): [`docs/quality/code-style.md`](../quality/code-style.md)
+- Strict flags doc absorbido: [`docs/learning/typescript-strict-check.md`](../learning/typescript-strict-check.md)
 
 ## 8. Fuentes
 
@@ -446,7 +446,7 @@ la Fase D.
 > **Verificación local** (2026-10-14): conteos de archivos/LOC/imports/JSDoc/`process.env`, lectura de `package.json`
 > (raíz y server), `tsconfig.json` (raíz y server), `eslint.config.js`, `knip.jsonc`, `.dependency-cruiser.cjs` (raíz
 > y server), `vitest.config.js`, `.husky/*`, `.github/workflows/ci.yml` (L568, L1777), `Dockerfile`,
-> `docs/code-style.md` y del change completo.
+> `docs/quality/code-style.md` y del change completo.
 
 ---
 
@@ -514,7 +514,7 @@ async function createUser(req, res) {
    - No usar `@function`, `@async` ni `@description`.
    - No añadir JSDoc a `routes.js` (usar Swagger/OpenAPI).
 
-**Referencia completa de patrones:** `docs/jsdoc-reference-guide.md`.
+**Referencia completa de patrones:** `docs/backend/jsdoc-reference-guide.md`.
 
 ### 9.3 Módulos afectados
 
@@ -552,10 +552,10 @@ Los 24 módulos de `apps/server/src/modules/` se documentaron:
 ### 9.4 Exclusiones y mantenimiento
 
 - **`routes.js`**: usa Swagger/OpenAPI, no JSDoc.
-- **Funciones nuevas**: seguir `docs/jsdoc-reference-guide.md`, documentar todos los parámetros
+- **Funciones nuevas**: seguir `docs/backend/jsdoc-reference-guide.md`, documentar todos los parámetros
   con tipo y descripción, añadir `@throws` para cada error, y `@example` en funciones complejas
   (recomendado).
-- **Code review**: usar la sección JSDoc de `docs/code-review-checklist.md`.
+- **Code review**: usar la sección JSDoc de `docs/quality/code-review-checklist.md`.
 - **Enforcement**: los PRs sin JSDoc correcto se marcan en review; el linting mantiene consistencia de formato.
 
 ### 9.5 Timeline

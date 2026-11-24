@@ -38,7 +38,7 @@ Components that interact with Redux, Router, or API calls SHALL have a correspon
 
 ### Requirement: Test patterns SHALL follow existing conventions
 
-Tests SHALL follow the patterns established in `apps/client/src/components/404/NotFound.*.test.jsx` and `docs/testing-architecture.md`: unit tests named `*.unit.test.jsx`, integration tests named `*.integration.test.jsx`.
+Tests SHALL follow the patterns established in `apps/client/src/components/404/NotFound.*.test.jsx` and `docs/quality/testing-architecture.md`: unit tests named `*.unit.test.jsx`, integration tests named `*.integration.test.jsx`.
 
 #### Scenario: Naming convention holds
 

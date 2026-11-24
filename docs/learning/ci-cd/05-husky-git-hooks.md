@@ -22,7 +22,7 @@ Al terminar esta guía, serás capaz de:
 
 1. ✅ **Nivel Fundamentos completado** — Entiendes CI/CD, Git+YAML, GitHub Actions base, secrets/variables, Docker básico
 2. ✅ **Guía 01 (Git + YAML)** — Dominas flujo de ramas, Conventional Commits, Husky + commitlint básico, sintaxis YAML
-3. ✅ **Conceptos de testing** — Sabes qué es Vitest y `vitest --changed` (guías 02, 04, y `docs/testing-architecture.md`)
+3. ✅ **Conceptos de testing** — Sabes qué es Vitest y `vitest --changed` (guías 02, 04, y `docs/quality/testing-architecture.md`)
 4. ✅ **Terminal cómoda** — Entiendes `&` (background), `wait`, exit codes, pipes
 
 > **Si no completaste Fundamentos:** Vuelve a [`./fundamentos-README.md`](./fundamentos-README.md) (nivel Fundamentos) y completa las guías 00-04. Este nivel **asume** esos conceptos y no los re-explica.
@@ -399,7 +399,7 @@ flowchart LR
 - **Server**: `--config apps/server/vitest.config.js` → busca `*.unit.test.js` y `*.integration.test.js` colocalizados
 - **Client**: `--config apps/client/vitest.config.js` → busca `*.unit.test.js` y `*.ui.test.js` con Testing Library
 
-> 📖 **Referencia**: [`docs/testing-architecture.md`](../../testing-architecture.md) § "Workspaces y Orquestación" — `npm run test:changed` usa el mismo principio. Ver también `package.json` línea 38: `"test:changed": "npm run test:changed --workspaces --if-present"`
+> 📖 **Referencia**: [`docs/quality/testing-architecture.md`](../../quality/testing-architecture.md) § "Workspaces y Orquestación" — `npm run test:changed` usa el mismo principio. Ver también `package.json` línea 38: `"test:changed": "npm run test:changed --workspaces --if-present"`
 
 ---
 
@@ -688,7 +688,7 @@ Ejecuta `git fetch origin main` y vuelve a intentar el push.
 
 ### ¿Por qué `--max-warnings 0` en ESLint?
 
-**Cero tolerancia a warnings**. Un warning hoy es un error mañana. `--max-warnings 0` hace que ESLint falle si hay **cualquier** warning, forzando al equipo a mantener código limpio. Ver [`docs/code-style.md`](../../code-style.md) para estándares completos.
+**Cero tolerancia a warnings**. Un warning hoy es un error mañana. `--max-warnings 0` hace que ESLint falle si hay **cualquier** warning, forzando al equipo a mantener código limpio. Ver [`docs/quality/code-style.md`](../../quality/code-style.md) para estándares completos.
 
 ### ¿El hook pre-push corre TODOS los tests o solo los afectados?
 
@@ -892,14 +892,14 @@ entorno): el contrato de exit codes del script (0/1/otro) existe exactamente par
 
 ## 📚 15. Lecturas complementarias (en el repo)
 
-| Recurso                              | Para qué                                                   | Enlace                                                                                                                                    |
-| ------------------------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `workflows-mantenimiento-guia.md` §8 | Hooks locales, baseline Semgrep, timeout gotcha            | [`workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md)                                                                      |
-| `adr/turborepo-evaluation.md`        | Por qué `lint-staged` y no `turbo` (todavía)               | [`docs/modules/requirements-engineering/adr/turborepo-evaluation.md`](../../modules/requirements-engineering/adr/turborepo-evaluation.md) |
-| `code-style.md`                      | Estándares que ESLint/`--max-warnings 0` hace obligatorios | [`../../code-style.md`](../../code-style.md)                                                                                              |
-| `testing-architecture.md`            | Pirámide de tests y `--changed` en profundidad             | [`../../testing-architecture.md`](../../testing-architecture.md)                                                                          |
-| `commitlint.config.js`               | Regla activa de Conventional Commits en el repo            | [`../../../commitlint.config.js`](../../../commitlint.config.js)                                                                          |
-| `.gitleaks.toml`                     | Reglas custom + allowlist de secret scanning               | [`../../../.gitleaks.toml`](../../../.gitleaks.toml)                                                                                      |
+| Recurso                                | Para qué                                                   | Enlace                                                                                                                                    |
+| -------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `workflows-mantenimiento-guia.md` §8   | Hooks locales, baseline Semgrep, timeout gotcha            | [`workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md)                                                                      |
+| `adr/turborepo-evaluation.md`          | Por qué `lint-staged` y no `turbo` (todavía)               | [`docs/modules/requirements-engineering/adr/turborepo-evaluation.md`](../../modules/requirements-engineering/adr/turborepo-evaluation.md) |
+| `docs/quality/code-style.md`           | Estándares que ESLint/`--max-warnings 0` hace obligatorios | [`../../code-style.md`](../../quality/code-style.md)                                                                                      |
+| `docs/quality/testing-architecture.md` | Pirámide de tests y `--changed` en profundidad             | [`../../testing-architecture.md`](../../quality/testing-architecture.md)                                                                  |
+| `commitlint.config.js`                 | Regla activa de Conventional Commits en el repo            | [`../../../commitlint.config.js`](../../../commitlint.config.js)                                                                          |
+| `.gitleaks.toml`                       | Reglas custom + allowlist de secret scanning               | [`../../../.gitleaks.toml`](../../../.gitleaks.toml)                                                                                      |
 
 ---
 

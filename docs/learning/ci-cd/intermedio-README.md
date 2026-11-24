@@ -141,8 +141,8 @@ flowchart LR
 | -------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | **Estado actual CI/CD**          | [`../../../docs/CONTEXT-CICD.md`](../../../docs/CONTEXT-CICD.md)                                  | Snapshot de workflows, jobs, tiempos, métricas actuales              |
 | **Guía mantenimiento workflows** | [`../../../docs/learning/ci-cd/workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) | Patrones para modificar workflows sin romper CI                      |
-| **Arquitectura de testing**      | [`../../../docs/testing-architecture.md`](../../../docs/testing-architecture.md)                  | Pirámide, estrategias, herramientas, configuración Vitest/Playwright |
-| **Code Style**                   | [`../../../docs/code-style.md`](../../../docs/code-style.md)                                      | Convenciones lint, format, naming, commits                           |
+| **Arquitectura de testing**      | [`../../../docs/quality/testing-architecture.md`](../../../docs/quality/testing-architecture.md)  | Pirámide, estrategias, herramientas, configuración Vitest/Playwright |
+| **Code Style**                   | [`../../../docs/quality/code-style.md`](../../../docs/quality/code-style.md)                      | Convenciones lint, format, naming, commits                           |
 
 > **Convención**: Estos docs son **fuente de verdad viva**. Si detectas discrepancia entre una guía y estos docs, **gana el doc de referencia**. Reporta la discrepancia como issue.
 

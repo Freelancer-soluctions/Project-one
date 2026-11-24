@@ -545,7 +545,7 @@ required_status_checks:
 
 ### 9.7 La Capa SAST — governance adyacente (NO ligada al ruleset hoy)
 
-> ⚠️ **Discrepancia documental ya registrada:** CONTEXT-CICD.md §9.3.9 describe un job `SAST (Semgrep)` como existente en `ci.yml`. Al verificar el código real (grep en `.github/workflows/ci.yml`), **el job NO existe**. La doc describe el **plan** (change `ci-sast-governance`), no el estado implementado. `pre-merge-gates-governance.md` L473 ya la registró.
+> ⚠️ **Discrepancia documental ya registrada:** CONTEXT-CICD.md §9.3.9 describe un job `SAST (Semgrep)` como existente en `ci.yml`. Al verificar el código real (grep en `.github/workflows/ci.yml`), **el job NO existe**. La doc describe el **plan** (change `ci-sast-governance`), no el estado implementado. `docs/ci-cd/pre-merge-gates-governance.md` L473 ya la registró.
 
 **Estado REAL hoy:**
 

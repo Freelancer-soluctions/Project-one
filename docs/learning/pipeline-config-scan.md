@@ -15,14 +15,14 @@
 - **Acciones con versiones desactualizadas** (comparación con `npm outdated`-like pero para GitHub Actions).
 - **Configuración no recomendada** (permisos excesivos, `pull-requests: write` innecesario, `timeout-minutes` demasiado alto, etc.).
 
-En `docs/ci-cd-pipeline-empresarial.md` §23.3 `Stage 2` (`Security`): SAST + SCA + IaC van en paralelo (pre‑build). El escáner de configuración de pipelines se ubica en la misma capa de **seguridad pre‑build**, junto a `dependency-review` (manifest PR‑time) y `security.yml` `dependency‑scan` (Trivy filesystem). No reemplaza a ninguno; es complementario.
+En `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3 `Stage 2` (`Security`): SAST + SCA + IaC van en paralelo (pre‑build). El escáner de configuración de pipelines se ubica en la misma capa de **seguridad pre‑build**, junto a `dependency-review` (manifest PR‑time) y `security.yml` `dependency‑scan` (Trivy filesystem). No reemplaza a ninguno; es complementario.
 
 Estado verificado (`project-one`):
 
 - `.github/workflows/ci.yml`: job `actionlint-advisory` (2C) — único job de actionlint por PR (2026-09-30: el gate bloqueante `actionlint` de 2B fue consolidado aquí; agregador quality sin él). Ejecuta la imagen Docker pinneada `rhysd/actionlint:1.7.12` vía `docker run` (2026-09-30: eliminado el patrón `curl | bash` del `download-actionlint.bash` — la versión del binario estaba fijada pero el instalador apuntaba a `main`; ahora no hay descarga de scripts remotos en runtime).
 - `.github/actionlint.yaml`: política como código (ignores de `SC2086`, `SC2129`, etc.).
 - `package.json`: stub `actionlint: 2.0.6` (WASM, no valida de verdad).
-- `zizmor`: 0 matches en `.github/workflows/`; solo mención en `docs/ci-cd-pipeline-empresarial.md` L2854 (roadmap).
+- `zizmor`: 0 matches en `.github/workflows/`; solo mención en `docs/ci-cd/ci-cd-pipeline-empresarial.md` L2854 (roadmap).
 - Directorios `.github/workflows/` (snapshot 2026-09-28): 9 workflows (`ci.yml`, `deploy.yml`, `opencode-review.yml`, `preview.yml`, `release.yml`, `scheduled-security.yml`, `security-digest.yml`, `security.yml`, `ci-enterprise.yml`). Posteriores: `ci-enterprise.yml` **fue retirado** (no existe en el repo ni en el registro) y se sumaron otros workflows; inventario vigente en `docs/CONTEXT-CICD.md` §3.4/§5.9, no aquí.
 
 ---
