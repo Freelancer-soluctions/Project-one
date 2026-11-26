@@ -1,8 +1,8 @@
 # Checkov — política como código (capa IaC, change `sca-lockfile-compliance`)
 #
-# NOTA de auto-read (lección `.scancode.yml`): la CLI de checkov SÍ auto-lee
+# NOTA de auto-read (lección `.scancode.yml`): la CLI de checkov SI auto-lee
 # este archivo del working directory (`--config-file` por defecto = .checkov.yml
-# en el cwd). Aun así, los jobs de CI lo pasan EXPLÍCITO vía el input
+# en el cwd). Aun así, los jobs de CI lo pasan EXPLICITO vía el input
 # `config_file` de bridgecrewio/checkov-action (ancla estable, independiente
 # del cwd) — ver .github/workflows/ci.yml job `checkov-iac` y
 # scheduled-security.yml job `checkov-iac-weekly`.
