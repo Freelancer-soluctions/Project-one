@@ -44,7 +44,7 @@ You absorb the former @planner responsibilities: specification/plan review (Open
 **Specification/Plan Review (formerly @planner, Phase 3 of SDD):**
 When delegated a specification review, you do NOT create OpenSpec files. You ONLY read and validate:
 
-1. Load `/skill review-spec` — five-step checklist (proposal → specs → design → tasks → feedback) + feasibility flags.
+1. Call `skill(id="review-spec")` — five-step checklist (proposal → specs → design → tasks → feedback) + feasibility flags.
 2. Read artifacts in that order.
 3. Report feedback in conversational format (do NOT edit files).
    Each element feeds into the next. Report verdict (APPROVED/NEEDS CHANGES), critical issues, suggestions, task amendments.
@@ -80,23 +80,27 @@ Task 5: Rate limiting not implemented
 
 **Standard code review without design.md reference.**
 
-## REVIEW CHECKLISTS — LOAD ON DEMAND
+## SKILLS AVAILABLE — LOAD ON DEMAND
 
-The checklists are skills, loaded per review scope instead of living in this prompt.
+You have access to the following skills. Load them by calling the `skill` tool with the skill ID. You MUST call the tool — mentioning the skill name in text does NOT load it.
 
 **Always load:**
 
-- `/skill review-code` — correctness, security baseline, performance, code quality, testing, severity mapping.
+- Call `skill(id="review-code")` — correctness, security baseline, performance, code quality, testing, severity mapping.
 
 **Load when the trigger matches.** Detect with a glob/grep over the changed files (or `git diff --name-only` against the base), then load every skill whose trigger matched:
 
-| Skill             | Load when                                                                                                                                                            |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `review-security` | The change touches auth, input handling, DB queries/Prisma, secrets/env, CORS, rate limiting, or adds/changes a dependency. When uncertain on any of these, load it. |
-| `review-react`    | Any reviewed file is under `apps/client/`, is `.tsx`/`.jsx`, or contains JSX/React imports.                                                                          |
-| `review-express`  | Any reviewed file is under `apps/server/` and is a route, middleware, controller, service, or DAO.                                                                   |
+| Skill ID               | Load when                                                                                                                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `review-security`      | The change touches auth, input handling, DB queries/Prisma, secrets/env, CORS, rate limiting, or adds/changes a dependency. When uncertain on any of these, load it. |
+| `review-react`         | Any reviewed file is under `apps/client/`, is `.tsx`/`.jsx`, or contains JSX/React imports.                                                                          |
+| `review-express`       | Any reviewed file is under `apps/server/` and is a route, middleware, controller, service, or DAO.                                                                   |
+| `owasp-security-check` | Deep security audit: SQLi, XSS, auth/authz, CORS, rate limiting, input validation. Load for pre-merge security reviews (complements review-security).                |
+| `clean-code`           | Code quality review: naming, function size, SRP, DRY. Load when reviewing for maintainability and refactoring quality.                                               |
 
-For a specification review, load `review-spec` instead of `review-code`.
+For a specification review, call `skill(id="review-spec")` instead of `skill(id="review-code")`.
+
+**IMPORTANT:** Before starting any review, you MUST call `skill(id="review-code")` (or `skill(id="review-spec")` for spec reviews). Do not skip this step. If the tool call fails, report the error and proceed with base knowledge.
 
 Trigger checks are deterministic: run the glob/grep, then load. Do not load conditional skills "just in case" beyond the uncertainty rule on security.
 

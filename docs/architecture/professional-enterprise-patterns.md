@@ -443,6 +443,241 @@ El proyecto ya tiene una guía enterprise de seguridad (`docs/security/security-
 
 ---
 
+## 11. Patrones de Diseño y Arquitectónicos — Investigación 2025-2026
+
+> Investigación realizada con fuentes web (2025-2026) sobre patrones empresariales aplicables al stack actual (Express 4 + Prisma 7 + PostgreSQL 16 + React 18 + Vite + RTK Query + monorepo). Validada contra el estado real del código (25 módulos, 43 modelos Prisma, 3 roles RBAC, ~65 permission codes, TS strict en server, JS/JSX en client).
+
+### 11.1 Patrones actuales ya aplicados (refuerzo)
+
+| Patrón                                               | Dónde                                               | Evidencia                                                   |
+| ---------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------- |
+| Layered Architecture (routes→controller→service→dao) | `apps/server/src/modules/*/`                        | 25 módulos con capas homogéneas                             |
+| Middleware Chain (auth, validation, error)           | `apps/server/src/middleware/`                       | `verifyToken`, `checkRoleAuthOrPermisssion`, `errorHandler` |
+| DAO / Repository implícito                           | `apps/server/src/modules/*/dao.ts`                  | Prisma directo en DAOs                                      |
+| RBAC fail-closed por permisos                        | `middleware/verifyRole.ts`                          | `userPermits`, ADMIN bypass                                 |
+| Module-per-domain (modular monolith)                 | `apps/server/src/modules/`                          | 25 módulos autocontenidos                                   |
+| RTK Query + composite LIST ID tags                   | `apps/client/src/modules/*/api/*.js`                | Cache invalidation documentado                              |
+| Self-contained components                            | `apps/client/src/modules/*/`                        | Decisión `architectural-approach.md §1.1`                   |
+| Soft delete + audit fields                           | varios DAOs                                         | `deleted`, `createdBy`, `updatedBy`                         |
+| Field-level encryption (AES-GCM)                     | `common/crypto/`, `encription-prisma-middleware.ts` | payroll, employees                                          |
+
+### 11.2 Patrones candidatos (validados por investigación web)
+
+| Patrón                                             | Capa             | Problema que resuelve                                                                | Aplicabilidad (módulos reales)                                              | Esfuerzo | Impacto | Librería/Herramienta                                                 | Prerequisito                                               |
+| -------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- | -------- | ------- | -------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **Unit of Work** (`$transaction`)                  | Backend          | Writes multi-aggregate deben commitear/rollback juntos (sale→stock→movement)         | `sales`, `purchase`, `payroll`, `inventoryMovement`                         | M–L      | H       | Prisma `$transaction` + tipo `Tx` exportado                          | Límites de servicio; pasar `tx` a DAOs                     |
+| **Repository (interfaz)**                          | Backend          | DAOs acoplados a Prisma; difícil testear                                             | Todos los `dao.ts` (piloto: `sales`, `employees`)                           | L        | M       | Interfaz por aggregate + impl Prisma                                 | Solo donde haya test double real; evitar boilerplate vacío |
+| **DTO + Mapper**                                   | Backend + shared | Modelos Prisma se filtran al client; campos sensibles expuestos                      | `employees`, `payroll`, `users`, `clients`                                  | M        | H       | Zod schemas en package compartido + mappers                          | Package `shared`                                           |
+| **Strategy**                                       | Backend          | Algoritmos variantes (cálculo payroll, pricing, notificaciones)                      | `payroll`, pricing en `sales`, notificaciones socket                        | S–M      | M       | Interfaces TS planas                                                 | Ninguno                                                    |
+| **Domain Events (bus in-process)**                 | Backend          | Side effects (mentions, websocket, audit) ocultos en services                        | `sales`→`stock`/`inventoryMovement`/notify; `attendance`; `events`          | M        | H       | `EventEmitter` tipado / `mitt`; stub de outbox                       | Unit of Work para consistencia                             |
+| **Client RBAC gating**                             | Frontend         | Botones/rutas visibles a no autorizados (UX)                                         | Todas las páginas de módulos                                                | M        | H       | `usePermission` hook + permission codes de `/permission`             | Endpoint de permisos (existe)                              |
+| **Facade**                                         | Frontend         | Componentes llaman RTK Query directo; orquestación dispersa                          | Páginas compuestas (dashboards, flujos de orden)                            | S–M      | M       | Facade hooks por feature                                             | Ninguno                                                    |
+| **Atomic Design / Compound Components**            | Frontend         | `components/` plano con granularidad mixta; shadcn da átomos pero composición ad-hoc | `components/`, `modules/*/components`                                       | L        | M       | shadcn/ui + CVA variants                                             | Design tokens                                              |
+| **ADR (MADR 4.0)**                                 | Docs             | Decisiones no trazables (solo 1 ADR)                                                 | Todas las decisiones nuevas                                                 | S        | M       | Template existente `docs/requirements-engineering/adr/TEMPLATE.md`   | Ninguno                                                    |
+| **Feature Flags**                                  | Full stack       | Deploy = release; sin rollback fino                                                  | Nuevos módulos, cambios riesgosos                                           | M        | M       | Unleash / Flagsmith (OpenFeature)                                    | Ninguno                                                    |
+| **Redis cache-aside**                              | Backend          | Lecturas repetidas (products, settings, permissions) pegan a DB                      | `products`, `settings`, `permission`, `stock`                               | M        | H       | `ioredis`; cache-aside + delete-on-write + TTL con jitter            | Redis ya presente (socket adapter)                         |
+| **OpenTelemetry**                                  | Backend          | Sin tracing distribuido; solo contadores Prometheus                                  | `app.ts`, Prisma, ioredis, Socket.IO                                        | M        | M       | `@opentelemetry/sdk-node`, `@prisma/instrumentation`                 | Endpoint OTLP collector                                    |
+| **BFF (in-process)**                               | Backend          | Frontend hace N llamadas por página                                                  | Módulo `dashboard` con endpoints de agregación                              | S        | M       | Endpoints de agregación en el monolito                               | Ninguno                                                    |
+| **Strangler Fig**                                  | Frontend         | Migración JS→TS del client en un solo salto es riesgosa                              | `apps/client` módulo por módulo                                             | L        | H       | `.ts/.tsx` incremental detrás de facade                              | Package `shared`                                           |
+| **Specification**                                  | Backend          | Filtros de query duplicados entre DAO WHERE y service validation                     | `sales`, `orders`, `attendance`, `expenses`                                 | S        | M       | Objetos spec componibles                                             | Ninguno                                                    |
+| **Anti-Corruption Layer (ACL)**                    | Backend          | Integraciones futuras (AWS, Cloudinary, OmniRoute)                                   | Ninguna hoy (sin integraciones externas)                                    | M        | L       | Adapter por sistema externo                                          | Solo cuando se integre                                     |
+| **CQRS**                                           | Backend          | Listados complejos compiten con writes                                               | `products` list, `stock` movements, `events` calendar, `attendance` reports | L–XL     | M       | Read projections (`$queryRaw`) + Redis cache                         | Domain events bus                                          |
+| **Prisma Client Extensions (`$extends`)** ⭐ NUEVO | Backend          | Soft-delete/audit/logging aplicados ad-hoc; `$use` removido en Prisma 7              | Todos los `dao.ts` vía client extendido                                     | S–M      | H       | `prisma.$extends` (query component)                                  | Prisma 7 (ya en track v7)                                  |
+| **Zod end-to-end** ⭐ NUEVO                        | Full stack       | Joi (server) vs Zod (client) divergen; sin validación compartida                     | Todos los módulos (server+client)                                           | M–L      | H       | Zod en package compartido; server valida con mismo schema            | Package `shared`                                           |
+| **Modular boundary linting** ⭐ NUEVO              | Tooling          | Imports profundos bypasean boundaries; drift de agentes                              | Todo el repo                                                                | S        | M       | `eslint-plugin-boundaries` / `dependency-cruiser` + `knip` existente | Asignación de tags                                         |
+| **Shared contracts package** ⭐ NUEVO              | Monorepo         | No hay fuente única de tipos/DTOs                                                    | `packages/shared` (o `packages/contracts`)                                  | M        | H       | npm workspaces + Turborepo JIT                                       | Ninguno                                                    |
+
+### 11.3 Patrones a evitar (over-engineering para ERP-lite)
+
+- **Event Sourcing** (XL esfuerzo, L impacto) — audit log table + soft delete sufice para Project One. Solo reconsiderar si requisitos regulatorios exigen historial inmutable (finanzas, fuera de scope).
+- **Microservices / BFF como servicio separado** — un solo client, un deploy. Usar módulos in-process + endpoints de agregación.
+- **Heavy DI container** (Inversify/tsyringe) — factory functions bastan; el container añade indirección y costo de startup.
+- **Full CQRS con DB de lectura separada** — usar read projections/`$queryRaw` + Redis cache; revisitar solo si latencia de lectura medida es problema.
+- **Saga framework** — usar Prisma `$transaction` para atomicidad DB; Saga solo cuando sistemas externos entren al flujo.
+- **DDD entities en todas partes** — solo donde hay invariantes complejos (`payroll`, `inventoryMovement`, RSVP de `events`). Modelos anémicos aceptables para módulos CRUD.
+- **Migración TS del client en un solo salto** — incremental, módulo por módulo, con gates `// @ts-check` (Strangler Fig).
+- **tRPC** — no recomendado: alto costo de reescritura, 25 módulos, RBAC, OpenAPI existente. REST se mantiene.
+- **Migración RTK Query → TanStack Query** — no migrar; RTK Query con composite tags es suficiente.
+
+### 11.4 Anti-patrones específicos del stack
+
+- **Prisma N+1 y FK sin índices:** PostgreSQL no auto-indexa columnas FK; `include` anidado sin `select` puede explotar. Auditar y añadir índices FK; revisar query plans.
+- **Leaking de modelos Prisma al client:** crea acoplamiento y expone campos sensibles; mitigar con DTOs compartidos.
+- **Client RBAC confundido con seguridad:** el gating en client es solo UX; `checkRoleAuthOrPermisssion` sigue siendo la frontera (ya correcto — mantener).
+- **Cache invalidation races:** delete-on-write puede ser sobreescrito por un reader stale. Definir ventana de stale aceptable; usar claves versionadas o bypass de cache para paths críticos (auth, inventario).
+- **Domain events fallando silenciosamente:** `EventEmitter` in-process traga errores de handlers; wrap handlers, loguear, evitar unhandled rejections.
+- **Soft delete inconsistente:** si el filtro vive en algunos DAOs pero no otros, filas borradas se filtran. Centralizar con Prisma extensions.
+- **Joi/Zod drift:** dos fuentes de validación divergen. Converger en Zod compartido.
+- **RTK Query tag over-invalidation:** tags amplios causan refetch storms; usar composite LIST ID tags (ya en place) e invalidación precisa.
+- **Raw SQL sin `Prisma.sql`:** auditar los 12 módulos que usan `$queryRaw`; usar `Prisma.sql`.
+- **Offset pagination en tablas sin límite:** añadir cursor para listados high-volume.
+- **AES-GCM key rotation/logging:** nunca loguear plaintext de campos sensibles; documentar lifecycle de claves.
+- **WebSocket auth:** verificar JWT en handshake; re-verificar en reconnect.
+- **Deep imports en monorepo:** bypasean APIs públicas de packages; enforce boundaries.
+- **Integration tests sobre DB real:** lentos/flaky; usar rollback transaccional por test o Testcontainers.
+- **Prisma 7 removió `$use` middleware:** migrar middleware restante a `$extends`.
+
+### 11.5 Roadmap priorizado (top 7)
+
+| #   | Patrón                                                                    | Capa     | Impacto | Esfuerzo | Ratio | Rationale                                                                               | OpenSpec change sugerido                                            |
+| --- | ------------------------------------------------------------------------- | -------- | ------- | -------- | ----- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| 1   | Unit of Work (`$transaction`)                                             | Backend  | H       | M        | H/M   | Integridad de datos en sales/purchase/payroll/inventory; prereq para ERP-lite confiable | `backend-unit-of-work`                                              |
+| 2   | Client permission gating (`usePermission`, `PermissionGate`, `RoleGuard`) | Frontend | H       | M        | H/M   | Cierra el gap RBAC documentado (100% server-side hoy); defensa en profundidad UX        | `client-rbac-gating`                                                |
+| 3   | DTO + Mapper + shared types                                               | Cross    | M       | M        | M/M   | Detiene leak de modelos Prisma; habilita migración TS del client; soporta ACL           | ADR + `dto-mapper-shared-types`                                     |
+| 4   | Repository pattern (DAO → interfaz)                                       | Backend  | M       | M        | M/M   | Desacopla servicios de Prisma; testabilidad sin mocks frágiles                          | `backend-repository-abstraction` (piloto `payroll` + `employees`)   |
+| 5   | Domain Events / Event Bus                                                 | Backend  | M       | M        | M/M   | Desacopla side effects (mentions, websocket, audit); base para CQRS futuro              | `domain-events-eventbus`                                            |
+| 6   | Strategy (movement types, expense categories)                             | Backend  | M       | S        | M/S   | Quick win; elimina sprawl de conditionals                                               | `strategy-movement-types` (piloto `inventoryMovement` + `expenses`) |
+| 7   | Redis cache-aside                                                         | Cross    | M       | M        | M/M   | Reutiliza Redis existente; reduce carga DB en listados                                  | `redis-cache-aside`                                                 |
+| 8   | Circuit Breaker (llamadas externas server)                                | Backend  | M       | M        | M/M   | Protege contra hangs de AWS/Cloudinary/Redis                                            | `circuit-breaker-external`                                          |
+| 9   | Specification pattern                                                     | Backend  | M       | S        | M/S   | Filtros componibles; mejora testabilidad de reglas de query                             | Fold en change de repository                                        |
+| 10  | ADR practice (sistemática)                                                | Cross    | M       | S        | M/S   | Institucionaliza decisiones; template existe                                            | ADR `0001-adopt-adr-practice.md`                                    |
+
+**Top 5 para implementar primero:**
+
+1. **Unit of Work** (H/M) — integridad de datos es blocker para "enterprise".
+2. **Client permission gating** (H/M) — cierra el gap RBAC más documentado.
+3. **DTO + Mapper + shared types** (M/M) — prereq para migración TS del client y ACL.
+4. **Repository pattern** (M/M) — testabilidad y desacoplamiento.
+5. **Strategy pattern** (M/S) — quick win, elimina sprawl de conditionals.
+
+### 11.6 Quick wins (sin OpenSpec, pueden ser PRs directos)
+
+- Auditar índices FK en schema Prisma.
+- Añadir `eslint-plugin-boundaries` config + CI.
+- Documentar permission codes como const compartida.
+- Exportar tipo `Tx` para transacciones.
+- Confirmar versión Prisma (7.x) y disponibilidad de `$extends`.
+- Verificar que `npm ci` se usa en CI (no `npm install`).
+- Auditar raw queries (`$queryRaw`) para asegurar `Prisma.sql`.
+
+### 11.7 Next steps
+
+1. **Crear ADR** `0001-adopt-design-patterns-roadmap.md` en `docs/adr/` (o `openspec/adr/`) registrando la decisión de adoptar los top-5 y rechazar explícitamente Event Sourcing, microservices y DI pesado (con rationale).
+2. **Abrir OpenSpec changes** para los top 5, en orden, cada uno con `proposal.md` + `design.md` (referenciando el ADR) + `tasks.md`:
+   - `backend-unit-of-work` (P0, emparejado con fix de los 5 bugs HIGH).
+   - `client-rbac-gating` (P0/P1).
+   - `dto-mapper-shared-types` (P1).
+   - `backend-repository-abstraction` (P2, piloto en `payroll` + `employees`).
+   - `strategy-movement-types` (P2, quick win en `inventoryMovement` + `expenses`).
+3. **Fold Specification pattern** en el change de repository (no change separado).
+4. **Defer** Saga, full CQRS, Event Sourcing, microservices/BFF service, heavy DI container, Atomic Design reorg hasta que haya necesidad medida (per `architectural-approach.md §5`).
+5. **Actualizar** `docs/architecture/professional-enterprise-patterns.md` §3.1 para cross-referenciar este reporte (§11) y mantener alineación.
+
+### 11.8 Referencias (investigación web 2025-2026)
+
+**Modular monolith / Clean Architecture:**
+
+- Medium — "Building a Scalable Express API Using Clean Architecture and a Modular Monolith (with TypeScript)": https://medium.com/@mwwtstq/building-a-scalable-express-api-using-clean-architecture-and-a-modular-monolith-with-typescript-c855614b05dc
+- Wojciechowski — "Clean Architecture and DDD in Practice 2025": https://wojciechowski.app/en/articles/clean-architecture-domain-driven-design-2025
+- Pramud Nadula — "Clean Architecture Patterns in Node.js & Express": https://pramudnadula.com/blog/express-clean-architecture
+- Medium (Shadi Sbaih) — "Four-Layer Module Architecture": https://medium.com/@shadisbaih/module-architecture-with-four-layers-presentation-application-domain-infrastructure-63f042a7ddca
+
+**Unit of Work / Repository:**
+
+- Prisma transactions docs: https://www.prisma.io/docs/orm/fundamentals/transactions
+- `prisma-unit-of-work` (zhuravlevma): https://github.com/zhuravlevma/prisma-unit-of-work
+- beezwax — Repository & Unit of Work: https://blog.beezwax.net/the-repository-and-unit-of-work-design-patterns
+- expona.dev — Unit of Work pattern: https://expona.dev/blog/unit-of-work
+- codelit.io — Repository Pattern: https://codelit.io/blog/repository-pattern-data-access
+
+**RTK Query / Frontend:**
+
+- The Road to Enterprise — RTK Query scalable patterns: https://theroadtoenterprise.com/blog/how-to-use-rtk-query-the-right-scalable-way
+- Refine — RTK Query 2025: https://refine.dev/blog/rtk-query-redux-toolkit-2025
+- Reddit — RTK Query enterprise: https://www.reddit.com/r/reactjs/comments/1g4pq7q/rtk_query_on_enterprise_project
+- RTK Query vs TanStack Query: https://theroadtoenterprise.com/blog/rtk-query-vs-tanstack-query
+
+**RBAC client-side:**
+
+- Permit.io — React RBAC: https://www.permit.io/blog/implementing-react-rbac-authorization
+- WorkOS — React Router v7 authorization 2026: https://workos.com/blog/react-router-v7-authorization-guide
+
+**DTO / Mapper / Shared types:**
+
+- Khalil Stemmler — DDD with TypeScript (Repository, DTO, Mapper): https://khalilstemmler.com/articles/typescript-domain-driven-design/repository-dto-mapper
+
+**Domain Events:**
+
+- Milan Jovanovic — Domain vs Integration events: https://milanjovanovic.tech/blog/domain-events-vs-integration-events
+- Milan Jovanovic — Strangler Fig modular monolith migration: https://milanjovanovic.tech/blog/strangler-fig-modular-monolith-migration
+- Sevalla — Event-driven architecture with DDD (outbox): https://sevalla.com/blog/event-driven-architecture-ddd
+- The T-Shaped Dev — Domain events production failures: https://thetshaped.dev/p/domain-events-production-failures-nodejs-typescript
+
+**Redis cache-aside:**
+
+- Redis docs — cache-aside pattern: https://redis.io/tutorials/howtos/solutions/microservices/caching
+- Guepard — cache-aside can reintroduce stale data: https://guepard.run/blog/redis-cache-aside-can-reintroduce-stale-data
+- Upstash — Redis caching patterns 2026: https://upstash.com/blog/redis-caching-patterns-2026
+- DigitalApplied — Redis caching strategies: https://www.digitalapplied.com/blog/redis-caching-strategies-nextjs-production
+
+**OpenTelemetry:**
+
+- OneUptime — Trace Prisma with OpenTelemetry: https://oneuptime.com/blog/post/2026-02-06-trace-prisma-client-database-calls-opentelemetry/view
+- Prisma tracing tutorial: https://www.prisma.io/blog/tracing-tutorial-prisma-pmkddgq1lm2
+
+**Prisma Client Extensions:**
+
+- Prisma docs v7 — client extensions: https://www.prisma.io/docs/orm/v7/prisma-client/client-extensions
+- Prisma blog — client extensions preview: https://www.prisma.io/blog/client-extensions-preview-8t3w27xkrxxn
+- ZenStack — use cases and pitfalls: https://zenstack.dev/blog/prisma-client-extensions
+- Prisma v6→v7 migration guide (middleware removal): https://tomodahinata.com/en/blog/prisma-orm-v6-to-v7-migration-guide
+- Prisma ORM manifesto 2026 (extension-based): https://www.prisma.io/blog/prisma-orm-manifesto-2026
+
+**tRPC vs REST (decisión de no adoptar):**
+
+- Encore — tRPC in 2026: https://encore.dev/articles/trpc
+- APIScout — tRPC vs GraphQL vs REST 2026: https://apiscout.dev/guides/trpc-vs-graphql-vs-rest-2026
+- tRPC monorepo discussion #6980: https://github.com/trpc/trpc/discussions/6980
+
+**Monorepo tooling:**
+
+- Nx vs Turborepo: https://nx.dev/docs/kb/nx-vs-turborepo
+- Feature-Sliced Design — monorepo 2025: https://feature-sliced.design/blog/frontend-monorepo-explained
+- Turborepo vs Nx migration (Medium): https://navanathjadhav.medium.com/turborepo-vs-nx-i-migrated-a-monorepo-twice-to-compare-38e95e434273
+- Prisma Turborepo guide: https://www.prisma.io/docs/guides/deployment/turborepo
+- monorepo.tools — TypeScript: https://monorepo.tools/typescript
+- Nx — managing TS packages in monorepos: https://nx.dev/blog/managing-ts-packages-in-monorepos
+
+**Feature Flags:**
+
+- Flagsmith vs Unleash (DEV): https://dev.to/cosmicflood/flagsmith-vs-unleash-which-open-source-feature-flag-tool-wins-7ea
+- Flagsmith — Node.js feature flags: https://www.flagsmith.com/blog/nodejs-feature-flags
+- Unleash React docs: https://docs.getunleash.io/guides/feature-flag-examples-react
+- Martin Fowler — Feature Toggles: https://martinfowler.com/articles/feature-toggles.html
+
+**Hexagonal Architecture:**
+
+- parraletz — express-hexagonal-architecture: https://github.com/parraletz/express-hexagonal-architecture
+- Matthew Wong — Hexagonal architecture TS: https://www.matthewswong.com/en/blog/hexagonal-architecture-ports-and-adapters
+- Create Express Auth — clean architecture boilerplate: https://dev.to/francemazzi/create-express-auth-a-clean-architecture-boilerplate-for-modern-apis-l04
+
+**Clean Architecture anti-patterns:**
+
+- Milan Jovanovic — Clean Architecture anti-patterns: https://milanjovanovic.tech/blog/clean-architecture-anti-patterns
+- gusilveiramp — node-clean-architecture-api: https://github.com/gusilveiramp/node-clean-architecture-api
+
+**Fuentes autoritativas:**
+
+- Martin Fowler — PoEAA catalog: https://martinfowler.com/eaaCatalog/
+- Martin Fowler — Strangler Fig: https://martinfowler.com/bliki/StranglerFigApplication.html
+- Martin Fowler — CQRS: https://martinfowler.com/bliki/CQRS.html
+- Clean Architecture (Uncle Bob): https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
+- MADR 4.0.0: https://adr.github.io/madr/
+- 12-Factor App: https://12factor.net/
+- OWASP Top 10: https://owasp.org/Top10/
+- OpenTelemetry: https://opentelemetry.io/
+
+### 11.9 Referencias internas
+
+- `docs/architecture/professional-enterprise-patterns.md` §1-10 — guía enterprise original (seguridad, CI/CD, observabilidad, testing).
+- `docs/architecture/architectural-approach.md` — decisiones RTK Query, data co-location.
+- `docs/architecture/rbac-system.md` — modelo RBAC y gaps client-side.
+- `docs/application-context.md` — scope de producto, módulos, bugs conocidos.
+- `docs/requirements-engineering/adr/TEMPLATE.md` — template ADR MADR 4.0.
+- `docs/modules/INDEX.md` — docs SDD por módulo.
+
+---
+
 ## 6. Referencias y Evidencia
 
 ### Estándares y frameworks
