@@ -11,6 +11,7 @@ import {
   useUpdateClientOrderByIdMutation,
   useCreateClientOrderMutation,
   useDeleteClientOrderByIdMutation,
+  useConvertClientOrderToSaleMutation,
 } from '../api/clientOrderApi';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
@@ -112,6 +113,35 @@ const buildDeletedAlertProps = ({ t, setOpenDialog }) => ({
   variantSuccess: 'info',
 });
 
+/** Converts an order into a sale and shows the success alert. */
+const makeConvertHandler =
+  ({
+    t,
+    convertClientOrderToSale,
+    setAlertProps,
+    setOpenAlertDialog,
+    setOpenDialog,
+  }) =>
+  async (id) => {
+    try {
+      await convertClientOrderToSale(id).unwrap();
+
+      setAlertProps({
+        alertTitle: t('convert_order'),
+        alertMessage: t('converted_successfully'),
+        cancel: false,
+        success: true,
+        onSuccess: () => {
+          setOpenDialog(false);
+        },
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
+    } catch (err) {
+      console.error('Error converting:', err);
+    }
+  };
+
 /** Delete-confirmation handler for a client order record. */
 const makeDeleteHandler =
   ({
@@ -185,6 +215,9 @@ function useClientOrderPageState() {
   const [deleteClientOrderById, { isLoading: isLoadingDelete }] =
     useDeleteClientOrderByIdMutation();
 
+  const [convertClientOrderToSale, { isLoading: isLoadingConvert }] =
+    useConvertClientOrderToSaleMutation();
+
   /**
    * Este efecto es la única fuente de verdad para disparar
    * la consulta al backend. Se ejecuta al montar y cuando
@@ -203,7 +236,8 @@ function useClientOrderPageState() {
     isFetchingClientOrder ||
     isLoadingPut ||
     isLoadingPost ||
-    isLoadingDelete;
+    isLoadingDelete ||
+    isLoadingConvert;
 
   return {
     selectedRow,
@@ -224,6 +258,7 @@ function useClientOrderPageState() {
     updateClientOrderById,
     createClientOrder,
     deleteClientOrderById,
+    convertClientOrderToSale,
   };
 }
 
@@ -235,6 +270,7 @@ const buildClientOrderLayout = ({
   dialogHandlers,
   saveHandler,
   deleteHandler,
+  convertHandler,
 }) => (
   <>
     <BackDashBoard link={'/home'} moduleName={t('clientOrder')} />
@@ -266,6 +302,7 @@ const buildClientOrderLayout = ({
           selectedRow={page.selectedRow}
           onSubmit={saveHandler}
           onDeleteById={deleteHandler}
+          onConvertById={convertHandler}
           actionDialog={page.actionDialog}
         />
 
@@ -308,6 +345,13 @@ const ClientOrder = () => {
     setOpenAlertDialog: page.setOpenAlertDialog,
     setOpenDialog: page.setOpenDialog,
   });
+  const convertHandler = makeConvertHandler({
+    t,
+    convertClientOrderToSale: page.convertClientOrderToSale,
+    setAlertProps: page.setAlertProps,
+    setOpenAlertDialog: page.setOpenAlertDialog,
+    setOpenDialog: page.setOpenDialog,
+  });
 
   return buildClientOrderLayout({
     t,
@@ -316,6 +360,7 @@ const ClientOrder = () => {
     dialogHandlers,
     saveHandler,
     deleteHandler,
+    convertHandler,
   });
 };
 

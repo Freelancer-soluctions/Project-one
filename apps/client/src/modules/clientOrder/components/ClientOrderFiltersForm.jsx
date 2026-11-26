@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { LuPlus, LuSearch, LuEraser } from 'react-icons/lu';
 import PropTypes from 'prop-types';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ClientOrderFiltersSchema } from '../utils';
 
 /** Parametrized text input for the client order filters. */
 const FilterClientOrderField = ({
@@ -106,7 +107,7 @@ const buildFilterButtons = ({ t, onAdd, onReset }) => (
 export const ClientOrderFiltersForm = ({ onSubmit, onAddDialog }) => {
   const { t } = useTranslation();
   const form = useForm({
-    resolver: zodResolver(),
+    resolver: zodResolver(ClientOrderFiltersSchema),
   });
 
   const handleAdd = () => {

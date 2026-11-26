@@ -44,6 +44,13 @@ const providerOrderApi = createApi({
       }),
       invalidatesTags: ['ProviderOrders'], // Invalida el cache de 'Notes' para volver a consultar
     }),
+    convertProviderOrderToPurchase: builder.mutation({
+      query: (id) => ({
+        url: `/providerOrder/${id}/convert`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['ProviderOrders'],
+    }),
     // Cache selectivo
     //providesTags: (result) =>
     //result
@@ -62,6 +69,7 @@ export const {
   useUpdateProviderOrderByIdMutation,
   useCreateProviderOrderMutation,
   useDeleteProviderOrderByIdMutation,
+  useConvertProviderOrderToPurchaseMutation,
 } = providerOrderApi;
 
 export default providerOrderApi;

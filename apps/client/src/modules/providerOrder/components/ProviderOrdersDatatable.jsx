@@ -6,11 +6,11 @@ import PropTypes from 'prop-types';
 export const ProviderOrdersDatatable = ({
   dataProviderOrders,
   onEditDialog,
-  totalRows = dataProviderOrders?.data?.length || 0,
   pagination = { pageIndex: 0, pageSize: 20 },
   onPaginationChange = () => {},
 }) => {
   const { t } = useTranslation();
+  const { dataList, total } = dataProviderOrders.data;
 
   const columnDefProviderOrders = [
     {
@@ -36,6 +36,28 @@ export const ProviderOrdersDatatable = ({
         return date ? format(new Date(date), 'PPP') : null;
       },
     },
+    {
+      accessorKey: 'total',
+      header: t('total'),
+      // Decimal is serialized as a string by the API; render it verbatim.
+      cell: (info) => info.getValue() ?? '',
+    },
+    {
+      accessorKey: 'expectedDeliveryDate',
+      header: t('expected_delivery_date'),
+      cell: (info) => {
+        const date = info.getValue();
+        return date ? format(new Date(date), 'PPP') : null;
+      },
+    },
+    {
+      accessorKey: 'deliveredOn',
+      header: t('delivered_on'),
+      cell: (info) => {
+        const date = info.getValue();
+        return date ? format(new Date(date), 'PPP') : null;
+      },
+    },
   ];
 
   const handleEditDialog = (row) => {
@@ -45,8 +67,8 @@ export const ProviderOrdersDatatable = ({
   return (
     <DataTable
       columns={columnDefProviderOrders}
-      data={dataProviderOrders.data}
-      totalRows={totalRows}
+      data={dataList}
+      totalRows={total}
       handleRow={(row) => handleEditDialog(row)}
       pagination={pagination}
       onPaginationChange={onPaginationChange}
@@ -57,7 +79,6 @@ export const ProviderOrdersDatatable = ({
 ProviderOrdersDatatable.propTypes = {
   dataProviderOrders: PropTypes.object.isRequired,
   onEditDialog: PropTypes.func.isRequired,
-  totalRows: PropTypes.number,
   pagination: PropTypes.object,
   onPaginationChange: PropTypes.func,
 };
