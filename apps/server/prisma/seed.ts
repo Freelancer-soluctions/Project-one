@@ -114,12 +114,35 @@ const permissions = [
 
   // { code: 'canViewDashboard', description: 'Puede ver el dashboard' },
 
-  // { code: 'canCreateClientOrder', description: 'Puede crear órdenes de cliente' },
-  // { code: 'canEditClientOrder', description: 'Puede editar órdenes de cliente' },
-  // { code: 'canViewClientOrder', description: 'Puede ver órdenes de cliente' },
-  // { code: 'canCreateProviderOrder', description: 'Puede crear órdenes a proveedores' },
-  // { code: 'canEditProviderOrder', description: 'Puede editar órdenes a proveedores' },
-  // { code: 'canViewProviderOrder', description: 'Puede ver órdenes a proveedores' },
+  {
+    code: 'canCreateClientOrder',
+    description: 'Puede crear órdenes de cliente',
+  },
+  {
+    code: 'canEditClientOrder',
+    description: 'Puede editar órdenes de cliente',
+  },
+  { code: 'canViewClientOrder', description: 'Puede ver órdenes de cliente' },
+  {
+    code: 'canDeleteClientOrder',
+    description: 'Puede eliminar órdenes de cliente',
+  },
+  {
+    code: 'canCreateProviderOrder',
+    description: 'Puede crear órdenes a proveedores',
+  },
+  {
+    code: 'canEditProviderOrder',
+    description: 'Puede editar órdenes a proveedores',
+  },
+  {
+    code: 'canViewProviderOrder',
+    description: 'Puede ver órdenes a proveedores',
+  },
+  {
+    code: 'canDeleteProviderOrder',
+    description: 'Puede eliminar órdenes a proveedores',
+  },
 
   // Event RSVP permissions
   { code: 'canRegisterForEvent', description: 'Puede registrarse a eventos' },

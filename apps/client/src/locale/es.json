@@ -177,6 +177,20 @@
     "minimum": "Mínimo",
     "maximum": "Máximo",
     "quantity": "Cantidad",
+    "product_id": "ID del producto",
+    "unit_price": "Precio unitario",
+    "estimated_price": "Precio estimado",
+    "expected_delivery_date": "Fecha de entrega esperada",
+    "delivered_on": "Entregado el",
+    "remove_detail": "Eliminar línea",
+    "notes_placeholder": "Ingrese las notas",
+    "clientId": "ID del cliente",
+    "supplierId": "ID del proveedor",
+    "saleId": "ID de venta",
+    "convert_to_sale": "Convertir en venta",
+    "convert_to_purchase": "Convertir en compra",
+    "convert_order": "Convertir orden",
+    "converted_successfully": "Convertida exitosamente",
     "lot_placeholder": "Ingrese el número de lote",
     "quantity_placeholder": "Ingrese la cantidad",
     "add_stock": "Agregar inventario",
@@ -721,11 +735,39 @@
       "providerOrder": {
         "supplierId": {
           "required": "El proveedor es obligatorio."
+        },
+        "estimatedPrice": {
+          "required": "El precio estimado es obligatorio.",
+          "invalid": "El precio estimado debe tener como máximo 2 decimales."
+        },
+        "details": {
+          "min": "Agregue al menos una línea de detalle.",
+          "productId": {
+            "required": "El producto es obligatorio."
+          },
+          "quantity": {
+            "required": "La cantidad es obligatoria.",
+            "min": "La cantidad debe ser al menos 1."
+          }
         }
       },
       "clientOrder": {
         "clientId": {
           "empty": "El cliente es obligatorio."
+        },
+        "unitPrice": {
+          "required": "El precio unitario es obligatorio.",
+          "invalid": "El precio unitario debe tener como máximo 2 decimales."
+        },
+        "details": {
+          "min": "Agregue al menos una línea de detalle.",
+          "productId": {
+            "required": "El producto es obligatorio."
+          },
+          "quantity": {
+            "required": "La cantidad es obligatoria.",
+            "min": "La cantidad debe ser al menos 1."
+          }
         }
       },
       "news": {

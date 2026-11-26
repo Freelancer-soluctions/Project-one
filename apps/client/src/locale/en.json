@@ -177,6 +177,20 @@
     "minimum": "Minimum",
     "maximum": "Maximum",
     "quantity": "Quantity",
+    "product_id": "Product ID",
+    "unit_price": "Unit price",
+    "estimated_price": "Estimated price",
+    "expected_delivery_date": "Expected delivery date",
+    "delivered_on": "Delivered on",
+    "remove_detail": "Remove line",
+    "notes_placeholder": "Enter the notes",
+    "clientId": "Client ID",
+    "supplierId": "Supplier ID",
+    "saleId": "Sale ID",
+    "convert_to_sale": "Convert to sale",
+    "convert_to_purchase": "Convert to purchase",
+    "convert_order": "Convert order",
+    "converted_successfully": "Converted successfully",
     "lot_placeholder": "Enter the lot number",
     "quantity_placeholder": "Enter the quantity",
     "add_stock": "Add stock",
@@ -725,11 +739,39 @@
       "providerOrder": {
         "supplierId": {
           "required": "Supplier is required."
+        },
+        "estimatedPrice": {
+          "required": "Estimated price is required.",
+          "invalid": "Estimated price must have at most 2 decimals."
+        },
+        "details": {
+          "min": "Add at least one detail line.",
+          "productId": {
+            "required": "Product is required."
+          },
+          "quantity": {
+            "required": "Quantity is required.",
+            "min": "Quantity must be at least 1."
+          }
         }
       },
       "clientOrder": {
         "clientId": {
           "empty": "Client is required."
+        },
+        "unitPrice": {
+          "required": "Unit price is required.",
+          "invalid": "Unit price must have at most 2 decimals."
+        },
+        "details": {
+          "min": "Add at least one detail line.",
+          "productId": {
+            "required": "Product is required."
+          },
+          "quantity": {
+            "required": "Quantity is required.",
+            "min": "Quantity must be at least 1."
+          }
         }
       },
       "news": {

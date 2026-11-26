@@ -218,15 +218,18 @@ export const PERMISSIONCODES = {
   canEditEvaluatePerformance: 'canEditEvaluatePerformance',
   canDeleteEvaluationPerformance: 'canDeleteEvaluationPerformance',
 
+  canCreateClientOrder: 'canCreateClientOrder',
+  canEditClientOrder: 'canEditClientOrder',
+  canViewClientOrder: 'canViewClientOrder',
+  canDeleteClientOrder: 'canDeleteClientOrder',
+  canCreateProviderOrder: 'canCreateProviderOrder',
+  canEditProviderOrder: 'canEditProviderOrder',
+  canViewProviderOrder: 'canViewProviderOrder',
+  canDeleteProviderOrder: 'canDeleteProviderOrder',
+
   // canViewDashboard: 'canViewDashboard',
 
-  // canCreateClientOrder: 'canCreateClientOrder',
-  // canEditClientOrder: 'canEditClientOrder',
-  // canViewClientOrder: 'canViewClientOrder',
-  // canCreateProviderOrder: 'canCreateProviderOrder',
-  // canEditProviderOrder: 'canEditProviderOrder',
-  // canViewProviderOrder: 'canViewProviderOrder',
-  // canViewReports: 'canViewReports'
+  // { code: 'canViewReports', description: 'Puede ver reportes' }
 } as const;
 
 export type PermissionCode =

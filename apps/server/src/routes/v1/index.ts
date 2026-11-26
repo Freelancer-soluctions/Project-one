@@ -21,6 +21,8 @@ import users from '../../modules/users/routes.js';
 import expenses from '../../modules/expenses/routes.js';
 import performanceEvaluation from '../../modules/performanceEvaluation/routes.js';
 import security from '../../modules/security/routes.js';
+import clientOrder from '../../modules/clientOrder/routes.js';
+import providerOrder from '../../modules/providerOrder/routes.js';
 
 const router = Router();
 
@@ -46,4 +48,6 @@ router.use('/users', users);
 router.use('/expenses', expenses);
 router.use('/performance-evaluation', performanceEvaluation);
 router.use('/security', security);
+router.use('/clientOrder', clientOrder);
+router.use('/providerOrder', providerOrder);
 export default router;

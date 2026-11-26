@@ -701,6 +701,9 @@ model clientOrder {
   createdOn              DateTime            @db.Timestamp(3)
   updatedOn              DateTime?           @db.Timestamp(3)
   saleId                 Int?                @db.Integer
+  total                  Decimal             @default(0) @db.Decimal(18, 2)
+  expectedDeliveryDate   DateTime?           @db.Timestamp(3)
+  deliveredOn            DateTime?           @db.Timestamp(3)
 }
 
 model clientOrderDetail {
@@ -710,7 +713,7 @@ model clientOrderDetail {
   productId         Int         @db.Integer
   clientOrderDetail products    @relation("clientOrderDetailProduct", fields: [productId], references: [id])
   quantity          Int         @db.Integer
-  unitPrice         Float
+  unitPrice         Decimal     @db.Decimal(18, 2)
 }
 
 model providerOrder {
@@ -728,6 +731,9 @@ model providerOrder {
   createdOn                DateTime              @db.Timestamp(3)
   updatedOn                DateTime?             @db.Timestamp(3)
   purchaseId               Int?                  @db.Integer
+  total                    Decimal               @default(0) @db.Decimal(18, 2)
+  expectedDeliveryDate     DateTime?             @db.Timestamp(3)
+  deliveredOn              DateTime?             @db.Timestamp(3)
 }
 
 model providerOrderDetail {
@@ -737,7 +743,7 @@ model providerOrderDetail {
   productId      Int           @db.Integer
   product        products      @relation("providerOrderDetailProduct", fields: [productId], references: [id])
   quantity       Int           @db.Integer
-  estimatedPrice Float
+  estimatedPrice Decimal       @db.Decimal(18, 2)
 }
 
 model expenses {
