@@ -209,14 +209,8 @@ ci-complete no incluye este check si lo sacas a otro workflow. No hay problema, 
 
 - Verifica si OpenCode reutiliza la sesión del subagente entre tareas; si no, es tu mayor desperdicio.
 
-
-ci-import-boundaries-enforcement
-ci-eslint-v10-upgrade
-ci-type-check-strict
-ci-pr-review-automation
-
-ci-typescript-strict-config
-ci-dockerfile-multi-stage
-ci-build-workflow
-ci-build-gates
-
+ci-typescript-strict-flags
+ci-frontend-sourcemaps-cache
+ci-timeout-minutes-complete
+ci-write-version-metadatos
+ci-image-oci-labels
