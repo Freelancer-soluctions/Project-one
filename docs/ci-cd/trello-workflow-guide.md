@@ -1,0 +1,473 @@
+# Trello Workflow Guide
+
+> **This project uses OpenCode slash commands for Trello operations.**
+> Commands live in `.opencode/command/` and read board data from `.opencode/trello-context.json`.
+> The **project-manager** agent executes these commands when delegated by the orchestrator.
+> **Always use `/trello-*` commands instead of calling Composio tools directly.**
+
+---
+
+## Table of Contents
+
+1. [Architecture Overview](#1-architecture-overview)
+2. [Workflow Commands](#2-workflow-commands)
+3. [Board Context Registry](#3-board-context-registry)
+4. [Agent Delegation Model](#4-agent-delegation-model)
+5. [Composio Tools Reference](#5-composio-tools-reference)
+6. [Optimization Strategies](#6-optimization-strategies)
+7. [Trello Card Standards](#7-trello-card-standards)
+
+---
+
+## 1. Architecture Overview
+
+```
+              ┌──────────────────┐
+              │   Orchestrator   │
+              │  (coordinator)   │
+              └──────┬───────────┘
+                     │ delegates via @project-manager
+                     ▼
+        ┌────────────────────────┐
+        │    project-manager     │
+        │   (Trello agent)       │
+        └───────────┬────────────┘
+                    │ reads & executes
+                    ▼
+        ┌────────────────────────┐
+        │  .opencode/command/    │
+        │  trello-create-card.md │
+        │  trello-update-card.md │
+        │  trello-delete-card.md │
+        └───────────┬────────────┘
+                    │ resolves names→IDs via
+                    ▼
+        ┌────────────────────────┐
+        │ .opencode/             │
+        │ trello-context.json    │
+        └───────────┬────────────┘
+                    │ calls via
+                    ▼
+        ┌────────────────────────┐
+        │   Composio Trello API  │
+        │  (TRELLO_ADD_CARDS,    │
+        │   TRELLO_UPDATE_CARDS, │
+        │   TRELLO_DELETE_CARDS) │
+        └────────────────────────┘
+```
+
+### Key Components
+
+| Component                 | Path                            | Purpose                                              |
+| ------------------------- | ------------------------------- | ---------------------------------------------------- |
+| **project-manager agent** | `opencode.jsonc`                | AI agent that executes Trello commands               |
+| **Commands**              | `.opencode/command/trello-*.md` | Instruction files the agent reads to know what to do |
+| **Context file**          | `.opencode/trello-context.json` | Board registry mapping names → Trello IDs            |
+| **Composio MCP**          | MCP config                      | Actual Trello API connection via Composio            |
+
+---
+
+## 2. Workflow Commands
+
+Three commands cover the full card lifecycle:
+
+| Command               | File                    | Purpose                                  |
+| --------------------- | ----------------------- | ---------------------------------------- |
+| `/trello-create-card` | `trello-create-card.md` | Create a card in a list                  |
+| `/trello-update-card` | `trello-update-card.md` | Update card fields or move between lists |
+| `/trello-delete-card` | `trello-delete-card.md` | Permanently delete a card                |
+
+### 2.1 /trello-create-card
+
+Creates a card by parsing `$ARGUMENTS` as `key:"value"` pairs.
+
+```
+/trello-create-card name:"Implement login" list:"Sprint Backlog" desc:"Add JWT auth"
+/trello-create-card name:"Bug fix" list:"In Progress" labels:"Bugs" members:"johangarcia6"
+```
+
+**Flow:**
+
+1. Read context file → get default board and its lists/labels/members
+2. Resolve `list:` name → ID (context → fallback to Trello API)
+3. Resolve `labels:` names → IDs
+4. Resolve `members:` usernames → IDs
+5. Execute `TRELLO_ADD_CARDS(idList, name, desc?, due?, idLabels?, idMembers?)`
+6. Return card URL
+
+### 2.2 /trello-update-card
+
+Updates card fields or moves it to another list.
+
+```
+/trello-update-card card:"Implement login" list:"In Progress"
+/trello-update-card card:"Bug fix" name:"Bug fix - completed" labels:"Verified on staging"
+/trello-update-card card:"Old task" closed:"true"
+```
+
+**Flow:**
+
+1. Find card by name or shortLink via `TRELLO_GET_SEARCH`
+2. Resolve `list:` name → ID (context → fallback)
+3. Resolve `labels:` / `members:` names → IDs
+4. Execute `TRELLO_UPDATE_CARDS_BY_ID_CARD` with only the specified fields
+5. Return confirmation
+
+### 2.3 /trello-delete-card
+
+Permanently deletes a card. If the card is open, archives it first.
+
+```
+/trello-delete-card card:"Implement login"
+```
+
+**Flow:**
+
+1. Find card by name or shortLink
+2. If card is open, archive it via `TRELLO_UPDATE_CARDS_BY_ID_CARD(closed:"true")`
+3. Execute `TRELLO_DELETE_CARDS_BY_ID_CARD`
+4. Return confirmation
+
+---
+
+## 3. Board Context Registry
+
+File: `.opencode/trello-context.json`
+
+Stores board mappings so commands can resolve friendly names to Trello IDs without hardcoding.
+
+### Structure
+
+```json
+{
+  "version": 1,
+  "defaultBoard": "project-one",
+  "boards": {
+    "project-one": {
+      "id": "663aa79b4bb80987bc775706",
+      "lists": {
+        "Backlog": "663aa79b4bb80987bc775707",
+        "In Progress": "663aa79b4bb80987bc775709",
+        "Done": "663aa79b4bb80987bc77570a"
+      },
+      "labels": {
+        "Bugs": { "id": "663aa79b4bb80987bc7757bf", "color": "orange" },
+        "Web": { "id": "663aa79b4bb80987bc7757d1", "color": "green" }
+      },
+      "members": {
+        "johangarcia6": {
+          "id": "6606187e712266870ad3e9a8",
+          "fullName": "johan Garcia"
+        }
+      }
+    }
+  }
+}
+```
+
+### Adding a new board
+
+```json
+"my-new-board": {
+  "id": "board-id-here",
+  "lists": {
+    "To Do": "list-id-1",
+    "Doing": "list-id-2",
+    "Done": "list-id-3"
+  }
+}
+```
+
+If a board, list, label, or member is NOT in the context file, commands fall back to querying Trello dynamically via Composio — keeping them resilient and up-to-date.
+
+---
+
+## 4. Agent Delegation Model
+
+The orchestrator delegates Trello work to the **project-manager** subagent.
+
+### In the orchestrator prompt
+
+```
+@project-manager: /trello-create-card name:"Implement login" list:"Sprint Backlog"
+@project-manager: /trello-update-card jwt-auth
+@project-manager: /trello-delete-card jwt-auth
+```
+
+### In opencode.jsonc
+
+```json
+"project-manager": {
+  "mode": "subagent",
+  "model": "nvidia/minimaxai/minimax-m2.7",
+  "description": "Handles Trello project-management workflows - card creation, updates, deletion, state transitions",
+  "prompt": "{file:docs/opencode/prompts/project-manager.md}",
+  "steps": 10,
+  "tools": {
+    "write": false,
+    "edit": false,
+    "bash": false
+  }
+}
+```
+
+### Orchestrator rules for project-manager
+
+- Delegates `/trello-*` commands via `@project-manager: <command>`
+- NEVER executes Trello operations directly
+- Tracks workflow lifecycle and syncs with OpenSpec phases
+
+---
+
+## 5. Composio Tools Reference
+
+Direct tool access (for reference, but prefer using commands).
+
+### Card Operations
+
+| Operation     | Tool Slug                                      | Required Params   |
+| ------------- | ---------------------------------------------- | ----------------- |
+| Create card   | `TRELLO_ADD_CARDS`                             | `idList`          |
+| Get card      | `TRELLO_GET_CARDS_BY_ID_CARD`                  | `idCard`          |
+| Update card   | `TRELLO_UPDATE_CARDS_BY_ID_CARD`               | `idCard`          |
+| Delete card   | `TRELLO_DELETE_CARDS_BY_ID_CARD`               | `idCard`          |
+| Search cards  | `TRELLO_GET_SEARCH`                            | `query`           |
+| Add comment   | `TRELLO_ADD_CARDS_ACTIONS_COMMENTS_BY_ID_CARD` | `idCard`, `text`  |
+| Add label     | `TRELLO_ADD_CARDS_ID_LABELS_BY_ID_CARD`        | `idCard`, `value` |
+| Assign member | `TRELLO_ADD_MEMBER_TO_CARD`                    | `idCard`, `value` |
+
+### Board & List Operations
+
+| Operation   | Tool Slug                                | Required Params   |
+| ----------- | ---------------------------------------- | ----------------- |
+| List boards | `TRELLO_GET_MEMBERS_BOARDS_BY_ID_MEMBER` | `idMember`        |
+| Get board   | `TRELLO_GET_BOARDS_BY_ID_BOARD`          | `idBoard`         |
+| List lists  | `TRELLO_GET_BOARDS_LISTS_BY_ID_BOARD`    | `idBoard`         |
+| List cards  | `TRELLO_GET_BOARDS_CARDS_BY_ID_BOARD`    | `idBoard`         |
+| Create list | `TRELLO_ADD_LISTS`                       | `idBoard`, `name` |
+
+### Key Parameters
+
+**TRELLO_ADD_CARDS:**
+
+| Param       | Required    | Description                 |
+| ----------- | ----------- | --------------------------- |
+| `idList`    | ✅          | List ID (24-char hex)       |
+| `name`      | Recommended | Card title                  |
+| `desc`      | No          | Description (0-16384 chars) |
+| `due`       | No          | ISO 8601 date               |
+| `pos`       | No          | "top", "bottom", or float   |
+| `idLabels`  | No          | Comma-separated label IDs   |
+| `idMembers` | No          | Comma-separated member IDs  |
+
+**TRELLO_UPDATE_CARDS_BY_ID_CARD:**
+
+| Param       | Required | Description               |
+| ----------- | -------- | ------------------------- |
+| `idCard`    | ✅       | Card ID or shortLink      |
+| `idList`    | No       | Move to list              |
+| `name`      | No       | New title                 |
+| `desc`      | No       | New description           |
+| `due`       | No       | ISO 8601 date             |
+| `pos`       | No       | "top", "bottom", or float |
+| `idLabels`  | No       | Replaces all labels       |
+| `idMembers` | No       | Replaces all members      |
+| `closed`    | No       | "true" to archive         |
+
+**TRELLO_DELETE_CARDS_BY_ID_CARD:**
+
+| Param    | Required | Description                                  |
+| -------- | -------- | -------------------------------------------- |
+| `idCard` | ✅       | Card ID or shortLink (card must be archived) |
+
+---
+
+## 6. Optimization Strategies
+
+### 6.1 Always use commands over direct tool calls
+
+```
+✅ /trello-create-card name:"Task" list:"Backlog"
+❌ Calling TRELLO_ADD_CARDS directly with raw IDs
+```
+
+Commands handle name→ID resolution, context lookup, and fallback logic automatically.
+
+### 6.2 Use specific fields, never "all"
+
+```
+✅ /trello-update-card card:"x" name:"New title"
+❌ Fetching card with fields:"all" just to update one field
+```
+
+### 6.3 Cache board context
+
+The `.opencode/trello-context.json` file eliminates the need to query Trello for list/label/member IDs on every command. Keep it updated when the board structure changes.
+
+### 6.4 Search before enumerating
+
+```
+✅ TRELLO_GET_SEARCH(query:"card name", cards_limit:5) → 1 call
+❌ TRELLO_GET_BOARDS_CARDS_BY_ID_BOARD → 1+ calls, full board data
+```
+
+### 6.5 Workflow state mapping
+
+| Workflow State   | Trello List             |
+| ---------------- | ----------------------- |
+| Backlog / To Do  | Backlog, Sprint Backlog |
+| In Progress      | In Progress             |
+| Review / Testing | Testing                 |
+| Done             | Done, Sprint Complete   |
+| Failed / Blocked | Failed                  |
+
+---
+
+---
+
+## 7. Trello Card Standards
+
+> Formato enterprise para cards de Trello en Project One.
+> Basado en estándares de Google, Microsoft, Meta y Amazon.
+
+### 7.1 Title Format
+
+```
+[Area] Action-verb + short description
+```
+
+| Área       | Cuándo usarlo                           |
+| ---------- | --------------------------------------- |
+| `Backend`  | API, servicios, middleware, Prisma, DAO |
+| `Frontend` | Componentes React, hooks, páginas, UI   |
+| `DB`       | Migraciones, esquemas, seeds, índices   |
+| `Infra`    | Docker, Redis, SSE, BullMQ, despliegue  |
+
+**Ejemplos:**
+
+- `[Backend/DB] Add soft delete for events`
+- `[Frontend] Add EventCalendar widget to dashboard`
+- `[Infra/Backend] Implement SSE notification bus`
+
+### 7.2 Description Template
+
+Estructura obligatoria del campo `desc`:
+
+```markdown
+## Context
+
+Why now? What problem does it solve?
+[1-2 párrafos]
+
+## Scope
+
+**Included:**
+
+- [deliverables clave]
+
+**Out of Scope:**
+
+- [lo que NO cubre esta card]
+
+## Acceptance Criteria
+
+- [ ] GIVEN [context] WHEN [action] THEN [result]
+- [ ] GIVEN [context] WHEN [action] THEN [result]
+- [ ] Edge case: [description]
+
+## Technical Approach
+
+- Key decisions, libraries, architecture
+- Reference: openspec/changes/<name>/
+
+## Dependencies
+
+- Blocked by: [card names]
+- Blocks: [card names]
+
+## Size
+
+**XS** (< 1d) | **S** (1-2d) | **M** (2-3d) | **L** (3-5d) | **XL** (5-8d)
+
+## Priority
+
+**P1** — Must have, bloquea otras features
+**P2** — Should have, importante
+**P3** — Nice to have
+```
+
+### 7.3 Acceptance Criteria Rules
+
+- Usar **GIVEN/WHEN/THEN** para criterios funcionales.
+- Cubrir **happy path + edge cases + error**.
+- Incluir **tests + migración** como criterios explícitos.
+- Preferir verificables sobre subjetivos.
+
+**Bien:**
+
+```
+- [ ] GIVEN soft-deleted event WHEN GET /events THEN excluded from results
+- [ ] GIVEN invalid date range (start > end) WHEN submitting THEN 400 error
+```
+
+**Mal:**
+
+```
+- [ ] The feature should work correctly
+- [ ] Proper error handling
+```
+
+### 7.4 Labels
+
+Cada card lleva al menos 1 label de área.
+
+| Color     | Label      | Propósito                       |
+| --------- | ---------- | ------------------------------- |
+| 🔵 Blue   | `Backend`  | API, servicios, lógica servidor |
+| 🟢 Green  | `Frontend` | React, componentes, UI          |
+| 🟠 Orange | `DB`       | Prisma, migraciones, esquemas   |
+| ⚫ Gray   | `Infra`    | Docker, Redis, BullMQ, SSE      |
+| 🔴 Red    | `Blocked`  | Card esperando dependencia      |
+
+### 7.5 Pipeline
+
+| Lista              | Propósito                          |
+| ------------------ | ---------------------------------- |
+| **Sprint Backlog** | Cards comprometidas para el sprint |
+| **In Progress**    | Desarrollo activo (máx 2 cards)    |
+| **In Review**      | PR abierto, code review, QA        |
+| **Done**           | Mergeado y desplegado              |
+
+### 7.6 Dependencies
+
+En el campo `desc`, sección **Dependencies**:
+
+```
+- Blocked by: [Nombre de la Card] (link)
+- Blocks: [Nombre de la Card] (link)
+```
+
+Dos tipos:
+
+- **Blocked by** → esta card no puede empezar hasta que la otra termine.
+- **Blocks** → otra card espera que esta termine.
+
+Para cards bloqueadas, añadir label `Blocked` (🔴).
+
+### 7.7 Comandos para project-manager
+
+```bash
+# Crear card
+@project-manager: /trello-create-card name:"[Backend] Title" list:"Sprint Backlog" labels:"Backend" desc:"..."
+
+# Mover entre listas
+@project-manager: /trello-update-card card:"[Backend] Title" list:"In Progress"
+
+# Archivar
+@project-manager: /trello-update-card card:"[Backend] Title" closed:"true"
+```
+
+---
+
+_Document updated for OpenCode command-driven Trello workflow_
+_Last updated: May 2026_

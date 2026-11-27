@@ -6,7 +6,7 @@
 > **Fuentes:** Vitest v4 (`/guide/snapshot`, `/config/update`, `/config/snapshotformat`, `/api/expect`, `/guide/cli`),
 > Jest 30.5 Snapshot Testing, testing-library.com (Guiding Principles + FAQ RTL), Airbnb JS Style Guide, inventario
 > real de `apps/client/src` (228 `.jsx`), `apps/client/vitest.config.js`, `tests/setup/*`, y docs previas del repo
-> (`unit-tests-enterprise.md`, `panorama-resumen.md`).
+> (`unit-tests-enterprise.md`).
 > **Veredicto corto:** el repo tiene **0 snapshots hoy** (0 `.snap`, 0 `__snapshots__`, 0 `toMatchSnapshot`) — gap
 > **P3** ya registrado en `docs/learning/unit-tests-enterprise.md`. Adopción recomendada y **limitada**: ~29 primitivas
 > shadcn/ui + ~21 Datatables + ~15 componentes puros (**~65 de 180 ficheros = 36%**), **inline snapshots** para lo
@@ -442,14 +442,14 @@ Criterios de clasificación aplicados por fichero: `R` = usa Redux (`useSelector
 
 ## 11. Plan de adopción por fases
 
-| Fase                                 | Alcance                                                                                                                                                                                                                              | Esfuerzo | Criterio de salida                                                                   |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------ |
-| **F0 — Fundación**                   | Añadir `snapshotFormat.maxOutputLength` + `update` declarado en `apps/client/vitest.config.js`; scripts `test:snapshot`; reglas de review en `docs/code-review-checklist.md`; `include` sin cambios (snapshot va en `*.ui.test.jsx`) | XS       | Config versionada + política de `-u` documentada                                     |
-| **F1 — Primitivas shadcn**           | 29 `components/ui/*.jsx` + loaders/layout/404/500 (≈ 40 ficheros) con **inline snapshots** de subárbol y fixtures fijas                                                                                                              | S        | 40 tests `*.ui.test.jsx` verdes en local y CI (sin `-u`), `.snap`/inline commiteados |
-| **F2 — Datatables**                  | 21 `*Datatable.jsx` con `toMatchSnapshot` externo, fixture de 3 filas, fecha congelada, y `server.use()` de MSW                                                                                                                      | M        | Cada Datatable cubierto; diff de PR legible (<100 líneas/snapshot)                   |
-| **F3 — Cards/estados**               | `AttendeeStatus`, `NotesColumn`, `EventCalendarWidget`, `Navbar`, Settings `WsStatus/Product/Language`, `QuickAccess`, `PaginationControls`, `cellWithTooltip` (≈ 15)                                                                | S        | Sin snapshots >100 líneas; sin `D=1` sin congelar                                    |
-| **F4 — Regresión visual (opcional)** | Chromatic ya instalado: stories de F1 como fuente; o Vitest Browser Mode `toMatchScreenshot`                                                                                                                                         | M        | Aprobación visual en PR de design system                                             |
-| **Fuera de alcance**                 | Páginas, `*Dialog`/`*FiltersForm` con RHF, guards, tiptap, estado Redux                                                                                                                                                              | —        | Se cubren con RTL assertions (ya existentes: 26 tests)                               |
+| Fase                                 | Alcance                                                                                                                                                                                                                                      | Esfuerzo | Criterio de salida                                                                   |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------ |
+| **F0 — Fundación**                   | Añadir `snapshotFormat.maxOutputLength` + `update` declarado en `apps/client/vitest.config.js`; scripts `test:snapshot`; reglas de review en `docs/quality/code-review-checklist.md`; `include` sin cambios (snapshot va en `*.ui.test.jsx`) | XS       | Config versionada + política de `-u` documentada                                     |
+| **F1 — Primitivas shadcn**           | 29 `components/ui/*.jsx` + loaders/layout/404/500 (≈ 40 ficheros) con **inline snapshots** de subárbol y fixtures fijas                                                                                                                      | S        | 40 tests `*.ui.test.jsx` verdes en local y CI (sin `-u`), `.snap`/inline commiteados |
+| **F2 — Datatables**                  | 21 `*Datatable.jsx` con `toMatchSnapshot` externo, fixture de 3 filas, fecha congelada, y `server.use()` de MSW                                                                                                                              | M        | Cada Datatable cubierto; diff de PR legible (<100 líneas/snapshot)                   |
+| **F3 — Cards/estados**               | `AttendeeStatus`, `NotesColumn`, `EventCalendarWidget`, `Navbar`, Settings `WsStatus/Product/Language`, `QuickAccess`, `PaginationControls`, `cellWithTooltip` (≈ 15)                                                                        | S        | Sin snapshots >100 líneas; sin `D=1` sin congelar                                    |
+| **F4 — Regresión visual (opcional)** | Chromatic ya instalado: stories de F1 como fuente; o Vitest Browser Mode `toMatchScreenshot`                                                                                                                                                 | M        | Aprobación visual en PR de design system                                             |
+| **Fuera de alcance**                 | Páginas, `*Dialog`/`*FiltersForm` con RHF, guards, tiptap, estado Redux                                                                                                                                                                      | —        | Se cubren con RTL assertions (ya existentes: 26 tests)                               |
 
 Riesgos a vigilar: (a) conflictos de merge en **inline** snapshots amplios → mantenerlos cortos; (b) ruido de clases
 Tailwind al cambiar tokens → revisar diffs como diseño, no "dar a `-u`"; (c) `pool: 'forks'` + CI `maxWorkers: 1` no
@@ -489,8 +489,6 @@ es < ~100 líneas? · ¿se ven las clases/estructura **esperadas** (no "lo que s
 - `apps/client/tests/setup/test-utils.js` — `customRender` con `I18nextProvider`.
 - `apps/client/tests/setup/msw/{server,handlers/handlers,fixtures/auth}.js`.
 - `docs/learning/unit-tests-enterprise.md` — gap **P3** «Snapshot tests — 0 `.snap` / `toMatchSnapshot`» (§5.8/§5.9).
-- `docs/learning/panorama-resumen.md` — «Snapshot: 0 `.snap`, 0 `__snapshots__`, 0 `toMatchSnapshot`».
-- `docs/nivel-experiencia-analisis.md` — «Sin snapshot testing».
 - Inventario: `find apps/client/src -name '*.jsx'` → 228 / 180 / 26 / 22; métricas por fichero (`R/F/N/D/L`).
 
 **Externas (consultadas 2026-10-05):**

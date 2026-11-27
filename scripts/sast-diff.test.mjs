@@ -746,14 +746,19 @@ describe('sast-diff.mjs — ejecución end-to-end sin Docker (tasks 2.6/2.7/2.12
 });
 
 describe('sast-diff.mjs — imagen pineada (task 2.2, RNF-02)', () => {
-  it('la versión aparece una sola vez como constante y no hay latest', () => {
+  it('la versión se deriva del pin de mise.toml (SSOT) y no hay latest', () => {
     const src = fs.readFileSync(SCRIPT, 'utf8');
-    expect(src).toContain(`const SEMGREP_VERSION = '${SEMGREP_VERSION}'`);
+    const miseToml = fs.readFileSync(
+      path.resolve(path.dirname(SCRIPT), '..', 'mise.toml'),
+      'utf8'
+    );
+    const pin = miseToml.match(/"pipx:semgrep"\s*=\s*"([^"]+)"/);
+    expect(pin).not.toBeNull();
+    expect(SEMGREP_VERSION).toBe(pin[1]); // el export relee el SSOT en runtime
+    // El literal de versión ya NO vive en el script (única fuente: mise.toml).
+    expect(src).not.toContain(`'${SEMGREP_VERSION}'`);
     // tag flotante prohibido (RNF-02); el literal se construye para que el
     // propio test no deje la cadena `latest` en el repo (verificación 6.5).
     expect(src).not.toContain(['semgrep/semgrep', 'latest'].join(':'));
-    const occurrences =
-      src.match(new RegExp(SEMGREP_VERSION.replace(/\./g, '\\.'), 'g')) || [];
-    expect(occurrences.length).toBe(1); // única fuente en el repo (pin del full scan la relee)
   });
 });

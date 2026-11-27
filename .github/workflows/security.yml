@@ -19,6 +19,12 @@ on:
 permissions:
   contents: read
 
+# Mise = SSOT del toolchain de lint/seguridad (change ci-mise-toolchain-parity).
+# MISE_LOCKED=1: toda resolución de herramientas va contra mise.lock (fail si
+# falta una entrada o no coincide el checksum).
+env:
+  MISE_LOCKED: '1'
+
 concurrency:
   group: security-${{ github.ref }}
   cancel-in-progress: true
@@ -184,10 +190,26 @@ jobs:
         with:
           persist-credentials: false
 
+      # Cache de downloads-cas (NO installs — design D4 del change
+      # ci-mise-toolchain-parity): artefactos descargados verificados por
+      # checksum, reutilizables entre runs; la instalación se rehace siempre
+      # contra mise.lock.
+      - name: Cache mise downloads-cas
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/mise/downloads-cas
+          key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
+
+      - name: Setup Mise toolchain (locked)
+        uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5.3.0
+        with:
+          cache: false # el cache interno cubre installs; D4 exige downloads-cas
+          install_args: --locked
+
       - name: Run Semgrep full scan (JSON report)
         id: scan-json
         continue-on-error: true
-        run: docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --json --json-output semgrep-report.json --error --metrics off
+        run: mise exec -- semgrep scan --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --json --json-output semgrep-report.json --error --metrics off
 
       - name: Upload Semgrep JSON report artifact (retention 30d)
         if: always()
@@ -201,7 +223,7 @@ jobs:
       - name: Run Semgrep full scan (SARIF report)
         id: scan-sarif
         continue-on-error: true
-        run: docker run --rm -v ${{ github.workspace }}:/src semgrep/semgrep:1.176.1 semgrep scan --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --sarif-output semgrep.sarif --error --metrics off
+        run: mise exec -- semgrep scan --config .semgrep/rules --config p/owasp-top-ten --config p/security-audit --exclude node_modules --exclude dist --exclude build --exclude coverage --exclude .env --exclude '*.min.js' --exclude prisma/generated --exclude e2e --sarif-output semgrep.sarif --error --metrics off
 
       - name: Upload Semgrep SARIF artifact (retention 90d)
         if: always()

@@ -84,7 +84,7 @@ full-suite run (`npm run test` / `npm run test:coverage`) instead of trusting a 
 
 ### Requirement: ADDED Everyday TIA workflow documented
 
-`docs/testing-architecture.md` §7.5 SHALL document the everyday developer workflow for TIA as one
+`docs/quality/testing-architecture.md` §7.5 SHALL document the everyday developer workflow for TIA as one
 coherent strategy: what the pre-push hook runs, how to audit the selection with `test:tia:audit`,
 when the scoped tier is enough, when to run the full suite locally (shared paths — root manifest,
 lockfile, workflows, test configs — or after a cache reset), and how the local tier maps to the CI
@@ -94,7 +94,7 @@ step-by-step checklist a developer can follow before opening a PR, and SHALL poi
 
 #### Scenario: Workflow section exists
 
-- **WHEN** a developer reads `docs/testing-architecture.md` §7.5 after this change
+- **WHEN** a developer reads `docs/quality/testing-architecture.md` §7.5 after this change
 - **THEN** they find the audit command, the scoped run, the full-suite triggers and the local↔CI tier mapping described in one place
 
 #### Scenario: Pre-PR checklist present

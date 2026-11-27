@@ -4,7 +4,7 @@
 
 La motivación y el inventario de investigación están en `docs/learning/docs-changelog-validation.md` (ver proposal.md - Why). Estado relevante:
 
-- `docs/changelog.md` (129 líneas, Keep-a-Changelog, tablas con pipes) existe; **no hay `CHANGELOG.md` en la raíz** — cualquier glob `'CHANGELOG.md'` en scripts o CI fallaría o pass over el archivo real.
+- `docs/product/changelog.md` (129 líneas, Keep-a-Changelog, tablas con pipes) existe; **no hay `CHANGELOG.md` en la raíz** — cualquier glob `'CHANGELOG.md'` en scripts o CI fallaría o pass over el archivo real.
 - `package.json`: `lint-staged` = `prettier --write` sobre `*.{...,md}` + `eslint --fix` sobre JS; sin scripts `docs:*`; sin `markdownlint-cli`.
 - `ci.yml`: substage 2B (línea ~421) con jobs `needs: repo-discovery`; agregador `prebuild-quality-complete` con lista `needs` explícita (14 jobs); `zombie-workflow-guard` prohíbe workflows sueltos.
 - Prettier ya formatea `.md` con `proseWrap: preserve` → no choca con `MD013` (que pasa a ser la única validación de longitud de párrafos).
@@ -29,18 +29,18 @@ La motivación y el inventario de investigación están en `docs/learning/docs-c
 
 `.markdownlint.json` con `default: true` y overrides de reglas (MD013 `line_length: 120`, `heading_line_length: 120`, `code_block_line_length: 120`, `tables: false`; MD033 `allowed_elements: [br, img, div, span, sub, sup]`; MD049/MD014/MD024/MD036/MD044/MD052 en `false`) + `.markdownlintignore` para artefactos generados.
 
-`.vale.ini` con `StylesPath = .github/styles`, `MinAlertLevel = warning`, secciones `[*]`, `[*.{md,mdx}]`, `[docs/learning/*.md]`, `[docs/changelog.md]` y `[*.*.md]`, con `BasedOnStyles = Vale, MiEstiloES` para prosa española (`MiEstiloES` definido en `.github/styles/MiEstiloES/` + vocabulario `config/vocabularies/Base/`).
+`.vale.ini` con `StylesPath = .github/styles`, `MinAlertLevel = warning`, secciones `[*]`, `[*.{md,mdx}]`, `[docs/learning/*.md]`, `[docs/product/changelog.md]` y `[*.*.md]`, con `BasedOnStyles = Vale, MiEstiloES` para prosa española (`MiEstiloES` definido en `.github/styles/MiEstiloES/` + vocabulario `config/vocabularies/Base/`).
 
 - **Alternativa A**: `markdownlint-cli2` + `.markdownlint-cli2.jsonc` → descartada: no soporta `.markdownlintignore` (habría que duplicar ignores en `ignores: [...]`).
 - **Alternativa B**: configs por workspace → descartada: el docs es de repo completo, duplicaría la fuente de verdad.
 - Local y CI leen el MISMO archivo → paridad de umbrales (mismo principio que `eslint.config.js` como single source of truth).
 
-### D2 — Overrides del changelog: `docs/changelog.md` (no `CHANGELOG.md`)
+### D2 — Overrides del changelog: `docs/product/changelog.md` (no `CHANGELOG.md`)
 
-El archivo real es `docs/changelog.md`. Sus tablas Keep-a-Changelog exceden 120 chars → `overrides` en `.markdownlint.json` (`"files": ["docs/changelog.md"], "MD013": { "tables": false }`, refuerzo de reglas de tabla MD055/MD056/MD058/MD059/MD060 y `MD047` fin de archivo) y sección `[docs/changelog.md]` en `.vale.ini` con `BasedOnStyles = Vale` (solo ortografía/consistencia; el changelog es estructura, no prosa).
+El archivo real es `docs/product/changelog.md`. Sus tablas Keep-a-Changelog exceden 120 chars → `overrides` en `.markdownlint.json` (`"files": ["docs/product/changelog.md"], "MD013": { "tables": false }`, refuerzo de reglas de tabla MD055/MD056/MD058/MD059/MD060 y `MD047` fin de archivo) y sección `[docs/product/changelog.md]` en `.vale.ini` con `BasedOnStyles = Vale` (solo ortografía/consistencia; el changelog es estructura, no prosa).
 
-- **Corrección respecto de la research**: `docs/learning/docs-changelog-validation.md` cita `CHANGELOG.md` en scripts/globs — inexistente en raíz. Los scripts, el glob de lint-staged y el job CI apuntan a `docs/changelog.md` + `docs/**/*.md` + `*.md` raíz; el task 4 actualiza esa cita.
-- **Alternativa**: crear `CHANGELOG.md` raíz que enlace a `docs/changelog.md` → descartada: introduce un segundo changelog (drift garantizado).
+- **Corrección respecto de la research**: `docs/learning/docs-changelog-validation.md` cita `CHANGELOG.md` en scripts/globs — inexistente en raíz. Los scripts, el glob de lint-staged y el job CI apuntan a `docs/product/changelog.md` + `docs/**/*.md` + `*.md` raíz; el task 4 actualiza esa cita.
+- **Alternativa**: crear `CHANGELOG.md` raíz que enlace a `docs/product/changelog.md` → descartada: introduce un segundo changelog (drift garantizado).
 
 ### D3 — CI: job `docs-validation` dentro de substage 2B + `needs` del agregador
 
@@ -93,7 +93,7 @@ y `- docs-validation` añadido al `needs` de `prebuild-quality-complete` (agrega
 ## Migration Plan
 
 1. Configs locales (tasks 1–3) + scripts (task 5) → `npm run docs:lint` repara lo fixable.
-2. Limpiar resto del árbol y `docs/changelog.md` (task 4/8) hasta `npm run docs:check` en verde.
+2. Limpiar resto del árbol y `docs/product/changelog.md` (task 4/8) hasta `npm run docs:check` en verde.
 3. Activar lint-staged (task 6) → validación en cada commit.
 4. Añadir job CI + `needs` (task 7) → gate en PR.
 5. Rollback: quitar `- docs-validation` del agregador (un línea) desacopla el gate sin borrar configs.

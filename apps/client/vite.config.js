@@ -15,7 +15,7 @@ export default defineConfig({
     // Source maps "hidden" (PRD §Frontend): se emiten los `.map` en
     // `dist/assets/` pero el bundle NO lleva el comentario `sourceMappingURL`,
     // así el navegador nunca los pide. Se suben al sistema de errores y no se
-    // publican en el servidor estático — ver docs/frontend-sourcemaps-y-cache.md.
+    // publican en el servidor estático — ver docs/frontend/frontend-sourcemaps-y-cache.md.
     sourcemap: 'hidden',
   },
   server: {

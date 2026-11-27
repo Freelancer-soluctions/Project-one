@@ -10,7 +10,7 @@
 
 **Typosquatting / Package Confusion** = ataque a la cadena de suministro donde un paquete malicioso usa un nombre similar al de un paquete popular (ej. `lodb` por `lodash`, `request` por `reqeust`, homoglyphs Unicode). npm audit / Trivy no cubren 0-day sin CVE; dependency-review solo revisa manifiesto PR; lockfile-audit revisa lockfile CVE; none cubre typosquatting de metadatos + YARA.
 
-En `docs/ci-cd-pipeline-empresarial.md` §23.3 `Stage 2` (`Security`): SAST + SCA + IaC + Pipeline Config Scan van en paralelo (pre-build). Typosquatting detection se ubica en la misma capa de **seguridad pre-build**, junto a `dependency-review`, `lockfile-audit`, `actionlint/zizmor` y `security.yml` `dependency-scan`. No reemplaza a ninguno; complementario.
+En `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3 `Stage 2` (`Security`): SAST + SCA + IaC + Pipeline Config Scan van en paralelo (pre-build). Typosquatting detection se ubica en la misma capa de **seguridad pre-build**, junto a `dependency-review`, `lockfile-audit`, `actionlint/zizmor` y `security.yml` `dependency-scan`. No reemplaza a ninguno; complementario.
 
 Estado verificado (`project-one`):
 
@@ -214,7 +214,7 @@ test -s .tmp/guarddog.sarif && jq -e '.runs[0].results | length == 0' .tmp/guard
 - `cheatsheetseries.owasp.org/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.html`; `owasp.org/www-project-top-10-ci-cd-security-risks/CICD-SEC-03-Dependency-Chain-Abuse`.
 - `csrc.nist.gov/pubs/sp/800/218/final`; `slsa.dev/spec/v1.0/requirements`; `github.com/advisories`.
 - `usenix.org/system/files/sec23_slides_neupane.pdf` (Beyond Typosquatting, Neupane et al.).
-- Referencias internas: `docs/learning/pipeline-config-scan.md` (actionlint/zizmor); `docs/learning/iac-scanning.md` (IaC Scanning); `docs/learning/sca-dependency-lockfile-scan.md` (Lockfile CVE); `docs/learning/containerfile-lint.md` (Hadolint Dockerfile lint); `docs/ci-cd-pipeline-empresarial.md` §23.3; `.github/workflows/ci.yml` L659-673 (actionlint bloqueante); `.github/actionlint.yaml`; `.github/workflows/security.yml`; `.github/workflows/scheduled-security.yml`; `.husky/pre-commit` L4-45 (advisory).
+- Referencias internas: `docs/learning/pipeline-config-scan.md` (actionlint/zizmor); `docs/learning/iac-scanning.md` (IaC Scanning); `docs/learning/sca-dependency-lockfile-scan.md` (Lockfile CVE); `docs/learning/containerfile-lint.md` (Hadolint Dockerfile lint); `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3; `.github/workflows/ci.yml` L659-673 (actionlint bloqueante); `.github/actionlint.yaml`; `.github/workflows/security.yml`; `.github/workflows/scheduled-security.yml`; `.husky/pre-commit` L4-45 (advisory).
 
 ---
 

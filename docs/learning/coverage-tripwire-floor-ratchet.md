@@ -4,7 +4,7 @@
 > **Alcance:** Implementación del patrón _Coverage Tripwire (Floor Ratchet)_ usando Vitest + c8/V8 en este monorepo.
 > **Fuentes consultadas:** Documentación oficial Vitest v4, artículos de la comunidad (QASkills,
 > Nerd Level Tech, Gaffer.sh, Javascript-Testing.com), y la arquitectura CI/CD ya establecida en
-> `docs/ci-cd-pipeline-empresarial.md` y `docs/learning/unit-tests-enterprise.md`.
+> `docs/ci-cd/ci-cd-pipeline-empresarial.md` y `docs/learning/unit-tests-enterprise.md`.
 
 ---
 
@@ -98,7 +98,7 @@ coverage: {
 
 > **Nota:** Los valores del server son bajos intencionalmente. El coverage global puede ser bajo
 > por módulos NORMAL sin que falle CI — la métrica real se valida por módulo en code review (§16.1
-> de `testing-architecture.md`).
+> de `docs/quality/testing-architecture.md`).
 
 ### 3.2 Configuración del ratchet (autoUpdate)
 
@@ -495,7 +495,7 @@ Cuando se use sharding (`--shard=N/M`), **requiere**:
 4. **Verificar artifact de cada shard presente** — exit 1 si falta alguno (nunca evaluar un merge parcial)
 
 ```yaml
-# §23.6 del ci-cd-pipeline-empresarial.md
+# §23.6 del docs/ci-cd/ci-cd-pipeline-empresarial.md
 coverage-merge-gate:
   needs: [test-shard-1, test-shard-2, test-shard-3]
   runs-on: ubuntu-latest
@@ -580,8 +580,8 @@ coverage-merge-gate:
 
 **Proyecto (verificado en el repo):**
 
-- `docs/ci-cd-pipeline-empresarial.md` — §23.3 (diagrama STAGE 2), §23.6 (Coverage Merge Gate), §L520 (tripwire)
-- `docs/testing-architecture.md` — §4 (seeding), §6 (principios), §9 (mocks/anti-patrones),
+- `docs/ci-cd/ci-cd-pipeline-empresarial.md` — §23.3 (diagrama STAGE 2), §23.6 (Coverage Merge Gate), §L520 (tripwire)
+- `docs/quality/testing-architecture.md` — §4 (seeding), §6 (principios), §9 (mocks/anti-patrones),
   §16 (coverage targets), §18 (cross-platform)
 - `docs/learning/unit-tests-enterprise.md` — §2.2 (coverage tripwire), §2.3 (TIA),
   §2.6 (coverage merge gate), §2.7 (CI jobs)

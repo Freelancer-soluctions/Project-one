@@ -8,7 +8,7 @@ Define el runbook de rotación y revocación de claves de firma (clave SSH ed255
 
 ### Requirement: Runbook de rotación de clave del desarrollador
 
-El repositorio SHALL documentar en `docs/commit-signing.md` un runbook de rotación/revocación de la clave SSH ed25519 del desarrollador que incluya: (1) generar una nueva clave ed25519 dedicada, (2) añadir su `.pub` como Signing Key **adicional** en GitHub (solapamiento), (3) actualizar `user.signingkey` y `allowed_signers` localmente, (4) mantener la clave vieja activa hasta que cero commits recientes queden sin verificar, y (5) revocar la clave vieja una vez completado el solapamiento.
+El repositorio SHALL documentar en `docs/learning/ci-cd/05b-commit-signing.md` un runbook de rotación/revocación de la clave SSH ed25519 del desarrollador que incluya: (1) generar una nueva clave ed25519 dedicada, (2) añadir su `.pub` como Signing Key **adicional** en GitHub (solapamiento), (3) actualizar `user.signingkey` y `allowed_signers` localmente, (4) mantener la clave vieja activa hasta que cero commits recientes queden sin verificar, y (5) revocar la clave vieja una vez completado el solapamiento.
 
 #### Scenario: Rotación con solapamiento
 

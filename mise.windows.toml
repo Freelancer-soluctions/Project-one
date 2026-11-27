@@ -1,0 +1,5 @@
+# GuardDog no soporta Windows nativo: su sandbox (nono-py) solo publica
+# wheels linux/macos. En Windows el escaneo va vía Docker (ver
+# scripts/guarddog-verify.sh) y el hook pre-commit es fail-open.
+[settings]
+disable_tools = ["pipx:guarddog"]

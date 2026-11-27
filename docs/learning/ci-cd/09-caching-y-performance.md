@@ -24,7 +24,7 @@ Al terminar esta guía, serás capaz de:
 1. ✅ **Fundamentos completado (00-04)** — sabes qué es un workflow, job, step, runner y `hashFiles()`
 2. ✅ **Guía 06 (`ci.yml`)** — viste el cache de Playwright en el job `e2e` (sección 8) y el cache npm en los jobs
 3. ✅ **Guía 08 (composite actions)** — viste el step 3 de `setup-monorepo` (cache Vitest) con `actions/cache@v5`, `key`, `restore-keys` y `exclude`
-4. ✅ **`docs/workflows-mantenimiento-guia.md` sección 12** — el inventario de caches actuales y el gap A3 de `ci-enterprise.yml`
+4. ✅ **`docs/learning/ci-cd/workflows-mantenimiento-guia.md` sección 12** — el inventario de caches actuales y el gap A3 de `ci-enterprise.yml`
 
 > **Si no hiciste la guía 08**: vuelve a [`./08-composite-actions.md`](./08-composite-actions.md) sección 2.6 — el step "Cache Vitest" de la composite es el ejemplo central de esta guía.
 
@@ -87,7 +87,7 @@ key: vitest-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 | **Setup cache**      | `actions/setup-node@v5` con `cache: 'npm'` (implícito) | 7 días                        | npm                                           |
 | **Dependency cache** | `actions/cache` con `path` apuntando a `node_modules`  | 7 días                        | (no usado — se prefiere `npm ci` + cache npm) |
 
-> 📖 **Referencia**: [`docs/workflows-mantenimiento-guia.md`](../../../docs/workflows-mantenimiento-guia.md) sección 12 — inventario completo de caches con su estado de invalidación (todo ✅ Sí).
+> 📖 **Referencia**: [`docs/learning/ci-cd/workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) sección 12 — inventario completo de caches con su estado de invalidación (todo ✅ Sí).
 
 ---
 
@@ -379,7 +379,7 @@ Esos paths **tampoco existen** → el path filtering está **muerto** (nunca mat
 
 ### 6.4 Por qué NO se arregla
 
-Este workflow es un **template de referencia** (patrón "Fintech PR CI") que **no aplica a este monorepo**. Está documentado como **gap A3** en `docs/cicd-estado-actual.md` y en `docs/workflows-mantenimiento-guia.md` sección 12:
+Este workflow es un **template de referencia** (patrón "Fintech PR CI") que **no aplica a este monorepo**. Está documentado como **gap A3** en `docs/CONTEXT-CICD.md` y en `docs/learning/ci-cd/workflows-mantenimiento-guia.md` sección 12:
 
 > _"`ci-enterprise.yml` referencia paths inexistentes (`frontend/`, `backend/`) — no copiar sus patrones. Gap A3 documentado; workflow no aplica a este monorepo."_
 
@@ -476,7 +476,7 @@ act -j quality -W .github/workflows/quality.yml \
 | Probar secrets reales / deployments          | **Push a GitHub**                                   |
 | Iterar rápido sobre steps                    | `act` local                                         |
 
-> 📖 **Referencia**: [`docs/workflows-mantenimiento-guia.md`](../../../docs/workflows-mantenimiento-guia.md) Apéndice A — `act -j quality -W .github/workflows/quality.yml` aparece como comando de mantenimiento trimestral (sección 17, punto 5).
+> 📖 **Referencia**: [`docs/learning/ci-cd/workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) Apéndice A — `act -j quality -W .github/workflows/quality.yml` aparece como comando de mantenimiento trimestral (sección 17, punto 5).
 
 ---
 
@@ -508,7 +508,7 @@ Cada capa ahorra un tipo distinto de trabajo. Por eso las tres conviven: no hay 
 | **Vitest**     | Medio (segundos-min) | Bajo          | Medio (la key no incluye `vitest.config.js` — deuda conocida, sección 5.1) | Media (`exclude` sutil)          |
 | **Playwright** | Alto (1-2 min)       | Alto          | Bajo (la key captura la versión de Playwright)                             | Media (instalación condicional)  |
 
-> 📖 **Referencia**: [`docs/adr/turborepo-evaluation.md`](../../../docs/adr/turborepo-evaluation.md) — el ADR documenta la evaluación de Turborepo (caché de tareas a nivel de workspace) como evolución futura de esta estrategia de cache. La recomendación del ADR es adoptar Turborepo para cachear tareas (lint/build/test) por workspace, complementando los caches de dependencias que estudias en esta guía.
+> 📖 **Referencia**: [`docs/modules/requirements-engineering/adr/turborepo-evaluation.md`](../../modules/requirements-engineering/adr/turborepo-evaluation.md) — el ADR documenta la evaluación de Turborepo (caché de tareas a nivel de workspace) como evolución futura de esta estrategia de cache. La recomendación del ADR es adoptar Turborepo para cachear tareas (lint/build/test) por workspace, complementando los caches de dependencias que estudias en esta guía.
 
 ### 8.3 ¿Por qué NO se cachea `node_modules` completo?
 
@@ -535,7 +535,7 @@ Si construyeras la key con outputs (p. ej. la fecha del run, el SHA del commit),
 
 ### 8.5 ¿Qué cache ahorra más tiempo en este repo?
 
-Medido en el proyecto real (ver `docs/cicd-estado-actual.md`):
+Medido en el proyecto real (ver `docs/CONTEXT-CICD.md`):
 
 | Cache          | Tiempo sin cache             | Tiempo con cache                  | Ahorro                    |
 | -------------- | ---------------------------- | --------------------------------- | ------------------------- |
@@ -825,9 +825,9 @@ Marca cada ítem cuando puedas hacerlo **sin consultar la guía**:
 
 ## 15. Referencias
 
-- [`docs/workflows-mantenimiento-guia.md`](../../../docs/workflows-mantenimiento-guia.md) — sección 12 (inventario de caches) y Apéndice A (comandos de mantenimiento con `act`)
+- [`docs/learning/ci-cd/workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) — sección 12 (inventario de caches) y Apéndice A (comandos de mantenimiento con `act`)
 - [`docs/CONTEXT-CICD.md`](../../../docs/CONTEXT-CICD.md) — inventario vigente de workflows (§3.4/§5.9) y estado del gap A3 de `ci-enterprise.yml` (retirado)
-- [`docs/adr/turborepo-evaluation.md`](../../../docs/adr/turborepo-evaluation.md) — evaluación de Turborepo como evolución del cache de tareas
+- [`docs/modules/requirements-engineering/adr/turborepo-evaluation.md`](../../modules/requirements-engineering/adr/turborepo-evaluation.md) — evaluación de Turborepo como evolución del cache de tareas
 - [Documentación oficial de `actions/cache`](https://github.com/actions/cache) — opciones `key`, `restore-keys`, `exclude`, `cache-hit`
 - [Documentación de `actions/setup-node`](https://github.com/actions/setup-node) — `cache: 'npm'` y `cache-dependency-path`
 - [Documentación de `act`](https://github.com/nektos/act) — ejecución local de workflows

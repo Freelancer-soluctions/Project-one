@@ -107,7 +107,7 @@ Documentation SHALL cite `.prettierrc.yaml` — no literal `.prettierrc` referen
 
 - **WHEN** `grep -rn "\.prettierrc\b" docs` runs
 - **THEN** every match SHALL be part of `.prettierrc` + `.yaml` (i.e. `.prettierrc.yaml`) or an explicit historical mention of the deleted JSON config in `docs/learning/prettier-configuration.md`
-- **AND** `docs/code-style.md`, `docs/pre-merge-gates-governance.md` and `docs/CONTEXT-CICD.md` SHALL reference `.prettierrc.yaml`
+- **AND** `docs/quality/code-style.md`, `docs/ci-cd/pre-merge-gates-governance.md` and `docs/CONTEXT-CICD.md` SHALL reference `.prettierrc.yaml`
 
 #### Scenario: CI format gate blocks drift
 
@@ -246,7 +246,7 @@ Every quality job of substage 2B in `.github/workflows/ci.yml` SHALL be classifi
 
 - **WHEN** the canonical table in `docs/learning/quality-gates.md` is read
 - **THEN** each quality job of substage 2B (`lint`, `format-check`, `typecheck`, `complexity`, `dead-code`, `import-bounds`, `docs-validation`, `sonarqube`) SHALL appear with type `blocking` or `advisory`
-- **AND** `docs/CONTEXT-CICD.md` and `docs/pre-merge-gates-governance.md` SHALL reference the canonical table instead of duplicating it
+- **AND** `docs/CONTEXT-CICD.md` and `docs/ci-cd/pre-merge-gates-governance.md` SHALL reference the canonical table instead of duplicating it
 
 #### Scenario: Blocking jobs cannot be advisory
 
@@ -320,7 +320,7 @@ Every quality job of substage 2B in `.github/workflows/ci.yml` SHALL be classifi
 
 **Context:** `docs/learning/docs-changelog-validation.md` documents that no docs validation job exists and that `package.json` declares neither `markdownlint-cli` nor `vale`.
 
-The repository SHALL provide docs validation configuration: `.markdownlint.json` (root) plus `.markdownlintignore`, and `.vale.ini` (root) with `StylesPath` under `.github/styles`, covering `docs/**/*.md` and `docs/changelog.md`. A `docs-validation` job SHALL exist in `.github/workflows/ci.yml`, classified as `advisory`: it SHALL run markdownlint and vale over the documentation, SHALL declare `continue-on-error: true`, SHALL declare `if: always()` so the report is produced even after upstream failures, SHALL publish its output (uploaded artifact and/or `$GITHUB_STEP_SUMMARY`), and SHALL NOT be part of the `needs` of `prebuild-quality-complete` while it is in phase 1.
+The repository SHALL provide docs validation configuration: `.markdownlint.json` (root) plus `.markdownlintignore`, and `.vale.ini` (root) with `StylesPath` under `.github/styles`, covering `docs/**/*.md` and `docs/product/changelog.md`. A `docs-validation` job SHALL exist in `.github/workflows/ci.yml`, classified as `advisory`: it SHALL run markdownlint and vale over the documentation, SHALL declare `continue-on-error: true`, SHALL declare `if: always()` so the report is produced even after upstream failures, SHALL publish its output (uploaded artifact and/or `$GITHUB_STEP_SUMMARY`), and SHALL NOT be part of the `needs` of `prebuild-quality-complete` while it is in phase 1.
 
 #### Scenario: Docs validation configuration exists
 
@@ -354,7 +354,7 @@ The repository SHALL provide docs validation configuration: `.markdownlint.json`
 
 - **WHEN** the `docs-validation` job is read
 - **THEN** it SHALL invoke `npm run docs:lint` and `npm run docs:vale` (or their direct equivalents)
-- **AND** it SHALL scope both tools to `docs/**/*.md` and `docs/changelog.md`
+- **AND** it SHALL scope both tools to `docs/**/*.md` and `docs/product/changelog.md`
 
 ### Requirement: Gradual adoption of strict flags in apps/server
 

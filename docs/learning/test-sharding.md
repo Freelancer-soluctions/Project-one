@@ -430,7 +430,7 @@ Notas de la receta:
 
 - [`docs/learning/test-impact-analysis.md`][tia] (selección TIA; D7 — seleccionar ANTES de shardar)
 - [`docs/learning/smart-test-ordering.md`][sto] (§3.4 — shards mueven wall-time, no TTFF)
-- [`docs/ci-cd-pipeline-empresarial.md`][emp] ("Test sharding — distribuir suites entre runners [FB]",
+- [`docs/ci-cd/ci-cd-pipeline-empresarial.md`][emp] ("Test sharding — distribuir suites entre runners [FB]",
   diagrama §~2830 y tabla de optimizaciones ~línea 3410)
 - [`docs/learning/quality-gates.md`][qg] (FASE 1 → FASE 2; `continue-on-error` advisory)
 - [`docs/learning/unit-tests-enterprise.md`][ute] (§2.4 sharding P2 > 5-8 min, §2.6 Coverage Merge Gate)
@@ -440,7 +440,7 @@ Notas de la receta:
 
 [tia]: test-impact-analysis.md
 [sto]: smart-test-ordering.md
-[emp]: ../ci-cd-pipeline-empresarial.md
+[emp]: ../ci-cd/ci-cd-pipeline-empresarial.md
 [qg]: quality-gates.md
 [ute]: unit-tests-enterprise.md
 [tiah-design]: ../../openspec/changes/tia-hardening/design.md

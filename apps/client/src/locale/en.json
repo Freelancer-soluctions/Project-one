@@ -177,6 +177,20 @@
     "minimum": "Minimum",
     "maximum": "Maximum",
     "quantity": "Quantity",
+    "product_id": "Product ID",
+    "unit_price": "Unit price",
+    "estimated_price": "Estimated price",
+    "expected_delivery_date": "Expected delivery date",
+    "delivered_on": "Delivered on",
+    "remove_detail": "Remove line",
+    "notes_placeholder": "Enter the notes",
+    "clientId": "Client ID",
+    "supplierId": "Supplier ID",
+    "saleId": "Sale ID",
+    "convert_to_sale": "Convert to sale",
+    "convert_to_purchase": "Convert to purchase",
+    "convert_order": "Convert order",
+    "converted_successfully": "Converted successfully",
     "lot_placeholder": "Enter the lot number",
     "quantity_placeholder": "Enter the quantity",
     "add_stock": "Add stock",
@@ -237,6 +251,39 @@
     "product_already_exists_message": "The product already exists in the sale. Please select another product.",
     "add_purchase": "Add purchase",
     "edit_purchase": "Edit purchase",
+    "status_payment_panel": "Status and payment",
+    "payment_method": "Payment method",
+    "select_payment_method": "Select a payment method",
+    "payment_method_none": "No payment method",
+    "invoice_number": "Invoice number",
+    "invoice_number_placeholder": "Enter the invoice number",
+    "paid_at": "Paid at",
+    "not_paid": "No payment recorded",
+    "save_payment": "Save payment",
+    "update_status": "Update status",
+    "update_payment": "Update payment",
+    "status_updated_successfully": "Status updated successfully",
+    "payment_updated_successfully": "Payment data updated successfully",
+    "operation_failed": "Operation failed",
+    "operation_failed_message": "The change could not be saved. Please try again.",
+    "status_pending": "Pending",
+    "status_paid": "Paid",
+    "status_received": "Received",
+    "status_cancelled": "Cancelled",
+    "status_refunded": "Refunded",
+    "status_action_paid": "Mark as paid",
+    "status_action_received": "Mark as received",
+    "status_action_refunded": "Refund",
+    "payment_cash": "Cash",
+    "payment_card": "Card",
+    "payment_transfer": "Transfer",
+    "payment_other": "Other",
+    "cancel_sale": "Cancel sale",
+    "confirm_cancel_sale": "Cancel this sale? The stock of the sold products will be reversed. This action cannot be undone.",
+    "refund_sale": "Refund sale",
+    "confirm_refund_sale": "Refund this sale? The stock of the sold products will be returned to inventory. This action cannot be undone.",
+    "cancel_purchase": "Cancel purchase",
+    "confirm_cancel_purchase": "Cancel this purchase? The stock of the received products will be reversed. This action cannot be undone.",
     "inventory_movements": "Inventory Movements",
     "inventory_movements_card_msg": "Manage your inventory movements efficiently.",
     "users": "Users",
@@ -725,11 +772,39 @@
       "providerOrder": {
         "supplierId": {
           "required": "Supplier is required."
+        },
+        "estimatedPrice": {
+          "required": "Estimated price is required.",
+          "invalid": "Estimated price must have at most 2 decimals."
+        },
+        "details": {
+          "min": "Add at least one detail line.",
+          "productId": {
+            "required": "Product is required."
+          },
+          "quantity": {
+            "required": "Quantity is required.",
+            "min": "Quantity must be at least 1."
+          }
         }
       },
       "clientOrder": {
         "clientId": {
           "empty": "Client is required."
+        },
+        "unitPrice": {
+          "required": "Unit price is required.",
+          "invalid": "Unit price must have at most 2 decimals."
+        },
+        "details": {
+          "min": "Add at least one detail line.",
+          "productId": {
+            "required": "Product is required."
+          },
+          "quantity": {
+            "required": "Quantity is required.",
+            "min": "Quantity must be at least 1."
+          }
         }
       },
       "news": {

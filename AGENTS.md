@@ -45,7 +45,7 @@ cd apps/server && npm run test:unit         # Unit tests
 cd apps/server && npm run test:integration  # Integration tests
 ```
 
-> **Migración TS completada** (2026-11-13): `apps/server` es 100% `.ts` (230 archivos, 0 `.js`/`.cjs`/`.mjs`). Runtime: `tsx` (`dev: tsx watch src/bin/index.ts`, `start: node dist/bin/index.js` via `tsc -b`). Strict activo en `tsconfig.base.json` + `apps/server/tsconfig.json` (composite, outDir dist). Fuente: `docs/server-typescript-migration-research.md`.
+> **Migración TS completada** (2026-11-13): `apps/server` es 100% `.ts` (230 archivos, 0 `.js`/`.cjs`/`.mjs`). Runtime: `tsx` (`dev: tsx watch src/bin/index.ts`, `start: node dist/bin/index.js` via `tsc -b`). Strict activo en `tsconfig.base.json` + `apps/server/tsconfig.json` (composite, outDir dist). Fuente: `docs/backend/server-typescript-migration-research.md`.
 
 ### E2E
 
@@ -64,9 +64,11 @@ cd e2e && npm run test
 ## Important Conventions
 
 - **Commits**: Conventional Commits enforced by Husky
-- **Commit Signing & DCO**: Cada commit debe firmarse con la SSH key ed25519 dedicada y llevar signoff DCO: convención `git commit -S -s`. El hook `.husky/prepare-commit-msg` añade el trailer `Signed-off-by:` automáticamente con la identidad real de git (el mito `commit.signoff` es un no-op: no existe en git), y `.husky/commit-msg` es el único gate local que valida su presencia; CI `DCO` (required + blocking) es el backstop. El gate local de `pre-push` verifica la firma de cada commit contra el trust store versionado `allowed_signers` (raíz del repo, solo claves públicas) y bloquea los commits sin firma o con firma corrupta posteriores al cutoff. **Nunca usar `--no-verify` ni commits sin firmar** — rompe el ruleset `Require signed commits` y la cadena de suministro. Ver docs/learning/ci-cd/05b-commit-signing.md (setup de firma), docs/learning/dco.md (DCO) y docs/CONTEXT-CICD.md §10.7 (gate).
-- **Testing**: See [docs/testing-architecture.md](docs/testing-architecture.md)
-- **Code Style**: See [docs/code-style.md](docs/code-style.md)
+- **Commit Signing & DCO**: Cada commit debe firmarse con la SSH key ed25519 dedicada y llevar signoff DCO: convención `git commit -S -s`. El hook `.husky/prepare-commit-msg` añade el trailer `Signed-off-by:` automáticamente con la identidad real de git (el mito `commit.signoff` es un no-op: no existe en git), y `.husky/commit-msg` es el único gate local que valida su presencia; CI `DCO` (required + blocking) es el backstop. El gate local de `pre-push` verifica la firma de cada commit contra el trust store versionado `allowed_signers` (raíz del repo, solo claves públicas) y bloquea los commits sin firma o con firma corrupta posteriores al cutoff. **Nunca usar `--no-verify` ni commits sin firmar** — rompe el ruleset `Main Branch Protection` y la cadena de suministro. Ver docs/learning/ci-cd/05b-commit-signing.md (setup de firma), docs/learning/dco.md (DCO) y docs/CONTEXT-CICD.md §10.7 (gate).
+- **Testing**: See [docs/quality/testing-architecture.md](docs/quality/testing-architecture.md)
+- **Code Style**: See [docs/quality/code-style.md](docs/quality/code-style.md)
+- **Requirements framework**: PRD→changes decomposition, DoR/DoD gates, RTM traceability — see [docs/product/De-stakeholder-a-producción-flujo-completo-de una-feature.md](docs/product/De-stakeholder-a-producción-flujo-completo-de%20una-feature.md) (sección "Framework operativo para Project One")
+- **Application context**: what the app is, domain, architecture, modules, data model, business rules, limitations — see [docs/application-context.md](docs/application-context.md)
 
 ## Available Skills
 
@@ -76,10 +78,11 @@ Use these skills for detailed patterns on-demand. Load with `/skill <name>`.
 
 These skills modify agent communication and workflow orchestration:
 
-| Skill      | Description                                                                                                             | URL                                          |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `grill-me` | Interview the user relentlessly about a plan until reaching shared understanding. Walk each branch of the decision tree | [SKILL.md](.agents/skills/grill-me/SKILL.md) |
-| `caveman`  | Ultra-compressed communication mode. Cuts token usage ~75% by dropping filler, articles, and pleasantries               | [SKILL.md](.agents/skills/caveman/SKILL.md)  |
+| Skill           | Description                                                                                                             | URL                                               |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `grill-me`      | Interview the user relentlessly about a plan until reaching shared understanding. Walk each branch of the decision tree | [SKILL.md](.agents/skills/grill-me/SKILL.md)      |
+| `caveman`       | Ultra-compressed communication mode. Cuts token usage ~75% by dropping filler, articles, and pleasantries               | [SKILL.md](.agents/skills/caveman/SKILL.md)       |
+| `skill-creator` | Create, modify, and improve skills; run evals and optimize skill descriptions for triggering accuracy                   | [SKILL.md](.agents/skills/skill-creator/SKILL.md) |
 
 ### OpenSpec Workflow
 
@@ -132,35 +135,89 @@ Skills for the specification-driven development lifecycle, run directly by the p
 | ---------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | `owasp-security-check` | OWASP Top 10 audit: SQLi, XSS, auth/authz, CORS, rate limiting, input validation | [SKILL.md](.agents/skills/owasp-security-check/SKILL.md) |
 
+### Review Skills (code & spec review)
+
+| Skill             | Description                                                                                                 | URL                                                   |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `review-code`     | Base code review checklist: correctness, security baseline, performance, quality, testing, severity mapping | [SKILL.md](.opencode/skills/review-code/SKILL.md)     |
+| `review-express`  | Conditional Express checklist: async errors, HTTP status codes, validation middleware, typing, transactions | [SKILL.md](.opencode/skills/review-express/SKILL.md)  |
+| `review-react`    | Conditional React checklist: functional components, hooks, prop drilling, accessibility, error boundaries   | [SKILL.md](.opencode/skills/review-react/SKILL.md)    |
+| `review-security` | Deep security checklist: SQLi, XSS, auth/authz, sensitive data, CORS, rate limiting (load with review-code) | [SKILL.md](.opencode/skills/review-security/SKILL.md) |
+| `review-spec`     | Specification review checklist for OpenSpec changes: proposal, delta specs, design, task atomicity/order    | [SKILL.md](.opencode/skills/review-spec/SKILL.md)     |
+
+### Workflow, Git & CI Skills
+
+| Skill                     | Description                                                                                                 | URL                                                           |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `git-workflow`            | Conventional Commits, Trunk-Based Development, atomic commits; source of truth for commits/branches/PRs     | [SKILL.md](.opencode/skills/git-workflow/SKILL.md)            |
+| `cicd-context`            | CI/CD context: GitHub Actions workflows, ruleset, gates, CI_MINIMAL, repository governance                  | [SKILL.md](.opencode/skills/cicd-context/SKILL.md)            |
+| `implementation-protocol` | Batch execution protocol for tasks.md (OpenSpec vs normal mode, task order, marking complete, coding model) | [SKILL.md](.opencode/skills/implementation-protocol/SKILL.md) |
+| `sdd-workflow`            | The 6 phases of SDD and their gates: exploration, spec, review, implementation, verification, archive       | [SKILL.md](.opencode/skills/sdd-workflow/SKILL.md)            |
+| `design-docs`             | Normal (non-OpenSpec) design-doc mode: architecture diagrams, technical specs, implementation plans         | [SKILL.md](.opencode/skills/design-docs/SKILL.md)             |
+
+### Code Quality Skills
+
+| Skill        | Description                                                               | URL                                            |
+| ------------ | ------------------------------------------------------------------------- | ---------------------------------------------- |
+| `clean-code` | Clean Code principles (Uncle Bob): transform working code into clean code | [SKILL.md](.agents/skills/clean-code/SKILL.md) |
+
+### Requirements Engineering Skills (Project One)
+
+| Skill                      | Description                                                                                              | URL                                                            |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `requirements-engineering` | Entry point: routes to the correct RE stage skill based on current need                                  | [SKILL.md](.opencode/skills/requirements-engineering/SKILL.md) |
+| `re-discovery`             | Stage 1: Feature Brief, Trello Epic, condicionales (BPMN, C4, PIA)                                       | [SKILL.md](.opencode/skills/re-discovery/SKILL.md)             |
+| `re-elicitation`           | Stage 2: Interview guide, conflict resolution, RN-xxx, NFR derivados, condicionales (domain model, BPMN) | [SKILL.md](.opencode/skills/re-elicitation/SKILL.md)           |
+| `re-specification`         | Stage 3: Business rules, User Story BDD, DoR, RTM, condicionales (NFR, threat model, compliance)         | [SKILL.md](.opencode/skills/re-specification/SKILL.md)         |
+| `re-refinement`            | Stage 4: Prioritization (MoSCoW/RICE/WSJF/Kano), estimation, spikes, UAT plan                            | [SKILL.md](.opencode/skills/re-refinement/SKILL.md)            |
+| `re-design`                | Stage 5: ADR, API design, rollback plan, condicionales (RFC, data dictionary, C4, BPMN)                  | [SKILL.md](.opencode/skills/re-design/SKILL.md)                |
+| `re-handoff`               | Handoff: verifica DoR, mapea RE→OpenSpec, invoca /opsx:propose con contexto RE                           | [SKILL.md](.opencode/skills/re-handoff/SKILL.md)               |
+
 ## Auto-invoke Skills
 
 When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
-| Action                                                   | Skill                         |
-| -------------------------------------------------------- | ----------------------------- |
-| Auditing code for security vulnerabilities before merge  | `owasp-security-check`        |
-| Building a new API endpoint, middleware, or auth flow    | `nodejs-backend-patterns`     |
-| Changing Prisma schema, running migrations               | `prisma-postgres`             |
-| Committing changes                                       | `/commit-all` (command)       |
-| Creating a new OpenSpec change (step by step)            | `openspec-new`                |
-| Creating a new OpenSpec change (all artifacts at once)   | `openspec-propose`            |
-| Creating or updating shadcn/ui components                | `shadcn`                      |
-| Designing or reviewing PostgreSQL table schemas          | `postgresql-table-design`     |
-| Escribir o modificar historias Storybook                 | `storybook`                   |
-| Exploring a topic before starting a change               | `openspec-explore`            |
-| Fast-forwarding through all artifacts                    | `openspec-ff`                 |
-| Fixing a bug or implementing a feature                   | `test-driven-development`     |
-| Implementing tasks from an OpenSpec change               | `openspec-apply`              |
-| Interviewing the user about a plan or design (Phase 0)   | `grill-me`                    |
-| Optimizing React component rendering performance         | `vercel-react-best-practices` |
-| Refactoring legacy code to modern JavaScript patterns    | `modern-javascript-patterns`  |
-| Starting caveman mode for ultra-compressed communication | `caveman`                     |
-| Styling components with Tailwind CSS classes             | `tailwind-design-system`      |
-| Syncing delta specs to main specs                        | `openspec-sync`               |
-| Verifying implementation matches change artifacts        | `openspec-verify`             |
-| Writing E2E tests with Playwright                        | `playwright-best-practices`   |
-| Writing React component tests with Testing Library       | `react-testing-library`       |
-| Writing unit/integration tests with Vitest               | `vitest`                      |
+| Action                                                            | Skill                         |
+| ----------------------------------------------------------------- | ----------------------------- |
+| Auditing code for security vulnerabilities before merge           | `owasp-security-check`        |
+| Building a new API endpoint, middleware, or auth flow             | `nodejs-backend-patterns`     |
+| Changing Prisma schema, running migrations                        | `prisma-postgres`             |
+| Committing changes                                                | `/commit-all` (command)       |
+| Creating a new OpenSpec change (step by step)                     | `openspec-new`                |
+| Creating a new OpenSpec change (all artifacts at once)            | `openspec-propose`            |
+| Creating or updating shadcn/ui components                         | `shadcn`                      |
+| Designing or reviewing PostgreSQL table schemas                   | `postgresql-table-design`     |
+| Escribir o modificar historias Storybook                          | `storybook`                   |
+| Exploring a topic before starting a change                        | `openspec-explore`            |
+| Fast-forwarding through all artifacts                             | `openspec-ff`                 |
+| Fixing a bug or implementing a feature                            | `test-driven-development`     |
+| Starting a new feature (Discovery)                                | `re-discovery`                |
+| Eliciting requirements from stakeholders                          | `re-elicitation`              |
+| Writing user stories, business rules, or DoR                      | `re-specification`            |
+| Prioritizing or estimating backlog items                          | `re-refinement`               |
+| Creating ADR, API design, or rollback plan                        | `re-design`                   |
+| Handoff from RE to OpenSpec change creation                       | `re-handoff`                  |
+| Starting requirements engineering (any stage)                     | `requirements-engineering`    |
+| Implementing tasks from an OpenSpec change                        | `openspec-apply`              |
+| Interviewing the user about a plan or design (Phase 0)            | `grill-me`                    |
+| Optimizing React component rendering performance                  | `vercel-react-best-practices` |
+| Refactoring legacy code to modern JavaScript patterns             | `modern-javascript-patterns`  |
+| Starting caveman mode for ultra-compressed communication          | `caveman`                     |
+| Styling components with Tailwind CSS classes                      | `tailwind-design-system`      |
+| Syncing delta specs to main specs                                 | `openspec-sync`               |
+| Verifying implementation matches change artifacts                 | `openspec-verify`             |
+| Writing E2E tests with Playwright                                 | `playwright-best-practices`   |
+| Writing React component tests with Testing Library                | `react-testing-library`       |
+| Writing unit/integration tests with Vitest                        | `vitest`                      |
+| Creating or editing skills                                        | `skill-creator`               |
+| Creating commits, branches, or PRs                                | `git-workflow`                |
+| Working on CI/CD, GitHub Actions, or repository governance        | `cicd-context`                |
+| Implementing tasks from a tasks.md file                           | `implementation-protocol`     |
+| Coordinating SDD phases (explore→spec→review→impl→verify→archive) | `sdd-workflow`                |
+| Writing design docs outside openspec/                             | `design-docs`                 |
+| Reviewing code (base checklist)                                   | `review-code`                 |
+| Reviewing an OpenSpec change's specs/design/tasks                 | `review-spec`                 |
+| Refactoring working code into clean code                          | `clean-code`                  |
 
 ## Environment Variables
 

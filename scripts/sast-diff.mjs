@@ -60,9 +60,25 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // -- Single source of truth for the Semgrep version (RF-PAR-03, RNF-02) -----
-// Defined exactly ONCE in the repo. The full scan (scripts/security/semgrep.ps1,
-// task 6.4) pins the same value. Never use a floating tag.
-export const SEMGREP_VERSION = '1.176.1';
+// mise.toml (`pipx:semgrep`) is the repo-wide SSOT (change
+// ci-mise-toolchain-parity). This script keeps Docker as the scan runtime but
+// derives the image tag from that pin, so hook, CI and full scan cannot
+// diverge. Fail-closed: a missing/unparsable pin must never yield a floating
+// or empty image tag.
+const MISE_TOML_PATH = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+  'mise.toml'
+);
+const miseToml = fs.readFileSync(MISE_TOML_PATH, 'utf8');
+const semgrepPin = miseToml.match(/"pipx:semgrep"\s*=\s*"([^"]+)"/);
+if (!semgrepPin) {
+  console.error(
+    `[sast-diff] Could not read "pipx:semgrep" pin from ${MISE_TOML_PATH} — refusing to run with an unpinned Semgrep image.`
+  );
+  process.exit(2);
+}
+export const SEMGREP_VERSION = semgrepPin[1];
 const SEMGREP_IMAGE = `semgrep/semgrep:${SEMGREP_VERSION}`;
 
 // -- Single source of truth for the rule set (RF-PAR-04, H-1/M-3) -----------

@@ -1,6 +1,6 @@
 # IaC Scanning (Checkov / tfsec / KICS) — Implementación Profesional / Enterprise
 
-> Verificado 2026-09-26 — referencias oficiales comprobadas (`github.com/bridgecrewio/checkov`, `github.com/aquasecurity/tfsec`, `github.com/Checkmarx/kics`, `owasp.org/www-project-top-ten`). Implementación previa consultada: [`docs/learning/sast-implementation.md`](./sast-implementation.md) (§4.2 `p/terraform` / `p/kubernetes` / `p/dockerfile`; §3.1 semgrep packs; §4.3 mejora notebooks); [`docs/learning/dependency-review.md`](./dependency-review.md) (§2 referencias oficiales corregidas); [`docs/ci-cd-pipeline-empresarial.md`](../ci-cd-pipeline-empresarial.md) §23.3 `Stage 2` Security (SAST, SCA, IaC). Proyecto: monorepo `project-one` (Node/Express + React); `security.yml` activa `dependency-scan` Trivy + `sbom`; `ci.yml` L765 `dependency-review`; `scheduled-security.yml` `scancode-license-audit`; sin `terraform/` ni `pulumi/` ni `k8s/` actualmente, pero arquitectura empresarial requiere cobertura preventiva.
+> Verificado 2026-09-26 — referencias oficiales comprobadas (`github.com/bridgecrewio/checkov`, `github.com/aquasecurity/tfsec`, `github.com/Checkmarx/kics`, `owasp.org/www-project-top-ten`). Implementación previa consultada: [`docs/learning/sast-implementation.md`](./sast-implementation.md) (§4.2 `p/terraform` / `p/kubernetes` / `p/dockerfile`; §3.1 semgrep packs; §4.3 mejora notebooks); [`docs/learning/dependency-review.md`](./dependency-review.md) (§2 referencias oficiales corregidas); [`docs/ci-cd/ci-cd-pipeline-empresarial.md`](../ci-cd/ci-cd-pipeline-empresarial.md) §23.3 `Stage 2` Security (SAST, SCA, IaC). Proyecto: monorepo `project-one` (Node/Express + React); `security.yml` activa `dependency-scan` Trivy + `sbom`; `ci.yml` L765 `dependency-review`; `scheduled-security.yml` `scancode-license-audit`; sin `terraform/` ni `pulumi/` ni `k8s/` actualmente, pero arquitectura empresarial requiere cobertura preventiva.
 >
 > **Nota:** Este documento cubre análisis de infraestructura como código (IaC), no código fuente (SAST: Semgrep/CodeQL) ni dependencias (SCA: Trivy/ScanCode/npm audit). Es capa transversal de `DevSecOps` (§20 pipeline).
 
@@ -10,15 +10,15 @@
 
 **IaC = Infrastructure as Code** (Terraform `.tf`, CloudFormation `.yaml`, Kubernetes `.yaml`, Dockerfile, Pulumi, Ansible, Serverless). Detecta misconfiguraciones de seguridad antes del despliegue: credenciales hardcodeadas, permisos excesivos (`*` en IAM/S3), redes públicas (`0.0.0.0/0`), falta de encriptación, versiones obsoletas de base, etc.
 
-En `docs/ci-cd-pipeline-empresarial.md` §23.3 `Stage 2` (`Security`): SAST + SCA + IaC van en paralelo (pre-build). `docs/learning/sast-implementation.md` §4.2 menciona `p/terraform` como pack de comunidad de Semgrep, reconociendo que el pipeline necesita cobertura IaC pero no la tiene implementada hoy.
+En `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3 `Stage 2` (`Security`): SAST + SCA + IaC van en paralelo (pre-build). `docs/learning/sast-implementation.md` §4.2 menciona `p/terraform` como pack de comunidad de Semgrep, reconociendo que el pipeline necesita cobertura IaC pero no la tiene implementada hoy.
 
 Estado verificado (`project-one`):
 
 - `.github/workflows/security.yml`: `dependency-scan` (Trivy filesystem) + `sbom` (`anchore/sbom-action@v0.24.0`) activos (2026-09-25, `state: active`); jobs `sast` (**CodeQL**, `name: SAST - CodeQL`) y `semgrep-full-scan` (Semgrep weekly); sin `checkov` / `tfsec` / `kics`.
 - `.github/dependabot.yml` (fuera de `workflows/`): actualizaciones de dependencias npm + GitHub Actions — capa preventiva SCA, no ejecuta IaC; complementa sin duplicar.
-- `.github/workflows/ci.yml`: `dependency-review` L765 (manifest PR-time); `prebuild-security-complete` L1465 (`needs [dependency-review, secrets, scancode-license-pr-diff]`); **IaC en implementación (change `iac-scanning`)**: job `checkov-iac` (advisory FASE 1, artifact 14d); `checkov-iac-weekly` (scheduled 90d, SARIF); `.checkov.yml` (policy as code); pre-commit advisory (`soft-fail`); no bloquea releases (`advisory`). No reemplaza SAST (`security.yml` CodeQL/semgrep) ni SCA (`security.yml` Trivy/dependency-review). Referencias: `docs/learning/sast-implementation.md` L240 (`p/terraform`); `docs/ci-cd-pipeline-empresarial.md` §23.3, §29 (`Containerización`) y §32 (`IaC`); `security.yml` `state: active` (sbom + Trivy fs, junto a `dependency-review` en `ci.yml` y `checkov-iac` futuro FASE 2).
+- `.github/workflows/ci.yml`: `dependency-review` L765 (manifest PR-time); `prebuild-security-complete` L1465 (`needs [dependency-review, secrets, scancode-license-pr-diff]`); **IaC en implementación (change `iac-scanning`)**: job `checkov-iac` (advisory FASE 1, artifact 14d); `checkov-iac-weekly` (scheduled 90d, SARIF); `.checkov.yml` (policy as code); pre-commit advisory (`soft-fail`); no bloquea releases (`advisory`). No reemplaza SAST (`security.yml` CodeQL/semgrep) ni SCA (`security.yml` Trivy/dependency-review). Referencias: `docs/learning/sast-implementation.md` L240 (`p/terraform`); `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3, §29 (`Containerización`) y §32 (`IaC`); `security.yml` `state: active` (sbom + Trivy fs, junto a `dependency-review` en `ci.yml` y `checkov-iac` futuro FASE 2).
 - `scheduled-security.yml`: `scancode-license-audit` (semanal, 90d); `gitleaks-full-scan`; sin IaC semanal.
-- Directorios `terraform/` / `k8s/` / `pulumi/`: no existen hoy, pero `docs/ci-cd-pipeline-empresarial.md` §29 (`Containerización`) y §32 (`IaC`) documentan que el pipeline debe soportar desplegues con Terraform/CDK/Helm.
+- Directorios `terraform/` / `k8s/` / `pulumi/`: no existen hoy, pero `docs/ci-cd/ci-cd-pipeline-empresarial.md` §29 (`Containerización`) y §32 (`IaC`) documentan que el pipeline debe soportar desplegues con Terraform/CDK/Helm.
 - `docs/learning/sast-implementation.md`: `L3 Full-history` (audit semanal, nunca bloquea releases) — patrón aplicable a IaC.
 
 ---
@@ -221,7 +221,7 @@ checkov -d . --framework terraform --soft-fail --check CKV_AWS_1,CKV_AWS_2 || ec
 - `github.com/aquasecurity/tfsec` (200 HTML); `tfsec --soft-fail`; `tfsec --format sarif`
 - `github.com/Checkmarx/kics` (200 HTML); `kics scan --no-progress`; `kics --output-path kics.sarif`
 - `owasp.org/www-project-top-ten/` (200) — A05 Security Misconfiguration
-- Referencias internas: `docs/learning/sast-implementation.md` (§4.2 `p/terraform`, §3.1 L3 Full-history, §4.3 remediación); `docs/learning/dependency-review.md` (§2 referencias corregidas); `docs/ci-cd-pipeline-empresarial.md` §23.3; `docs/learning/license-compliance.md`; `.github/workflows/security.yml`; `.github/workflows/ci.yml` L765/1465/1469
+- Referencias internas: `docs/learning/sast-implementation.md` (§4.2 `p/terraform`, §3.1 L3 Full-history, §4.3 remediación); `docs/learning/dependency-review.md` (§2 referencias corregidas); `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3; `docs/learning/license-compliance.md`; `.github/workflows/security.yml`; `.github/workflows/ci.yml` L765/1465/1469
 
 ---
 

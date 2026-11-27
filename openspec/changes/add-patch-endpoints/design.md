@@ -1,6 +1,6 @@
 ## Context
 
-The backend currently implements 21 route modules with PUT endpoints (providerOrder excluded — see Task 1.2), all using `router.put()` for update operations. This creates an inconsistent REST API where some modules use optional-field Joi schemas on PUT (which should semantically be PATCH). The frontend is forced to send complete objects for every update with no support for partial updates. Analysis in `docs/api-rest-design-analysis.md` identifies: no PATCH support, inconsistent response formats, no 404 handling.
+The backend currently implements 21 route modules with PUT endpoints (providerOrder excluded — see Task 1.2), all using `router.put()` for update operations. This creates an inconsistent REST API where some modules use optional-field Joi schemas on PUT (which should semantically be PATCH). The frontend is forced to send complete objects for every update with no support for partial updates. Analysis in `docs/backend/api-rest-design-analysis.md` identifies: no PATCH support, inconsistent response formats, no 404 handling.
 
 Enterprise REST practice (Microsoft REST Guidelines, GitHub API, Stripe API) recommends dual PUT + PATCH endpoints for proper HTTP verb semantics.
 

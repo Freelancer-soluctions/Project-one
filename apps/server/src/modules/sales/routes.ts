@@ -5,6 +5,7 @@ import {
   deleteSaleById,
   deleteSaleDetailById,
   patchSaleById,
+  transitionSaleStatus,
 } from './controller.js';
 import {
   verifyToken,
@@ -16,6 +17,7 @@ import {
 import {
   saleFiltersSchema,
   saleCreateSchema,
+  saleStatusSchema,
   saleUpdateSchema,
 } from './schemas/sales.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
@@ -50,9 +52,15 @@ router.use(verifyToken);
  *                 success:
  *                   type: boolean
  *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/ResponseGetSale'
+ *                   type: object
+ *                   properties:
+ *                     dataList:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/ResponseGetSale'
+ *                     total:
+ *                       type: integer
+ *                       description: Total rows matching the filters.
  *                 message:
  *                   type: string
  *       401:
@@ -188,6 +196,71 @@ router.patch(
   validatePathParam,
   validateSchema(saleUpdateSchema),
   patchSaleById
+);
+
+/**
+ * @openapi
+ * /v1/sales/{id}/status:
+ *   patch:
+ *     summary: Transition a sale status (PAID stamps paidAt, CANCELLED reverses inventory)
+ *     tags: [Sales]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Sale ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/BodySaleStatus'
+ *     responses:
+ *       200:
+ *         description: Sale status updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   $ref: '#/components/schemas/ResponseSaleCreateUpdate'
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Invalid status transition
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BadRequest'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Unauthorized'
+ *       404:
+ *         description: Sale not found
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.patch(
+  '/:id/status',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canEditSale],
+  }),
+  validatePathParam,
+  validateSchema(saleStatusSchema),
+  transitionSaleStatus
 );
 
 /**

@@ -1,6 +1,6 @@
 ## Context
 
-Ver `proposal.md` → _Why_ para la motivación (Sprint 4 task 4.6 del plan `docs/cicd-plan-implementacion.md`, Stage 7 post-deploy snippet, §12/§16 observabilidad).
+Ver `proposal.md` → _Why_ para la motivación (Sprint 4 task 4.6 del plan `docs/CONTEXT-CICD.md`, Stage 7 post-deploy snippet, §12/§16 observabilidad).
 
 Estado que condiciona el diseño:
 

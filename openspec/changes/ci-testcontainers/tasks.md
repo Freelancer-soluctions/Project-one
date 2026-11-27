@@ -25,7 +25,7 @@
 
 ## 5. Documentación
 
-- [ ] 5.1 Actualizar `docs/aws-dev-local-floci.md` — sección "Follow-up: Ampliación de Tests AWS" (L-244-254): marcar ítem 2.4 como implementado, referenciar este change, y reformular la línea L-254 "Estado: Pendiente — requiere consumidor real de `loadSecrets()`" (los smoke tests vía SDK directo ya cubren el path; nuevo estado: "Implementado — smoke tests vía SDK directo; ampliar al path completo de la app cuando exista consumidor real")
+- [ ] 5.1 Actualizar `docs/ci-cd/aws-learning-with-floci.md` — sección "Follow-up: ampliación de tests AWS": marcar ítem 2.4 como implementado, referenciar este change, y reformular la línea L-254 "Estado: Pendiente — requiere consumidor real de `loadSecrets()`" (los smoke tests vía SDK directo ya cubren el path; nuevo estado: "Implementado — smoke tests vía SDK directo; ampliar al path completo de la app cuando exista consumidor real")
 - [ ] 5.2 Documentar el patrón de tests AWS con Testcontainers: prerequisito Docker, cómo correrlos (`npm run test:integration`), y nota de conflicto de puerto 4566 con el compose dev-local (`docker compose stop floci` antes de correr los tests)
 
 ## 6. Verificación final vs packaged

@@ -15,7 +15,7 @@ npm run test:coverage   # Coverage report
 
 ## Testing
 
-See root [docs/testing-architecture.md](../../docs/testing-architecture.md)
+See root [docs/quality/testing-architecture.md](../../docs/quality/testing-architecture.md)
 
 **Key patterns:**
 

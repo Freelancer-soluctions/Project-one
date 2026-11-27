@@ -525,17 +525,9 @@ export const userCreateUpdateSchema = Joi.object({
   permissions: Joi.array().items(Joi.number().integer().optional()).optional(),
 });
 
-export const clientOrderFiltersSchema = Joi.object({
-  clientId: Joi.number().integer().allow(''),
-  status: Joi.string().allow(''),
-});
-
-export const clientOrderCreateUpdateSchema = Joi.object({
-  clientId: Joi.number().integer().required(),
-  status: Joi.string().required(),
-  notes: Joi.string().allow(''),
-  saleId: Joi.number().integer().allow(null),
-});
+// Client/provider order schemas live next to their modules
+// (`modules/{clientOrder,providerOrder}/schemas`) so `saleId`/`purchaseId` stay
+// out of client-writable bodies (only the conversion service writes them).
 
 export const purchaseCreateUpdateSchema = Joi.object({
   providerId: Joi.number().integer().required(),

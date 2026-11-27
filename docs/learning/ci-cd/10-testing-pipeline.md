@@ -35,7 +35,7 @@ Al terminar esta guía (y con ella el nivel Intermedio), serás capaz de:
 3. ✅ **Guía 07 (reusable workflows)** — entendiste cómo `quality.yml` se invoca desde `ci.yml` con inputs
 4. ✅ **Guía 08 (composite actions)** — sabes qué hace `setup-monorepo` y por qué los jobs la invocan tras el checkout
 5. ✅ **Guía 09 (caching)** — entendiste los caches de Vitest y Playwright que aceleran los jobs de test
-6. ✅ **`docs/testing-architecture.md`** — el documento de referencia de la estrategia de testing del repo (se lee enlazado, no se duplica)
+6. ✅ **`docs/quality/testing-architecture.md`** — el documento de referencia de la estrategia de testing del repo (se lee enlazado, no se duplica)
 
 > **Si no hiciste las guías anteriores**: esta guía asume que ya leíste `ci.yml` (guía 06). Si no, vuelve a [`./06-ci-yml-walkthrough.md`](./06-ci-yml-walkthrough.md) antes de continuar — aquí desglosamos los jobs de test, no los 9 jobs completos.
 
@@ -68,7 +68,7 @@ flowchart TD
 
 **Por qué tiene forma de pirámide**: quieres MUCHOS tests baratos y rápidos (unit) y POCOS tests caros y lentos (E2E). Si la pirámide se invierte (muchos E2E, pocos unit), el CI se vuelve lento, frágil y caro.
 
-> 📖 **Referencia**: [`docs/testing-architecture.md`](../../../docs/testing-architecture.md) sección 4 — "Capas de Testing" (4.1 Unit, 4.2 Integration, 4.3 E2E, 4.4 UI/Storybook). Esta guía **enlaza** a ese documento; no lo copia. La sección 3 del mismo doc describe la estrategia global.
+> 📖 **Referencia**: [`docs/quality/testing-architecture.md`](../../../docs/quality/testing-architecture.md) sección 4 — "Capas de Testing" (4.1 Unit, 4.2 Integration, 4.3 E2E, 4.4 UI/Storybook). Esta guía **enlaza** a ese documento; no lo copia. La sección 3 del mismo doc describe la estrategia global.
 
 ### 1.2 La distribución en CI: una pirámide por job
 
@@ -297,7 +297,7 @@ src/components/Button/
   Button.test.tsx               # ✅ co-locado (o .unit.test.js según workspace)
 ```
 
-> 📖 **Referencia**: [`docs/testing-architecture.md`](../../../docs/testing-architecture.md) sección 8 — "Organización de Tests: Enfoque Híbrido (Consenso 2025-2026)". El repo adoptó el híbrido: unit co-locados + integración centralizados por módulo en `tests/integration/<modulo>/` + E2E en `e2e/tests/`. Las sub-secciones 8.1-8.4 explican la comparación colocated vs centralized y el consenso.
+> 📖 **Referencia**: [`docs/quality/testing-architecture.md`](../../../docs/quality/testing-architecture.md) sección 8 — "Organización de Tests: Enfoque Híbrido (Consenso 2025-2026)". El repo adoptó el híbrido: unit co-locados + integración centralizados por módulo en `tests/integration/<modulo>/` + E2E en `e2e/tests/`. Las sub-secciones 8.1-8.4 explican la comparación colocated vs centralized y el consenso.
 
 **Por qué co-locar**:
 
@@ -319,7 +319,7 @@ Los scripts de test usan **filtros por substring del nombre de archivo**, no por
 
 Esto funciona con la disposición híbrida: Vitest recorre el árbol y solo ejecuta los archivos cuyo nombre contiene `.unit.test.js` (para unit) o `.integration.test.js` (para integración). No importa si están en `src/` o en `tests/` — el filtro es por patrón de nombre.
 
-> 💡 **Convención de nombres del repo** (de `docs/testing-architecture.md` sección 7): `*.unit.test.js` = unit co-locado; `*.integration.test.js` = integración en `tests/integration/<modulo>/`; `*.test.js` a secas se evita (no comunica intención).
+> 💡 **Convención de nombres del repo** (de `docs/quality/testing-architecture.md` sección 7): `*.unit.test.js` = unit co-locado; `*.integration.test.js` = integración en `tests/integration/<modulo>/`; `*.test.js` a secas se evita (no comunica intención).
 
 ### 4.3 El job `test-unit-client` desglosado
 
@@ -446,7 +446,7 @@ test-integration:
 
 | Bloque                      | Qué define                                                | Detalle                                                                      |
 | --------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `image: postgres:16-alpine` | Imagen Docker de PostgreSQL 16 (variante alpine = ligera) | La misma versión de producción (ver `docs/cicd-estado-actual.md`)            |
+| `image: postgres:16-alpine` | Imagen Docker de PostgreSQL 16 (variante alpine = ligera) | La misma versión de producción (ver `docs/CONTEXT-CICD.md`)                  |
 | `ports: ['5432:5432']`      | Mapea el puerto del container al runner                   | El job accede a `localhost:5432`                                             |
 | `env`                       | Credenciales de la BD de test                             | `test`/`test`/`project_one_test` — **solo para CI**, nunca las de producción |
 | `options`                   | Flags de Docker para el healthcheck                       | `pg_isready` confirma que Postgres acepta conexiones                         |
@@ -485,7 +485,7 @@ test-integration:
 
 **La decisión del repo**: usar **BD real en la capa de integración** porque es ahí donde los bugs de SQL, constraints y migraciones se manifiestan. Los mocks quedan para la capa unit (donde aíslas el módulo). Es la aplicación correcta de la pirámide: mockea en la base, usa lo real en el cuerpo.
 
-> 📖 **Referencia**: [`docs/testing-architecture.md`](../../../docs/testing-architecture.md) sección 9 — "Estrategia de Mocks" (9.1 Principios, 9.2 Qué se mockea, 9.3 Estrategia por tipo de test). El principio: "no mockees lo que estás probando; mockea lo que no estás probando".
+> 📖 **Referencia**: [`docs/quality/testing-architecture.md`](../../../docs/quality/testing-architecture.md) sección 9 — "Estrategia de Mocks" (9.1 Principios, 9.2 Qué se mockea, 9.3 Estrategia por tipo de test). El principio: "no mockees lo que estás probando; mockea lo que no estás probando".
 
 ### 5.5 El job `test-integration` completo
 
@@ -530,7 +530,7 @@ steps:
 
 Los **smoke tests** son una capa entre integración y E2E: verifican que los **flujos críticos** del sistema funcionan de punta a punta **sin** el costo de un navegador. Son tests de integración "seleccionados" que cubren las APIs más importantes del server.
 
-> 📖 **Referencia**: [`docs/testing-architecture.md`](../../../docs/testing-architecture.md) sección 12 — "Smoke Testing" (12.1 Qué son, 12.2 Ubicación, 12.3 Ejecución, 12.4 APIs cubiertas, 12.5 Integración CI). Esta guía se enfoca en el job de CI.
+> 📖 **Referencia**: [`docs/quality/testing-architecture.md`](../../../docs/quality/testing-architecture.md) sección 12 — "Smoke Testing" (12.1 Qué son, 12.2 Ubicación, 12.3 Ejecución, 12.4 APIs cubiertas, 12.5 Integración CI). Esta guía se enfoca en el job de CI.
 
 **Analogía**: los smoke tests son como **encender el coche y comprobar que el motor arranca** antes de salir a la carretera (E2E). No prueban cada detalle — prueban que el sistema "está vivo" y responde.
 
@@ -648,7 +648,7 @@ test-smoke:
 
 Los tests E2E viven en la carpeta `e2e/` del monorepo (top-level, no dentro de un workspace de app) y usan **Playwright**. Prueban el sistema como lo usaría un usuario real: abren el navegador, interactúan con la UI y verifican flujos completos (UI + API + BD).
 
-> 📖 **Referencia**: [`docs/testing-architecture.md`](../../../docs/testing-architecture.md) sección 15 — "E2E Setup Guide (Playwright)": stack (15.1), estructura de tests (15.2), configuración `e2e/playwright.config.js` (15.3), Page Object Model (15.4), ejecución (15.5) y cobertura (15.6).
+> 📖 **Referencia**: [`docs/quality/testing-architecture.md`](../../../docs/quality/testing-architecture.md) sección 15 — "E2E Setup Guide (Playwright)": stack (15.1), estructura de tests (15.2), configuración `e2e/playwright.config.js` (15.3), Page Object Model (15.4), ejecución (15.5) y cobertura (15.6).
 
 ### 7.2 El job `e2e` desglosado
 
@@ -804,9 +804,9 @@ Este `if` es **deliberado**: el step de reporting debe correr **incluso si los t
 Dos permisos/config son necesarios para el reporting:
 
 1. **`permissions: checks: write`** — `test-reporter` necesita permiso para crear/actualizar check runs en el PR. Sin este permiso, el step falla con un error de autorización (403).
-2. **`fetch-depth: 0`** — el clonado completo. Aquí vive el **Caso 2** de `docs/workflows-mantenimiento-guia.md`: con un clonado shallow (default de `actions/checkout@v5`), `dorny/test-reporter` falla con **exit 128** porque no tiene el historial/refs necesarios. El fix fue `fetch-depth: 0` en los jobs de test.
+2. **`fetch-depth: 0`** — el clonado completo. Aquí vive el **Caso 2** de `docs/learning/ci-cd/workflows-mantenimiento-guia.md`: con un clonado shallow (default de `actions/checkout@v5`), `dorny/test-reporter` falla con **exit 128** porque no tiene el historial/refs necesarios. El fix fue `fetch-depth: 0` en los jobs de test.
 
-> 📖 **Referencia**: [`docs/workflows-mantenimiento-guia.md`](../../../docs/workflows-mantenimiento-guia.md) Caso 2 — viste el análisis completo en la guía 06 (sección 10) y la regla "la composite NO hace checkout" en la guía 08 (sección 5.4). Aquí la lección se aplica al reporting.
+> 📖 **Referencia**: [`docs/learning/ci-cd/workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) Caso 2 — viste el análisis completo en la guía 06 (sección 10) y la regla "la composite NO hace checkout" en la guía 08 (sección 5.4). Aquí la lección se aplica al reporting.
 
 ### 8.5 El pipeline de reporting completo
 
@@ -873,7 +873,7 @@ find e2e -name "*.spec.ts" -o -name "*.spec.js" | head -5
 ```
 
 2. Clasifica cada archivo encontrado en su capa de la pirámide (unit / integración / smoke / E2E).
-3. Verifica contra `docs/testing-architecture.md` sección 8 (organización híbrida) que tu clasificación coincide con la convención del repo.
+3. Verifica contra `docs/quality/testing-architecture.md` sección 8 (organización híbrida) que tu clasificación coincide con la convención del repo.
 
 **Pregunta de reflexión**: ¿por qué los unit tests de server están co-locados pero los de integración centralizados en `tests/integration/`? (Respuesta: el enfoque híbrido — unit junto al código para descubribilidad; integración agrupada por módulo porque cruzan módulos y comparten setup de BD).
 
@@ -945,7 +945,7 @@ head -30 apps/server/reports/junit.xml
 
 **Síntoma**: el mismo test es verde en tu máquina y rojo en el job.
 
-**Causas comunes** (de `docs/testing-architecture.md` sección 18 — Cross-Platform):
+**Causas comunes** (de `docs/quality/testing-architecture.md` sección 18 — Cross-Platform):
 
 1. **Diferencias de plataforma** — tu máquina es Windows; el runner es Linux. Paths con `\`, case-sensitivity, o binarios nativos pueden comportarse distinto.
 2. **BD no migrada** — en CI la BD del service container arranca vacía; si el test asume datos pre-existentes, falla. El fix es que el test (o su setup) cree los datos, no asumirlos.
@@ -1086,7 +1086,7 @@ Marca cada ítem cuando puedas hacerlo **sin consultar la guía**:
 
 | Concepto                 | Dónde vive en el repo                                   | Sección |
 | ------------------------ | ------------------------------------------------------- | ------- |
-| **Pirámide de tests**    | `docs/testing-architecture.md` (link, no copia)         | 2       |
+| **Pirámide de tests**    | `docs/quality/testing-architecture.md` (link, no copia) | 2       |
 | **Path filtering**       | Job `changes` de `ci.yml` (`dorny/paths-filter@v4`)     | 3       |
 | **Tests unitarios**      | Jobs `test-unit-client` / `test-unit-server`            | 4       |
 | **Tests de integración** | Job `test-integration` + service container postgres     | 5       |
@@ -1117,9 +1117,9 @@ El nivel **Avanzado** continúa con temas de despliegue y operación (workflows 
 
 ## 15. Referencias
 
-- [`docs/testing-architecture.md`](../../../docs/testing-architecture.md) — arquitectura de testing del repo (link de referencia de la sección 2, no copia)
-- [`docs/workflows-mantenimiento-guia.md`](../../../docs/workflows-mantenimiento-guia.md) — Caso 2 (fetch-depth / test-reporter) y comandos de mantenimiento
-- [`docs/cicd-estado-actual.md`](../../../docs/cicd-estado-actual.md) — inventario de workflows y métricas de tiempos de CI
+- [`docs/quality/testing-architecture.md`](../../../docs/quality/testing-architecture.md) — arquitectura de testing del repo (link de referencia de la sección 2, no copia)
+- [`docs/learning/ci-cd/workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) — Caso 2 (fetch-depth / test-reporter) y comandos de mantenimiento
+- [`docs/CONTEXT-CICD.md`](../../../docs/CONTEXT-CICD.md) — inventario de workflows y métricas de tiempos de CI
 - [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml) — jobs `test-unit-*`, `test-integration`, `test-smoke`, `e2e` y `changes`
 - [`apps/server/vitest.smoke.config.js`](../../../apps/server/vitest.smoke.config.js) — configuración de los smoke tests
 - [Documentación de Playwright](https://playwright.dev/docs/ci) — ejecución en CI, caché de navegadores y reporters

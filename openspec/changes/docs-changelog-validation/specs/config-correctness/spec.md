@@ -6,7 +6,7 @@ Extends `config-correctness` beyond JS/Prettier tooling to documentation correct
 
 ### Requirement: Markdown structure validation for docs and changelog
 
-The system SHALL validate Markdown structure with `markdownlint-cli` using `.markdownlint.json` at the repository root as the single source of truth: `default: true`, `MD013` with `line_length: 120` / `heading_line_length: 120` / `code_block_line_length: 120` / `tables: false`, `MD033` restricted to `allowed_elements` (`br`, `img`, `div`, `span`, `sub`, `sup`), and `MD049`, `MD014`, `MD024`, `MD036`, `MD044`, `MD052` disabled. Generated artifacts SHALL be excluded via `.markdownlintignore` (`node_modules/`, `dist/`, `build/`, `coverage/`, `storybook-static/`, `package-lock.json`, `*.log`, `archive/`). `docs/changelog.md` (the Keep-a-Changelog file; there is no root `CHANGELOG.md`) SHALL be covered by config `overrides` relaxing table line length while keeping table-consistency rules (MD055/MD056/MD058/MD059/MD060) and final-newline (MD047) enforced. Root scripts SHALL expose the same config: `docs:lint` (auto-fix) and `docs:check` (gate, no `--fix`).
+The system SHALL validate Markdown structure with `markdownlint-cli` using `.markdownlint.json` at the repository root as the single source of truth: `default: true`, `MD013` with `line_length: 120` / `heading_line_length: 120` / `code_block_line_length: 120` / `tables: false`, `MD033` restricted to `allowed_elements` (`br`, `img`, `div`, `span`, `sub`, `sup`), and `MD049`, `MD014`, `MD024`, `MD036`, `MD044`, `MD052` disabled. Generated artifacts SHALL be excluded via `.markdownlintignore` (`node_modules/`, `dist/`, `build/`, `coverage/`, `storybook-static/`, `package-lock.json`, `*.log`, `archive/`). `docs/product/changelog.md` (the Keep-a-Changelog file; there is no root `CHANGELOG.md`) SHALL be covered by config `overrides` relaxing table line length while keeping table-consistency rules (MD055/MD056/MD058/MD059/MD060) and final-newline (MD047) enforced. Root scripts SHALL expose the same config: `docs:lint` (auto-fix) and `docs:check` (gate, no `--fix`).
 
 #### Scenario: Single config used everywhere
 
@@ -22,7 +22,7 @@ The system SHALL validate Markdown structure with `markdownlint-cli` using `.mar
 
 #### Scenario: Changelog tables tolerated but structure enforced
 
-- **WHEN** `docs/changelog.md` contains a version table line longer than 120 characters
+- **WHEN** `docs/product/changelog.md` contains a version table line longer than 120 characters
 - **THEN** `MD013` SHALL NOT report it (override with `tables: false`)
 - **AND** an inconsistent table row (missing pipe/column) SHALL still fail `MD056`, and a missing trailing newline SHALL still fail `MD047`
 
@@ -38,7 +38,7 @@ The system SHALL validate Markdown structure with `markdownlint-cli` using `.mar
 
 ### Requirement: Prose validation with Vale
 
-The system SHALL validate prose with Vale using `.vale.ini` at the repository root as the single source of truth: `StylesPath = .github/styles`, `MinAlertLevel = warning`, default section `[*]` based on `Vale`, Markdown sections (`[*.{md,mdx}]`, `[docs/learning/*.md]`) based on `Vale, MiEstiloES`, and a relaxed `[docs/changelog.md]` section based on `Vale` only. `.github/styles/` SHALL contain the custom `MiEstiloES` style plus a vocabulary (`accept.txt` / `reject.txt`) covering project technical terms so `Vale.Spelling` does not flag them. Root scripts SHALL expose `docs:vale` (report, `--minAlertLevel=warning`) and `docs:sync` (style sync); Vale SHALL be installed from GitHub Releases (the npm `vale` package is orphaned), never from npm.
+The system SHALL validate prose with Vale using `.vale.ini` at the repository root as the single source of truth: `StylesPath = .github/styles`, `MinAlertLevel = warning`, default section `[*]` based on `Vale`, Markdown sections (`[*.{md,mdx}]`, `[docs/learning/*.md]`) based on `Vale, MiEstiloES`, and a relaxed `[docs/product/changelog.md]` section based on `Vale` only. `.github/styles/` SHALL contain the custom `MiEstiloES` style plus a vocabulary (`accept.txt` / `reject.txt`) covering project technical terms so `Vale.Spelling` does not flag them. Root scripts SHALL expose `docs:vale` (report, `--minAlertLevel=warning`) and `docs:sync` (style sync); Vale SHALL be installed from GitHub Releases (the npm `vale` package is orphaned), never from npm.
 
 #### Scenario: Spanish prose checked with project vocabulary
 
@@ -48,8 +48,8 @@ The system SHALL validate prose with Vale using `.vale.ini` at the repository ro
 
 #### Scenario: Changelog prose rules relaxed
 
-- **WHEN** Vale evaluates `docs/changelog.md`
-- **THEN** only the `Vale` base styles SHALL apply (section `[docs/changelog.md]`)
+- **WHEN** Vale evaluates `docs/product/changelog.md`
+- **THEN** only the `Vale` base styles SHALL apply (section `[docs/product/changelog.md]`)
 - **AND** the `MiEstiloES` prose rules SHALL NOT block the file
 
 #### Scenario: Vale is not an npm dependency
@@ -86,13 +86,13 @@ The system SHALL validate prose with Vale using `.vale.ini` at the repository ro
 
 ### Requirement: Spanish reference documentation for docs/changelog validation
 
-`docs/learning/docs-changelog-validation.md` SHALL exist in Spanish as the canonical reference for this validation setup, describing the real `.markdownlint.json`, `.markdownlintignore` and `.vale.ini` configuration, the `docs:*` scripts, the lint-staged entry, and the `docs-validation` CI job. It SHALL cite `docs/changelog.md` (not a non-existent root `CHANGELOG.md`) for every script/glob/job reference. `docs/CONTEXT-CICD.md` §13.4 (quality tools/jobs table) SHALL list the `docs-validation` job with its state.
+`docs/learning/docs-changelog-validation.md` SHALL exist in Spanish as the canonical reference for this validation setup, describing the real `.markdownlint.json`, `.markdownlintignore` and `.vale.ini` configuration, the `docs:*` scripts, the lint-staged entry, and the `docs-validation` CI job. It SHALL cite `docs/product/changelog.md` (not a non-existent root `CHANGELOG.md`) for every script/glob/job reference. `docs/CONTEXT-CICD.md` §13.4 (quality tools/jobs table) SHALL list the `docs-validation` job with its state.
 
 #### Scenario: Doc matches the implementation
 
 - **WHEN** `docs/learning/docs-changelog-validation.md` is read
 - **THEN** every config file, script name and CI job it describes SHALL exist with the described behavior
-- **AND** all changelog paths SHALL resolve to `docs/changelog.md`
+- **AND** all changelog paths SHALL resolve to `docs/product/changelog.md`
 
 #### Scenario: CI docs table updated
 

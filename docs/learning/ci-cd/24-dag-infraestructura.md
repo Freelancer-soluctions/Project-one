@@ -156,7 +156,7 @@ jobs:
     if: needs.repo-discovery.outputs.server == 'true' # Solo si cambiaron archivos de server
 ```
 
-> **Fuente (verificado 2026-09-11):** `docs/ci-cd-pipeline-empresarial.md` §23.3 L~2798-2801 define "DAG router / path scoping como INFRAESTRUCTURA prebuild" — el pipeline se organiza como DAG donde los jobs se enrutan según qué paths cambiaron en el PR.
+> **Fuente (verificado 2026-09-11):** `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3 L~2798-2801 define "DAG router / path scoping como INFRAESTRUCTURA prebuild" — el pipeline se organiza como DAG donde los jobs se enrutan según qué paths cambiaron en el PR.
 
 **Comparativa de herramientas path-scoping:**
 
@@ -493,11 +493,11 @@ client-format-check:
 
 ## 2. Cruce con documentación existente
 
-### 2.1 `docs/ci-cd-pipeline-empresarial.md` §23.3
+### 2.1 `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3
 
 > L~2798-2801: Define "DAG router / path scoping" como **INFRAESTRUCTURA prebuild** (Stage 2). El pipeline se organiza como DAG donde los jobs se enrutan según qué paths cambiaron en el PR. NO es un check de gobernanza — es infraestructura que alimenta los checks.
 
-### 2.2 `docs/pre-merge-gates-governance.md` §4.11
+### 2.2 `docs/ci-cd/pre-merge-gates-governance.md` §4.11
 
 > L613: repo-discovery es infraestructura, DAG condicional, alimenta ci-complete. Clasificado como INFRAESTRUCTURA (no GOVERNANCE).
 

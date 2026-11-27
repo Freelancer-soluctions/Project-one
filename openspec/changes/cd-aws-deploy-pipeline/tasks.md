@@ -10,7 +10,7 @@
 - [x] 0.2 Verificar `docker build apps/server` end-to-end y que la imagen bootea `node src/bin/index.js` con el Prisma client generado — es el gate de entrada de todo el CD
 - [x] 0.3 Verificar que existe `GET /health` (task 3.0 de `ci-preview-environments`); si NO existe, BLOQUEAR (dependencia dura) — no añadir la ruta aquí para evitar duplicación con el sibling
 - [x] 0.4 Confirmar que las actions GitHub quedan pinneadas por tag y el patrón `GITHUB_TOKEN`-only donde no se requiera AWS (consistencia con los siblings)
-- [x] 0.5 **(REMEDIACIÓN 2026-08-10)** Documentar y aplicar las env vars de bootstrap del server exigidas por `apps/server/src/middleware/encription-prisma-middleware.js` (líneas 4-17: lee `ALGORITHM` y lanza `throw` en import si `AES_GCM_KEY` falta o no tiene 32 bytes — el proceso aborta antes de `httpServer.listen(3000)`). Sin estas env vars, todo workflow que arranque el contenedor del server falla con curl exit code 7 (conexión rechazada). Lugar donde aplica: (a) `preview.yml` step "Start server container" — **dummy key inline** (preview nunca desencripta datos reales; ver docs/server-bootstrap-env-vars.md); (b) `deploy.yml` job `docker-build` step "Start server container" — **dummy key inline** (validación emulada); (c) `deploy.yml` jobs `deploy-staging`/`deploy-production` — **`AES_GCM_KEY` via Secrets Manager ARN** (`STAGING_AES_GCM_KEY_SECRET_ARN` / `PROD_AES_GCM_KEY_SECRET_ARN`), `ALGORITHM=aes-256-gcm` como `environment` (constante pública). Referencia operativa: `docs/server-bootstrap-env-vars.md`. Verificar que ningún cambio SDD/archivo duplica esta corrección — `ci-preview-environments` archivado (2026-08-08) omitió estas env vars en sus artefactos; este change las remedia.
+- [x] 0.5 **(REMEDIACIÓN 2026-08-10)** Documentar y aplicar las env vars de bootstrap del server exigidas por `apps/server/src/middleware/encription-prisma-middleware.js` (líneas 4-17: lee `ALGORITHM` y lanza `throw` en import si `AES_GCM_KEY` falta o no tiene 32 bytes — el proceso aborta antes de `httpServer.listen(3000)`). Sin estas env vars, todo workflow que arranque el contenedor del server falla con curl exit code 7 (conexión rechazada). Lugar donde aplica: (a) `preview.yml` step "Start server container" — **dummy key inline** (preview nunca desencripta datos reales; ver docs/backend/server-bootstrap-env-vars.md); (b) `deploy.yml` job `docker-build` step "Start server container" — **dummy key inline** (validación emulada); (c) `deploy.yml` jobs `deploy-staging`/`deploy-production` — **`AES_GCM_KEY` via Secrets Manager ARN** (`STAGING_AES_GCM_KEY_SECRET_ARN` / `PROD_AES_GCM_KEY_SECRET_ARN`), `ALGORITHM=aes-256-gcm` como `environment` (constante pública). Referencia operativa: `docs/backend/server-bootstrap-env-vars.md`. Verificar que ningún cambio SDD/archivo duplica esta corrección — `ci-preview-environments` archivado (2026-08-08) omitió estas env vars en sus artefactos; este change las remedia.
 
 ## 1. Fase 1 — Job docker-build (build + validación sin AWS)
 
@@ -32,9 +32,9 @@
 
 ## 3. Fase 1 — Docs AWS (arquitectura + learning path)
 
-- [x] 3.1 Crear `docs/aws-deploy-architecture.md` (NUEVO): inventario de componentes (ECS Fargate, ALB con stickiness para Socket.IO e idle timeout ≥ 65s, RDS PostgreSQL, ECR, IAM OIDC, VPC/security groups), relaciones y layout de red
-- [x] 3.2 Incluir en `docs/aws-deploy-architecture.md` un Terraform reference (state en S3) que cubra los componentes como punto de partida para el provisionamiento real (D9)
-- [x] 3.3 Crear `docs/aws-cd-learning-path.md` (NUEVO): hitos por servicio (ECR → ECS → RDS → OIDC), cada uno con práctica emulada en Floci + checkpoint task verificable; referencia cruzada a `docs/aws-learning-with-floci.md` y `docs/aws-dev-local-floci.md` de los siblings
+- [x] 3.1 Crear `docs/ci-cd/aws-deploy-architecture.md` (NUEVO): inventario de componentes (ECS Fargate, ALB con stickiness para Socket.IO e idle timeout ≥ 65s, RDS PostgreSQL, ECR, IAM OIDC, VPC/security groups), relaciones y layout de red
+- [x] 3.2 Incluir en `docs/ci-cd/aws-deploy-architecture.md` un Terraform reference (state en S3) que cubra los componentes como punto de partida para el provisionamiento real (D9)
+- [x] 3.3 Crear `docs/ci-cd/aws-cd-learning-path.md` (NUEVO): hitos por servicio (ECR → ECS → RDS → OIDC), cada uno con práctica emulada en Floci + checkpoint task verificable; referencia cruzada a `docs/ci-cd/aws-learning-with-floci.md` (que incluye el setup dev-local)
 - [x] 3.4 Documentar en el learning path: secuencia pedagógica consola-guiada → Terraform (D9), costo esperado de fase 2 y mitigación (RDS mínima, apagado fuera de horario), y que todo el aprendizaje es ejecutable sin cuenta AWS (cero costo cloud)
 
 ## 4. Fase 1 — Validación
@@ -46,7 +46,7 @@
 
 ## 5. Fase 2 — Hito ECR (desbloqueo tras learning)
 
-- [ ] 5.1 Completar la práctica Floci de ECR (registro emulado, push/pull con `AWS_ENDPOINT_URL`) y marcar el checkpoint en `docs/aws-cd-learning-path.md`
+- [ ] 5.1 Completar la práctica Floci de ECR (registro emulado, push/pull con `AWS_ENDPOINT_URL`) y marcar el checkpoint en `docs/ci-cd/aws-cd-learning-path.md`
 - [ ] 5.2 Crear el repo ECR `project-one-server` (bootstrap con `ecr:CreateRepository` o consola guiada) + **ECR lifecycle policy** (keep last N tags / 30 días) — el rollback requiere tags previos disponibles y el repo no puede crecer sin límite
 - [ ] 5.3 Configurar OIDC GitHub→AWS: IAM Identity Provider (`token.actions.githubusercontent.com`, audience `sts.amazonaws.com`) + IAM role con política de mínimo privilegio (D4: ECR push al repo del proyecto + `ecs:UpdateService/DescribeServices` sobre los clústeres) + **restricción del subject claim del trust policy a `repo:<owner>/<repo>` (+ environment filter)** — evita que otros repos/workflows asuman el role
 - [ ] 5.4 Añadir la variable `AWS_ROLE_ARN` al repositorio (repository **variable**, no secret — D6: secrets no funcionan en `if` de job; el ARN no es confidencial) — el job `ecr-push` se activa solo sin tocar YAML
@@ -77,7 +77,7 @@
 ## 9. Fase 2 — Verificación de rollback
 
 - [ ] 9.1 Simular un deploy fallido en staging/prod (imagen rota o health check que falla) → el circuit breaker revierte automáticamente a la task definition anterior (spec `cd-rollback`)
-- [ ] 9.2 Verificar el redeploy manual del tag anterior desde ECR (rollback de app en < 15 min): (1) `register-task-definition` con el tag SHA anterior, (2) `update-service --force-new-deployment` — documentado en `docs/aws-deploy-architecture.md`
+- [ ] 9.2 Verificar el redeploy manual del tag anterior desde ECR (rollback de app en < 15 min): (1) `register-task-definition` con el tag SHA anterior, (2) `update-service --force-new-deployment` — documentado en `docs/ci-cd/aws-deploy-architecture.md`
 - [ ] 9.3 Probar `prisma migrate down` en staging (migración reversible) y documentar el procedimiento de rollback de BD
 - [ ] 9.4 Run `openspec validate "cd-aws-deploy-pipeline" --strict` final y archivar el change
 

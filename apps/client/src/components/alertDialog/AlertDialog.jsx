@@ -54,7 +54,7 @@ const AlertDialogComponent = ({
                 alertProps.onDelete();
               }}
             >
-              {t('delete')}
+              {alertProps.confirmLabel || t('delete')}
             </AlertDialogAction>
           )}
         </AlertDialogFooter>
@@ -74,6 +74,7 @@ AlertDialogComponent.propTypes = {
     destructive: PropTypes.bool,
     variantSuccess: PropTypes.string,
     variantDestructive: PropTypes.string,
+    confirmLabel: PropTypes.string,
     onSuccess: PropTypes.func,
     onDelete: PropTypes.func,
   }).isRequired,

@@ -29,6 +29,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { format, formatISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { PurchaseFiltersSchema } from '../utils';
+import {
+  PURCHASE_STATUS_OPTIONS,
+  statusLabelKey,
+} from '@/utils/salePurchaseStatus';
 
 /** Provider select filter. */
 function FilterProviderSelectField({ control, providers }) {
@@ -64,6 +68,44 @@ function FilterProviderSelectField({ control, providers }) {
 FilterProviderSelectField.propTypes = {
   control: PropTypes.object.isRequired,
   providers: PropTypes.array,
+};
+
+/** Lifecycle status filter (PENDING/RECEIVED/PAID/CANCELLED). */
+function FilterStatusSelectField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="status"
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor="status">{t('status')}</FormLabel>
+          <Select
+            onValueChange={field.onChange}
+            value={field.value?.toString()}
+          >
+            <FormControl id="status">
+              <SelectTrigger>
+                <SelectValue placeholder={t('select_status')} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {PURCHASE_STATUS_OPTIONS.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {t(statusLabelKey(status))}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+FilterStatusSelectField.propTypes = {
+  control: PropTypes.object.isRequired,
 };
 
 /** Date filter field with the calendar-days icon. */
@@ -195,6 +237,7 @@ export const PurchaseFiltersForm = ({ onSubmit, onAddDialog, providers }) => {
     resolver: zodResolver(PurchaseFiltersSchema),
     defaultValues: {
       providerId: '',
+      status: '',
       fromDate: '',
       toDate: '',
       minTotal: '',
@@ -204,15 +247,19 @@ export const PurchaseFiltersForm = ({ onSubmit, onAddDialog, providers }) => {
 
   const handleSubmit = ({
     providerId,
+    status,
     fromDate,
     toDate,
     minTotal,
     maxTotal,
   }) => {
-    const fDate = fromDate && formatISO(new Date(fromDate), 'yyyy-MM-dd');
-    const tDate = toDate && formatISO(new Date(toDate), 'yyyy-MM-dd');
+    // Server contract: `startDate`/`endDate` (ISO date-only).
+    const startDate =
+      fromDate && formatISO(new Date(fromDate), { representation: 'date' });
+    const endDate =
+      toDate && formatISO(new Date(toDate), { representation: 'date' });
 
-    onSubmit({ providerId, fDate, tDate, minTotal, maxTotal });
+    onSubmit({ providerId, status, startDate, endDate, minTotal, maxTotal });
   };
 
   const handleAdd = () => {
@@ -239,6 +286,8 @@ export const PurchaseFiltersForm = ({ onSubmit, onAddDialog, providers }) => {
             control={form.control}
             providers={providers}
           />
+
+          <FilterStatusSelectField control={form.control} />
 
           <FilterDateField
             control={form.control}

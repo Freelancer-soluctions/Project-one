@@ -40,26 +40,27 @@ export GUARDDOG_NPM_INCLUDE_DEV_DEPENDENCIES=false
 #   EXCLUDE+=(threat.metadata.typosquatting)  # por qué: ...; hasta: ...
 # ------------------------------------------------------------
 
-# Pin estricto de versión (nunca `latest`). Verificación abajo.
-GUARDDOG_PIN='3.2.0'
+# Pin estricto de versión (nunca `latest`). SSOT = mise.toml (`pipx:guarddog`,
+# change ci-mise-toolchain-parity): se lee en runtime y se falla ruidosa si no
+# se puede resolver (un pin vacío resolvería `latest` silenciosamente).
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GUARDDOG_PIN="$(sed -nE 's/^"pipx:guarddog"[[:space:]]*=[[:space:]]*\{[[:space:]]*version[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' "${REPO_ROOT}/mise.toml" | head -n1)"
+if [ -z "${GUARDDOG_PIN}" ]; then
+  echo "ERROR: no se pudo leer el pin \"pipx:guarddog\" de ${REPO_ROOT}/mise.toml" >&2
+  exit 1
+fi
 
-# Intérprete PINADO. NO quitar: uvx elige por defecto el Python más nuevo que
-# encuentre (hoy 3.14 en los runners, vía setup-uv) y guarddog 3.2.0 exige
-# `pygit2>=1.11,<1.19` + `yara-python ^4.5.4`, que NO publican wheels para
-# cp314: uv cae a compilar desde fuente y falla → `--version` sale vacío y el
-# paso aborta con "guarddog.sarif vacio" (verificado 2026-11-06 con
-# `uv pip compile --python-version 3.14 --no-build`: insatisfacible).
-# 3.13 sí resuelve (wheels cp313 de pygit2/yara-python) y es la versión con la
-# que el job pasó originalmente. uv la descarga (managed) si no está.
-GUARDDOG_PYTHON='3.13'
+# El intérprete ya NO se pinea aquí: mise.toml declara
+# `"pipx:guarddog" = { version = ..., python = "3.13" }` (guarddog 3.2.0 exige
+# wheels cp313 de pygit2/yara-python; cp314 no existe — verificado 2026-11-06).
+# mise exec resuelve el venv aislado con ese Python; uvx quedó fuera.
 
-# Verificación de versión ANTES del scan (si difiere → fallo del paso;
-# uvx resolvería `latest` si el pin se pierde — esto lo detecta).
+# Verificación de versión ANTES del scan (si difiere → fallo del paso).
 # stderr se captura aparte: el llamador redirige stdout al .sarif, así que un
-# error de uv NUNCA debe acabar ahí (lo vería upload-sarif como SARIF roto);
+# error de mise NUNCA debe acabar ahí (lo vería upload-sarif como SARIF roto);
 # se reemite por stderr para que quede en el log del job.
 guarddog_stderr="$(mktemp)"
-guarddog_version="$(uvx --python "${GUARDDOG_PYTHON}" "guarddog==${GUARDDOG_PIN}" --version 2>"${guarddog_stderr}" || true)"
+guarddog_version="$(mise exec -- guarddog --version 2>"${guarddog_stderr}" || true)"
 case "${guarddog_version}" in
   *"${GUARDDOG_PIN}"*) : ;;
   *)
@@ -156,4 +157,7 @@ GUARDDOG_RULES=(
 RULE_ARGS=()
 for rule in "${GUARDDOG_RULES[@]}"; do RULE_ARGS+=(--rules "${rule}"); done
 
-( cd "${GUARDDOG_SCOPE}" && uvx --python "${GUARDDOG_PYTHON}" "guarddog==${GUARDDOG_PIN}" npm verify . --output-format sarif "${RULE_ARGS[@]}" "$@" )
+# mise exec se resuelve desde la raíz del repo (config discovery); el bash
+# interno hace cd al espejo CON el PATH ya resuelto, para que las URIs del
+# SARIF sigan siendo relativas al árbol escaneado.
+( cd "${REPO_ROOT}" && mise exec -- bash -c 'cd "$1" && shift && guarddog npm verify . --output-format sarif "$@"' _ "${GUARDDOG_SCOPE}" "${RULE_ARGS[@]}" "$@" )

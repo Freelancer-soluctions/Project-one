@@ -423,17 +423,17 @@ fc.configureGlobal({
 
 ### 5.1 Auditoría (2026-10-07)
 
-| Hecho                            | Evidencia                                                                                                                                               |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **fast-check NO está instalado** | `grep '"fast-check"' **/package.json` → 0 matches en root, `apps/server`, `apps/client`, `e2e`; tampoco en `package-lock.json`                          |
-| Fue **purgado** como phantom dep | Commit `9ae16e8f` _"chore(deps): purge flattened phantom deps from root manifest"_ eliminó `"fast-check": "3.23.2"` del manifest raíz                   |
-| **0 propiedades** existentes     | Ningún `fc.property`/`fc.assert` en el código                                                                                                           |
-| Docs previos **desactualizados** | `unit-tests-enterprise.md` §23.3 línea 329 y `panorama-resumen.md` línea 45 dicen "`fast-check@3.23.2` instalado, 0 usos" → **hoy requiere reinstalar** |
-| Gap **P2** ya documentado        | `unit-tests-enterprise.md` §23.3: "Property-based con fast-check para parsers/invariantes"                                                              |
-| Candidatos server (Joi)          | 24 schemas `src/modules/*/schemas/*.joi.js` + `src/utils/joiSchemas`                                                                                    |
-| Candidatos client (zod)          | 23 schemas `src/modules/*/utils/schema.js`, `zod-i18n.js`                                                                                               |
-| Stack de tests                   | Vitest 4.1.11 (root), naming `*.unit.test.js` (server, colocated) / `*.unit.test.{js,jsx}` (client)                                                     |
-| PBT ya posicionado en CI docs    | `ci-cd-pipeline-empresarial.md` §36.3 item 14 → **STAGE 2 PRE-Build**, < 1–2 min, complemento de unit tests                                             |
+| Hecho                            | Evidencia                                                                                                                             |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **fast-check NO está instalado** | `grep '"fast-check"' **/package.json` → 0 matches en root, `apps/server`, `apps/client`, `e2e`; tampoco en `package-lock.json`        |
+| Fue **purgado** como phantom dep | Commit `9ae16e8f` _"chore(deps): purge flattened phantom deps from root manifest"_ eliminó `"fast-check": "3.23.2"` del manifest raíz |
+| **0 propiedades** existentes     | Ningún `fc.property`/`fc.assert` en el código                                                                                         |
+| Docs previos **desactualizados** | `unit-tests-enterprise.md` §23.3 línea 329 decía "`fast-check@3.23.2` instalado, 0 usos" → **hoy requiere reinstalar**                |
+| Gap **P2** ya documentado        | `unit-tests-enterprise.md` §23.3: "Property-based con fast-check para parsers/invariantes"                                            |
+| Candidatos server (Joi)          | 24 schemas `src/modules/*/schemas/*.joi.js` + `src/utils/joiSchemas`                                                                  |
+| Candidatos client (zod)          | 23 schemas `src/modules/*/utils/schema.js`, `zod-i18n.js`                                                                             |
+| Stack de tests                   | Vitest 4.1.11 (root), naming `*.unit.test.js` (server, colocated) / `*.unit.test.{js,jsx}` (client)                                   |
+| PBT ya posicionado en CI docs    | `docs/ci-cd/ci-cd-pipeline-empresarial.md` §36.3 item 14 → **STAGE 2 PRE-Build**, < 1–2 min, complemento de unit tests                |
 
 ### 5.2 Plan priorizado
 
@@ -443,7 +443,7 @@ fc.configureGlobal({
 | 2   | **Setup**: `vitest.setup.js` con `fc.configureGlobal({ numRuns: process.env.CI ? 1000 : 100 })` + script `test:pbt` por workspace                                                                                                                                           | P1        |
 | 3   | **Primeras propiedades**: server — Joi validators (§3.5.1) + lógica pura (sorting/dedupe/paginación, stock ≥ 0, asistencia idempotente); client — zod round-trip (§3.5.2)                                                                                                   | P1        |
 | 4   | **Wire CI advisory**: job PBT en STAGE 2 PRE-Build (`if:` FASE 1 advisory, presupuesto < 1–2 min) — **sin duplicar ownership**: los test gates FASE 1 pertenecen a `ci-testing-gate-promotion` y el TIA changed-only a `tia-hardening`; este plan solo **añade** el job PBT | P2        |
-| 5   | **Docs lockstep**: corregir `unit-tests-enterprise.md` §23.3 y `panorama-resumen.md` ("3.23.2 instalado" → estado real de reinstalación)                                                                                                                                    | P2        |
+| 5   | **Docs lockstep**: corregir `unit-tests-enterprise.md` §23.3 ("3.23.2 instalado" → estado real de reinstalación)                                                                                                                                                            | P2        |
 
 > **Nota de coordinación**: no duplicar ownership — FASE 1 de los test jobs es de
 > `ci-testing-gate-promotion`; TIA/`test:changed` es de `tia-hardening`; el job PBT nuevo se
@@ -513,22 +513,20 @@ describe('money properties', () => {
 
 - [`docs/learning/unit-tests-enterprise.md`][ute] (§23.3 — gap P2 "Property-based con
   fast-check"; **corregir** afirmación "3.23.2 instalado")
-- [`docs/ci-cd-pipeline-empresarial.md`][emp] ("Property-Based Testing (fast-check) — invariantes,
+- [`docs/ci-cd/ci-cd-pipeline-empresarial.md`][emp] ("Property-Based Testing (fast-check) — invariantes,
   parsers, lógica **[SL]**", §36.3 item 14 — STAGE 2 PRE-Build, < 1–2 min)
 - [`docs/learning/test-impact-analysis.md`][tia] (TIA changed-only — PBT viaja con
   `test:changed`)
 - [`docs/learning/quality-gates.md`][qg] (FASE 1 advisory vs FASE 2 blocking)
 - [`docs/learning/snapshot-testing.md`][snap] (otro estilo de test no-example-based)
 - [`docs/learning/test-sharding.md`][shard] (reparto de properties entre shards)
-- [`docs/learning/panorama-resumen.md`][pan] (§"fast-check 3.23.2 instalado, 0 usos" — **corregir**)
 
 [ute]: unit-tests-enterprise.md
-[emp]: ../ci-cd-pipeline-empresarial.md
+[emp]: ../ci-cd/ci-cd-pipeline-empresarial.md
 [tia]: test-impact-analysis.md
 [qg]: quality-gates.md
 [snap]: snapshot-testing.md
 [shard]: test-sharding.md
-[pan]: panorama-resumen.md
 [cov]: coverage-tripwire-floor-ratchet.md
 [sto]: smart-test-ordering.md
 [quickcheck-paper]: https://www.cse.chalmers.se/~rjmh/Papers/quickfox.pdf

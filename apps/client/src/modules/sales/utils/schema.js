@@ -16,6 +16,8 @@ export const SaleSchema = z
           .int(getZodMessage('zod.sales.total.integer'))
           .min(0, getZodMessage('zod.sales.total.min'))
       ),
+    paymentMethod: z.string().optional(),
+    invoiceNumber: z.string().max(50).optional(),
     details: z.array(
       z.object({
         productId: z.string().min(1, {
@@ -51,6 +53,7 @@ export const SaleSchema = z
 export const SalesFiltersSchema = z
   .object({
     clientId: z.string().optional(),
+    status: z.string().optional(),
     fromDate: z.union([z.date(), z.string()]).optional(),
     toDate: z.union([z.date(), z.string()]).optional(),
     minTotal: z.string().optional(),

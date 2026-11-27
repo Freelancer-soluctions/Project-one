@@ -59,8 +59,8 @@ The documentation SHALL be updated to remove references to the deleted zombie wo
 #### Scenario: CI docs updated
 
 - **WHEN** the zombie workflows are deleted
-- **THEN** references to the deleted workflows in `docs/cicd-estado-actual.md` are removed (~10 references)
-- **AND** the CI workflow inventory in `docs/cicd-plan-implementacion.md` is updated to reflect the deleted files
+- **THEN** references to the deleted workflows in `docs/CONTEXT-CICD.md` are removed (~10 references)
+- **AND** the CI workflow inventory in `docs/CONTEXT-CICD.md` is updated to reflect the deleted files
 
 ### Requirement: No dangling references to deleted workflows
 

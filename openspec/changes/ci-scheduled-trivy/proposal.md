@@ -1,6 +1,6 @@
 ## Why
 
-El plan CI/CD (`docs/cicd-plan-implementacion.md` §4 mermaid Scheduled block L238, §5 Stage 8 L914-952, Sprint 4 task 4.5 L1273) declara que el cron semanal ejecuta "Trivy full + npm audit" sobre el estado mergeado de `main`. La realidad no coincide: `.github/workflows/scheduled-security.yml` (cron `0 3 * * 1`, lunes 03:00 UTC) ejecuta SOLO el Gitleaks full-history scan (JSON + SARIF upload), y `security-digest.yml` (change `ci-scheduled-security-review`) cubre únicamente OSV (osv-scanner sobre `package-lock.json`) + SBOM + digest. No existe ningún Trivy full scan ni `npm audit` en contexto programado — una vulnerabilidad de filesystem/entorno o de dependencias publicada entre PRs puede pasar semanas sin detección periódica.
+El plan CI/CD (`docs/CONTEXT-CICD.md` §4 mermaid Scheduled block L238, §5 Stage 8 L914-952, Sprint 4 task 4.5 L1273) declara que el cron semanal ejecuta "Trivy full + npm audit" sobre el estado mergeado de `main`. La realidad no coincide: `.github/workflows/scheduled-security.yml` (cron `0 3 * * 1`, lunes 03:00 UTC) ejecuta SOLO el Gitleaks full-history scan (JSON + SARIF upload), y `security-digest.yml` (change `ci-scheduled-security-review`) cubre únicamente OSV (osv-scanner sobre `package-lock.json`) + SBOM + digest. No existe ningún Trivy full scan ni `npm audit` en contexto programado — una vulnerabilidad de filesystem/entorno o de dependencias publicada entre PRs puede pasar semanas sin detección periódica.
 
 ## What Changes
 

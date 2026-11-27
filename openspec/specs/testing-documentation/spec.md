@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Define la documentación de testing del proyecto: arquitectura de pruebas, convenciones por capa (unit/integration/e2e) y guías de ejecución en docs/testing-architecture.md.
+Define la documentación de testing del proyecto: arquitectura de pruebas, convenciones por capa (unit/integration/e2e) y guías de ejecución en docs/quality/testing-architecture.md.
 
 ## Requirements
 
 ### Requirement: Updated testing architecture documentation
 
-The system SHALL have updated documentation in docs/testing-architecture.md that reflects the complete testing strategy.
+The system SHALL have updated documentation in docs/quality/testing-architecture.md that reflects the complete testing strategy.
 
 #### Scenario: Documentation includes all testing types
 

@@ -400,7 +400,7 @@ Esta es la sutileza que más confunde a quienes migran de un patrón al otro:
 | **Reusable workflow** (`quality.yml`)   | **Dentro** del reusable: `uses: actions/checkout@v5` como primer step del job propio           |
 | **Composite action** (`setup-monorepo`) | **Fuera** de la composite: el job invocador hace `checkout@v5` y **luego** invoca la composite |
 
-Si una composite intenta hacer `checkout`, y el job invocador **también** lo hizo → doble checkout → `dorny/test-reporter` falla con exit 128 (Caso 2 de `docs/workflows-mantenimiento-guia.md`). Esta es la lección del **Caso 2** graficada con composites — ver guía 08 ([`08-composite-actions.md`](./08-composite-actions.md)) para el walkthrough completo.
+Si una composite intenta hacer `checkout`, y el job invocador **también** lo hizo → doble checkout → `dorny/test-reporter` falla con exit 128 (Caso 2 de `docs/learning/ci-cd/workflows-mantenimiento-guia.md`). Esta es la lección del **Caso 2** graficada con composites — ver guía 08 ([`08-composite-actions.md`](./08-composite-actions.md)) para el walkthrough completo.
 
 > 💡 **Mnemotecnia**: **"workflow completo = checkout propio; composite = fragmento = checkout ajeno"**.
 
@@ -437,7 +437,7 @@ secrets:
 
 En `quality.yml` no hace falta (no usa secrets), pero si añadieras un step que sube a S3, debes pasar `secrets:` en el caller.
 
-> 📖 **Referencia**: [`docs/workflows-mantenimiento-guia.md`](../../../docs/workflows-mantenimiento-guia.md) § "Maintenance of reusable workflows" — gotchas de propagación de secrets y permisos.
+> 📖 **Referencia**: [`docs/learning/ci-cd/workflows-mantenimiento-guia.md`](workflows-mantenimiento-guia.md) § "Maintenance of reusable workflows" — gotchas de propagación de secrets y permisos.
 
 ### 5.4 Límite de anidamiento: 4 niveles
 
@@ -643,7 +643,7 @@ La reutilización tiene un costo: **indirección**. Un reusable workflow añade 
 - Lógica que cambia **cada semana** (el costo de versionar el reusable supera el beneficio).
 - Pasos triviales de 2-3 líneas (`actions/checkout` + `setup-node`): agruparlos en una composite action solo si se repiten en **5+ jobs** (como `setup-monorepo`).
 
-> 📖 **Referencia**: el inventario de workflows y composite actions del repo está en `docs/workflows-mantenimiento-guia.md` §4 — úsalo para ver qué se reutiliza HOY antes de crear un nuevo mecanismo.
+> 📖 **Referencia**: el inventario de workflows y composite actions del repo está en `docs/learning/ci-cd/workflows-mantenimiento-guia.md` §4 — úsalo para ver qué se reutiliza HOY antes de crear un nuevo mecanismo.
 
 ---
 

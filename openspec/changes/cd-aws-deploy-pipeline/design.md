@@ -1,8 +1,9 @@
 ## Context
 
-Ver `proposal.md` → *Why* para la motivación (Stage 7 del plan `docs/cicd-plan-implementacion.md`: CD inexistente, brecha C3).
+Ver `proposal.md` → _Why_ para la motivación (Stage 7 del plan `docs/CONTEXT-CICD.md`: CD inexistente, brecha C3).
 
 Estado que condiciona el diseño:
+
 - **No existe infraestructura AWS** en el repo (sin Terraform/CloudFormation) ni cuenta AWS activa en el proyecto. El usuario está **aprendiendo AWS** y decidió usar Floci como emulador antes de tocar cloud real.
 - `apps/server/Dockerfile` (node:20-alpine) **no builda con `npm ci --omit=dev`**: el postinstall `prisma generate` requiere el CLI de Prisma. Fix coordinado con `ci-preview-environments` tasks 0.1-0.2 (misma corrección para BUILD y CD — dependencia, no duplicación).
 - El server: Express + Socket.IO en un único HTTP server (puerto 3000), Prisma + PostgreSQL, `@aws-sdk/client-secrets-manager` que respeta `AWS_ENDPOINT_URL`. Health endpoint `GET /health` lo introduce `ci-preview-environments` task 3.0 — el CD depende de que exista.
@@ -12,6 +13,7 @@ Estado que condiciona el diseño:
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Pipeline CD real **diseñado completo** (build → ECR → staging → producción → rollback) que el usuario pueda implementar **por fases mientras aprende AWS**, con cada fase desbloqueada por un hito de aprendizaje con Floci
 - Fase 1 (implementable YA, sin cuenta AWS): build + validación de imagen contra stack emulado (Floci + Postgres efímera), workflow `deploy.yml` con environments/gates que **skippea limpio** los jobs cloud sin infra, documentación de arquitectura + Terraform reference + learning path
 - Fase 2 (post-learning): ECR push, ECS Fargate, RDS, OIDC — tareas que requieren el conocimiento AWS adquirido
@@ -19,6 +21,7 @@ Estado que condiciona el diseño:
 - Rollback de app y BD en < 15 min
 
 **Non-Goals:**
+
 - No provisionar infraestructura AWS real en este change (es fase 2, gated por learning)
 - No implementar blue/green con CodeDeploy en la primera versión (circuit breaker de ECS cubre el rollback automático; blue/green es stretch goal)
 - No cubrir el deploy del client React (Vercel, fuera de este change)
@@ -31,16 +34,17 @@ Estado que condiciona el diseño:
 
 **Decisión**: implementación **por dos fases**. La fase 1 (sin cuenta AWS) se implementa en este change; la fase 2 (cloud real) queda como tareas explícitas en `tasks.md` que el usuario activa al completar hitos del learning path con Floci.
 
-| Fase | Requiere | Qué implementa | Desbloqueo |
-|---|---|---|---|
-| **1 (YA)** | Nada de AWS | Dockerfile fix + `.dockerignore`, job `docker-build` (build + boot validation vs Floci+Postgres), `deploy.yml` con jobs cloud gated, environments, docs (arquitectura + Terraform reference + learning path) | Merge del change |
-| **2 (post-learning)** | Cuenta AWS + hitos Floci | ECR push, ECS Fargate, RDS, OIDC, activación de deploy staging/prod, verificación de rollback | Hitos del learning path (docs/aws-cd-learning-path.md) + infra presente |
+| Fase                  | Requiere                 | Qué implementa                                                                                                                                                                                               | Desbloqueo                                                                    |
+| --------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| **1 (YA)**            | Nada de AWS              | Dockerfile fix + `.dockerignore`, job `docker-build` (build + boot validation vs Floci+Postgres), `deploy.yml` con jobs cloud gated, environments, docs (arquitectura + Terraform reference + learning path) | Merge del change                                                              |
+| **2 (post-learning)** | Cuenta AWS + hitos Floci | ECR push, ECS Fargate, RDS, OIDC, activación de deploy staging/prod, verificación de rollback                                                                                                                | Hitos del learning path (docs/ci-cd/aws-cd-learning-path.md) + infra presente |
 
 **Por qué**: respeta la decisión del usuario ("aprender AWS antes de usarlo") sin cancelar el CD: el pipeline queda diseñado y la parte no-cloud verificable, y las tareas cloud son en sí mismas el vehículo de aprendizaje. Evita dos extremos malos: implementar cloud real a ciegas (riesgo/costo sin conocimiento) o solo documentar sin código (cero progreso, pipeline ficticio).
 
 **Alternativas consideradas**:
-- *Implementación inmediata completa*: descartada — contradice la decisión explícita del usuario y asume cuenta/credenciales AWS inexistentes.
-- *Solo documentación (referencia) hasta terminar learning*: descartada — la fase 1 aporta valor real (build verificable, workflow validado, docs) sin AWS.
+
+- _Implementación inmediata completa_: descartada — contradice la decisión explícita del usuario y asume cuenta/credenciales AWS inexistentes.
+- _Solo documentación (referencia) hasta terminar learning_: descartada — la fase 1 aporta valor real (build verificable, workflow validado, docs) sin AWS.
 
 ### D2. Compute para staging/producción: ECS Fargate
 
@@ -48,15 +52,15 @@ Estado que condiciona el diseño:
 
 **Por qué**: contenedores sin gestionar EC2 (el usuario aprende orquestación sin el overhead de parchear VMs); desplegar = (1) `ecs register-task-definition` con la imagen del SHA (nueva revisión) y (2) `ecs update-service --force-new-deployment` (D5 — sin la revisión nueva el deploy es un no-op silencioso); el circuit breaker revierte rollouts no saludables automáticamente (requisito de `cd-production-deploy` y `cd-rollback`).
 
-**Alternativas**: *EC2 + PM2* (control total pero ops pesada, contradice serverless-first del plan) · *EKS* (sobredimensionado para un solo servicio) · *App Runner* (más simple pero menos learning value de orquestación y sin circuit breaker ECS).
+**Alternativas**: _EC2 + PM2_ (control total pero ops pesada, contradice serverless-first del plan) · _EKS_ (sobredimensionado para un solo servicio) · _App Runner_ (más simple pero menos learning value de orquestación y sin circuit breaker ECS).
 
 ### D3. PostgreSQL en producción: RDS PostgreSQL (learning + managed)
 
 **Decisión**: **Amazon RDS PostgreSQL**, instancia mínima al inicio (p. ej. `db.t3.micro`/Serverless v2) para controlar costo. Fase 2c, después de los hitos ECR/ECS.
 
-**Por qué**: el plan ya lo decidió (sección 9) y es el mayor *learning value* AWS del stack (backups/PITR/security groups/secret rotation), integración nativa con Prisma (`DATABASE_URL`). El costo se mitiga con instancia mínima y apagado en horarios de no uso (documentado).
+**Por qué**: el plan ya lo decidió (sección 9) y es el mayor _learning value_ AWS del stack (backups/PITR/security groups/secret rotation), integración nativa con Prisma (`DATABASE_URL`). El costo se mitiga con instancia mínima y apagado en horarios de no uso (documentado).
 
-**Alternativas**: *Postgres external (Neon/Supabase)* — más barato y zero-ops, pero rompe el learning path AWS y añade un segundo proveedor · *Postgres en el mismo Fargate* — anti-patrón (estado efímero, sin backups managed).
+**Alternativas**: _Postgres external (Neon/Supabase)_ — más barato y zero-ops, pero rompe el learning path AWS y añade un segundo proveedor · _Postgres en el mismo Fargate_ — anti-patrón (estado efímero, sin backups managed).
 
 ### D4. Autenticación AWS: OIDC (role-to-assume), sin access keys
 
@@ -64,7 +68,7 @@ Estado que condiciona el diseño:
 
 **Por qué**: credenciales efímeras de 1h, sin secrets de larga vida que rotar, estándar GitHub→AWS. Consistente con el principio de los siblings (mínimo secreto).
 
-**Alternativas**: *access keys en secrets* — rechazado (rotación manual, riesgo de fuga, no es learning value) · *GitHub App con credenciales propias* — innecesario con OIDC.
+**Alternativas**: _access keys en secrets_ — rechazado (rotación manual, riesgo de fuga, no es learning value) · _GitHub App con credenciales propias_ — innecesario con OIDC.
 
 ### D5. Mecanismo de deploy: rolling con circuit breaker en AMBOS entornos (blue/green como stretch goal)
 
@@ -72,13 +76,13 @@ Estado que condiciona el diseño:
 
 **Por qué**: un solo mecanismo para ambos entornos (paridad), rollback automático nativo, cero infraestructura extra. Blue/green con CodeDeploy añade ALB swap controlado pero más piezas — queda como stretch goal si el usuario quiere profundizar (open question, no cambia tasks).
 
-**Alternativas**: *blue/green CodeDeploy desde el día 1* — más complejo, retrasa la primera entrega · *rolling manual* (actualizar task definition a mano) — propenso a error.
+**Alternativas**: _blue/green CodeDeploy desde el día 1_ — más complejo, retrasa la primera entrega · _rolling manual_ (actualizar task definition a mano) — propenso a error.
 
 ### D6. Gating de fases cloud en el workflow: `if` a nivel de job con `vars` (no secrets)
 
 **Decisión**: jobs de fase 2 (`ecr-push`, `deploy-staging`, `deploy-production`) gated con `if: ${{ vars.AWS_ROLE_ARN != '' }}` a nivel de job. **IMPORTANTE**: GitHub Actions NO permite usar el contexto `secrets` en `if` conditionals a nivel de job (el contexto `secrets` no está disponible en `jobs.<job_id>.if`; evaluaría vacío y el job se skippearía SIEMPRE). El ARN del role NO es confidencial → se guarda como **repository variable** (`vars.AWS_ROLE_ARN`), que SÍ es accesible en `if` de job. Los secretos reales (DATABASE_URL, JWT, etc.) van en `secrets` del environment, que se pasan vía `env:`/`environment:` a los steps.
 
-**Por qué**: la fase 1 corre verde sin AWS (cada job cloud reporta *skipped* con razón visible — requisito `cd-aws-learning-path`), y al configurar OIDC + ECR (variable `AWS_ROLE_ARN` seteada) el mismo workflow se activa sin tocar YAML.
+**Por qué**: la fase 1 corre verde sin AWS (cada job cloud reporta _skipped_ con razón visible — requisito `cd-aws-learning-path`), y al configurar OIDC + ECR (variable `AWS_ROLE_ARN` seteada) el mismo workflow se activa sin tocar YAML.
 
 **Riesgo controlado**: el ARN es público por naturaleza (identifica al role, no es credencial); el secreto real es el token OIDC efímero que emite GitHub y asume AWS. Nada de secrets en `if`.
 
@@ -96,7 +100,7 @@ Estado que condiciona el diseño:
 
 ### D9. Infraestructura como código: consola guiada primero (learning), Terraform reference después
 
-**Decisión**: la fase 2 provisiona **primero por consola AWS guiada** (el usuario aprende los servicios tocándolos) y **codifica después en Terraform** (reference en `docs/aws-deploy-architecture.md`, state en S3). Terraform es el IaC del plan (glosario sección 2), no CloudFormation.
+**Decisión**: la fase 2 provisiona **primero por consola AWS guiada** (el usuario aprende los servicios tocándolos) y **codifica después en Terraform** (reference en `docs/ci-cd/aws-deploy-architecture.md`, state en S3). Terraform es el IaC del plan (glosario sección 2), no CloudFormation.
 
 **Por qué**: para un aprendiz, consola → comprensión → IaC es la secuencia pedagógica correcta; Terraform reference documentada permite reproducir y revisar (requisito `cd-aws-learning-path`). CloudFormation descartado: vendor-lock y menos ecosistema de examples que Terraform.
 
@@ -112,27 +116,24 @@ Estado que condiciona el diseño:
 - **[Deploy a producción depende de aprobación humana → puede quedar desatendido]** → Mitigación: GitHub Environment protection rules con reviewers; timeout de aprobación documentado (re-deploy manual del tag si expira).
 - **[`prisma migrate deploy` en el deploy → migración no reversible rompe rollback de BD]** → Mitigación: regla de reversibilidad por migración (`migrate down`), plan de datos obligatorio para migraciones irreversibles (requisito `cd-rollback`); el health check post-deploy detecta fallos antes de cortar tráfico.
 - **[Gating por `vars.AWS_ROLE_ARN != ''` → si el ARN cambia (repo move) → jobs cloud se desactivan silenciosamente]** → Mitigación: `vars` es accesible en `if` de job (a diferencia de `secrets`); el ARN se documenta en el learning path; un run con jobs skipped muestra la razón visible (spec `cd-aws-learning-path`).
-- **[Fase 1 sin AWS puede dar falsa sensación de "deploy hecho"] → Mitigación**: los jobs cloud skippeados reportan razón explícita y el learning path lista los pendientes; el status del workflow muestra *skipped* (no *success*) para los jobs cloud.
+- **[Fase 1 sin AWS puede dar falsa sensación de "deploy hecho"] → Mitigación**: los jobs cloud skippeados reportan razón explícita y el learning path lista los pendientes; el status del workflow muestra _skipped_ (no _success_) para los jobs cloud.
 - **[Socket.IO detrás de ALB → sticky sessions/keep-alive]** → Mitigación: ALB target group con `stickiness` (cookie de duración) y `idle timeout` ≥ 65s (el server ya configura `keepAliveTimeout` 60s+); documentado en la arquitectura.
 - **[Dockerfile fix compartido entre changes → riesgo de duplicación/conflicto]** → Mitigación: dependencia explícita de `ci-preview-environments` tasks 0.1-0.2; si ese change archiva primero, este verifica el estado sin re-aplicar.
 
 ## Migration Plan
 
 **Fase 1 (este change, sin AWS):**
+
 1. Coordinar/verificar Dockerfile fix + `.dockerignore` (tasks 0.1-0.2 de `ci-preview-environments`)
 2. Implementar job `docker-build` (build + boot validation vs Floci + Postgres efímera) — verde sin AWS
 3. Crear `deploy.yml` con jobs cloud gated (skippean limpio) + `concurrency`
-4. Documentar: `docs/aws-deploy-architecture.md` + `docs/aws-cd-learning-path.md`
+4. Documentar: `docs/ci-cd/aws-deploy-architecture.md` + `docs/ci-cd/aws-cd-learning-path.md`
 5. Validar `openspec validate --strict`
 
-**Fase 2 (activación por hitos de learning):**
-6. Hito ECR (Floci practice) → crear repo ECR + OIDC role + `AWS_ROLE_ARN` repository variable → job `ecr-push` se activa solo
-7. Hito ECS (Floci practice) → provisionar ECS Fargate staging (consola guiada) + environment `staging` secrets → `deploy-staging` activo
-8. Hito RDS (Floci practice) → provisionar RDS + `DATABASE_URL` de staging → smoke tests reales
-9. Hito producción → environment `production` con reviewers + ALB + dominios → `deploy-production` activo
-10. Verificar rollback: simular deploy fallido → circuit breaker revierte; `prisma migrate down` documentado
+**Fase 2 (activación por hitos de learning):** 6. Hito ECR (Floci practice) → crear repo ECR + OIDC role + `AWS_ROLE_ARN` repository variable → job `ecr-push` se activa solo 7. Hito ECS (Floci practice) → provisionar ECS Fargate staging (consola guiada) + environment `staging` secrets → `deploy-staging` activo 8. Hito RDS (Floci practice) → provisionar RDS + `DATABASE_URL` de staging → smoke tests reales 9. Hito producción → environment `production` con reviewers + ALB + dominios → `deploy-production` activo 10. Verificar rollback: simular deploy fallido → circuit breaker revierte; `prisma migrate down` documentado
 
 **Rollback (aplica desde fase 1 para build, fase 2 para deploy):**
+
 - Build rojo → nada se despliega (gate natural)
 - Deploy staging fallido → job rojo, sin promoción
 - Deploy producción no saludable → circuit breaker revierte automáticamente a la task definition anterior; manual: redeploy del tag anterior desde ECR + `prisma migrate down` si aplica

@@ -4,10 +4,15 @@ import {
   deleteSaleById as deleteSaleByIdService,
   deleteSaleDetailById as deleteSaleDetailByIdService,
   patchSaleById as patchSaleByIdService,
+  transitionSaleStatus as transitionSaleStatusService,
 } from './service.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
-import type { SaleInput, SalesQuery } from './types.js';
+import type {
+  SaleInput,
+  SaleStatusTransitionInput,
+  SalesQuery,
+} from './types.js';
 
 /**
  * Get all sales with optional filters.
@@ -17,6 +22,7 @@ import type { SaleInput, SalesQuery } from './types.js';
  * @param {number} [req.safeQuery.page] - Page number for pagination
  * @param {number} [req.safeQuery.limit] - Number of items per page
  * @param {number} [req.safeQuery.clientId] - Filter by client ID
+ * @param {string} [req.safeQuery.status] - Filter by lifecycle status
  * @param {Date} [req.safeQuery.startDate] - Filter by start date
  * @param {Date} [req.safeQuery.endDate] - Filter by end date
  * @param {number} [req.safeQuery.minTotal] - Filter by minimum total
@@ -66,6 +72,28 @@ export const createSale = handleCatchErrorAsync(async (req, res) => {
 export const patchSaleById = handleCatchErrorAsync(async (req, res) => {
   const sale = await patchSaleByIdService(Number(req.params['id']), {
     ...(req.body as SaleInput),
+    updatedBy: req.userId as number,
+  });
+  globalResponse(res, 200, sale);
+});
+
+/**
+ * Move a sale through its lifecycle.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Sale ID from URL
+ * @param {Object} req.body - Request body with the target status and optional payment data
+ * @param {string} req.body.status - Target status (PENDING, PAID, CANCELLED, REFUNDED)
+ * @param {string} [req.body.paymentMethod] - CASH, CARD, TRANSFER or OTHER
+ * @param {string} [req.body.invoiceNumber] - Invoice number (unique)
+ * @param {string} req.userId - Authenticated user ID from token verification
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Updates the sale status and returns the sale
+ */
+export const transitionSaleStatus = handleCatchErrorAsync(async (req, res) => {
+  const sale = await transitionSaleStatusService(Number(req.params['id']), {
+    ...(req.body as SaleStatusTransitionInput),
     updatedBy: req.userId as number,
   });
   globalResponse(res, 200, sale);

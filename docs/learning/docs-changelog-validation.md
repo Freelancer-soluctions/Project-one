@@ -2,9 +2,9 @@
 
 ## 1. Contexto y estado actual
 
-El proyecto `project-one` es un monorepo Node.js/Express + React, con `docs/learning/` que contiene 43 archivos `.md` en español (`prettier-configuration.md`, `eslint-configuration.md`, `knip-configuration.md`, etc.) y `docs/changelog.md` de 129 líneas en formato Keep-a-Changelog con tablas en Markdown. El CI (`.github/workflows/ci.yml`) opera con un substage 2B (`prebuild-quality-complete`) que agrega verificación de calidad (`knip`, `lint`, `format:check`), pero **no existe ningún job de validación de docs** (`docs-validation`). El `package.json` no declara `markdownlint-cli`, `vale`, ni scripts de validación. `lint-staged` (en `.husky/pre-commit`) solo formatea (`prettier --write`) y hace `eslint --fix`; no valida Markdown ni prosa. `dependency-cruiser` 18.2.0 existe, pero no es relevante para docs/CHANGELOG.
+El proyecto `project-one` es un monorepo Node.js/Express + React, con `docs/learning/` que contiene 43 archivos `.md` en español (`prettier-configuration.md`, `eslint-configuration.md`, `knip-configuration.md`, etc.) y `docs/product/changelog.md` de 129 líneas en formato Keep-a-Changelog con tablas en Markdown. El CI (`.github/workflows/ci.yml`) opera con un substage 2B (`prebuild-quality-complete`) que agrega verificación de calidad (`knip`, `lint`, `format:check`), pero **no existe ningún job de validación de docs** (`docs-validation`). El `package.json` no declara `markdownlint-cli`, `vale`, ni scripts de validación. `lint-staged` (en `.husky/pre-commit`) solo formatea (`prettier --write`) y hace `eslint --fix`; no valida Markdown ni prosa. `dependency-cruiser` 18.2.0 existe, pero no es relevante para docs/CHANGELOG.
 
-Referencia de contexto: `package.json` (devDeps: prettier 3.7.4, eslint 9.39.2, lint-staged 16.2.7, husky 9.1.7); `docs/changelog.md`; `.changeset/config.json`; `docs/CONTEXT-CICD.md` (§13.4 tabla de herramientas de calidad y estados de jobs CI); `docs/learning/knip-configuration.md`.
+Referencia de contexto: `package.json` (devDeps: prettier 3.7.4, eslint 9.39.2, lint-staged 16.2.7, husky 9.1.7); `docs/product/changelog.md`; `.changeset/config.json`; `docs/CONTEXT-CICD.md` (§13.4 tabla de herramientas de calidad y estados de jobs CI); `docs/learning/knip-configuration.md`.
 
 ## 2. Por qué `markdownlint` + `vale`
 
@@ -164,13 +164,13 @@ archive/
 
 Nota: `.markdownlintignore` no soporta `#` comentarios internos en todos los parseadores; usar líneas simples. Si se usa `cli2`, reemplazar por `ignores: ['node_modules/**', ...]` dentro de `.markdownlint-cli2.jsonc`. Decisión: usar `markdownlint-cli` por consistencia con `.markdownlintignore` y por `--fix`.
 
-### 4.3 `CHANGELOG.md` / `docs/changelog.md` (Keep-a-Changelog)
+### 4.3 `CHANGELOG.md` / `docs/product/changelog.md` (Keep-a-Changelog)
 
-Para `docs/changelog.md` (129 líneas: formato Keep-a-Changelog con tablas de versiones y cambios), la validación con `markdownlint` requiere consideración específica:
+Para `docs/product/changelog.md` (129 líneas: formato Keep-a-Changelog con tablas de versiones y cambios), la validación con `markdownlint` requiere consideración específica:
 
 - `MD013`: tablas con muchos pipes pueden exceder 120; solución: usar `tables: false` para este archivo (override) o extender `line_length` solo para archivo.
 - `MD033`: badges de CI (`![CI](...)`) permiten `img`; badges de GitHub permiten `img`; si hay `<sub>` para notas de versionado, permitir.
-- `MD041`: primer encabezado debe ser `# Changelog` (o similar); `docs/changelog.md` cumple.
+- `MD041`: primer encabezado debe ser `# Changelog` (o similar); `docs/product/changelog.md` cumple.
 - `MD055/MD058/MD059/MD060`: tablas de versiones deben ser consistentes en número de columnas (`MD056`) y estilo (`MD055`); usar `| Version | Date | Changes |` con `---` underlines.
 - `MD047`: debe terminar con `\n` (single trailing newline).
 - `MD049`: `emphasis-style` debe ser consistente (`**` o `*`); en changelogs a veces se usa `**` para versiones.

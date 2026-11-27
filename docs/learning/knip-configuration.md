@@ -972,4 +972,4 @@ npx knip --workspace=. --no-progress
 - Etiquetas JSDoc y TSDoc — <https://knip.dev/reference/jsdoc-tsdoc-tags>
 - Preguntas frecuentes — <https://knip.dev/reference/faq>
 - Verificación local: ejecuciones `npx knip --debug` contra este repo, knip 6.32.2 (2026-09-23)
-- Contexto del repo: `knip.jsonc`, `.github/workflows/ci.yml`, `openspec/specs/ci-prebuild-substage-structure/spec.md`, `docs/ci-prebuild-substage-structure-phase2-baseline.md`, `openspec/changes/knip-consolidation/`
+- Contexto del repo: `knip.jsonc`, `.github/workflows/ci.yml`, `openspec/specs/ci-prebuild-substage-structure/spec.md`, `openspec/changes/knip-consolidation/`

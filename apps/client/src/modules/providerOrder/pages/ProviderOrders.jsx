@@ -5,12 +5,13 @@ import {
 } from '../components';
 import { BackDashBoard } from '@/components/backDash/BackDashBoard';
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   useLazyGetAllProviderOrdersQuery,
   useUpdateProviderOrderByIdMutation,
   useCreateProviderOrderMutation,
   useDeleteProviderOrderByIdMutation,
+  useConvertProviderOrderToPurchaseMutation,
 } from '../api/providerOrderApi';
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
@@ -93,6 +94,35 @@ const buildDeletedAlertProps = ({ t, setOpenDialog }) => ({
   variantSuccess: 'info',
 });
 
+/** Converts an order into a purchase and shows the success alert. */
+const makeConvertHandler =
+  ({
+    t,
+    convertProviderOrderToPurchase,
+    setAlertProps,
+    setOpenAlertDialog,
+    setOpenDialog,
+  }) =>
+  async (id) => {
+    try {
+      await convertProviderOrderToPurchase(id).unwrap();
+
+      setAlertProps({
+        alertTitle: t('convert_order'),
+        alertMessage: t('converted_successfully'),
+        cancel: false,
+        success: true,
+        onSuccess: () => {
+          setOpenDialog(false);
+        },
+        variantSuccess: 'info',
+      });
+      setOpenAlertDialog(true);
+    } catch (err) {
+      console.error('Error converting:', err);
+    }
+  };
+
 /** Delete-confirmation handler for a provider order. */
 const makeDeleteHandler =
   ({
@@ -131,8 +161,9 @@ const makeDeleteHandler =
   };
 
 /**
- * Page state: lazy query, mutations and dialog/alert state. Sin
- * paginación: el submit de filtros dispara la consulta directamente.
+ * Page state: lazy query, mutations, dialog/alert state and pagination.
+ * El efecto de `getAllProviderOrders` es la única fuente de verdad para
+ * disparar la consulta: se ejecuta al montar y cuando cambian página o filtros.
  */
 function useProviderOrdersPageState() {
   const [selectedRow, setSelectedRow] = useState({});
@@ -140,15 +171,33 @@ function useProviderOrdersPageState() {
   const [openAlertDialog, setOpenAlertDialog] = useState(false);
   const [alertProps, setAlertProps] = useState({});
   const [actionDialog, setActionDialog] = useState('');
+  const [filters, setFilters] = useState({});
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20,
+  });
 
   const [
     triggerProviderOrders,
     {
-      data: dataProviderOrders = { data: [] },
+      data: dataProviderOrders = { data: { dataList: [], total: 0 } },
       isLoading: isLoadingProviderOrders,
       isFetching: isFetchingProviderOrders,
     },
   ] = useLazyGetAllProviderOrdersQuery();
+
+  useEffect(() => {
+    triggerProviderOrders({
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      ...filters,
+    });
+  }, [
+    pagination.pageIndex,
+    pagination.pageSize,
+    filters,
+    triggerProviderOrders,
+  ]);
 
   const [updateProviderOrderById, { isLoading: isLoadingPut }] =
     useUpdateProviderOrderByIdMutation();
@@ -159,10 +208,12 @@ function useProviderOrdersPageState() {
   const [deleteProviderOrderById, { isLoading: isLoadingDelete }] =
     useDeleteProviderOrderByIdMutation();
 
+  const [convertProviderOrderToPurchase, { isLoading: isLoadingConvert }] =
+    useConvertProviderOrderToPurchaseMutation();
+
   const handleSubmitFilters = (data) => {
-    triggerProviderOrders({
-      ...data,
-    });
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    setFilters(data);
   };
 
   const isLoadingPage =
@@ -170,6 +221,7 @@ function useProviderOrdersPageState() {
     isLoadingPut ||
     isLoadingPost ||
     isLoadingDelete ||
+    isLoadingConvert ||
     isFetchingProviderOrders;
 
   return {
@@ -183,12 +235,15 @@ function useProviderOrdersPageState() {
     setAlertProps,
     actionDialog,
     setActionDialog,
+    pagination,
+    setPagination,
     dataProviderOrders,
     isLoadingPage,
     handleSubmitFilters,
     updateProviderOrderById,
     createProviderOrder,
     deleteProviderOrderById,
+    convertProviderOrderToPurchase,
   };
 }
 
@@ -199,6 +254,7 @@ const buildProviderOrdersLayout = ({
   dialogHandlers,
   saveHandler,
   deleteHandler,
+  convertHandler,
 }) => (
   <>
     <BackDashBoard link={'/home'} moduleName={t('provider_orders')} />
@@ -219,6 +275,8 @@ const buildProviderOrdersLayout = ({
           <ProviderOrdersDatatable
             dataProviderOrders={page.dataProviderOrders}
             onEditDialog={dialogHandlers.handleEditDialog}
+            pagination={page.pagination}
+            onPaginationChange={page.setPagination}
           />
         </div>
         {/* Dialog */}
@@ -228,6 +286,7 @@ const buildProviderOrdersLayout = ({
           selectedRow={page.selectedRow}
           onSubmit={saveHandler}
           onDeleteById={deleteHandler}
+          onConvertById={convertHandler}
           actionDialog={page.actionDialog}
         />
 
@@ -266,6 +325,13 @@ const ProviderOrders = () => {
     setOpenAlertDialog: page.setOpenAlertDialog,
     setOpenDialog: page.setOpenDialog,
   });
+  const convertHandler = makeConvertHandler({
+    t,
+    convertProviderOrderToPurchase: page.convertProviderOrderToPurchase,
+    setAlertProps: page.setAlertProps,
+    setOpenAlertDialog: page.setOpenAlertDialog,
+    setOpenDialog: page.setOpenDialog,
+  });
 
   return buildProviderOrdersLayout({
     t,
@@ -273,6 +339,7 @@ const ProviderOrders = () => {
     dialogHandlers,
     saveHandler,
     deleteHandler,
+    convertHandler,
   });
 };
 

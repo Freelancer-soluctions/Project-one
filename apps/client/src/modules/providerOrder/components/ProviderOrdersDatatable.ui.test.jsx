@@ -17,9 +17,10 @@ afterAll(() => {
   vi.useRealTimers();
 });
 
-// Este componente recibe `dataProviderOrders.data` como ARRAY de filas (no el
-// wrapper {dataList,total} del resto) y no pasa pagination/totalRows al
-// DataTable. Fechas sin Z = hora local (PPP idéntico en local y CI).
+// Este componente recibe `dataProviderOrders.data` con el wrapper paginado
+// {dataList,total} (mismo contrato que clientOrder). Fechas sin Z = hora local
+// (PPP idéntico en local y CI). `total` llega como string porque Prisma
+// serializa Decimal así.
 const FIXTURE_ROWS = [
   {
     id: 1,
@@ -27,6 +28,9 @@ const FIXTURE_ROWS = [
     notes: 'Quarterly restock order',
     createdOn: '2026-01-05T10:00:00',
     updatedOn: '2026-01-06T10:00:00',
+    total: '1500.00',
+    expectedDeliveryDate: '2026-01-20T10:00:00',
+    deliveredOn: null,
   },
   {
     id: 2,
@@ -34,6 +38,9 @@ const FIXTURE_ROWS = [
     notes: 'Urgent replacement parts',
     createdOn: '2026-01-06T10:00:00',
     updatedOn: null,
+    total: '75.50',
+    expectedDeliveryDate: null,
+    deliveredOn: null,
   },
   {
     id: 3,
@@ -41,14 +48,21 @@ const FIXTURE_ROWS = [
     notes: 'Scheduled monthly order',
     createdOn: '2026-01-07T10:00:00',
     updatedOn: '2026-01-08T10:00:00',
+    total: '320.00',
+    expectedDeliveryDate: '2026-01-15T10:00:00',
+    deliveredOn: '2026-01-14T10:00:00',
   },
 ];
 
 const renderDatatable = () =>
   render(
     <ProviderOrdersDatatable
-      dataProviderOrders={{ data: FIXTURE_ROWS }}
+      dataProviderOrders={{
+        data: { dataList: FIXTURE_ROWS, total: FIXTURE_ROWS.length },
+      }}
       onEditDialog={() => {}}
+      pagination={{ pageIndex: 0, pageSize: 10 }}
+      onPaginationChange={() => {}}
     />
   );
 

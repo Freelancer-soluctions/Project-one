@@ -44,6 +44,13 @@ const clientOrderApi = createApi({
       }),
       invalidatesTags: ['ClientOrder'], // Invalida el cache de 'Notes' para volver a consultar
     }),
+    convertClientOrderToSale: builder.mutation({
+      query: (id) => ({
+        url: `/clientOrder/${id}/convert`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['ClientOrder'],
+    }),
     // Cache selectivo
     //providesTags: (result) =>
     //result
@@ -62,6 +69,7 @@ export const {
   useUpdateClientOrderByIdMutation,
   useCreateClientOrderMutation,
   useDeleteClientOrderByIdMutation,
+  useConvertClientOrderToSaleMutation,
 } = clientOrderApi;
 
 export default clientOrderApi;

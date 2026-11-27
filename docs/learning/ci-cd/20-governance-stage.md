@@ -6,9 +6,9 @@
 > (histórico). Fuente de verdad: `docs/CONTEXT-CICD.md` §3.2 / §9.3.3 / §9.3.4.
 
 > Artículo explicativo de la **Stage 11 — Approval / Governance** del pipeline CI/CD empresarial.
-> Basado en `docs/ci-cd-pipeline-empresarial.md` (diagrama 23.3, §13, §23.3.1; **governance a lo largo de todo el ciclo de vida §13.10**; **ciclo completo de 7 momentos §23.3.1.1**; **matriz completa de governance por momento §23.3.2**) y la implementación real del proyecto.
+> Basado en `docs/ci-cd/ci-cd-pipeline-empresarial.md` (diagrama 23.3, §13, §23.3.1; **governance a lo largo de todo el ciclo de vida §13.10**; **ciclo completo de 7 momentos §23.3.1.1**; **matriz completa de governance por momento §23.3.2**) y la implementación real del proyecto.
 >
-> **Cobertura de este artículo:** Capa transversal CONTINUOUS de governance + las 10 dimensiones transversales + la matriz consolidada de 44 filas / 10 dominios + la extensión del lifecycle de 6 a 7 momentos. Fuente de verdad: `docs/ci-cd-pipeline-empresarial.md`.
+> **Cobertura de este artículo:** Capa transversal CONTINUOUS de governance + las 10 dimensiones transversales + la matriz consolidada de 44 filas / 10 dominios + la extensión del lifecycle de 6 a 7 momentos. Fuente de verdad: `docs/ci-cd/ci-cd-pipeline-empresarial.md`.
 
 ---
 
@@ -39,7 +39,7 @@ Mientras que un gate puntual responde _"¿este commit cumple la regla X?"_, la c
 
 Nosotros no tratamos governance como un stage paralelo al resto del pipeline. Lo tratamos como **un ciclo de vida** que conecta el primer commit del desarrollador con el registro del deploy en producción y la evidencia de auditoría. Cada paso depende del anterior, y si alguno falla, todo se detiene.
 
-El ciclo original de este artículo describía **6 pasos** centrados en el núcleo CI (commit → merge). Para cubrir governance en su **totalidad** (y alinearnos con `docs/ci-cd-pipeline-empresarial.md` §23.3.1.1), el ciclo se extiende a **7 momentos**, añadiendo explícitamente **build/artifact** y **post-deploy** entre el merge y el audit:
+El ciclo original de este artículo describía **6 pasos** centrados en el núcleo CI (commit → merge). Para cubrir governance en su **totalidad** (y alinearnos con `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3.1.1), el ciclo se extiende a **7 momentos**, añadiendo explícitamente **build/artifact** y **post-deploy** entre el merge y el audit:
 
 > **commit → PR → merge → build/artifact → deploy → post-deploy → audit/recovery**
 
@@ -222,7 +222,7 @@ Sin audit trail, esas preguntas no tienen respuesta. Con él, tenemos evidencia 
 
 Además de los gates puntuales que vimos en el lifecycle (commit-lint, branch protection, required reviewers, etc.), existe una **capa transversal continua** que no se limita a un momento del pipeline. Esta capa recorre los 7 momentos de extremo a extremo y agrupa **10 dimensiones de cobertura total** que exigen los frameworks de compliance pero que los gates puntuales no cubren solos.
 
-En `docs/ci-cd-pipeline-empresarial.md` §23.3 se representa como una banda continua al cierre del diagrama del pipeline:
+En `docs/ci-cd/ci-cd-pipeline-empresarial.md` §23.3 se representa como una banda continua al cierre del diagrama del pipeline:
 
 ```
 ══════════════════════════════════════════════════════════════════════════════════════════════
@@ -452,30 +452,30 @@ El ciclo de governance no termina en `ci-complete`. Los artifacts firmados (SBOM
 
 ### Componentes de Supply Chain (Plantilla/Referencia)
 
-| Componente                | Estado    | Documentación                                  |
-| ------------------------- | --------- | ---------------------------------------------- |
-| Artifact Signing (cosign) | Plantilla | `docs/ci-cd-pipeline-empresarial.md:1077-1145` |
-| SLSA Provenance           | Plantilla | `docs/ci-cd-pipeline-empresarial.md:2521-2540` |
-| Deploy Gates              | Plantilla | `docs/ci-cd-pipeline-empresarial.md:4996-5100` |
-| Canary Deployments        | Plantilla | `docs/ci-cd-pipeline-empresarial.md:4905-5100` |
-| Audit Trail               | Plantilla | Concepto documentado en lifecycle §6           |
+| Componente                | Estado    | Documentación                                        |
+| ------------------------- | --------- | ---------------------------------------------------- |
+| Artifact Signing (cosign) | Plantilla | `docs/ci-cd/ci-cd-pipeline-empresarial.md:1077-1145` |
+| SLSA Provenance           | Plantilla | `docs/ci-cd/ci-cd-pipeline-empresarial.md:2521-2540` |
+| Deploy Gates              | Plantilla | `docs/ci-cd/ci-cd-pipeline-empresarial.md:4996-5100` |
+| Canary Deployments        | Plantilla | `docs/ci-cd/ci-cd-pipeline-empresarial.md:4905-5100` |
+| Audit Trail               | Plantilla | Concepto documentado en lifecycle §6                 |
 
 ### Componentes de Governance Transversal (Documentados / OUT OF SCOPE)
 
 Las 10 dimensiones de la capa CONTINUOUS no tienen implementación en el repositorio (son post-merge, fuera del alcance del change `ci-governance-pre-merge-gates`). Se documentan aquí como referencia de la cobertura total:
 
-| Dimensión transversal                                         | Estado      | Referencia                                |
-| ------------------------------------------------------------- | ----------- | ----------------------------------------- |
-| 1. Human repo access governance (RBAC)                        | Documentado | `docs/ci-cd-pipeline-empresarial.md:3280` |
-| 2. Vulnerability mgmt governance (SLA/excepciones/disclosure) | Documentado | `docs/ci-cd-pipeline-empresarial.md:3281` |
-| 3. Third-party & tooling governance                           | Documentado | `docs/ci-cd-pipeline-empresarial.md:3282` |
-| 4. Data governance in pipelines (PII/PHI)                     | Documentado | `docs/ci-cd-pipeline-empresarial.md:3283` |
-| 5. Release governance                                         | Documentado | `docs/ci-cd-pipeline-empresarial.md:3284` |
-| 6. Incident & postmortem governance                           | Documentado | `docs/ci-cd-pipeline-empresarial.md:3285` |
-| 7. SLO / error-budget governance                              | Documentado | `docs/ci-cd-pipeline-empresarial.md:3286` |
-| 8. Configuration & environment drift governance               | Documentado | `docs/ci-cd-pipeline-empresarial.md:3287` |
-| 9. Meta-governance                                            | Documentado | `docs/ci-cd-pipeline-empresarial.md:3288` |
-| 10. Docs & knowledge governance (ADRs)                        | Documentado | `docs/ci-cd-pipeline-empresarial.md:3289` |
+| Dimensión transversal                                         | Estado      | Referencia                                      |
+| ------------------------------------------------------------- | ----------- | ----------------------------------------------- |
+| 1. Human repo access governance (RBAC)                        | Documentado | `docs/ci-cd/ci-cd-pipeline-empresarial.md:3280` |
+| 2. Vulnerability mgmt governance (SLA/excepciones/disclosure) | Documentado | `docs/ci-cd/ci-cd-pipeline-empresarial.md:3281` |
+| 3. Third-party & tooling governance                           | Documentado | `docs/ci-cd/ci-cd-pipeline-empresarial.md:3282` |
+| 4. Data governance in pipelines (PII/PHI)                     | Documentado | `docs/ci-cd/ci-cd-pipeline-empresarial.md:3283` |
+| 5. Release governance                                         | Documentado | `docs/ci-cd/ci-cd-pipeline-empresarial.md:3284` |
+| 6. Incident & postmortem governance                           | Documentado | `docs/ci-cd/ci-cd-pipeline-empresarial.md:3285` |
+| 7. SLO / error-budget governance                              | Documentado | `docs/ci-cd/ci-cd-pipeline-empresarial.md:3286` |
+| 8. Configuration & environment drift governance               | Documentado | `docs/ci-cd/ci-cd-pipeline-empresarial.md:3287` |
+| 9. Meta-governance                                            | Documentado | `docs/ci-cd/ci-cd-pipeline-empresarial.md:3288` |
+| 10. Docs & knowledge governance (ADRs)                        | Documentado | `docs/ci-cd/ci-cd-pipeline-empresarial.md:3289` |
 
 ---
 
@@ -495,11 +495,11 @@ En nuestro proyecto, la respuesta es sí — para los componentes pre-PR/merge q
 
 ## Referencias
 
-- `docs/ci-cd-pipeline-empresarial.md` — §13 (Stage 11: Approval / Governance)
-- `docs/ci-cd-pipeline-empresarial.md` — **§13.10 Governance a lo largo de todo el ciclo de vida (CI a CD, post-deploy y audit)**
-- `docs/ci-cd-pipeline-empresarial.md` — **§23.3.1.1 Ciclo completo de Governance (7 momentos: commit a audit)**
-- `docs/ci-cd-pipeline-empresarial.md` — **§23.3.2 Matriz completa de Governance por momento del pipeline (44 filas / 10 dominios)** y §23.3.2.1 (governance transversal continuo)
-- `docs/ci-cd-pipeline-empresarial.md` — Diagrama 23.3 (pipeline reorganizado con capa transversal CONTINUOUS)
+- `docs/ci-cd/ci-cd-pipeline-empresarial.md` — §13 (Stage 11: Approval / Governance)
+- `docs/ci-cd/ci-cd-pipeline-empresarial.md` — **§13.10 Governance a lo largo de todo el ciclo de vida (CI a CD, post-deploy y audit)**
+- `docs/ci-cd/ci-cd-pipeline-empresarial.md` — **§23.3.1.1 Ciclo completo de Governance (7 momentos: commit a audit)**
+- `docs/ci-cd/ci-cd-pipeline-empresarial.md` — **§23.3.2 Matriz completa de Governance por momento del pipeline (44 filas / 10 dominios)** y §23.3.2.1 (governance transversal continuo)
+- `docs/ci-cd/ci-cd-pipeline-empresarial.md` — Diagrama 23.3 (pipeline reorganizado con capa transversal CONTINUOUS)
 - `docs/learning/ci-cd/19-governance-gates.md` — Framework de 5 niveles de governance gates
 - `docs/archive/governance-roadmap.md` — Estado de implementación de governance en project-one (archivado 2026-08-28; matriz 45 filas preservada)
 - `docs/learning/ci-cd/CONTEXT-CICD.md` — Fuente central de la verdad operativa CI/CD (estado real, §6 deudas)

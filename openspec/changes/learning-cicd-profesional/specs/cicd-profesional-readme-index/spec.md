@@ -48,8 +48,8 @@ El README SHALL enlazar a las guías del nivel, a los documentos de referencia e
 
 #### Scenario: Enlaza a documentación de referencia
 
-- **WHEN** el README menciona documentación existente (`docs/learning/ci-cd/workflows-mantenimiento-guia.md`, `docs/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`, `docs/security/security-enterprise-guide.md`, AWS)
-- **THEN** enlaza a esos documentos en `docs/` en lugar de duplicar su contenido, y no referencia `docs/cicd-estado-actual.md` ni `docs/cicd-plan-implementacion.md` (no existen)
+- **WHEN** el README menciona documentación existente (`docs/learning/ci-cd/workflows-mantenimiento-guia.md`, `docs/ci-cd/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`, `docs/security/security-enterprise-guide.md`, AWS)
+- **THEN** enlaza a esos documentos en `docs/` en lugar de duplicar su contenido, y no referencia `docs/CONTEXT-CICD.md` ni `docs/CONTEXT-CICD.md` (no existen)
 
 #### Scenario: Enlaza de vuelta al nivel Avanzado
 

@@ -22,12 +22,12 @@ The coverage baselines SHALL be measured by running `npm run test:coverage` in b
 
 ### Requirement: Coverage baselines documented
 
-The measured baselines SHALL be recorded in `docs/cicd-plan-implementacion.md` so they are available when configuring thresholds.
+The measured baselines SHALL be recorded in `docs/CONTEXT-CICD.md` so they are available when configuring thresholds.
 
 #### Scenario: Baselines recorded in cicd plan
 
 - **WHEN** coverage metrics are captured
-- **THEN** a "Coverage Baselines (Jul 2026)" section is added to `docs/cicd-plan-implementacion.md` as §14.5 (after §14, before §15)
+- **THEN** a "Coverage Baselines (Jul 2026)" section is added to `docs/CONTEXT-CICD.md` as §14.5 (after §14, before §15)
 - **AND** it includes client and server coverage metrics, the measurement date, and a note that thresholds are configured by the `ci-testing-pipeline-reactivation` change
 
 ### Requirement: Dependency ordering with the testing pipeline change

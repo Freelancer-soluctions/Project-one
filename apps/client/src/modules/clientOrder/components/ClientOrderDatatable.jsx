@@ -41,6 +41,28 @@ export const ClientOrderDatatable = ({
       },
     },
     {
+      accessorKey: 'total',
+      header: t('total'),
+      // Decimal is serialized as a string by the API; render it verbatim.
+      cell: (info) => info.getValue() ?? '',
+    },
+    {
+      accessorKey: 'expectedDeliveryDate',
+      header: t('expected_delivery_date'),
+      cell: (info) => {
+        const date = info.getValue();
+        return date ? format(new Date(date), 'PPP') : null;
+      },
+    },
+    {
+      accessorKey: 'deliveredOn',
+      header: t('delivered_on'),
+      cell: (info) => {
+        const date = info.getValue();
+        return date ? format(new Date(date), 'PPP') : null;
+      },
+    },
+    {
       accessorKey: 'saleId',
       header: t('saleId'),
       cell: (info) => info.getValue(),

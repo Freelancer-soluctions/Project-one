@@ -484,11 +484,37 @@ enum movementType {
   ADJUSTMENT
 }
 
+// Ciclo de vida de ventas y compras (capability `sale-purchase-status`).
+enum saleStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+enum purchaseStatus {
+  PENDING
+  RECEIVED
+  PAID
+  CANCELLED
+}
+
+enum paymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  OTHER
+}
+
 // 🛒 Compras
 model purchase {
   id                  Int                 @id @default(autoincrement())
   providerId          Int                 @db.Integer
   total               Decimal             @db.Decimal(18, 2)
+  status              purchaseStatus      @default(PENDING)
+  paymentMethod       paymentMethod?
+  paidAt              DateTime?           @db.Timestamp(3)
+  invoiceNumber       String?             @db.VarChar(50)
   createdOn           DateTime            @db.Timestamp(3)
   updatedOn           DateTime?           @db.Timestamp(3)
   purchaseDetail      purchaseDetail[]    @relation("purchaseDetail")
@@ -499,6 +525,11 @@ model purchase {
   updatedBy           Int?                @db.Integer
   inventoryMovement   inventoryMovement[] @relation("inventoryMovementPurchase")
   providerOrder       providerOrder[]
+
+  // RN-SP-006: el número de factura es único por proveedor.
+  @@unique([providerId, invoiceNumber])
+  // RN-SP-008: la lista filtra por estado y ordena por fecha de creación.
+  @@index([status, createdOn])
 }
 
 model purchaseDetail {
@@ -517,6 +548,10 @@ model sale {
   clientId          Int                 @db.Integer
   client            clients             @relation("saleClient", fields: [clientId], references: [id])
   total             Decimal             @db.Decimal(18, 2)
+  status            saleStatus          @default(PENDING)
+  paymentMethod     paymentMethod?
+  paidAt            DateTime?           @db.Timestamp(3)
+  invoiceNumber     String?             @unique @db.VarChar(50)
   createdOn         DateTime            @db.Timestamp(3)
   updatedOn         DateTime?           @db.Timestamp(3)
   saleDetail        saleDetail[]        @relation("saleDetail")
@@ -526,6 +561,9 @@ model sale {
   userSaleUpdated   users?              @relation("userSaleUpdated", fields: [updatedBy], references: [id])
   updatedBy         Int?                @db.Integer
   clientOrder       clientOrder[]
+
+  // RN-SP-008: la lista filtra por estado y ordena por fecha de creación.
+  @@index([status, createdOn])
 }
 
 model clients {
@@ -701,6 +739,9 @@ model clientOrder {
   createdOn              DateTime            @db.Timestamp(3)
   updatedOn              DateTime?           @db.Timestamp(3)
   saleId                 Int?                @db.Integer
+  total                  Decimal             @default(0) @db.Decimal(18, 2)
+  expectedDeliveryDate   DateTime?           @db.Timestamp(3)
+  deliveredOn            DateTime?           @db.Timestamp(3)
 }
 
 model clientOrderDetail {
@@ -710,7 +751,7 @@ model clientOrderDetail {
   productId         Int         @db.Integer
   clientOrderDetail products    @relation("clientOrderDetailProduct", fields: [productId], references: [id])
   quantity          Int         @db.Integer
-  unitPrice         Float
+  unitPrice         Decimal     @db.Decimal(18, 2)
 }
 
 model providerOrder {
@@ -728,6 +769,9 @@ model providerOrder {
   createdOn                DateTime              @db.Timestamp(3)
   updatedOn                DateTime?             @db.Timestamp(3)
   purchaseId               Int?                  @db.Integer
+  total                    Decimal               @default(0) @db.Decimal(18, 2)
+  expectedDeliveryDate     DateTime?             @db.Timestamp(3)
+  deliveredOn              DateTime?             @db.Timestamp(3)
 }
 
 model providerOrderDetail {
@@ -737,7 +781,7 @@ model providerOrderDetail {
   productId      Int           @db.Integer
   product        products      @relation("providerOrderDetailProduct", fields: [productId], references: [id])
   quantity       Int           @db.Integer
-  estimatedPrice Float
+  estimatedPrice Decimal       @db.Decimal(18, 2)
 }
 
 model expenses {

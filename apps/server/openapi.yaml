@@ -545,6 +545,20 @@ components:
             $ref: "#/components/schemas/PurchaseDetail"
           minItems: 1
           type: array
+        invoiceNumber:
+          description: Invoice number, unique per provider
+          maxLength: 50
+          nullable: true
+          type: string
+        paymentMethod:
+          description: How the purchase was paid (optional at creation)
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
         providerId:
           description: ID of the provider
           type: integer
@@ -558,7 +572,8 @@ components:
         - details
       type: object
     BodyPurchasePatch:
-      description: "PATCH: al menos un campo."
+      description: "PATCH: al menos un campo. `status` se mueve solo por PATCH
+        /purchases/{id}/status."
       properties:
         details:
           items:
@@ -577,6 +592,20 @@ components:
             type: object
           minItems: 1
           type: array
+        invoiceNumber:
+          example: FAC-2026-001
+          maxLength: 50
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          example: CASH
+          nullable: true
+          type: string
         providerId:
           example: 1
           type: integer
@@ -584,6 +613,32 @@ components:
           example: 1500.75
           minimum: 0
           type: number
+      type: object
+    BodyPurchaseStatus:
+      properties:
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        status:
+          description: Target status; RECEIVED->PAID stamps paidAt and CANCELLED reverses
+            linked inventory movements
+          enum:
+            - PENDING
+            - RECEIVED
+            - PAID
+            - CANCELLED
+          type: string
+      required:
+        - status
       type: object
     BodySaleCreateUpdate:
       properties:
@@ -596,6 +651,20 @@ components:
             $ref: "#/components/schemas/SaleDetail"
           minItems: 1
           type: array
+        invoiceNumber:
+          description: Invoice number, globally unique
+          maxLength: 50
+          nullable: true
+          type: string
+        paymentMethod:
+          description: How the sale was paid (optional at creation)
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
         total:
           description: Total amount of the sale
           minimum: 0
@@ -606,7 +675,8 @@ components:
         - details
       type: object
     BodySalePatch:
-      description: "PATCH: al menos un campo."
+      description: "PATCH: al menos un campo. `status` se mueve solo por PATCH
+        /sales/{id}/status."
       properties:
         clientId:
           example: 1
@@ -628,10 +698,50 @@ components:
             type: object
           minItems: 1
           type: array
+        invoiceNumber:
+          example: FAC-2026-001
+          maxLength: 50
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          example: CASH
+          nullable: true
+          type: string
         total:
           example: 1500.75
           minimum: 0
           type: number
+      type: object
+    BodySaleStatus:
+      properties:
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        status:
+          description: Target status; PAID stamps paidAt, while CANCELLED and REFUNDED
+            reverse the linked inventory movements
+          enum:
+            - PENDING
+            - PAID
+            - CANCELLED
+            - REFUNDED
+          type: string
+      required:
+        - status
       type: object
     BodyStockCreateUpdate:
       properties:
@@ -1553,6 +1663,9 @@ components:
           description: Filter by end date
           format: date-time
           type: string
+        limit:
+          description: Items per page
+          type: integer
         maxTotal:
           description: Filter by maximum total
           minimum: 0
@@ -1561,12 +1674,23 @@ components:
           description: Filter by minimum total
           minimum: 0
           type: number
+        page:
+          description: Page number (1-based)
+          type: integer
         providerId:
           description: Filter by provider ID
           type: integer
         startDate:
           description: Filter by start date
           format: date-time
+          type: string
+        status:
+          description: Filter by lifecycle status
+          enum:
+            - PENDING
+            - RECEIVED
+            - PAID
+            - CANCELLED
           type: string
       type: object
     ResponseAttendanceCreateUpdate:
@@ -1860,6 +1984,20 @@ components:
           description: Creation Timestamp
           format: date-time
           type: string
+        deliveredOn:
+          description: Fecha real de entrega
+          format: date-time
+          nullable: true
+          type: string
+        details:
+          items:
+            $ref: "#/components/schemas/ResponseGetClientOrderDetail"
+          type: array
+        expectedDeliveryDate:
+          description: Fecha de entrega esperada
+          format: date-time
+          nullable: true
+          type: string
         id:
           description: Client Order ID
           type: integer
@@ -1868,16 +2006,38 @@ components:
           nullable: true
           type: string
         saleId:
-          description: Sale ID
+          description: Sale ID (solo lo escribe el servicio de conversión)
           nullable: true
           type: integer
         status:
-          description: Order Status
+          $ref: "#/components/schemas/clientOrderStatus"
+        total:
+          description: Total persistido Decimal(18,2) serializado como string
+          example: "13.50"
           type: string
         updatedOn:
           description: Update Timestamp
           format: date-time
           nullable: true
+          type: string
+      type: object
+    ResponseGetClientOrderDetail:
+      properties:
+        id:
+          description: Detail line ID
+          type: integer
+        orderId:
+          description: Client Order ID
+          type: integer
+        productId:
+          description: Product ID
+          type: integer
+        quantity:
+          description: Quantity
+          type: integer
+        unitPrice:
+          description: Precio unitario Decimal(18,2) serializado como string
+          example: "5.00"
           type: string
       type: object
     ResponseGetEmployee:
@@ -2316,6 +2476,71 @@ components:
         - createdBy
         - status
       type: object
+    ResponseGetProviderOrder:
+      properties:
+        createdOn:
+          description: Creation Timestamp
+          format: date-time
+          type: string
+        deliveredOn:
+          description: Fecha real de entrega
+          format: date-time
+          nullable: true
+          type: string
+        details:
+          items:
+            $ref: "#/components/schemas/ResponseGetProviderOrderDetail"
+          type: array
+        expectedDeliveryDate:
+          description: Fecha de entrega esperada
+          format: date-time
+          nullable: true
+          type: string
+        id:
+          description: Provider Order ID
+          type: integer
+        notes:
+          description: Order Notes
+          nullable: true
+          type: string
+        purchaseId:
+          description: Purchase ID (solo lo escribe el servicio de conversión)
+          nullable: true
+          type: integer
+        status:
+          $ref: "#/components/schemas/clientOrderStatus"
+        supplierId:
+          description: Provider ID
+          type: integer
+        total:
+          description: Total persistido Decimal(18,2) serializado como string
+          example: "13.50"
+          type: string
+        updatedOn:
+          description: Update Timestamp
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    ResponseGetProviderOrderDetail:
+      properties:
+        estimatedPrice:
+          description: Precio estimado Decimal(18,2) serializado como string
+          example: "5.00"
+          type: string
+        id:
+          description: Detail line ID
+          type: integer
+        orderId:
+          description: Provider Order ID
+          type: integer
+        productId:
+          description: Product ID
+          type: integer
+        quantity:
+          description: Quantity
+          type: integer
+      type: object
     ResponseGetPurchase:
       properties:
         createdBy:
@@ -2323,7 +2548,29 @@ components:
         createdOn:
           format: date-time
           type: string
-        details:
+        id:
+          type: integer
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paidAt:
+          format: date-time
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        provider:
+          $ref: "#/components/schemas/ResponseGetProductProvider"
+        providerId:
+          type: integer
+        purchaseDetail:
           items:
             properties:
               id:
@@ -2338,12 +2585,13 @@ components:
                 type: integer
             type: object
           type: array
-        id:
-          type: integer
-        provider:
-          $ref: "#/components/schemas/ResponseGetProductProvider"
-        providerId:
-          type: integer
+        status:
+          enum:
+            - PENDING
+            - RECEIVED
+            - PAID
+            - CANCELLED
+          type: string
         total:
           type: number
         updatedBy:
@@ -2365,7 +2613,25 @@ components:
         createdOn:
           format: date-time
           type: string
-        details:
+        id:
+          type: integer
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paidAt:
+          format: date-time
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        saleDetail:
           items:
             properties:
               id:
@@ -2378,8 +2644,13 @@ components:
                 type: integer
             type: object
           type: array
-        id:
-          type: integer
+        status:
+          enum:
+            - PENDING
+            - PAID
+            - CANCELLED
+            - REFUNDED
+          type: string
         total:
           type: number
         updatedBy:
@@ -2879,7 +3150,29 @@ components:
         createdOn:
           format: date-time
           type: string
-        details:
+        id:
+          type: integer
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paidAt:
+          format: date-time
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        provider:
+          $ref: "#/components/schemas/ResponseGetProductProvider"
+        providerId:
+          type: integer
+        purchaseDetail:
           items:
             properties:
               id:
@@ -2894,12 +3187,13 @@ components:
                 type: integer
             type: object
           type: array
-        id:
-          type: integer
-        provider:
-          $ref: "#/components/schemas/ResponseGetProductProvider"
-        providerId:
-          type: integer
+        status:
+          enum:
+            - PENDING
+            - RECEIVED
+            - PAID
+            - CANCELLED
+          type: string
         total:
           type: number
       type: object
@@ -2910,7 +3204,29 @@ components:
         createdOn:
           format: date-time
           type: string
-        details:
+        id:
+          type: integer
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paidAt:
+          format: date-time
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        provider:
+          $ref: "#/components/schemas/ResponseGetProductProvider"
+        providerId:
+          type: integer
+        purchaseDetail:
           items:
             properties:
               id:
@@ -2925,12 +3241,13 @@ components:
                 type: integer
             type: object
           type: array
-        id:
-          type: integer
-        provider:
-          $ref: "#/components/schemas/ResponseGetProductProvider"
-        providerId:
-          type: integer
+        status:
+          enum:
+            - PENDING
+            - RECEIVED
+            - PAID
+            - CANCELLED
+          type: string
         total:
           type: number
         updatedBy:
@@ -2941,8 +3258,6 @@ components:
       type: object
     ResponseSaleCreateUpdate:
       properties:
-        client:
-          $ref: "#/components/schemas/ResponseGetClient"
         clientId:
           type: integer
         createdBy:
@@ -2950,7 +3265,25 @@ components:
         createdOn:
           format: date-time
           type: string
-        details:
+        id:
+          type: integer
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paidAt:
+          format: date-time
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        saleDetail:
           items:
             properties:
               id:
@@ -2963,8 +3296,13 @@ components:
                 type: integer
             type: object
           type: array
-        id:
-          type: integer
+        status:
+          enum:
+            - PENDING
+            - PAID
+            - CANCELLED
+            - REFUNDED
+          type: string
         total:
           type: number
       type: object
@@ -3198,6 +3536,9 @@ components:
           description: Filter by end date
           format: date-time
           type: string
+        limit:
+          description: Items per page
+          type: integer
         maxTotal:
           description: Filter by maximum total
           minimum: 0
@@ -3206,9 +3547,20 @@ components:
           description: Filter by minimum total
           minimum: 0
           type: number
+        page:
+          description: Page number (1-based)
+          type: integer
         startDate:
           description: Filter by start date
           format: date-time
+          type: string
+        status:
+          description: Filter by lifecycle status
+          enum:
+            - PENDING
+            - PAID
+            - CANCELLED
+            - REFUNDED
           type: string
       type: object
     Settings:
@@ -3504,33 +3856,213 @@ components:
           nullable: true
           type: string
       type: object
-    clientOrderCreateUpdateSchema:
+    clientOrderCreateSchema:
       properties:
         clientId:
           description: Client ID
+          minimum: 1
           type: integer
+        deliveredOn:
+          description: Solo ADMIN puede fijarla manualmente (RN-ORD-005b)
+          format: date-time
+          nullable: true
+          type: string
+        details:
+          items:
+            $ref: "#/components/schemas/clientOrderDetailSchema"
+          minItems: 1
+          type: array
+        expectedDeliveryDate:
+          description: Fecha de entrega esperada
+          format: date-time
+          nullable: true
+          type: string
         notes:
           description: Order Notes
+          maxLength: 500
           nullable: true
           type: string
-        saleId:
-          description: Sale ID
-          nullable: true
-          type: integer
         status:
-          description: Order Status
-          type: string
+          $ref: "#/components/schemas/clientOrderStatus"
+      required:
+        - clientId
+        - details
+      type: object
+    clientOrderDetailSchema:
+      properties:
+        productId:
+          description: Product ID
+          minimum: 1
+          type: integer
+        quantity:
+          description: Quantity (integer, >= 1)
+          minimum: 1
+          type: integer
+        unitPrice:
+          description: Unit price con máximo 2 decimales (RN-ORD-001)
+          minimum: 0
+          multipleOf: 0.01
+          type: number
+      required:
+        - productId
+        - quantity
+        - unitPrice
       type: object
     clientOrderFiltersSchema:
       properties:
         clientId:
           description: Client ID
+          minimum: 1
           nullable: true
           type: integer
+        limit:
+          description: Page size (clamped by the server)
+          minimum: 1
+          type: integer
+        page:
+          description: 1-based page number
+          minimum: 1
+          type: integer
         status:
-          description: Order Status
+          $ref: "#/components/schemas/clientOrderStatus"
+      type: object
+    clientOrderStatus:
+      description: Estado del ciclo de vida de la orden
+      enum:
+        - PENDING
+        - PROCESSING
+        - SHIPPED
+        - RECEIVED
+        - COMPLETED
+        - CANCELLED
+      type: string
+    clientOrderUpdateSchema:
+      properties:
+        clientId:
+          description: Client ID
+          minimum: 1
+          type: integer
+        deliveredOn:
+          description: Solo ADMIN puede fijarla manualmente (RN-ORD-005b)
+          format: date-time
           nullable: true
           type: string
+        details:
+          items:
+            $ref: "#/components/schemas/clientOrderDetailSchema"
+          minItems: 1
+          type: array
+        expectedDeliveryDate:
+          description: Fecha de entrega esperada
+          format: date-time
+          nullable: true
+          type: string
+        notes:
+          description: Order Notes
+          maxLength: 500
+          nullable: true
+          type: string
+        status:
+          $ref: "#/components/schemas/clientOrderStatus"
+      type: object
+    providerOrderCreateSchema:
+      properties:
+        deliveredOn:
+          description: Solo ADMIN puede fijarla manualmente (RN-ORD-005b)
+          format: date-time
+          nullable: true
+          type: string
+        details:
+          items:
+            $ref: "#/components/schemas/providerOrderDetailSchema"
+          minItems: 1
+          type: array
+        expectedDeliveryDate:
+          description: Fecha de entrega esperada
+          format: date-time
+          nullable: true
+          type: string
+        notes:
+          description: Order Notes
+          maxLength: 500
+          nullable: true
+          type: string
+        status:
+          $ref: "#/components/schemas/clientOrderStatus"
+        supplierId:
+          description: Provider ID
+          minimum: 1
+          type: integer
+      required:
+        - supplierId
+        - details
+      type: object
+    providerOrderDetailSchema:
+      properties:
+        estimatedPrice:
+          description: Precio estimado con máximo 2 decimales (RN-ORD-001)
+          minimum: 0
+          multipleOf: 0.01
+          type: number
+        productId:
+          description: Product ID
+          minimum: 1
+          type: integer
+        quantity:
+          description: Quantity (integer, >= 1)
+          minimum: 1
+          type: integer
+      required:
+        - productId
+        - quantity
+        - estimatedPrice
+      type: object
+    providerOrderFiltersSchema:
+      properties:
+        limit:
+          description: Page size (clamped by the server)
+          minimum: 1
+          type: integer
+        page:
+          description: 1-based page number
+          minimum: 1
+          type: integer
+        status:
+          $ref: "#/components/schemas/clientOrderStatus"
+        supplierId:
+          description: Provider ID
+          minimum: 1
+          nullable: true
+          type: integer
+      type: object
+    providerOrderUpdateSchema:
+      properties:
+        deliveredOn:
+          description: Solo ADMIN puede fijarla manualmente (RN-ORD-005b)
+          format: date-time
+          nullable: true
+          type: string
+        details:
+          items:
+            $ref: "#/components/schemas/providerOrderDetailSchema"
+          minItems: 1
+          type: array
+        expectedDeliveryDate:
+          description: Fecha de entrega esperada
+          format: date-time
+          nullable: true
+          type: string
+        notes:
+          description: Order Notes
+          maxLength: 500
+          nullable: true
+          type: string
+        status:
+          $ref: "#/components/schemas/clientOrderStatus"
+        supplierId:
+          description: Provider ID
+          minimum: 1
+          type: integer
       type: object
   securitySchemes:
     bearerAuth:
@@ -3730,6 +4262,252 @@ paths:
       summary: Partially update an attendance record by ID
       tags:
         - Attendance
+  /api/v1/clientOrder:
+    get:
+      description: Returns a paginated list of client orders filtered by client and status.
+      operationId: getClientOrders
+      parameters:
+        - description: Filter by client ID
+          in: query
+          name: clientId
+          schema:
+            minimum: 1
+            type: integer
+        - description: Filter by order status
+          in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/clientOrderStatus"
+        - description: 1-based page number
+          in: query
+          name: page
+          schema:
+            minimum: 1
+            type: integer
+        - description: Page size (clamped by the server)
+          in: query
+          name: limit
+          schema:
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    properties:
+                      dataList:
+                        items:
+                          $ref: "#/components/schemas/ResponseGetClientOrder"
+                        type: array
+                      total:
+                        type: integer
+                    type: object
+                  statusCode:
+                    example: 200
+                    type: integer
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Paginated client orders
+        "400":
+          description: Invalid query parameters
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Role or permission denied
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: List client orders with optional filters
+      tags:
+        - ClientOrders
+    post:
+      description: Creates a client order with at least one detail line and persists
+        the computed total.
+      operationId: createClientOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/clientOrderCreateSchema"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseGetClientOrder"
+                  statusCode:
+                    example: 201
+                    type: integer
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Client order created
+        "400":
+          description: Validation failed (empty details, >2 decimals, unknown saleId, ...)
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Permission denied or non-ADMIN setting deliveredOn
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Create a client order with detail lines
+      tags:
+        - ClientOrders
+  /api/v1/clientOrder/{id}:
+    delete:
+      description: Deletes a client order and its detail lines; blocked when a sale is
+        linked.
+      operationId: deleteClientOrder
+      parameters:
+        - description: Client order ID
+          in: path
+          name: id
+          required: true
+          schema:
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    properties:
+                      message:
+                        example: Client order deleted successfully
+                        type: string
+                    type: object
+                  statusCode:
+                    example: 200
+                    type: integer
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Client order deleted
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Permission denied
+        "404":
+          description: Client order not found
+        "409":
+          description: Client order is linked to a sale (RN-ORD-007)
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Delete a client order
+      tags:
+        - ClientOrders
+    patch:
+      description: Updates header fields and/or replaces detail lines, enforcing the
+        status lifecycle and recomputing the total when details change.
+      operationId: patchClientOrder
+      parameters:
+        - description: Client order ID
+          in: path
+          name: id
+          required: true
+          schema:
+            minimum: 1
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/clientOrderUpdateSchema"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseGetClientOrder"
+                  statusCode:
+                    example: 200
+                    type: integer
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Client order updated
+        "400":
+          description: Validation failed or invalid status transition (RN-ORD-011)
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Permission denied or non-ADMIN setting deliveredOn
+        "404":
+          description: Client order not found
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Partially update a client order
+      tags:
+        - ClientOrders
+  /api/v1/clientOrder/{id}/convert:
+    post:
+      description: Creates the linked sale and persists saleId in one transaction
+        (RN-ORD-006).
+      operationId: convertClientOrderToSale
+      parameters:
+        - description: Client order ID
+          in: path
+          name: id
+          required: true
+          schema:
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseGetClientOrder"
+                  statusCode:
+                    example: 200
+                    type: integer
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Client order converted; the response carries the new saleId
+        "400":
+          description: The order is cancelled and cannot be converted
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Permission denied
+        "404":
+          description: Client order not found
+        "409":
+          description: Client order was already converted to a sale
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Convert a client order into a sale
+      tags:
+        - ClientOrders
   /api/v1/clients:
     get:
       parameters:
@@ -5382,6 +6160,254 @@ paths:
       summary: Elimina un proveedor
       tags:
         - Providers
+  /api/v1/providerOrder:
+    get:
+      description: Returns a paginated list of provider orders filtered by provider
+        and status.
+      operationId: getProviderOrders
+      parameters:
+        - description: Filter by provider ID
+          in: query
+          name: supplierId
+          schema:
+            minimum: 1
+            type: integer
+        - description: Filter by order status
+          in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/clientOrderStatus"
+        - description: 1-based page number
+          in: query
+          name: page
+          schema:
+            minimum: 1
+            type: integer
+        - description: Page size (clamped by the server)
+          in: query
+          name: limit
+          schema:
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    properties:
+                      dataList:
+                        items:
+                          $ref: "#/components/schemas/ResponseGetProviderOrder"
+                        type: array
+                      total:
+                        type: integer
+                    type: object
+                  statusCode:
+                    example: 200
+                    type: integer
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Paginated provider orders
+        "400":
+          description: Invalid query parameters
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Role or permission denied
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: List provider orders with optional filters
+      tags:
+        - ProviderOrders
+    post:
+      description: Creates a provider order with at least one detail line and persists
+        the computed total.
+      operationId: createProviderOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/providerOrderCreateSchema"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseGetProviderOrder"
+                  statusCode:
+                    example: 201
+                    type: integer
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Provider order created
+        "400":
+          description: Validation failed (empty details, >2 decimals, unknown purchaseId,
+            ...)
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Permission denied or non-ADMIN setting deliveredOn
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Create a provider order with detail lines
+      tags:
+        - ProviderOrders
+  /api/v1/providerOrder/{id}:
+    delete:
+      description: Deletes a provider order and its detail lines; blocked when a
+        purchase is linked.
+      operationId: deleteProviderOrder
+      parameters:
+        - description: Provider order ID
+          in: path
+          name: id
+          required: true
+          schema:
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    properties:
+                      message:
+                        example: Provider order deleted successfully
+                        type: string
+                    type: object
+                  statusCode:
+                    example: 200
+                    type: integer
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Provider order deleted
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Permission denied
+        "404":
+          description: Provider order not found
+        "409":
+          description: Provider order is linked to a purchase (RN-ORD-007)
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Delete a provider order
+      tags:
+        - ProviderOrders
+    patch:
+      description: Updates header fields and/or replaces detail lines, enforcing the
+        status lifecycle and recomputing the total when details change.
+      operationId: patchProviderOrder
+      parameters:
+        - description: Provider order ID
+          in: path
+          name: id
+          required: true
+          schema:
+            minimum: 1
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/providerOrderUpdateSchema"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseGetProviderOrder"
+                  statusCode:
+                    example: 200
+                    type: integer
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Provider order updated
+        "400":
+          description: Validation failed or invalid status transition (RN-ORD-011)
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Permission denied or non-ADMIN setting deliveredOn
+        "404":
+          description: Provider order not found
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Partially update a provider order
+      tags:
+        - ProviderOrders
+  /api/v1/providerOrder/{id}/convert:
+    post:
+      description: Creates the linked purchase and persists purchaseId in one
+        transaction (RN-ORD-006).
+      operationId: convertProviderOrderToPurchase
+      parameters:
+        - description: Provider order ID
+          in: path
+          name: id
+          required: true
+          schema:
+            minimum: 1
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseGetProviderOrder"
+                  statusCode:
+                    example: 200
+                    type: integer
+                  success:
+                    example: true
+                    type: boolean
+                type: object
+          description: Provider order converted; the response carries the new purchaseId
+        "400":
+          description: The order is cancelled and cannot be converted
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "403":
+          description: Permission denied
+        "404":
+          description: Provider order not found
+        "409":
+          description: Provider order was already converted to a purchase
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Convert a provider order into a purchase
+      tags:
+        - ProviderOrders
   /api/v1/providers:
     get:
       description: Obtiene la lista de providers.Se puede filtrar usando 'ProvidersFilters'.
@@ -5536,6 +6562,16 @@ paths:
           name: providerId
           schema:
             type: integer
+        - description: Filter by lifecycle status
+          in: query
+          name: status
+          schema:
+            enum:
+              - PENDING
+              - RECEIVED
+              - PAID
+              - CANCELLED
+            type: string
         - description: Filter by start date
           in: query
           name: startDate
@@ -5567,9 +6603,15 @@ paths:
               schema:
                 properties:
                   data:
-                    items:
-                      $ref: "#/components/schemas/ResponseGetPurchase"
-                    type: array
+                    properties:
+                      dataList:
+                        items:
+                          $ref: "#/components/schemas/ResponseGetPurchase"
+                        type: array
+                      total:
+                        description: Total rows matching the filters.
+                        type: integer
+                    type: object
                   error:
                     example: false
                     type: boolean
@@ -5679,6 +6721,51 @@ paths:
       summary: Partially update a purchase by ID
       tags:
         - Purchases
+  /api/v1/purchases/{id}/status:
+    patch:
+      parameters:
+        - description: Purchase ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyPurchaseStatus"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponsePurchaseUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: Purchase status updated
+        "400":
+          description: Invalid status transition
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "404":
+          description: Purchase not found
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Transition a purchase status (PAID stamps paidAt, CANCELLED reverses
+        inventory)
+      tags:
+        - Purchases
   /api/v1/sales:
     get:
       parameters:
@@ -5695,9 +6782,15 @@ paths:
               schema:
                 properties:
                   data:
-                    items:
-                      $ref: "#/components/schemas/ResponseGetSale"
-                    type: array
+                    properties:
+                      dataList:
+                        items:
+                          $ref: "#/components/schemas/ResponseGetSale"
+                        type: array
+                      total:
+                        description: Total rows matching the filters.
+                        type: integer
+                    type: object
                   message:
                     type: string
                   success:
@@ -5837,6 +6930,59 @@ paths:
       security:
         - bearerAuth: []
       summary: Partially update a sale by ID
+      tags:
+        - Sales
+  /api/v1/sales/{id}/status:
+    patch:
+      parameters:
+        - description: Sale ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodySaleStatus"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseSaleCreateUpdate"
+                  message:
+                    type: string
+                type: object
+          description: Sale status updated
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+          description: Invalid status transition
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "404":
+          description: Sale not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Transition a sale status (PAID stamps paidAt, CANCELLED reverses
+        inventory)
       tags:
         - Sales
   /api/v1/settings/display:
@@ -7091,4 +8237,46 @@ paths:
       summary: Update a warehouse
       tags:
         - Warehouse
-tags: []
+tags:
+  - description: Asistencia de empleados
+    name: Attendance
+  - description: Órdenes de cliente y conversión a venta
+    name: ClientOrders
+  - description: Clientes
+    name: Clients
+  - description: Empleados
+    name: Employees
+  - description: Eventos y asistentes
+    name: Events
+  - description: Gastos operativos
+    name: Expenses
+  - description: Movimientos de inventario
+    name: Inventory Movements
+  - description: Noticias internas
+    name: News
+  - description: Nómina
+    name: Payroll
+  - description: Evaluaciones de desempeño
+    name: Performance Evaluations
+  - description: Permisos y licencias
+    name: Permissions
+  - description: Órdenes a proveedores y conversión a compra
+    name: ProviderOrders
+  - description: Proveedores
+    name: Providers
+  - description: Compras
+    name: Purchases
+  - description: Ventas
+    name: Sales
+  - description: Configuración del sistema
+    name: Settings
+  - description: Categorías de producto
+    name: Settings Product Categories
+  - description: Inventario por almacén
+    name: Stock
+  - description: Usuarios del sistema
+    name: Users
+  - description: Vacaciones
+    name: Vacation
+  - description: Almacenes
+    name: Warehouse

@@ -1673,6 +1673,10 @@
  *         providerId:
  *           type: integer
  *           description: Filter by provider ID
+ *         status:
+ *           type: string
+ *           enum: [PENDING, RECEIVED, PAID, CANCELLED]
+ *           description: Filter by lifecycle status
  *         startDate:
  *           type: string
  *           format: date-time
@@ -1689,6 +1693,12 @@
  *           type: number
  *           minimum: 0
  *           description: Filter by maximum total
+ *         page:
+ *           type: integer
+ *           description: Page number (1-based)
+ *         limit:
+ *           type: integer
+ *           description: Items per page
  *
  *     PurchaseDetail:
  *       type: object
@@ -1723,6 +1733,16 @@
  *           type: number
  *           minimum: 0
  *           description: Total amount of the purchase
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *           description: How the purchase was paid (optional at creation)
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           description: Invoice number, unique per provider
  *         details:
  *           type: array
  *           items:
@@ -1739,6 +1759,21 @@
  *           type: integer
  *         total:
  *           type: number
+ *         status:
+ *           type: string
+ *           enum: [PENDING, RECEIVED, PAID, CANCELLED]
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         paidAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  *         createdOn:
  *           type: string
  *           format: date-time
@@ -1753,7 +1788,7 @@
  *           nullable: true
  *         provider:
  *           $ref: '#/components/schemas/ResponseGetProductProvider'
- *         details:
+ *         purchaseDetail:
  *           type: array
  *           items:
  *             type: object
@@ -1778,6 +1813,21 @@
  *           type: integer
  *         total:
  *           type: number
+ *         status:
+ *           type: string
+ *           enum: [PENDING, RECEIVED, PAID, CANCELLED]
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         paidAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  *         createdOn:
  *           type: string
  *           format: date-time
@@ -1785,7 +1835,7 @@
  *           type: integer
  *         provider:
  *           $ref: '#/components/schemas/ResponseGetProductProvider'
- *         details:
+ *         purchaseDetail:
  *           type: array
  *           items:
  *             type: object
@@ -1810,6 +1860,21 @@
  *           type: integer
  *         total:
  *           type: number
+ *         status:
+ *           type: string
+ *           enum: [PENDING, RECEIVED, PAID, CANCELLED]
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         paidAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  *         createdOn:
  *           type: string
  *           format: date-time
@@ -1822,7 +1887,7 @@
  *           type: integer
  *         provider:
  *           $ref: '#/components/schemas/ResponseGetProductProvider'
- *         details:
+ *         purchaseDetail:
  *           type: array
  *           items:
  *             type: object
@@ -1837,6 +1902,24 @@
  *                 type: number
  *               product:
  *                 $ref: '#/components/schemas/Product'
+ *
+ *     BodyPurchaseStatus:
+ *       type: object
+ *       required:
+ *         - status
+ *       properties:
+ *         status:
+ *           type: string
+ *           enum: [PENDING, RECEIVED, PAID, CANCELLED]
+ *           description: Target status; RECEIVED->PAID stamps paidAt and CANCELLED reverses linked inventory movements
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  */
 
 /** --------------------------------------
@@ -1986,6 +2069,10 @@
  *         clientId:
  *           type: integer
  *           description: Filter by client ID
+ *         status:
+ *           type: string
+ *           enum: [PENDING, PAID, CANCELLED, REFUNDED]
+ *           description: Filter by lifecycle status
  *         startDate:
  *           type: string
  *           format: date-time
@@ -2002,6 +2089,12 @@
  *           type: number
  *           minimum: 0
  *           description: Filter by maximum total
+ *         page:
+ *           type: integer
+ *           description: Page number (1-based)
+ *         limit:
+ *           type: integer
+ *           description: Items per page
  *
  *     SaleDetail:
  *       type: object
@@ -2036,6 +2129,16 @@
  *           type: number
  *           minimum: 0
  *           description: Total amount of the sale
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *           description: How the sale was paid (optional at creation)
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           description: Invoice number, globally unique
  *         details:
  *           type: array
  *           items:
@@ -2052,6 +2155,21 @@
  *           type: integer
  *         total:
  *           type: number
+ *         status:
+ *           type: string
+ *           enum: [PENDING, PAID, CANCELLED, REFUNDED]
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         paidAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  *         createdOn:
  *           type: string
  *           format: date-time
@@ -2066,7 +2184,7 @@
  *           nullable: true
  *         client:
  *           $ref: '#/components/schemas/ResponseGetClient'
- *         details:
+ *         saleDetail:
  *           type: array
  *           items:
  *             type: object
@@ -2089,14 +2207,27 @@
  *           type: integer
  *         total:
  *           type: number
+ *         status:
+ *           type: string
+ *           enum: [PENDING, PAID, CANCELLED, REFUNDED]
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         paidAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  *         createdOn:
  *           type: string
  *           format: date-time
  *         createdBy:
  *           type: integer
- *         client:
- *           $ref: '#/components/schemas/ResponseGetClient'
- *         details:
+ *         saleDetail:
  *           type: array
  *           items:
  *             type: object
@@ -2109,6 +2240,24 @@
  *                 type: integer
  *               price:
  *                 type: number
+ *
+ *     BodySaleStatus:
+ *       type: object
+ *       required:
+ *         - status
+ *       properties:
+ *         status:
+ *           type: string
+ *           enum: [PENDING, PAID, CANCELLED, REFUNDED]
+ *           description: Target status; PAID stamps paidAt, while CANCELLED and REFUNDED reverse the linked inventory movements
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  */
 
 // {{ Expenses Schemas START }}
@@ -2539,40 +2688,164 @@
  * @openapi
  * components:
  *   schemas:
- *     clientOrderFiltersSchema:
- *       type: object
- *       properties:
- *         clientId:
- *           type: integer
- *           nullable: true
- *           description: Client ID
- *         status:
- *           type: string
- *           nullable: true
- *           description: Order Status
+ *     clientOrderStatus:
+ *       type: string
+ *       description: Estado del ciclo de vida de la orden
+ *       enum:
+ *         - PENDING
+ *         - PROCESSING
+ *         - SHIPPED
+ *         - RECEIVED
+ *         - COMPLETED
+ *         - CANCELLED
  */
 
 /**
  * @openapi
  * components:
  *   schemas:
- *     clientOrderCreateUpdateSchema:
+ *     clientOrderFiltersSchema:
  *       type: object
  *       properties:
  *         clientId:
  *           type: integer
+ *           minimum: 1
+ *           nullable: true
  *           description: Client ID
  *         status:
- *           type: string
- *           description: Order Status
+ *           $ref: '#/components/schemas/clientOrderStatus'
+ *         limit:
+ *           type: integer
+ *           minimum: 1
+ *           description: Page size (clamped by the server)
+ *         page:
+ *           type: integer
+ *           minimum: 1
+ *           description: 1-based page number
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     clientOrderDetailSchema:
+ *       type: object
+ *       required:
+ *         - productId
+ *         - quantity
+ *         - unitPrice
+ *       properties:
+ *         productId:
+ *           type: integer
+ *           minimum: 1
+ *           description: Product ID
+ *         quantity:
+ *           type: integer
+ *           minimum: 1
+ *           description: Quantity (integer, >= 1)
+ *         unitPrice:
+ *           type: number
+ *           minimum: 0
+ *           multipleOf: 0.01
+ *           description: Unit price con máximo 2 decimales (RN-ORD-001)
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     clientOrderCreateSchema:
+ *       type: object
+ *       required:
+ *         - clientId
+ *         - details
+ *       properties:
+ *         clientId:
+ *           type: integer
+ *           minimum: 1
+ *           description: Client ID
+ *         status:
+ *           $ref: '#/components/schemas/clientOrderStatus'
  *         notes:
  *           type: string
+ *           maxLength: 500
  *           nullable: true
  *           description: Order Notes
- *         saleId:
- *           type: integer
+ *         expectedDeliveryDate:
+ *           type: string
+ *           format: date-time
  *           nullable: true
- *           description: Sale ID
+ *           description: Fecha de entrega esperada
+ *         deliveredOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Solo ADMIN puede fijarla manualmente (RN-ORD-005b)
+ *         details:
+ *           type: array
+ *           minItems: 1
+ *           items:
+ *             $ref: '#/components/schemas/clientOrderDetailSchema'
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     clientOrderUpdateSchema:
+ *       type: object
+ *       properties:
+ *         clientId:
+ *           type: integer
+ *           minimum: 1
+ *           description: Client ID
+ *         status:
+ *           $ref: '#/components/schemas/clientOrderStatus'
+ *         notes:
+ *           type: string
+ *           maxLength: 500
+ *           nullable: true
+ *           description: Order Notes
+ *         expectedDeliveryDate:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Fecha de entrega esperada
+ *         deliveredOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Solo ADMIN puede fijarla manualmente (RN-ORD-005b)
+ *         details:
+ *           type: array
+ *           minItems: 1
+ *           items:
+ *             $ref: '#/components/schemas/clientOrderDetailSchema'
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseGetClientOrderDetail:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: Detail line ID
+ *         orderId:
+ *           type: integer
+ *           description: Client Order ID
+ *         productId:
+ *           type: integer
+ *           description: Product ID
+ *         quantity:
+ *           type: integer
+ *           description: Quantity
+ *         unitPrice:
+ *           type: string
+ *           description: Precio unitario Decimal(18,2) serializado como string
+ *           example: "5.00"
  */
 
 /**
@@ -2589,12 +2862,25 @@
  *           type: integer
  *           description: Client ID
  *         status:
- *           type: string
- *           description: Order Status
+ *           $ref: '#/components/schemas/clientOrderStatus'
  *         notes:
  *           type: string
  *           nullable: true
  *           description: Order Notes
+ *         total:
+ *           type: string
+ *           description: Total persistido Decimal(18,2) serializado como string
+ *           example: "13.50"
+ *         expectedDeliveryDate:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Fecha de entrega esperada
+ *         deliveredOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Fecha real de entrega
  *         createdOn:
  *           type: string
  *           format: date-time
@@ -2605,9 +2891,217 @@
  *           nullable: true
  *           description: Update Timestamp
  *         saleId:
- *            type: integer
- *            nullable: true
- *            description: Sale ID
+ *           type: integer
+ *           nullable: true
+ *           description: Sale ID (solo lo escribe el servicio de conversión)
+ *         details:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/ResponseGetClientOrderDetail'
+ */
+
+/** --------------------------------------
+ * Sección de ProviderOrder
+ * -------------------------------------- */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     providerOrderFiltersSchema:
+ *       type: object
+ *       properties:
+ *         supplierId:
+ *           type: integer
+ *           minimum: 1
+ *           nullable: true
+ *           description: Provider ID
+ *         status:
+ *           $ref: '#/components/schemas/clientOrderStatus'
+ *         limit:
+ *           type: integer
+ *           minimum: 1
+ *           description: Page size (clamped by the server)
+ *         page:
+ *           type: integer
+ *           minimum: 1
+ *           description: 1-based page number
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     providerOrderDetailSchema:
+ *       type: object
+ *       required:
+ *         - productId
+ *         - quantity
+ *         - estimatedPrice
+ *       properties:
+ *         productId:
+ *           type: integer
+ *           minimum: 1
+ *           description: Product ID
+ *         quantity:
+ *           type: integer
+ *           minimum: 1
+ *           description: Quantity (integer, >= 1)
+ *         estimatedPrice:
+ *           type: number
+ *           minimum: 0
+ *           multipleOf: 0.01
+ *           description: Precio estimado con máximo 2 decimales (RN-ORD-001)
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     providerOrderCreateSchema:
+ *       type: object
+ *       required:
+ *         - supplierId
+ *         - details
+ *       properties:
+ *         supplierId:
+ *           type: integer
+ *           minimum: 1
+ *           description: Provider ID
+ *         status:
+ *           $ref: '#/components/schemas/clientOrderStatus'
+ *         notes:
+ *           type: string
+ *           maxLength: 500
+ *           nullable: true
+ *           description: Order Notes
+ *         expectedDeliveryDate:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Fecha de entrega esperada
+ *         deliveredOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Solo ADMIN puede fijarla manualmente (RN-ORD-005b)
+ *         details:
+ *           type: array
+ *           minItems: 1
+ *           items:
+ *             $ref: '#/components/schemas/providerOrderDetailSchema'
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     providerOrderUpdateSchema:
+ *       type: object
+ *       properties:
+ *         supplierId:
+ *           type: integer
+ *           minimum: 1
+ *           description: Provider ID
+ *         status:
+ *           $ref: '#/components/schemas/clientOrderStatus'
+ *         notes:
+ *           type: string
+ *           maxLength: 500
+ *           nullable: true
+ *           description: Order Notes
+ *         expectedDeliveryDate:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Fecha de entrega esperada
+ *         deliveredOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Solo ADMIN puede fijarla manualmente (RN-ORD-005b)
+ *         details:
+ *           type: array
+ *           minItems: 1
+ *           items:
+ *             $ref: '#/components/schemas/providerOrderDetailSchema'
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseGetProviderOrderDetail:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: Detail line ID
+ *         orderId:
+ *           type: integer
+ *           description: Provider Order ID
+ *         productId:
+ *           type: integer
+ *           description: Product ID
+ *         quantity:
+ *           type: integer
+ *           description: Quantity
+ *         estimatedPrice:
+ *           type: string
+ *           description: Precio estimado Decimal(18,2) serializado como string
+ *           example: "5.00"
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     ResponseGetProviderOrder:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: Provider Order ID
+ *         supplierId:
+ *           type: integer
+ *           description: Provider ID
+ *         status:
+ *           $ref: '#/components/schemas/clientOrderStatus'
+ *         notes:
+ *           type: string
+ *           nullable: true
+ *           description: Order Notes
+ *         total:
+ *           type: string
+ *           description: Total persistido Decimal(18,2) serializado como string
+ *           example: "13.50"
+ *         expectedDeliveryDate:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Fecha de entrega esperada
+ *         deliveredOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Fecha real de entrega
+ *         createdOn:
+ *           type: string
+ *           format: date-time
+ *           description: Creation Timestamp
+ *         updatedOn:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *           description: Update Timestamp
+ *         purchaseId:
+ *           type: integer
+ *           nullable: true
+ *           description: Purchase ID (solo lo escribe el servicio de conversión)
+ *         details:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/ResponseGetProviderOrderDetail'
  */
 
 /**

@@ -1,6 +1,6 @@
 ## Context
 
-El proyecto tiene un ecosistema CI/CD maduro con **15 archivos de workflow** en `.github/workflows/` (94 definiciones de job; `ci.yml` concentra 57, de las que 16 llevan `if: false`), una composite action (setup-monorepo), Dependabot configurado en `.github/dependabot.yml`, y documentación técnica extensa (`docs/ci-cd-pipeline-empresarial.md` con los 14 stages, §25 supply chain y §26 DORA, `docs/CONTEXT-CICD.md` con el inventario de workflows §3.4/§5.9 y los pins §13.5, `docs/learning/ci-cd/workflows-mantenimiento-guia.md` con el playbook de mantenimiento). `quality.yml` y `ci-enterprise.yml` **ya no existen**: el primero se consolidó inline en `ci.yml` (2026-08-28), el segundo se retiró del repo. Esta documentación es de referencia técnica y asume conocimientos; los niveles Fundamentos (00-04), Intermedio (05-10) y Avanzado (11-17) de la ruta didáctica ya están diseñados en cambios OpenSpec previos (`learning-cicd-fundamentos`, `learning-cicd-intermedio`, `learning-cicd-avanzado`). Ver `proposal.md` para la motivación completa.
+El proyecto tiene un ecosistema CI/CD maduro con **15 archivos de workflow** en `.github/workflows/` (94 definiciones de job; `ci.yml` concentra 57, de las que 16 llevan `if: false`), una composite action (setup-monorepo), Dependabot configurado en `.github/dependabot.yml`, y documentación técnica extensa (`docs/ci-cd/ci-cd-pipeline-empresarial.md` con los 14 stages, §25 supply chain y §26 DORA, `docs/CONTEXT-CICD.md` con el inventario de workflows §3.4/§5.9 y los pins §13.5, `docs/learning/ci-cd/workflows-mantenimiento-guia.md` con el playbook de mantenimiento). `quality.yml` y `ci-enterprise.yml` **ya no existen**: el primero se consolidó inline en `ci.yml` (2026-08-28), el segundo se retiró del repo. Esta documentación es de referencia técnica y asume conocimientos; los niveles Fundamentos (00-04), Intermedio (05-10) y Avanzado (11-17) de la ruta didáctica ya están diseñados en cambios OpenSpec previos (`learning-cicd-fundamentos`, `learning-cicd-intermedio`, `learning-cicd-avanzado`). Ver `proposal.md` para la motivación completa.
 
 ## Goals / Non-Goals
 
@@ -9,7 +9,7 @@ El proyecto tiene un ecosistema CI/CD maduro con **15 archivos de workflow** en 
 - Crear el nivel Profesional (6 guías 18-23 + `profesional-README.md`) que complete la ruta de 4 niveles, llevando al lector de "operar el CI" a "diseñar, asegurar, medir y mantener el pipeline como activo de producción" (nivel Staff).
 - Enseñar la familia SAST/SCA/SBOM/Secrets/Dependency Review desde cero usando `.github/workflows/security.yml` como caso real de 5 jobs.
 - Enseñar el modelo de seguridad de 3 niveles (pre-commit / PR / cron) como principio organizador, usando `scheduled-security.yml` y `security-digest.yml`.
-- Enseñar DORA, SLSA y VEX como los marcos que marcan la transición Senior → Staff, conectando con `docs/ci-cd-pipeline-empresarial.md` §25/§26.
+- Enseñar DORA, SLSA y VEX como los marcos que marcan la transición Senior → Staff, conectando con `docs/ci-cd/ci-cd-pipeline-empresarial.md` §25/§26.
 - Enseñar la filosofía de mantenimiento de workflows usando `docs/learning/ci-cd/workflows-mantenimiento-guia.md` como fuente intensiva (Casos 1-2, checklist trimestral, anti-patrones).
 - Cerrar la ruta con un wrap-up de graduación en `profesional-README.md` que conecte los 4 niveles.
 
@@ -17,7 +17,7 @@ El proyecto tiene un ecosistema CI/CD maduro con **15 archivos de workflow** en 
 
 - NO escribir las guías aún — este cambio solo genera los artefactos OpenSpec (proposal, specs, design, tasks).
 - NO modificar código de aplicación, workflows, Dependabot ni infraestructura.
-- NO reescribir ni migrar `docs/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`, `docs/learning/ci-cd/workflows-mantenimiento-guia.md` ni `docs/aws-*.md`.
+- NO reescribir ni migrar `docs/ci-cd/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`, `docs/learning/ci-cd/workflows-mantenimiento-guia.md` ni `docs/aws-*.md`.
 - NO implementar mejoras de seguridad reales en el pipeline (p. ej. no añadir VEX real, no crear IaC scan) — el nivel solo enseña; los gaps se documentan como learning.
 - NO duplicar el contenido de `docs/security/security-enterprise-guide.md` — se referencia para SLSA/VEX en profundidad.
 
@@ -56,15 +56,15 @@ La guía 21 (mantenimiento) se construye sobre el playbook real: Caso 1 (EBADENG
 
 ### D4: DORA + SLSA + VEX como conceptos Staff-level con framing explícito Senior → Staff
 
-Las guías 22-23 presentan DORA, SLSA y VEX como los marcadores de la transición de Senior (ejecuta el pipeline) a Staff (diseña, asegura, mide y mejora el pipeline). Cada concepto se explica desde cero y se conecta con el estado real del proyecto (`docs/ci-cd-pipeline-empresarial.md` §26 DORA y costo, §25.2 SLSA, §25.5 SBOM CycloneDX vs SPDX; `docs/CONTEXT-CICD.md` §13.5 pins y §5.9 inventario).
+Las guías 22-23 presentan DORA, SLSA y VEX como los marcadores de la transición de Senior (ejecuta el pipeline) a Staff (diseña, asegura, mide y mejora el pipeline). Cada concepto se explica desde cero y se conecta con el estado real del proyecto (`docs/ci-cd/ci-cd-pipeline-empresarial.md` §26 DORA y costo, §25.2 SLSA, §25.5 SBOM CycloneDX vs SPDX; `docs/CONTEXT-CICD.md` §13.5 pins y §5.9 inventario).
 
-**Corrección (2026-11-07)**: las fuentes que el plan citaba — `docs/cicd-plan-implementacion.md` §12/§16/§19.2.3 (incluido el "gap G18") y `docs/cicd-estado-actual.md` Stage 6 — **no existen** en el repo; el gap G18 no aparece en ninguna parte. Las referencias válidas son las de la frase anterior.
+**Corrección (2026-11-07)**: las fuentes que el plan citaba — `docs/CONTEXT-CICD.md` §12/§16/§19.2.3 (incluido el "gap G18") y `docs/CONTEXT-CICD.md` Stage 6 — **no existen** en el repo; el gap G18 no aparece en ninguna parte. Las referencias válidas son las de la frase anterior.
 
 **Corrección SLSA (2026-11-07)**: el proyecto **no** está en "nivel 2-3". `grep` sobre `.github/workflows/` no encuentra
 `attest`, `cosign`, `provenance` ni `sigstore`; hay SBOM y dependency review, pero no provenance firmada → **Build L1**,
 con L2 a un job de distancia (`actions/attest`). La guía 23 lo dice así.
 
-**Por qué**: El objetivo declarado del nivel es la graduación a práctica Staff. Nombrar explícitamente los marcos que diferencian niveles de experiencia (respaldado por `docs/nivel-experiencia-analisis.md`, que sitúa el pipeline security en nivel Senior) da al lector un mapa de qué debe dominar para avanzar. DORA conecta el CI/CD con métricas de negocio (deploys frecuentes, lead time, fallos, MTTR); SLSA conecta con integridad de cadena de suministro; VEX con comunicación de vulnerabilidad explotable.
+**Por qué**: El objetivo declarado del nivel es la graduación a práctica Staff. Nombrar explícitamente los marcos que diferencian niveles de experiencia (el pipeline security se sitúa en nivel Senior) da al lector un mapa de qué debe dominar para avanzar. DORA conecta el CI/CD con métricas de negocio (deploys frecuentes, lead time, fallos, MTTR); SLSA conecta con integridad de cadena de suministro; VEX con comunicación de vulnerabilidad explotable.
 
 ### D5: Modelo de seguridad de 3 niveles (pre-commit / PR / cron) como principio organizador
 
@@ -95,11 +95,11 @@ gobernanza documental.
 
 `profesional-README.md` incluye una sección final de wrap-up que recorre los 4 niveles (Fundamentos → Intermedio → Avanzado → Profesional), resume lo logrado en cada uno y conecta la ruta completa en un camino de maestría CI/CD de Junior a Staff.
 
-**Por qué**: La ruta es un programa de aprendizaje completo, no 4 documentos sueltos. El wrap-up actúa como ceremonia de graduación: cierra el círculo, da sentido a todo el recorrido y ofrece siguientes pasos (contribuir a los workflows, proponer mejoras de seguridad, seguir con `docs/cicd-plan-implementacion.md`). Sin él, el nivel final termina sin conclusión emocional ni direccional.
+**Por qué**: La ruta es un programa de aprendizaje completo, no 4 documentos sueltos. El wrap-up actúa como ceremonia de graduación: cierra el círculo, da sentido a todo el recorrido y ofrece siguientes pasos (contribuir a los workflows, proponer mejoras de seguridad, seguir con `docs/CONTEXT-CICD.md`). Sin él, el nivel final termina sin conclusión emocional ni direccional.
 
 ### D8: Cross-references — LINK, no copiar
 
-Las guías 18-23 referencian por enlaces relativos: `docs/learning/ci-cd/workflows-mantenimiento-guia.md` (uso intensivo), `docs/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`, `docs/security/security-enterprise-guide.md`, `docs/aws-deploy-architecture.md`, `docs/aws-cd-learning-path.md`, y los workflows reales por ruta. Los snippets se copian en pequeño (10-40 líneas) solo con valor didáctico y siempre citando la ruta fuente.
+Las guías 18-23 referencian por enlaces relativos: `docs/learning/ci-cd/workflows-mantenimiento-guia.md` (uso intensivo), `docs/ci-cd/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md`, `docs/security/security-enterprise-guide.md`, `docs/ci-cd/aws-deploy-architecture.md`, `docs/ci-cd/aws-cd-learning-path.md`, y los workflows reales por ruta. Los snippets se copian en pequeño (10-40 líneas) solo con valor didáctico y siempre citando la ruta fuente.
 
 **Por qué**: Evita drift de documentación (dos versiones del mismo dato) y respeta los docs técnicos como fuente de verdad. La regla práctica del nivel Fundamentos (D4) se mantiene: >40 líneas → enlace; <40 líneas → snippet con cita.
 
@@ -151,9 +151,9 @@ seguridad con gobernanza; (b) numerar 18a/19a — rompe el orden lexicográfico 
 - **[Riesgo] Contenido de seguridad profundo mal explicado**: SAST/SCA/SBOM/SLSA/VEX son temas densos; explicarlos mal genera falsa confianza → Mitigación: teoría primero desde cero con analogías, cada concepto conectado a su implementación real en el repo, y enlaces a `docs/security/security-enterprise-guide.md` para profundización.
 - **[Trade-off] Extensión 800-1500 líneas**: 6 guías de hasta 1500 líneas es costoso de producir y revisar → Mitigación: cada guía es un bloque de tareas independiente (tasks.md), revisable por separado.
 - **[Riesgo] `ci-enterprise.yml` confundido con workflow operativo**: el lector podría intentar "arreglar" el cache miss → Mitigación: la guía 23 lo declara explícitamente como referencia didáctica no operativa (D6) y documenta el gotcha como lección, no como bug a corregir.
-- **[Riesgo] Docs de referencia en evolución**: `docs/learning/ci-cd/workflows-mantenimiento-guia.md`, `docs/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md` y los docs AWS pueden cambiar entre diseño e implementación → Mitigación: las guías enlazan por ruta relativa (no copian contenido), así los enlaces siguen funcionando aunque el contenido evolucione.
+- **[Riesgo] Docs de referencia en evolución**: `docs/learning/ci-cd/workflows-mantenimiento-guia.md`, `docs/ci-cd/ci-cd-pipeline-empresarial.md`, `docs/CONTEXT-CICD.md` y los docs AWS pueden cambiar entre diseño e implementación → Mitigación: las guías enlazan por ruta relativa (no copian contenido), así los enlaces siguen funcionando aunque el contenido evolucione.
 - **[Riesgo materializado y resuelto] Colisión de numeración**: 18-22 están ocupadas por la serie governance/review y por `22-rulesets-guide.md`; sólo 23 estaba libre. Resuelto en D10 con la renumeración a 25-29.
-- **[Riesgo materializado] Docs de referencia fantasma**: `docs/cicd-estado-actual.md`, `docs/cicd-plan-implementacion.md` y el "gap G18" no existen; varias tareas (6.2, 6.3, 7.3, 7.4, 9.2) citan secciones de esos archivos. Reescritas contra `docs/ci-cd-pipeline-empresarial.md` y `docs/CONTEXT-CICD.md`.
+- **[Riesgo materializado] Docs de referencia fantasma**: `docs/CONTEXT-CICD.md`, `docs/CONTEXT-CICD.md` y el "gap G18" no existen; varias tareas (6.2, 6.3, 7.3, 7.4, 9.2) citan secciones de esos archivos. Reescritas contra `docs/ci-cd/ci-cd-pipeline-empresarial.md` y `docs/CONTEXT-CICD.md`.
 - **[Riesgo materializado] Conteos y hechos del plan obsoletos**: "9 workflows", "12 → 3 zombies", "30+ jobs", "SLSA 2-3", "job `iac-security` comentado" y "`ci-enterprise.yml` es interno". La guía 23 se escribió con datos verificados (15 archivos / 94 jobs / Build L1 / `checkov-iac` advisory / workflow retirado).
 - **[Limitación de verificación] `docs:vale` no ejecutable local**: vale no está instalado en el entorno de desarrollo, así que el gate de prosa de CI no puede verificarse localmente. Mitigación: `npm run docs:lint` (markdownlint) + `prettier --check` sí se ejecutaron; el gate de vale queda para CI.
 - **[Limitación de fuentes] URL muerta**: la referencia a la página VEX de CISA devolvía 404 y se descartó; sólo se citan URLs ya usadas en la documentación del repo (`slsa.dev`, `github.com/openvex/spec`, `checkov.io`, `opentelemetry.io`, docs de GitHub).

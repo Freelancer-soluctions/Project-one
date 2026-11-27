@@ -18,7 +18,7 @@ runtime behavior change.
 
 ## Inputs
 
-- `docs/server-typescript-migration-research.md` (migration constraints, runtime
+- `docs/backend/server-typescript-migration-research.md` (migration constraints, runtime
   endgame).
 - An existing middleware with at least one passing test.
 - Node `22.23.1`; server workspace dependencies already installed.

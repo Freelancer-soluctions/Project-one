@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -21,20 +21,34 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { LuPackage } from 'react-icons/lu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { LuPackage, LuPlus, LuTrash2 } from 'react-icons/lu';
 import PropTypes from 'prop-types';
-import { ProviderOrderSchema } from '../utils';
+import { ProviderOrderSchema, ORDER_STATUSES } from '../utils';
 import { pickDirty } from '@/utils/pickDirty';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
 
-const EMPTY_FORM_VALUES = {
+/** Blank detail line for create mode. */
+const EMPTY_DETAIL = { productId: '', quantity: 1, estimatedPrice: '' };
+
+/** Fresh form values (a factory so rows never share references). */
+const makeEmptyFormValues = () => ({
   supplierId: '',
+  status: 'PENDING',
   notes: '',
+  expectedDeliveryDate: '',
+  details: [{ ...EMPTY_DETAIL }],
   createdOn: '',
   updatedOn: '',
   userProviderOrderCreatedName: '',
   userProviderOrderUpdatedName: '',
-};
+});
 
 /** Numeric input field (parametrized). */
 function ProviderOrderNumberField({ control, name, labelKey }) {
@@ -70,6 +84,116 @@ ProviderOrderNumberField.propTypes = {
   labelKey: PropTypes.string.isRequired,
 };
 
+/** Status select bound to the order lifecycle enum. */
+function ProviderOrderStatusField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="status"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel htmlFor="status">{t('status')}</FormLabel>
+          <Select value={field.value ?? ''} onValueChange={field.onChange}>
+            <FormControl>
+              <SelectTrigger id="status">
+                <SelectValue placeholder={t('select_status')} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {ORDER_STATUSES.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+ProviderOrderStatusField.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
+/** One editable detail line (product, quantity, estimated price). */
+function ProviderOrderDetailRow({ control, index, onRemove }) {
+  const { t } = useTranslation();
+  return (
+    <div className="grid items-end grid-cols-[1fr_6rem_8rem_auto] gap-3">
+      <ProviderOrderNumberField
+        control={control}
+        name={`details.${index}.productId`}
+        labelKey="product_id"
+      />
+      <ProviderOrderNumberField
+        control={control}
+        name={`details.${index}.quantity`}
+        labelKey="quantity"
+      />
+      <ProviderOrderNumberField
+        control={control}
+        name={`details.${index}.estimatedPrice`}
+        labelKey="estimated_price"
+      />
+      <Button
+        type="button"
+        variant="destructive"
+        size="icon"
+        aria-label={t('remove_detail')}
+        onClick={onRemove}
+      >
+        <LuTrash2 className="w-4 h-4" />
+      </Button>
+    </div>
+  );
+}
+
+ProviderOrderDetailRow.propTypes = {
+  control: PropTypes.object.isRequired,
+  index: PropTypes.number.isRequired,
+  onRemove: PropTypes.func.isRequired,
+};
+
+/** Detail line editor: rows plus an "add line" action. */
+function ProviderOrderDetailsEditor({ control }) {
+  const { t } = useTranslation();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'details',
+  });
+
+  return (
+    <div className="flex flex-col gap-3">
+      <FormLabel>{`${t('details')}*`}</FormLabel>
+      {fields.map((field, index) => (
+        <ProviderOrderDetailRow
+          key={field.id}
+          control={control}
+          index={index}
+          onRemove={() => remove(index)}
+        />
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        className="self-start"
+        onClick={() => append({ ...EMPTY_DETAIL })}
+      >
+        {t('add_detail')}
+        <LuPlus className="w-4 h-4 ml-2" />
+      </Button>
+    </div>
+  );
+}
+
+ProviderOrderDetailsEditor.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
 /** Notes text input field. */
 function ProviderOrderNotesField({ control }) {
   const { t } = useTranslation();
@@ -100,6 +224,39 @@ function ProviderOrderNotesField({ control }) {
 }
 
 ProviderOrderNotesField.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
+/** Expected delivery date input. */
+function ProviderOrderDateField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="expectedDeliveryDate"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel htmlFor="expectedDeliveryDate">
+            {t('expected_delivery_date')}
+          </FormLabel>
+          <FormControl>
+            <Input
+              id="expectedDeliveryDate"
+              name="expectedDeliveryDate"
+              type="date"
+              autoComplete="off"
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+ProviderOrderDateField.propTypes = {
   control: PropTypes.object.isRequired,
 };
 
@@ -138,14 +295,19 @@ ProviderOrderReadonlyTextField.propTypes = {
 /** Grid of dialog form fields in display order. */
 function buildProviderOrderFields({ form, hasCreated, hasUpdated }) {
   return (
-    <div className="grid grid-cols-1 gap-6 py-4 auto-rows-auto">
-      <ProviderOrderNumberField
-        control={form.control}
-        name="supplierId"
-        labelKey="supplierId"
-      />
+    <div className="flex flex-col gap-6 py-4">
+      <div className="grid grid-cols-2 gap-6">
+        <ProviderOrderNumberField
+          control={form.control}
+          name="supplierId"
+          labelKey="supplierId"
+        />
+        <ProviderOrderStatusField control={form.control} />
+        <ProviderOrderDateField control={form.control} />
+        <ProviderOrderNotesField control={form.control} />
+      </div>
 
-      <ProviderOrderNotesField control={form.control} />
+      <ProviderOrderDetailsEditor control={form.control} />
 
       {hasCreated && (
         <ProviderOrderReadonlyTextField
@@ -180,8 +342,14 @@ function buildDialogHeader({ t, actionDialog, providerOrderId }) {
   );
 }
 
-/** Dialog footer: cancel, delete (edit only) and save/update. */
-function buildDialogFooter({ t, providerOrderId, handleDelete }) {
+/** Dialog footer: cancel, convert, delete (edit only) and save/update. */
+function buildDialogFooter({
+  t,
+  providerOrderId,
+  handleDelete,
+  canConvert,
+  handleConvert,
+}) {
   return (
     <DialogFooter>
       <DialogClose asChild>
@@ -193,6 +361,17 @@ function buildDialogFooter({ t, providerOrderId, handleDelete }) {
           {t('cancel')}
         </Button>
       </DialogClose>
+
+      {canConvert && (
+        <Button
+          type="button"
+          variant="success"
+          className="flex-1 md:flex-initial md:w-auto"
+          onClick={handleConvert}
+        >
+          {t('convert_to_purchase')}
+        </Button>
+      )}
 
       {providerOrderId && (
         <Button
@@ -227,7 +406,7 @@ function useProviderOrderDialogForm({
 }) {
   const form = useForm({
     resolver: zodResolver(ProviderOrderSchema),
-    defaultValues: EMPTY_FORM_VALUES,
+    defaultValues: makeEmptyFormValues(),
   });
   const {
     formState: { dirtyFields },
@@ -241,7 +420,19 @@ function useProviderOrderDialogForm({
 
     form.reset({
       supplierId: selectedRow.supplierId,
-      notes: selectedRow.notes,
+      status: selectedRow.status,
+      notes: selectedRow.notes ?? '',
+      expectedDeliveryDate: selectedRow.expectedDeliveryDate
+        ? selectedRow.expectedDeliveryDate.slice(0, 10)
+        : '',
+      details:
+        selectedRow.details?.length > 0
+          ? selectedRow.details.map((detail) => ({
+              productId: detail.productId,
+              quantity: detail.quantity,
+              estimatedPrice: detail.estimatedPrice,
+            }))
+          : [{ ...EMPTY_DETAIL }],
       createdOn: selectedRow.createdOn,
       updatedOn: selectedRow.updatedOn,
       userProviderOrderCreatedName: selectedRow.userProviderOrderCreatedName,
@@ -251,7 +442,7 @@ function useProviderOrderDialogForm({
 
   useEffect(() => {
     if (!openDialog) {
-      form.reset(EMPTY_FORM_VALUES);
+      form.reset(makeEmptyFormValues());
     }
   }, [openDialog, form]);
 
@@ -279,6 +470,7 @@ export const ProviderOrdersDialog = ({
   selectedRow,
   onSubmit,
   onDeleteById,
+  onConvertById,
   actionDialog,
 }) => {
   const { t } = useTranslation();
@@ -293,9 +485,16 @@ export const ProviderOrdersDialog = ({
   const hasCreated = selectedRow?.createdOn && providerOrderId;
   const hasUpdated = selectedRow?.updatedOn && providerOrderId;
 
+  // Conversion is only meaningful for a saved order with no linked purchase.
+  const canConvert =
+    !!providerOrderId &&
+    !selectedRow?.purchaseId &&
+    selectedRow?.status !== 'CANCELLED';
+  const handleConvert = () => onConvertById(providerOrderId);
+
   return (
     <Dialog open={openDialog} onOpenChange={onCloseDialog}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[760px]">
         {buildDialogHeader({ t, actionDialog, providerOrderId })}
         <Form {...form}>
           <form
@@ -308,7 +507,13 @@ export const ProviderOrdersDialog = ({
           >
             {buildProviderOrderFields({ form, hasCreated, hasUpdated })}
 
-            {buildDialogFooter({ t, providerOrderId, handleDelete })}
+            {buildDialogFooter({
+              t,
+              providerOrderId,
+              handleDelete,
+              canConvert,
+              handleConvert,
+            })}
           </form>
         </Form>
       </DialogContent>
@@ -322,5 +527,6 @@ ProviderOrdersDialog.propTypes = {
   selectedRow: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
+  onConvertById: PropTypes.func.isRequired,
   actionDialog: PropTypes.string.isRequired,
 };

@@ -53,8 +53,8 @@
 ## 6. Guía 29: Métricas DORA y performance tuning
 
 - [ ] 6.1 Escribir `docs/learning/ci-cd/29-dora-metrics-performance-tuning.md` con objetivos de aprendizaje y prerequisitos
-- [ ] 6.2 Explicar las 4 métricas DORA (Deployment Frequency, Lead Time for Changes, Change Failure Rate, MTTR) en tabla y cómo el pipeline del proyecto afecta cada una (conectar `docs/ci-cd-pipeline-empresarial.md` §26)
-- [ ] 6.3 Explicar SLSA desde cero: niveles 1-4 y dónde se ubica el proyecto (**Build L1**: SBOM + dependency review sin provenance firmada; OIDC de AWS no cuenta como SLSA Build), referenciando `docs/ci-cd-pipeline-empresarial.md` §25.2 y `docs/security/security-enterprise-guide.md`
+- [ ] 6.2 Explicar las 4 métricas DORA (Deployment Frequency, Lead Time for Changes, Change Failure Rate, MTTR) en tabla y cómo el pipeline del proyecto afecta cada una (conectar `docs/ci-cd/ci-cd-pipeline-empresarial.md` §26)
+- [ ] 6.3 Explicar SLSA desde cero: niveles 1-4 y dónde se ubica el proyecto (**Build L1**: SBOM + dependency review sin provenance firmada; OIDC de AWS no cuenta como SLSA Build), referenciando `docs/ci-cd/ci-cd-pipeline-empresarial.md` §25.2 y `docs/security/security-enterprise-guide.md`
 - [ ] 6.4 Presentar DORA y SLSA con framing Staff-level (marcadores de la transición Senior → Staff)
 - [ ] 6.5 Explicar performance tuning: jobs paralelos, cache hit ratio (npm/Vitest/Playwright), path filtering (`dorny/paths-filter`), cancelación por `concurrency`, composite actions para deduplicar setup
 - [ ] 6.6 Introducir `act` para dry-run local sin gastar minutos de GitHub Actions (ej. `act -j quality -W .github/workflows/ci.yml` — el job `quality` vive ahora en `ci.yml`)
@@ -68,7 +68,7 @@
 
 - [x] 7.1 Escribir `docs/learning/ci-cd/23-ci-enterprise-reference-pipeline.md` con objetivos de aprendizaje y prerequisitos (6 guías previas: 06, 09, 18, 22 + 24 como siguiente)
 - [x] 7.2 Enseñar a **medir la escala** con las cuatro métricas que se confunden (archivos 15 / definiciones de job 94, 57 en `ci.yml` con 16 `if: false` / workflows activos en el registro 9 / required checks 4) y explicar qué tabla de `CONTEXT-CICD.md` §3.4-§5.9 es la fuente de cada una
-- [x] 7.3 Reencuadrar la comparación enterprise: los 14 stages de `docs/ci-cd-pipeline-empresarial.md` §2.3 frente a lo que el repo cubre hoy, con la conclusión de que la brecha es de **capacidades**, no de número de jobs
+- [x] 7.3 Reencuadrar la comparación enterprise: los 14 stages de `docs/ci-cd/ci-cd-pipeline-empresarial.md` §2.3 frente a lo que el repo cubre hoy, con la conclusión de que la brecha es de **capacidades**, no de número de jobs
 - [x] 7.4 Explicar SLSA Build L1-L4 con la posición real del proyecto (**Build L1**: SBOM CycloneDX + dependency review, sin `attest|cosign|provenance|sigstore`) y enumerar qué falta para L3, incluido el requisito organizativo de revisión de dos partes
 - [x] 7.5 Explicar VEX (4 statuses: `not_affected`, `affected`, `fixed`, `under_investigation`) y por qué `ignore-unfixed: 'true'` de Trivy es una política implícita, no VEX (sin citar el inexistente "gap G18")
 - [x] 7.6 Explicar el escaneo de IaC real: job `checkov-iac` en `ci.yml` (advisory: `soft_fail: true` + `continue-on-error: true`, artifact 14d, Code Scanning sólo en weekly), FASE 2 planificada en comentario pero **sin** `.checkov.baseline` en el repo, y alcance vacío hoy (1 Dockerfile, 0 Terraform/K8s)
@@ -86,13 +86,13 @@
 ## 9. Verificación de anti-duplicación
 
 - [ ] 9.1 Verificar que ninguna guía copia secciones enteras (>40 líneas) de `docs/learning/ci-cd/workflows-mantenimiento-guia.md` — deben enlazar (uso intensivo como fuente, no como copia)
-- [ ] 9.2 Verificar que no se duplica `docs/ci-cd-pipeline-empresarial.md` (§2.3 stages, §25 supply chain, §26 DORA, §27 progressive delivery) ni `docs/CONTEXT-CICD.md` (§3.4/§5.9 inventario, §13.5 pins) — enlazar + resumir
+- [ ] 9.2 Verificar que no se duplica `docs/ci-cd/ci-cd-pipeline-empresarial.md` (§2.3 stages, §25 supply chain, §26 DORA, §27 progressive delivery) ni `docs/CONTEXT-CICD.md` (§3.4/§5.9 inventario, §13.5 pins) — enlazar + resumir
 - [ ] 9.3 Verificar que los snippets cortos (<40 líneas) citan la ruta fuente
 - [ ] 9.4 Verificar que el contenido didáctico (explicaciones desde cero de SAST/SCA/SBOM/SLSA/VEX) es original de las guías y no duplica la documentación técnica
 
 ## 10. Control de calidad markdown
 
-- [ ] 10.1 Verificar la extensión de cada archivo: guías 800-1500 líneas, con la excepción documentada de la guía 23 (469 líneas, delegando profundidad a `docs/ci-cd-pipeline-empresarial.md` por la regla link-don't-copy)
+- [ ] 10.1 Verificar la extensión de cada archivo: guías 800-1500 líneas, con la excepción documentada de la guía 23 (469 líneas, delegando profundidad a `docs/ci-cd/ci-cd-pipeline-empresarial.md` por la regla link-don't-copy)
 - [ ] 10.2 Verificar que todas las guías tienen secciones de objetivos de aprendizaje y prerequisitos ("completed Fundamentos + Intermedio + Avanzado levels")
 - [ ] 10.3 Verificar formato markdown válido: tablas bien formadas, diagramas mermaid sin errores de sintaxis (incluido el mermaid del modelo de seguridad de 3 niveles), código en español
 - [ ] 10.4 Verificación final: revisar que las 6 guías + README cumplen los requisitos de `specs/cicd-professional-guide/spec.md` y `specs/cicd-profesional-readme-index/spec.md`
@@ -111,13 +111,13 @@
       `29-dora-metrics-performance-tuning.md`, conservando el orden relativo del plan y sin renombrar archivos publicados.
       Las tareas 2.x-6.x y los cross-links ya usan los números nuevos; `workflows-mantenimiento-guia.md` no se renombra
       (132 referencias).
-- [ ] 12.2 Reemplazar en todo el cambio las referencias a `docs/cicd-estado-actual.md` y
-      `docs/cicd-plan-implementacion.md` (inexistentes) por `docs/ci-cd-pipeline-empresarial.md` y
+- [ ] 12.2 Reemplazar en todo el cambio las referencias a `docs/CONTEXT-CICD.md` y
+      `docs/CONTEXT-CICD.md` (inexistentes) por `docs/ci-cd/ci-cd-pipeline-empresarial.md` y
       `docs/CONTEXT-CICD.md`. Auditado 2026-11-07: proposal y specs ya corregidos; revisar las tareas 2.x-6.x al ejecutarlas.
 - [ ] 12.3 Eliminar el "gap G18" de cualquier requisito o tarea (no existe en ninguna parte del repo) y, si se quiere un
       identificador de gap, definirlo contra la lista real de `docs/CONTEXT-CICD.md`.
-- [ ] 12.4 Corregir en `profesional-README.md` los enlaces a docs inexistentes (`docs/cicd-estado-actual.md`,
-      `docs/cicd-plan-implementacion.md`) y la afirmación "SLSA nivel 2-3" → Build L1.
+- [ ] 12.4 Corregir en `profesional-README.md` los enlaces a docs inexistentes (`docs/CONTEXT-CICD.md`,
+      `docs/CONTEXT-CICD.md`) y la afirmación "SLSA nivel 2-3" → Build L1.
 - [ ] 12.5 Sustituir el conteo "9 workflows" del README y del nivel por la tabla de cuatro métricas (15/94/9/4) y anotar
       que cualquier número de workflows caduca, con la fuente `CONTEXT-CICD.md` §3.4.
 - [ ] 12.6 Verificar en CI el gate de prosa `npm run docs:vale` sobre la guía 23 y el README (no ejecutable en local:

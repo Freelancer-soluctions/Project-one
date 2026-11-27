@@ -164,7 +164,7 @@ La documentación SHALL explicar que Trivy, `dependency-review` y el audit de li
 
 ### Requirement: Enlaces y umbrales correctos en la doc de gobernanza pre-merge
 
-`docs/pre-merge-gates-governance.md` SHALL enlazar repositorios válidos y afirmar umbrales correctos para `dependency-review-action`.
+`docs/ci-cd/pre-merge-gates-governance.md` SHALL enlazar repositorios válidos y afirmar umbrales correctos para `dependency-review-action`.
 
 #### Scenario: Enlace L661 corregido
 

@@ -299,7 +299,7 @@ La **VPC (Virtual Private Cloud)** es la red virtual aislada donde viven ECS, RD
 
 ## 5. Diagrama de arquitectura simplificado
 
-El proyecto tiene un diagrama completo en `docs/aws-deploy-architecture.md`. Aquí reproducimos una **versión simplificada** (~20 líneas) con fines didácticos — consulta el original para el detalle completo:
+El proyecto tiene un diagrama completo en `docs/ci-cd/aws-deploy-architecture.md`. Aquí reproducimos una **versión simplificada** (~20 líneas) con fines didácticos — consulta el original para el detalle completo:
 
 ```mermaid
 flowchart TB
@@ -328,7 +328,7 @@ flowchart TB
                             +--> [Secrets Manager]
 ```
 
-**# Source:** versión simplificada de `docs/aws-deploy-architecture.md` (diagrama completo ~48 líneas en el original).
+**# Source:** versión simplificada de `docs/ci-cd/aws-deploy-architecture.md` (diagrama completo ~48 líneas en el original).
 
 **Lectura del diagrama**:
 
@@ -741,13 +741,13 @@ Hasta entonces, blue-green con circuit breaker es una elección sólida.
 
 ## 16. Referencias
 
-| Documento                         | Para qué consultarlo                                |
-| --------------------------------- | --------------------------------------------------- |
-| `docs/aws-deploy-architecture.md` | Diagrama completo de la arquitectura de despliegue  |
-| `docs/cicd-estado-actual.md`      | Estado actual de los workflows y datos del proyecto |
-| `docs/aws-cd-learning-path.md`    | Ruta pedagógica Floci → Consola → Terraform         |
-| `.github/workflows/deploy.yml`    | El workflow de despliegue real (guía 13)            |
-| `infra/`                          | Terraform: la infraestructura como código (guía 15) |
+| Documento                               | Para qué consultarlo                                |
+| --------------------------------------- | --------------------------------------------------- |
+| `docs/ci-cd/aws-deploy-architecture.md` | Diagrama completo de la arquitectura de despliegue  |
+| `docs/CONTEXT-CICD.md`                  | Estado actual de los workflows y datos del proyecto |
+| `docs/ci-cd/aws-cd-learning-path.md`    | Ruta pedagógica Floci → Consola → Terraform         |
+| `.github/workflows/deploy.yml`          | El workflow de despliegue real (guía 13)            |
+| `infra/`                                | Terraform: la infraestructura como código (guía 15) |
 
 ## 17. Glosario extendido
 

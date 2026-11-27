@@ -96,6 +96,6 @@ They will be **automatically picked up** by the regression suite — no script c
 
 ## 📚 Related
 
-- [Testing Architecture](../../docs/testing-architecture.md) — Hybrid test organization
+- [Testing Architecture](../../../../docs/quality/testing-architecture.md) — Hybrid test organization
 - [Vitest Config](../../apps/server/vitest.config.js) — Test discovery patterns
 - [Pre-commit Hook](../../.husky/pre-commit) — Hook orchestration

@@ -50,6 +50,15 @@ const salesApi = createApi({
       }),
       invalidatesTags: ['Sales'],
     }),
+    // Lifecycle endpoint: only status + payment/invoice move through here.
+    updateSaleStatus: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/sales/${id}/status`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Sales'],
+    }),
   }),
 });
 
@@ -58,6 +67,7 @@ const salesApi = createApi({
 export const {
   useLazyGetAllSalesQuery,
   useUpdateSaleByIdMutation,
+  useUpdateSaleStatusMutation,
   useCreateSaleMutation,
   useDeleteSaleByIdMutation,
   useDeleteSaleDetailByIdMutation,

@@ -10,9 +10,9 @@ Documenta la decisión ESM vs CommonJS del monorepo y sus implicaciones por work
 
 Se SHALL documentar la decision de usar `"type": "module"` en raiz, client y server (server confirmado en `apps/server/package.json:6`), y CommonJS solo en e2e.
 
-#### Scenario: Seccion documentada en docs/workspaces.md
+#### Scenario: Seccion documentada en docs/architecture/workspaces.md
 
-- **WHEN** se inspecciona `docs/workspaces.md`
+- **WHEN** se inspecciona `docs/architecture/workspaces.md`
 - **THEN** MUST existir una seccion que explique:
   - Raiz: ESM (scripts de build/test usan `import`)
   - Client: ESM (Vite/React requieren ESM)

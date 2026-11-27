@@ -1,9 +1,10 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { pickDirty } from '@/utils/pickDirty';
 import { sumLineItems } from '@/utils/money';
+import { buildCreatePayload } from '@/utils/buildCreatePayload';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,12 @@ import PropTypes from 'prop-types';
 import { PurchaseSchema } from '../utils';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
+import { StatusPaymentPanel } from '@/components/statusPaymentPanel';
+import {
+  NO_PAYMENT_METHOD,
+  PAYMENT_METHOD_OPTIONS,
+  paymentMethodLabelKey,
+} from '@/utils/salePurchaseStatus';
 
 /** Empty detail row template. */
 const EMPTY_DETAILS = [
@@ -49,6 +56,8 @@ const EMPTY_DETAILS = [
 const CLEAR_FORM_VALUES = {
   providerId: '',
   total: '',
+  paymentMethod: NO_PAYMENT_METHOD,
+  invoiceNumber: '',
   details: EMPTY_DETAILS,
   createdOn: '',
   updatedOn: '',
@@ -64,15 +73,21 @@ const makeCloseHandler =
     onCloseDialog();
   };
 
-/** Submit handler: PATCH dirty fields on edit, full payload on create. */
+/**
+ * Submit handler: PATCH dirty fields plus the panel draft on edit (so the
+ * dialog's Update never discards payment edits), full payload on create.
+ */
 const makeSubmitHandler =
-  ({ id, dirtyFields, onSubmit }) =>
+  ({ id, dirtyFields, paymentDraft, onSubmit }) =>
   (data) => {
     if (id) {
       const changes = pickDirty(data, dirtyFields);
+      if (paymentDraft?.id === id) {
+        Object.assign(changes, paymentDraft.payment);
+      }
       onSubmit({ id, body: changes });
     } else {
-      onSubmit(data);
+      onSubmit(buildCreatePayload(data, 'providerId'));
     }
   };
 
@@ -218,6 +233,71 @@ PurchaseAuditFieldPair.propTypes = {
   dateKey: PropTypes.string.isRequired,
   labelKey: PropTypes.string.isRequired,
   dateLabelKey: PropTypes.string.isRequired,
+};
+
+/** Optional payment data captured on create (edit mode uses the panel). */
+function PurchasePaymentFields({ control }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <FormField
+        control={control}
+        name="paymentMethod"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t('payment_method')}</FormLabel>
+            <Select
+              onValueChange={field.onChange}
+              value={field.value || NO_PAYMENT_METHOD}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('select_payment_method')} />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value={NO_PAYMENT_METHOD}>
+                  {t('payment_method_none')}
+                </SelectItem>
+                {PAYMENT_METHOD_OPTIONS.map((method) => (
+                  <SelectItem key={method} value={method}>
+                    {t(paymentMethodLabelKey(method))}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
+        name="invoiceNumber"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel htmlFor="purchase-invoice-number">
+              {t('invoice_number')}
+            </FormLabel>
+            <FormControl>
+              <Input
+                id="purchase-invoice-number"
+                maxLength={50}
+                autoComplete="off"
+                placeholder={t('invoice_number_placeholder')}
+                {...field}
+                value={field.value ?? ''}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </>
+  );
+}
+
+PurchasePaymentFields.propTypes = {
+  control: PropTypes.object.isRequired,
 };
 
 /** Detail product select with duplicate/auto-price handling. */
@@ -445,8 +525,11 @@ function buildAuditFields({ form, selectedRow }) {
   );
 }
 
-/** Header fields: provider + total + audit pairs. */
+/** Header fields: provider + total + create-only payment + audit pairs. */
 function buildHeaderFields({ form, providers, selectedRow }) {
+  // A new record has no id yet: that is the only case where payment is
+  // captured in the form (edit mode uses the status/payment panel).
+  const isCreate = !selectedRow?.id;
   return (
     <div className="grid grid-cols-1 gap-6 py-4 auto-rows-auto md:grid-cols-2">
       <PurchaseProviderSelectField
@@ -456,8 +539,37 @@ function buildHeaderFields({ form, providers, selectedRow }) {
 
       <PurchaseTotalField control={form.control} />
 
+      {isCreate && <PurchasePaymentFields control={form.control} />}
+
       {buildAuditFields({ form, selectedRow })}
     </div>
+  );
+}
+
+/** Status/payment panel (edit mode only). */
+function buildStatusPaymentPanel({
+  purchaseId,
+  selectedRow,
+  onTransitionStatus,
+  onSavePayment,
+  onDraftChange,
+  isSavingStatus,
+}) {
+  if (!purchaseId) return null;
+
+  return (
+    <StatusPaymentPanel
+      key={purchaseId}
+      kind="purchase"
+      status={selectedRow.status}
+      paymentMethod={selectedRow.paymentMethod}
+      invoiceNumber={selectedRow.invoiceNumber}
+      paidAt={selectedRow.paidAt}
+      onTransition={(nextStatus) => onTransitionStatus(selectedRow, nextStatus)}
+      onSavePayment={(payment) => onSavePayment(selectedRow, payment)}
+      onDraftChange={onDraftChange}
+      isSaving={isSavingStatus}
+    />
   );
 }
 
@@ -476,7 +588,10 @@ function buildDialogHeader({ t, actionDialog, purchaseId }) {
   );
 }
 
-/** Dialog footer: cancel, add detail, delete (edit only) and submit. */
+/**
+ * Dialog footer: close (does not void the document; that is the panel's
+ * "Cancel purchase"), add detail, delete (edit only) and submit.
+ */
 function buildDialogFooter({ t, purchaseId, onAddDetail, handleDelete }) {
   return (
     <DialogFooter className="flex flex-wrap justify-between gap-3 mt-5 md:justify-end">
@@ -486,7 +601,7 @@ function buildDialogFooter({ t, purchaseId, onAddDetail, handleDelete }) {
           variant="secondary"
           className="flex-1 md:flex-initial md:w-24"
         >
-          {t('cancel')}
+          {t('close')}
         </Button>
       </DialogClose>
       <Button
@@ -588,6 +703,16 @@ const makeQuantityChangeHandler =
     }
   };
 
+/** Latest panel draft, tagged with the record it belongs to. */
+function usePaymentDraft(id) {
+  const [paymentDraft, setPaymentDraft] = useState(null);
+  const handlePaymentDraftChange = useCallback(
+    (payment) => setPaymentDraft({ id, payment }),
+    [id]
+  );
+  return { paymentDraft, handlePaymentDraftChange };
+}
+
 /**
  * Dialog form state: reset from the selected row, auto-total from
  * details, duplicate-product toast, dirty-field PATCH payloads on edit.
@@ -607,17 +732,14 @@ function usePurchaseDialogForm({
 
   const form = useForm({
     resolver: zodResolver(PurchaseSchema),
-    defaultValues: {
-      providerId: '',
-      total: '',
-      createdOn: '',
-      updatedOn: '',
-      details: EMPTY_DETAILS,
-    },
+    defaultValues: CLEAR_FORM_VALUES,
   });
   const {
     formState: { dirtyFields },
   } = form;
+
+  const { paymentDraft, handlePaymentDraftChange } =
+    usePaymentDraft(purchaseId);
 
   const clearDialog = useCallback(() => {
     form.reset(CLEAR_FORM_VALUES);
@@ -668,6 +790,7 @@ function usePurchaseDialogForm({
   const handleSubmit = makeSubmitHandler({
     id: purchaseId,
     dirtyFields,
+    paymentDraft,
     onSubmit,
   });
 
@@ -685,6 +808,7 @@ function usePurchaseDialogForm({
     handleSubmit,
     handleDelete,
     handleCloseDialog,
+    handlePaymentDraftChange,
     handleProductChange,
     handleQuantityChange,
   };
@@ -696,6 +820,9 @@ export const PurchaseDialog = ({
   selectedRow,
   onSubmit,
   onDeleteById,
+  onTransitionStatus,
+  onSavePayment,
+  isSavingStatus,
   actionDialog,
   onAddDetail,
   onRemoveDetail,
@@ -711,6 +838,7 @@ export const PurchaseDialog = ({
     handleSubmit,
     handleDelete,
     handleCloseDialog,
+    handlePaymentDraftChange,
     handleProductChange,
     handleQuantityChange,
   } = usePurchaseDialogForm({
@@ -744,6 +872,15 @@ export const PurchaseDialog = ({
           >
             {buildHeaderFields({ form, providers, selectedRow })}
 
+            {buildStatusPaymentPanel({
+              purchaseId,
+              selectedRow,
+              onTransitionStatus,
+              onSavePayment,
+              onDraftChange: handlePaymentDraftChange,
+              isSavingStatus,
+            })}
+
             <Separator className="my-4" />
 
             {buildDetailsList({
@@ -769,6 +906,9 @@ PurchaseDialog.propTypes = {
   selectedRow: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
+  onTransitionStatus: PropTypes.func.isRequired,
+  onSavePayment: PropTypes.func.isRequired,
+  isSavingStatus: PropTypes.bool,
   actionDialog: PropTypes.string.isRequired,
   onAddDetail: PropTypes.func.isRequired,
   onRemoveDetail: PropTypes.func.isRequired,

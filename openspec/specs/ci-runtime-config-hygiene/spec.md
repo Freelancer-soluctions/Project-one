@@ -54,7 +54,7 @@ Toda constante de configuración con rol de gobernanza y vida más allá del cic
 
 #### Scenario: Documentación sincronizada con el mecanismo
 
-- **WHEN** se revisan `docs/CONTEXT-CICD.md` (§ firma), `docs/pre-merge-gates-governance.md` y `docs/learning/ci-cd/05c-ci-commit-signing-implementation.md`
+- **WHEN** se revisan `docs/CONTEXT-CICD.md` (§ firma), `docs/ci-cd/pre-merge-gates-governance.md` y `docs/learning/ci-cd/05c-ci-commit-signing-implementation.md`
 - **THEN** citan `vars.SIGNING_ROLLOUT_DATE` (con fallback) como ubicación de la fecha de corte, no el literal en el heredoc
 - **AND** la fila "Pendiente: Restaurar `ROLLOUT_DATE`" del estado final del doc 05c refleja el nuevo mecanismo
 

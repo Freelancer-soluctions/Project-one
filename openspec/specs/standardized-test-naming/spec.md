@@ -60,19 +60,19 @@ Both `apps/server/package.json` and `apps/client/package.json` SHALL define the 
 
 ### Requirement: Testing architecture docs reflect all changes
 
-The `docs/testing-architecture.md` document SHALL be updated to reflect the shared config, standardized naming, and new script patterns.
+The `docs/quality/testing-architecture.md` document SHALL be updated to reflect the shared config, standardized naming, and new script patterns.
 
 #### Scenario: Docs updated with shared config reference
 
-- **WHEN** reading `docs/testing-architecture.md`
+- **WHEN** reading `docs/quality/testing-architecture.md`
 - **THEN** it SHALL reference the shared `vitest.shared.js` configuration approach
 
 #### Scenario: Docs updated with new script table
 
-- **WHEN** reading `docs/testing-architecture.md` section 5 (Workspaces)
+- **WHEN** reading `docs/quality/testing-architecture.md` section 5 (Workspaces)
 - **THEN** it SHALL list all available test scripts with descriptions
 
 #### Scenario: Docs updated with naming convention
 
-- **WHEN** reading `docs/testing-architecture.md` section 7 (Conventions)
+- **WHEN** reading `docs/quality/testing-architecture.md` section 7 (Conventions)
 - **THEN** server test naming SHALL be documented as `*.unit.test.js` / `*.integration.test.js`

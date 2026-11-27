@@ -16,6 +16,8 @@ export const PurchaseSchema = z
           .int(getZodMessage('zod.purchase.total.integer'))
           .min(0, getZodMessage('zod.purchase.total.min'))
       ),
+    paymentMethod: z.string().optional(),
+    invoiceNumber: z.string().max(50).optional(),
     details: z.array(
       z.object({
         productId: z.string().min(1, {
@@ -53,6 +55,7 @@ export const PurchaseSchema = z
 export const PurchaseFiltersSchema = z
   .object({
     providerId: z.string().optional(),
+    status: z.string().optional(),
     fromDate: z.union([z.date(), z.string()]).optional(),
     toDate: z.union([z.date(), z.string()]).optional(),
     minTotal: z.string().optional(),

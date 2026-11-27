@@ -159,7 +159,7 @@ flowchart LR
 | **Deploy Staging**    | ECS Fargate staging                | AWS CLI, task def            | `deploy.yml` → `deploy-staging`                         |
 | **Deploy Prod**       | ECS Fargate prod + circuit breaker | AWS CLI, approval gate       | `deploy.yml` → `deploy-production`                      |
 
-> 🔗 **Referencia técnica completa**: [`../../cicd-estado-actual.md`](../../cicd-estado-actual.md#4-mapa-del-pipeline--diagrama-mermaid-del-flujo-completo-del-pr-al-deploy) — diagrama Mermaid del flujo completo PR → deploy.
+> 🔗 **Referencia técnica completa**: [`../../CONTEXT-CICD.md`](../../CONTEXT-CICD.md#4-mapa-del-pipeline--diagrama-mermaid-del-flujo-completo-del-pr-al-deploy) — diagrama Mermaid del flujo completo PR → deploy.
 
 ---
 
@@ -235,7 +235,7 @@ flowchart LR
 | **Staging / Preview**  | 100x           | `preview.yml`: entorno efímero por PR, smoke tests contra Floci             |
 | **Producción**         | 1000x+         | Incidentes reales, rollback, MTTR, reputación                               |
 
-> 📖 **Profundización**: [`../../cicd-estado-actual.md`](../../cicd-estado-actual.md#5-stage-1--source--código-pre-commit-local) — Stage 1 completo con hooks pre-commit.
+> 📖 **Profundización**: [`../../CONTEXT-CICD.md`](../../CONTEXT-CICD.md#5-stage-1--source--código-pre-commit-local) — Stage 1 completo con hooks pre-commit.
 
 ---
 
@@ -447,7 +447,7 @@ Para situar dónde está tu equipo/proyecto, usa este modelo simplificado basado
 
 > ⚠️ **Nota (2026-08-28):** `quality.yml` fue **eliminado** en la consolidación — sus jobs de calidad ahora son `if: false` inline en `ci.yml`. Por eso el inventario pasó de 9 a 8 workflows. Versiones viejas de esta tabla (y del curso) mencionan 9; el estado verificado está en `CONTEXT-CICD.md` §3.3.
 
-> 📋 **Inventario técnico detallado**: [`../../workflows-mantenimiento-guia.md#4-inventario-de-workflows-y-composite-actions`](../../workflows-mantenimiento-guia.md#4-inventario-de-workflows-y-composite-actions) — tabla completa con jobs, triggers, permissions, y composite actions.
+> 📋 **Inventario técnico detallado**: [`workflows-mantenimiento-guia.md#4-inventario-de-workflows-y-composite-actions`](workflows-mantenimiento-guia.md#4-inventario-de-workflows-y-composite-actions) — tabla completa con jobs, triggers, permissions, y composite actions.
 
 ---
 
@@ -513,7 +513,7 @@ jobs:
 
 ### 2.4 Conexión con el plan de implementación
 
-El pipeline actual **implementa** el plan de 8 semanas de [`../../cicd-plan-implementacion.md`](../../cicd-plan-implementacion.md):
+El pipeline actual **implementa** el plan de 8 semanas de [`../../CONTEXT-CICD.md`](../../CONTEXT-CICD.md):
 
 | Sprint del plan | Qué entregó                     | Workflow(s) resultantes                                         |
 | --------------- | ------------------------------- | --------------------------------------------------------------- |
@@ -524,7 +524,7 @@ El pipeline actual **implementa** el plan de 8 semanas de [`../../cicd-plan-impl
 | 7               | Release automatizado            | `release.yml`                                                   |
 | 8               | Hardening + enterprise          | `ci-enterprise.yml` (**retirado** después)                      |
 
-> 📖 **Ver plan completo**: [`../../cicd-plan-implementacion.md`](../../cicd-plan-implementacion.md#10-plan-de-implementación-por-sprints)
+> 📖 **Ver plan completo**: [`../../CONTEXT-CICD.md`](../../CONTEXT-CICD.md#10-plan-de-implementación-por-sprints)
 
 ---
 

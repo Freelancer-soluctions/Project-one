@@ -1,10 +1,15 @@
 import { prisma } from '../../config/db.js';
+import ClientError from '../../utils/responses&Errors/errors.js';
+import type { PurchaseStatusValue } from '../../utils/lifecycle/salePurchase.js';
+import { reverseLinkedMovements } from '../../utils/inventory/reversal.js';
 import type {
   PurchaseCreateData,
   PurchaseListItem,
   PurchaseListFilters,
   PurchasesPage,
   PurchasePatchData,
+  PurchaseRecord,
+  PurchaseStatusUpdateData,
 } from './types.js';
 
 /**
@@ -12,6 +17,7 @@ import type {
  *
  * @param {Object} filters - Optional filters for the query.
  * @param {number} [filters.providerId] - Filter by provider ID.
+ * @param {string} [filters.status] - Filter by lifecycle status.
  * @param {Date} [filters.startDate] - Filter by start date.
  * @param {Date} [filters.endDate] - Filter by end date.
  * @param {number} [filters.minTotal] - Filter by minimum total.
@@ -27,6 +33,7 @@ export const getAllPurchases = async (
 ): Promise<PurchasesPage> => {
   const where = {
     ...(filters.providerId && { providerId: filters.providerId }),
+    ...(filters.status && { status: filters.status }),
     ...(filters.startDate && { createdOn: { gte: filters.startDate } }),
     ...(filters.endDate && { createdOn: { lte: filters.endDate } }),
     ...(filters.minTotal && { total: { gte: filters.minTotal } }),
@@ -108,10 +115,18 @@ export const patchPurchaseById = async (
 ): Promise<PurchaseListItem | null> => {
   const { details, ...purchaseData } = data;
   const updateData = {
+    updatedOn: new Date(),
     ...(purchaseData.providerId !== undefined && {
       providerId: purchaseData.providerId,
     }),
     ...(purchaseData.total !== undefined && { total: purchaseData.total }),
+    // `status` is intentionally absent: only the lifecycle endpoint moves it.
+    ...(purchaseData.paymentMethod !== undefined && {
+      paymentMethod: purchaseData.paymentMethod,
+    }),
+    ...(purchaseData.invoiceNumber !== undefined && {
+      invoiceNumber: purchaseData.invoiceNumber,
+    }),
     ...(purchaseData.updatedBy !== undefined && {
       updatedBy: purchaseData.updatedBy,
     }),
@@ -158,6 +173,127 @@ export const patchPurchaseById = async (
     },
   });
 };
+
+/**
+ * Find a purchase by ID, without relations.
+ *
+ * @param {number} id - Purchase ID.
+ * @returns {Promise<Object|null>} The purchase or `null` when missing.
+ */
+export const findPurchaseById = async (
+  id: number
+): Promise<PurchaseRecord | null> =>
+  prisma.purchase.findUnique({ where: { id } });
+
+/**
+ * Persist a validated purchase status transition.
+ *
+ * The update is guarded by the status the service validated, so a concurrent
+ * request cannot apply two transitions from the same starting point.
+ *
+ * @param {number} id - Purchase ID.
+ * @param {string} currentStatus - Status the transition was validated against.
+ * @param {Object} data - Target status plus optional payment/invoice fields.
+ * @returns {Promise<Object>} Updated purchase.
+ * @throws {ClientError} 404 when missing, 409 when the status changed meanwhile.
+ */
+export const transitionPurchaseStatus = async (
+  id: number,
+  currentStatus: PurchaseStatusValue,
+  data: PurchaseStatusUpdateData
+): Promise<PurchaseRecord> =>
+  prisma.$transaction(async (tx) => {
+    const { count } = await tx.purchase.updateMany({
+      where: { id, status: currentStatus },
+      data: {
+        status: data.status,
+        ...(data.paidAt !== undefined && { paidAt: data.paidAt }),
+        ...(data.paymentMethod !== undefined && {
+          paymentMethod: data.paymentMethod,
+        }),
+        ...(data.invoiceNumber !== undefined && {
+          invoiceNumber: data.invoiceNumber,
+        }),
+        ...(data.updatedBy !== undefined && { updatedBy: data.updatedBy }),
+        updatedOn: new Date(),
+      },
+    });
+
+    if (count === 0) {
+      throw new ClientError('Purchase status changed, reload and retry', 409);
+    }
+
+    const purchase = await tx.purchase.findUnique({ where: { id } });
+    if (!purchase) {
+      throw new ClientError('Purchase not found', 404);
+    }
+    return purchase;
+  });
+
+/**
+ * Cancel a purchase, reversing the inventory movements linked to it
+ * (RN-SP-004/RN-SP-007, design D2).
+ *
+ * The guard on the starting status happens inside the transaction, so a
+ * concurrent second cancel cannot apply the transition (and write a second
+ * set of compensating movements) twice.
+ *
+ * @param {number} id - Purchase ID.
+ * @param {string} currentStatus - Status the transition was validated against.
+ * @param {Object} data - Audit/payment fields applied with the cancellation.
+ * @param {number} [data.updatedBy] - User cancelling the purchase.
+ * @returns {Promise<Object>} Cancelled purchase.
+ * @throws {ClientError} 404 when missing, 409 when the status changed meanwhile.
+ */
+export const cancelPurchaseWithReversal = async (
+  id: number,
+  currentStatus: PurchaseStatusValue,
+  data: Pick<
+    PurchaseStatusUpdateData,
+    'paymentMethod' | 'invoiceNumber' | 'updatedBy'
+  >
+): Promise<PurchaseRecord> =>
+  prisma.$transaction(async (tx) => {
+    const purchase = await tx.purchase.findUnique({
+      where: { id },
+      include: { inventoryMovement: true },
+    });
+
+    if (!purchase) {
+      throw new ClientError('Purchase not found', 404);
+    }
+
+    const { count } = await tx.purchase.updateMany({
+      where: { id, status: currentStatus },
+      data: {
+        status: 'CANCELLED',
+        ...(data.paymentMethod !== undefined && {
+          paymentMethod: data.paymentMethod,
+        }),
+        ...(data.invoiceNumber !== undefined && {
+          invoiceNumber: data.invoiceNumber,
+        }),
+        ...(data.updatedBy !== undefined && { updatedBy: data.updatedBy }),
+        updatedOn: new Date(),
+      },
+    });
+
+    if (count === 0) {
+      throw new ClientError('Purchase status changed, reload and retry', 409);
+    }
+
+    await reverseLinkedMovements(tx, purchase.inventoryMovement, {
+      document: `purchase #${id}`,
+      purchaseId: id,
+      userId: data.updatedBy ?? purchase.createdBy,
+    });
+
+    const updated = await tx.purchase.findUnique({ where: { id } });
+    if (!updated) {
+      throw new ClientError('Purchase not found', 404);
+    }
+    return updated;
+  });
 
 /**
  * Delete a purchase and its details by ID.

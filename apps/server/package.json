@@ -15,7 +15,7 @@
   "scripts": {
     "dev": "tsx watch src/bin/index.ts",
     "start": "node dist/bin/index.js",
-    "build": "tsx scripts/clean-stale-build-state.ts && tsc -b",
+    "build": "tsx scripts/clean-stale-build-state.ts && tsc -b && node ../../scripts/write-version.mjs",
     "postinstall": "prisma generate ",
     "prisma-migration": "prisma migrate dev",
     "prisma-seed": "prisma db seed",

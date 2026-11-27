@@ -29,6 +29,10 @@ import { SalesFiltersSchema } from '../utils';
 import { format, formatISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
+import {
+  SALE_STATUS_OPTIONS,
+  statusLabelKey,
+} from '@/utils/salePurchaseStatus';
 
 /** Client select filter. */
 function FilterClientSelectField({ control, clients }) {
@@ -67,6 +71,44 @@ function FilterClientSelectField({ control, clients }) {
 FilterClientSelectField.propTypes = {
   control: PropTypes.object.isRequired,
   clients: PropTypes.array,
+};
+
+/** Lifecycle status filter (PENDING/PAID/CANCELLED/REFUNDED). */
+function FilterStatusSelectField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="status"
+      render={({ field }) => (
+        <FormItem className="flex flex-col flex-auto">
+          <FormLabel htmlFor="status">{t('status')}</FormLabel>
+          <Select
+            onValueChange={field.onChange}
+            value={field.value?.toString()}
+          >
+            <FormControl id="status">
+              <SelectTrigger>
+                <SelectValue placeholder={t('select_status')} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {SALE_STATUS_OPTIONS.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {t(statusLabelKey(status))}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+FilterStatusSelectField.propTypes = {
+  control: PropTypes.object.isRequired,
 };
 
 /** Date filter field with the calendar-days icon. */
@@ -197,6 +239,7 @@ export const SalesFiltersForm = ({ onSubmit, onAddDialog, clients }) => {
     resolver: zodResolver(SalesFiltersSchema),
     defaultValues: {
       clientId: '',
+      status: '',
       fromDate: '',
       toDate: '',
       minTotal: '',
@@ -204,11 +247,21 @@ export const SalesFiltersForm = ({ onSubmit, onAddDialog, clients }) => {
     },
   });
 
-  const handleSubmit = ({ clientId, fromDate, toDate, minTotal, maxTotal }) => {
-    const fDate = fromDate && formatISO(new Date(fromDate), 'yyyy-MM-dd');
-    const tDate = toDate && formatISO(new Date(toDate), 'yyyy-MM-dd');
+  const handleSubmit = ({
+    clientId,
+    status,
+    fromDate,
+    toDate,
+    minTotal,
+    maxTotal,
+  }) => {
+    // Server contract: `startDate`/`endDate` (ISO date-only).
+    const startDate =
+      fromDate && formatISO(new Date(fromDate), { representation: 'date' });
+    const endDate =
+      toDate && formatISO(new Date(toDate), { representation: 'date' });
 
-    onSubmit({ clientId, fDate, tDate, minTotal, maxTotal });
+    onSubmit({ clientId, status, startDate, endDate, minTotal, maxTotal });
   };
 
   const handleAdd = () => {
@@ -232,6 +285,8 @@ export const SalesFiltersForm = ({ onSubmit, onAddDialog, clients }) => {
         {/* inputs */}
         <div className="flex flex-wrap flex-1 gap-3">
           <FilterClientSelectField control={form.control} clients={clients} />
+
+          <FilterStatusSelectField control={form.control} />
 
           <FilterDateField
             control={form.control}

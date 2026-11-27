@@ -1,10 +1,10 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "autoupdate": true,
-  "plugin": [
+  "update": "auto",
+  "plugins": [
     "@warp-dot-dev/opencode-warp",
-    "./.opencode/plugins/output-contracts.ts",
-    "./.opencode/plugins/neurosymbolic-guardrails.ts",
+    "./.opencode/plugins/output-contracts",
+    "./.opencode/plugins/neurosymbolic-guardrails",
     "@slkiser/opencode-quota"
   ],
   "provider": {
@@ -13,8 +13,6 @@
       "name": "Ollama Local",
       "options": {
         "baseURL": "http://127.0.0.1:11434"
-        //"timeout":
-        //"setCacheKy": (bool)
       },
       "models": {
         "qwen2.5-coder:7b": {
@@ -49,200 +47,44 @@
       }
     }
   },
-  //subagents configuration
   "default_agent": "main",
   "instructions": ["AGENTS.md", "CONTEXT.md"],
-  // "env": {
-  //   "BASH_ENV": "$HOME/.bash_env"
-  // },
   "shell": "bash",
-  "skills": {
-    "paths": [".opencode/skills", ".agents/skills"]
-  },
+  "skills": [".opencode/skills", ".agents/skills"],
   "tool_output": {
     "max_lines": 150,
     "max_bytes": 16384
   },
-  // Formatter disabled by design — formatting is handled by Husky + lint-staged + Prettier
-  // in pre-commit hooks. Enabling OpenCode formatter would duplicate this pipeline,
-  // formatting files that may never be committed (wasted CPU) and potentially causing
-  // conflicts with lint-staged (formatting staged files twice).
-  //"formatter": {
-  //  "prettier": {
-  //    "command": ["npx", "prettier", "--write", "$FILE"],
-  //    "extensions": [".js", ".ts", ".jsx", ".tsx", ".json", ".css", ".md", ".mdx", ".yaml", ".yml"]
-  //  }
-  //},
-  // LSP: Prisma validate .prisma schema files (apps/server/prisma/schema.prisma).
-  // Requires @prisma/language-server (installed in apps/server v31.11.0).
   "lsp": {
     "prisma": {
       "command": ["npx", "@prisma/language-server", "--stdio"],
       "extensions": [".prisma"]
     }
   },
-  "permission": {
-    "read": "allow",
-    "write": "deny",
-    // TODO: restore when PR #27654 merges - parent edit:deny hides subagent tools (bug #26758)
-    // "edit": "deny",
-    // "bash": "deny",
-    "composio_COMPOSIO_*": "deny",
-    "context7_*": "deny",
-    "glob": "allow",
-    "grep": "allow",
-    "webfetch": "deny",
-    "websearch": "deny",
-    "question": "deny",
-    "task": "deny",
-    "skill": "allow",
-    "lsp": "deny",
-    "todowrite": "allow",
-    "doom_loop": "ask",
-    "external_directory": "ask"
-  },
-  "agent": {
-    // OpenCode built-in agents — disabled, not used
-    "build": {
-      "disable": true
-    },
-    "plan": {
-      "disable": true
-    },
-    "general": {
-      "disable": true
-    },
-    "main": {
-      "mode": "primary",
-      // Model per phase (Decision 3, single-main-agent): beam-free = coordination/exploration/review (phases 0-2, 5-6).
-      // Implementation-heavy phases 3-4 switch to opencode/mimo-v2.6-flash-free via:
-      //   1) manual /models selection (fallback), 2) `model:` frontmatter on .opencode/commands/opsx-apply.md,
-      //   3) the implementation-protocol skill hint (confirm coding model before coding).
-      "model": "opencode-go/beam-free",
-      "description": "Single main agent: runs SDD lifecycle, implementation, and git workflows directly",
-      "prompt": "{file:docs/opencode/prompts/main.md}",
-      "steps": 60,
-      "permission": {
-        "read": "allow",
-        "write": "allow",
-        "edit": "allow",
-        // 15-pattern bash hardening migrated from agent.orchestrator (git-permissions-hardening, e77bd25e);
-        // single-main-agent retired orchestrator, so the object is re-homed here. First-match-wins order.
-        "bash": {
-          "git push": "deny",
-          "git push *": "deny",
-          "git commit --amend": "deny",
-          "git commit --amend *": "deny",
-          "git rebase": "deny",
-          "git rebase *": "deny",
-          "git * --no-verify*": "deny",
-          "openspec *": "allow",
-          "git status": "allow",
-          "git diff --stat": "allow",
-          "git add *": "allow",
-          "git commit *": "allow",
-          "gh *": "allow",
-          "git *": "deny",
-          "*": "ask"
-        },
-        "skill": "allow",
-        "webfetch": "allow",
-        "websearch": "allow",
-        "lsp": "allow",
-        "question": "allow",
-        "context7_*": "ask",
-        "task": {
-          "*": "deny",
-          "reviewer": "allow",
-          "researcher": "allow",
-          "project-manager": "allow"
-        }
-      }
-    },
-    "reviewer": {
-      "mode": "subagent",
-      "hidden": false,
-      "model": "opencode/mimo-v2.6-flash-free",
-      "description": "Code and spec reviewer",
-      "prompt": "{file:docs/opencode/prompts/reviewer.md}",
-      "steps": 50,
-      "temperature": 0,
-      "permission": {
-        "lsp": "allow",
-        "edit": "deny"
-      }
-    },
-    "researcher": {
-      "mode": "subagent",
-      "hidden": false,
-      "model": "opencode-go/beam-free",
-      "description": "Research agent",
-      "prompt": "{file:docs/opencode/prompts/researcher.md}",
-      "steps": 50,
-      "permission": {
-        "webfetch": "allow",
-        "websearch": "allow",
-        "question": "allow",
-        "context7_*": "ask",
-        "edit": "ask" // workaround: bug #26758 — edit:deny corrompe herencia de read/glob/grep allow del global; ask preserva restriccion (pedira permiso si researcher intenta editar) sin disparar el bug
-      }
-    },
-    "project-manager": {
-      "mode": "subagent",
-      "hidden": false,
-      "model": "opencode/mimo-v2.6-flash-free",
-      "description": "Handles Trello project-management workflows - card creation, updates, deletion, state transitions",
-      "prompt": "{file:docs/opencode/prompts/project-manager.md}",
-      "steps": 15,
-      "permission": {
-        "question": "allow",
-        "bash": "allow",
-        "composio_COMPOSIO_*": "allow",
-        "edit": "deny"
-      }
-    }
-  },
   "mcp": {
-    "composio": {
-      "type": "remote",
-      "url": "https://connect.composio.dev/mcp",
-      // "headers": {
-      //   "x-consumer-api-key": "{env:COMPOSIO_API_KEY}"
-      // },
-      "oauth": {},
-      "enabled": true
-    },
-    "context7": {
-      "type": "remote",
-      "url": "https://mcp.context7.com/mcp",
-      "headers": {
-        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+    "servers": {
+      "composio": {
+        "type": "remote",
+        "url": "https://connect.composio.dev/mcp",
+        "oauth": {},
+        "enabled": true
       },
-      "enabled": true
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp",
+        "headers": {
+          "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+        },
+        "enabled": true
+      }
     }
-    // "composio": {
-    //   "type": "local",
-    //   "command": [
-    //     "node",
-    //     ".opencode/proxy/index.js",
-    //     "--target=composio"
-    //   ],
-    //   "enabled": true
-    // },
-    // "context7": {
-    //   "type": "local",
-    //   "command": [
-    //     "node",
-    //     ".opencode/proxy/index.js",
-    //     "--target=context7"
-    //   ],
-    //   "enabled": true
-    // }
   },
   "compaction": {
     "auto": true,
-    "prune": true,
-    "reserved": 10000
+    "keep": {
+      "tokens": 10000
+    },
+    "buffer": 10000
   },
   "watcher": {
     "ignore": [
@@ -252,5 +94,448 @@
       "coverage/**",
       "build/**"
     ]
+  },
+  "permissions": [
+    {
+      "action": "*",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "read",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "read",
+      "resource": "*.env",
+      "effect": "ask"
+    },
+    {
+      "action": "read",
+      "resource": "*.env.*",
+      "effect": "ask"
+    },
+    {
+      "action": "read",
+      "resource": "*.env.example",
+      "effect": "allow"
+    },
+    {
+      "action": "write",
+      "resource": "*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "*",
+      "effect": "deny"
+    },
+    {
+      "action": "composio_COMPOSIO_*",
+      "resource": "*",
+      "effect": "deny"
+    },
+    {
+      "action": "context7_*",
+      "resource": "*",
+      "effect": "deny"
+    },
+    {
+      "action": "glob",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "grep",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "webfetch",
+      "resource": "*",
+      "effect": "deny"
+    },
+    {
+      "action": "websearch",
+      "resource": "*",
+      "effect": "deny"
+    },
+    {
+      "action": "question",
+      "resource": "*",
+      "effect": "deny"
+    },
+    {
+      "action": "subagent",
+      "resource": "*",
+      "effect": "deny"
+    },
+    {
+      "action": "skill",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "lsp",
+      "resource": "*",
+      "effect": "deny"
+    },
+    {
+      "action": "todowrite",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "doom_loop",
+      "resource": "*",
+      "effect": "ask"
+    },
+    {
+      "action": "external_directory",
+      "resource": "*",
+      "effect": "ask"
+    }
+  ],
+  "agents": {
+    "build": {
+      "disabled": true
+    },
+    "plan": {
+      "disabled": true
+    },
+    "general": {
+      "disabled": true
+    },
+    "main": {
+      "mode": "primary",
+      "model": "opencode-go/beam-free",
+      "description": "Single main agent: runs SDD lifecycle, implementation, and git workflows directly",
+      "system": "{file:docs/opencode/prompts/main.md}",
+      "steps": 60,
+      "permissions": [
+        {
+          "action": "bash",
+          "resource": "*",
+          "effect": "ask"
+        },
+        {
+          "action": "bash",
+          "resource": "git *",
+          "effect": "ask"
+        },
+        {
+          "action": "bash",
+          "resource": "openspec *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git status",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git status *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git diff --stat",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git diff --stat *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git diff *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git add *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git commit *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "gh *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git log",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git log *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git branch",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git branch *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git checkout *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git pull",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git pull *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git fetch",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git fetch *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git diff",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git diff *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git stash",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git stash *",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "git * --no-verify*",
+          "effect": "deny"
+        },
+        {
+          "action": "bash",
+          "resource": "git push",
+          "effect": "ask"
+        },
+        {
+          "action": "bash",
+          "resource": "git push *",
+          "effect": "ask"
+        },
+        {
+          "action": "bash",
+          "resource": "git commit --amend",
+          "effect": "deny"
+        },
+        {
+          "action": "bash",
+          "resource": "git commit --amend *",
+          "effect": "deny"
+        },
+        {
+          "action": "bash",
+          "resource": "git rebase",
+          "effect": "deny"
+        },
+        {
+          "action": "bash",
+          "resource": "git rebase *",
+          "effect": "deny"
+        },
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "write",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "skill",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "webfetch",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "websearch",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "lsp",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "question",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "context7_*",
+          "resource": "*",
+          "effect": "ask"
+        },
+        {
+          "action": "subagent",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "subagent",
+          "resource": "reviewer",
+          "effect": "allow"
+        },
+        {
+          "action": "subagent",
+          "resource": "researcher",
+          "effect": "allow"
+        },
+        {
+          "action": "subagent",
+          "resource": "project-manager",
+          "effect": "allow"
+        }
+      ]
+    },
+    "reviewer": {
+      "mode": "subagent",
+      "hidden": false,
+      "model": "opencode/mimo-v2.6-flash-free",
+      "description": "Code and spec reviewer",
+      "system": "{file:docs/opencode/prompts/reviewer.md}",
+      "steps": 50,
+      "temperature": 0,
+      "permissions": [
+        {
+          "action": "lsp",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "skill",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "researcher": {
+      "mode": "subagent",
+      "hidden": false,
+      "model": "opencode-go/beam-free",
+      "description": "Research agent",
+      "system": "{file:docs/opencode/prompts/researcher.md}",
+      "steps": 50,
+      "permissions": [
+        {
+          "action": "webfetch",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "websearch",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "question",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "context7_*",
+          "resource": "*",
+          "effect": "ask"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "ask"
+        },
+        {
+          "action": "skill",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    },
+    "project-manager": {
+      "mode": "subagent",
+      "hidden": false,
+      "model": "opencode/mimo-v2.6-flash-free",
+      "description": "Handles Trello project-management workflows - card creation, updates, deletion, state transitions",
+      "system": "{file:docs/opencode/prompts/project-manager.md}",
+      "steps": 15,
+      "permissions": [
+        {
+          "action": "question",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "bash",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "composio_COMPOSIO_*",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "skill",
+          "resource": "*",
+          "effect": "allow"
+        }
+      ]
+    }
   }
 }
