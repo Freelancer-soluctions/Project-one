@@ -11,20 +11,20 @@ Write-Host "▶ Running Semgrep SAST scan..." -ForegroundColor Cyan
 # única de reglas para los gates). 93 peticiones al registro son inviables en un hook
 # pero aceptables en un escaneo completo manual.
 #
-# Versión de Semgrep: única fuente en el repo = constante SEMGREP_VERSION de
-# scripts/sast-diff.mjs (RNF-02 — nunca un tag flotante). Se lee en runtime.
-# sast-diff.mjs vive en scripts/ (un nivel ARRIBA de scripts/security/): el
-# padre de $PSScriptRoot es scripts/, no scripts/security/.
-$SastDiff  = Join-Path (Split-Path $PSScriptRoot -Parent) 'sast-diff.mjs'
-$Match     = Select-String -Path $SastDiff -Pattern "SEMGREP_VERSION = '([^']+)'" | Select-Object -First 1
-$Version   = if ($Match) { $Match.Matches[0].Groups[1].Value } else { $null }
+# Versión de Semgrep: única fuente en el repo = pin `"pipx:semgrep"` de
+# mise.toml (SSOT del toolchain, change ci-mise-toolchain-parity — RNF-02,
+# nunca un tag flotante). Se lee en runtime. mise.toml vive en la raíz del
+# repo: dos niveles ARRIBA de scripts/security/.
+$MiseToml = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'mise.toml'
+$Match    = Select-String -Path $MiseToml -Pattern '"pipx:semgrep"\s*=\s*"([^"]+)"' | Select-Object -First 1
+$Version  = if ($Match) { $Match.Matches[0].Groups[1].Value } else { $null }
 # Falla ruidosa si la versión no se pudo resolver: un tag vacío
 # (`semgrep/semgrep:`) oculta el bug y arrastra el scan entero.
 if (-not $Version) {
-  Write-Error "Could not read SEMGREP_VERSION from $SastDiff - refusing to run docker with an empty image tag."
+  Write-Error "Could not read `"pipx:semgrep`" pin from $MiseToml - refusing to run docker with an empty image tag."
   exit 1
 }
-Write-Host "   Semgrep version: $Version (single source: scripts/sast-diff.mjs)" -ForegroundColor DarkGray
+Write-Host "   Semgrep version: $Version (single source: mise.toml)" -ForegroundColor DarkGray
 
 
 docker run --rm `

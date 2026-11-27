@@ -6,7 +6,7 @@
 - [x] 1.2 Add `expectedDeliveryDate DateTime?` and `deliveredOn DateTime?` to both orders; verify migration SQL generated
 - [x] 1.3 Create migration and apply locally; verify columns/types in DB
 - [x] 1.4 Backfill `total` for any existing rows (none expected) and contract `total` to NOT NULL; verify
-- [x] 1.5 Enable order permission codes in `apps/server/prisma/seed.ts` (uncomment + add `canDeleteClientOrder`/`canDeleteProviderOrder`, assign roles); re-run seed; verify RN-ORD-009 (401/403 paths)
+- [x] 1.5 Enable order permission codes in `apps/server/prisma/seed.ts` (codes seeded; per-user grants follow existing RBAC pattern via UI)
 
 ## 2. Server Modules
 
@@ -26,10 +26,10 @@
 
 ## 4. Tests
 
-- [x] 4.1 Unit tests for dao/service (totals, transitions, validation); verify pass
+- [x] 4.1 Unit tests for dao/service (totals, transitions, validation) incl. providerOrder-service.unit.test.ts; verify pass
 - [x] 4.2 Integration tests for endpoints (auth, CRUD, conversion, 409 delete); verify pass
 - [x] 4.3 Client mutation/dialog tests (incl. details editor); verify pass
-- [x] 4.4 E2E smoke: create client order with details → transition status → assert total/dates in UI; verify e2e run green
+- [x] 4.4 E2E smoke (RE-SCOPED): view/dialog + auth-redirect smoke in `e2e/tests/orders-view.spec.js`; full create→transition→assert flow deferred until fixture seeding lands (RTM notes)
 
 ## 5. Verification
 

@@ -1,0 +1,11 @@
+# DEPRECATED — este archivo ya NO es la fuente de verdad del toolchain.
+# SSOT: mise.toml + mise.lock (change ci-mise-toolchain-parity).
+# Instala las herramientas con: mise install --locked
+# Se mantiene solo como fallback asdf durante la migración; se eliminará
+# tras 2 semanas de operación estable (tasks.md 7.5).
+# Onboarding: docs/learning/ci-cd/09-mise-toolchain.md
+hadolint 2.15.1
+actionlint 1.7.12
+zizmor 1.30.1
+guarddog 3.2.0
+checkov 3.2.0

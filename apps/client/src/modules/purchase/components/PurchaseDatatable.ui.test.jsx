@@ -24,6 +24,7 @@ const FIXTURE_ROWS = [
     id: 1,
     provider: { name: 'Acme Corp' },
     total: 150000,
+    status: 'RECEIVED',
     purchaseDetail: [
       { sku: 'SKU-001' },
       { sku: 'SKU-002' },
@@ -38,6 +39,7 @@ const FIXTURE_ROWS = [
     id: 2,
     provider: { name: 'Globex Ltd' },
     total: 89990,
+    status: 'PENDING',
     purchaseDetail: [{ sku: 'SKU-010' }],
     createdOn: '2026-01-06T10:00:00',
     userPurchaseCreated: { name: 'Ivy Inspector' },
@@ -48,6 +50,7 @@ const FIXTURE_ROWS = [
     id: 3,
     provider: { name: 'Initech Inc' },
     total: 275500,
+    status: 'PAID',
     purchaseDetail: [],
     createdOn: '2026-01-07T10:00:00',
     userPurchaseCreated: { name: 'Oliver Ops' },

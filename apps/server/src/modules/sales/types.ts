@@ -1,4 +1,8 @@
 import type { Prisma } from '@prisma/client';
+import type {
+  PaymentMethodValue,
+  SaleStatusValue,
+} from '../../utils/lifecycle/salePurchase.js';
 
 /** Sale row as stored in the database. */
 export type SaleRecord = Prisma.saleGetPayload<object>;
@@ -19,8 +23,9 @@ export type SaleListItem = Prisma.saleGetPayload<{
 /** Filters accepted by the sale list query. */
 export interface SaleListFilters {
   clientId?: number;
-  fromDate?: Date;
-  toDate?: Date;
+  status?: SaleStatusValue;
+  startDate?: Date;
+  endDate?: Date;
   minTotal?: number;
   maxTotal?: number;
 }
@@ -45,6 +50,8 @@ export interface SaleCreateData {
   createdBy: number;
   createdOn: Date;
   details: SaleDetailInput[];
+  paymentMethod?: PaymentMethodValue | null;
+  invoiceNumber?: string | null;
 }
 
 /** Payload used to patch a sale. */
@@ -53,6 +60,8 @@ export interface SalePatchData {
   total?: number | undefined;
   updatedBy?: number | undefined;
   details?: SaleDetailInput[] | undefined;
+  paymentMethod?: PaymentMethodValue | null | undefined;
+  invoiceNumber?: string | null | undefined;
 }
 
 /** Sale body accepted by the create/patch endpoints (raw request values). */
@@ -60,6 +69,25 @@ export interface SaleInput {
   clientId?: number | string;
   total?: number | string;
   details?: SaleDetailInput[];
+  paymentMethod?: PaymentMethodValue | null;
+  invoiceNumber?: string | null;
   createdBy?: number | string;
   updatedBy?: number | string;
+}
+
+/** Body accepted by `PATCH /sales/:id/status` (lifecycle transition). */
+export interface SaleStatusTransitionInput {
+  status: SaleStatusValue;
+  paymentMethod?: PaymentMethodValue | null | undefined;
+  invoiceNumber?: string | null | undefined;
+  updatedBy?: number | undefined;
+}
+
+/** Persistence payload for a validated sale status transition. */
+export interface SaleStatusUpdateData {
+  status: SaleStatusValue;
+  paidAt?: Date | null | undefined;
+  paymentMethod?: PaymentMethodValue | null | undefined;
+  invoiceNumber?: string | null | undefined;
+  updatedBy?: number | undefined;
 }

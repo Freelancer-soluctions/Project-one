@@ -10,7 +10,7 @@
 - Add `status` (default PENDING), `paymentMethod`, `paidAt`, `invoiceNumber` (unique) to both models.
 - Backfill existing rows to COMPLETED/PAID to preserve historical revenue reports.
 - Add status/payment/invoice to Joi create/update/filter schemas and OpenAPI docs.
-- Implement cancel flow: status transition + compensating ADJUSTMENT inventoryMovement rows instead of hard delete (reuse events/stateMachine.ts pattern).
+- Implement cancel/refund flow: status transition + compensating opposite-direction inventoryMovement rows and the matching stock adjustment, in one guarded transaction, instead of hard delete (reuse events/stateMachine.ts pattern).
 - Add state-machine unit tests and integration tests for cancel-reversal.
 
 ## Non-goals

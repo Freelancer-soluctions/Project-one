@@ -545,6 +545,20 @@ components:
             $ref: "#/components/schemas/PurchaseDetail"
           minItems: 1
           type: array
+        invoiceNumber:
+          description: Invoice number, unique per provider
+          maxLength: 50
+          nullable: true
+          type: string
+        paymentMethod:
+          description: How the purchase was paid (optional at creation)
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
         providerId:
           description: ID of the provider
           type: integer
@@ -558,7 +572,8 @@ components:
         - details
       type: object
     BodyPurchasePatch:
-      description: "PATCH: al menos un campo."
+      description: "PATCH: al menos un campo. `status` se mueve solo por PATCH
+        /purchases/{id}/status."
       properties:
         details:
           items:
@@ -577,6 +592,20 @@ components:
             type: object
           minItems: 1
           type: array
+        invoiceNumber:
+          example: FAC-2026-001
+          maxLength: 50
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          example: CASH
+          nullable: true
+          type: string
         providerId:
           example: 1
           type: integer
@@ -584,6 +613,32 @@ components:
           example: 1500.75
           minimum: 0
           type: number
+      type: object
+    BodyPurchaseStatus:
+      properties:
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        status:
+          description: Target status; RECEIVED->PAID stamps paidAt and CANCELLED reverses
+            linked inventory movements
+          enum:
+            - PENDING
+            - RECEIVED
+            - PAID
+            - CANCELLED
+          type: string
+      required:
+        - status
       type: object
     BodySaleCreateUpdate:
       properties:
@@ -596,6 +651,20 @@ components:
             $ref: "#/components/schemas/SaleDetail"
           minItems: 1
           type: array
+        invoiceNumber:
+          description: Invoice number, globally unique
+          maxLength: 50
+          nullable: true
+          type: string
+        paymentMethod:
+          description: How the sale was paid (optional at creation)
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
         total:
           description: Total amount of the sale
           minimum: 0
@@ -606,7 +675,8 @@ components:
         - details
       type: object
     BodySalePatch:
-      description: "PATCH: al menos un campo."
+      description: "PATCH: al menos un campo. `status` se mueve solo por PATCH
+        /sales/{id}/status."
       properties:
         clientId:
           example: 1
@@ -628,10 +698,50 @@ components:
             type: object
           minItems: 1
           type: array
+        invoiceNumber:
+          example: FAC-2026-001
+          maxLength: 50
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          example: CASH
+          nullable: true
+          type: string
         total:
           example: 1500.75
           minimum: 0
           type: number
+      type: object
+    BodySaleStatus:
+      properties:
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        status:
+          description: Target status; PAID stamps paidAt, while CANCELLED and REFUNDED
+            reverse the linked inventory movements
+          enum:
+            - PENDING
+            - PAID
+            - CANCELLED
+            - REFUNDED
+          type: string
+      required:
+        - status
       type: object
     BodyStockCreateUpdate:
       properties:
@@ -1553,6 +1663,9 @@ components:
           description: Filter by end date
           format: date-time
           type: string
+        limit:
+          description: Items per page
+          type: integer
         maxTotal:
           description: Filter by maximum total
           minimum: 0
@@ -1561,12 +1674,23 @@ components:
           description: Filter by minimum total
           minimum: 0
           type: number
+        page:
+          description: Page number (1-based)
+          type: integer
         providerId:
           description: Filter by provider ID
           type: integer
         startDate:
           description: Filter by start date
           format: date-time
+          type: string
+        status:
+          description: Filter by lifecycle status
+          enum:
+            - PENDING
+            - RECEIVED
+            - PAID
+            - CANCELLED
           type: string
       type: object
     ResponseAttendanceCreateUpdate:
@@ -2424,7 +2548,29 @@ components:
         createdOn:
           format: date-time
           type: string
-        details:
+        id:
+          type: integer
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paidAt:
+          format: date-time
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        provider:
+          $ref: "#/components/schemas/ResponseGetProductProvider"
+        providerId:
+          type: integer
+        purchaseDetail:
           items:
             properties:
               id:
@@ -2439,12 +2585,13 @@ components:
                 type: integer
             type: object
           type: array
-        id:
-          type: integer
-        provider:
-          $ref: "#/components/schemas/ResponseGetProductProvider"
-        providerId:
-          type: integer
+        status:
+          enum:
+            - PENDING
+            - RECEIVED
+            - PAID
+            - CANCELLED
+          type: string
         total:
           type: number
         updatedBy:
@@ -2466,7 +2613,25 @@ components:
         createdOn:
           format: date-time
           type: string
-        details:
+        id:
+          type: integer
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paidAt:
+          format: date-time
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        saleDetail:
           items:
             properties:
               id:
@@ -2479,8 +2644,13 @@ components:
                 type: integer
             type: object
           type: array
-        id:
-          type: integer
+        status:
+          enum:
+            - PENDING
+            - PAID
+            - CANCELLED
+            - REFUNDED
+          type: string
         total:
           type: number
         updatedBy:
@@ -2980,7 +3150,29 @@ components:
         createdOn:
           format: date-time
           type: string
-        details:
+        id:
+          type: integer
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paidAt:
+          format: date-time
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        provider:
+          $ref: "#/components/schemas/ResponseGetProductProvider"
+        providerId:
+          type: integer
+        purchaseDetail:
           items:
             properties:
               id:
@@ -2995,12 +3187,13 @@ components:
                 type: integer
             type: object
           type: array
-        id:
-          type: integer
-        provider:
-          $ref: "#/components/schemas/ResponseGetProductProvider"
-        providerId:
-          type: integer
+        status:
+          enum:
+            - PENDING
+            - RECEIVED
+            - PAID
+            - CANCELLED
+          type: string
         total:
           type: number
       type: object
@@ -3011,7 +3204,29 @@ components:
         createdOn:
           format: date-time
           type: string
-        details:
+        id:
+          type: integer
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paidAt:
+          format: date-time
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        provider:
+          $ref: "#/components/schemas/ResponseGetProductProvider"
+        providerId:
+          type: integer
+        purchaseDetail:
           items:
             properties:
               id:
@@ -3026,12 +3241,13 @@ components:
                 type: integer
             type: object
           type: array
-        id:
-          type: integer
-        provider:
-          $ref: "#/components/schemas/ResponseGetProductProvider"
-        providerId:
-          type: integer
+        status:
+          enum:
+            - PENDING
+            - RECEIVED
+            - PAID
+            - CANCELLED
+          type: string
         total:
           type: number
         updatedBy:
@@ -3042,8 +3258,6 @@ components:
       type: object
     ResponseSaleCreateUpdate:
       properties:
-        client:
-          $ref: "#/components/schemas/ResponseGetClient"
         clientId:
           type: integer
         createdBy:
@@ -3051,7 +3265,25 @@ components:
         createdOn:
           format: date-time
           type: string
-        details:
+        id:
+          type: integer
+        invoiceNumber:
+          maxLength: 50
+          nullable: true
+          type: string
+        paidAt:
+          format: date-time
+          nullable: true
+          type: string
+        paymentMethod:
+          enum:
+            - CASH
+            - CARD
+            - TRANSFER
+            - OTHER
+          nullable: true
+          type: string
+        saleDetail:
           items:
             properties:
               id:
@@ -3064,8 +3296,13 @@ components:
                 type: integer
             type: object
           type: array
-        id:
-          type: integer
+        status:
+          enum:
+            - PENDING
+            - PAID
+            - CANCELLED
+            - REFUNDED
+          type: string
         total:
           type: number
       type: object
@@ -3299,6 +3536,9 @@ components:
           description: Filter by end date
           format: date-time
           type: string
+        limit:
+          description: Items per page
+          type: integer
         maxTotal:
           description: Filter by maximum total
           minimum: 0
@@ -3307,9 +3547,20 @@ components:
           description: Filter by minimum total
           minimum: 0
           type: number
+        page:
+          description: Page number (1-based)
+          type: integer
         startDate:
           description: Filter by start date
           format: date-time
+          type: string
+        status:
+          description: Filter by lifecycle status
+          enum:
+            - PENDING
+            - PAID
+            - CANCELLED
+            - REFUNDED
           type: string
       type: object
     Settings:
@@ -6311,6 +6562,16 @@ paths:
           name: providerId
           schema:
             type: integer
+        - description: Filter by lifecycle status
+          in: query
+          name: status
+          schema:
+            enum:
+              - PENDING
+              - RECEIVED
+              - PAID
+              - CANCELLED
+            type: string
         - description: Filter by start date
           in: query
           name: startDate
@@ -6342,9 +6603,15 @@ paths:
               schema:
                 properties:
                   data:
-                    items:
-                      $ref: "#/components/schemas/ResponseGetPurchase"
-                    type: array
+                    properties:
+                      dataList:
+                        items:
+                          $ref: "#/components/schemas/ResponseGetPurchase"
+                        type: array
+                      total:
+                        description: Total rows matching the filters.
+                        type: integer
+                    type: object
                   error:
                     example: false
                     type: boolean
@@ -6454,6 +6721,51 @@ paths:
       summary: Partially update a purchase by ID
       tags:
         - Purchases
+  /api/v1/purchases/{id}/status:
+    patch:
+      parameters:
+        - description: Purchase ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyPurchaseStatus"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponsePurchaseUpdate"
+                  error:
+                    example: false
+                    type: boolean
+                  statusCode:
+                    example: 200
+                    type: integer
+                type: object
+          description: Purchase status updated
+        "400":
+          description: Invalid status transition
+        "401":
+          $ref: "#/components/schemas/Unauthorized"
+        "404":
+          description: Purchase not found
+        "500":
+          $ref: "#/components/schemas/Error"
+      security:
+        - bearerAuth: []
+      summary: Transition a purchase status (PAID stamps paidAt, CANCELLED reverses
+        inventory)
+      tags:
+        - Purchases
   /api/v1/sales:
     get:
       parameters:
@@ -6470,9 +6782,15 @@ paths:
               schema:
                 properties:
                   data:
-                    items:
-                      $ref: "#/components/schemas/ResponseGetSale"
-                    type: array
+                    properties:
+                      dataList:
+                        items:
+                          $ref: "#/components/schemas/ResponseGetSale"
+                        type: array
+                      total:
+                        description: Total rows matching the filters.
+                        type: integer
+                    type: object
                   message:
                     type: string
                   success:
@@ -6612,6 +6930,59 @@ paths:
       security:
         - bearerAuth: []
       summary: Partially update a sale by ID
+      tags:
+        - Sales
+  /api/v1/sales/{id}/status:
+    patch:
+      parameters:
+        - description: Sale ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodySaleStatus"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ResponseSaleCreateUpdate"
+                  message:
+                    type: string
+                type: object
+          description: Sale status updated
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+          description: Invalid status transition
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "404":
+          description: Sale not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Transition a sale status (PAID stamps paidAt, CANCELLED reverses
+        inventory)
       tags:
         - Sales
   /api/v1/settings/display:

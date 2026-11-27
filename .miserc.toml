@@ -1,0 +1,7 @@
+# Leído por mise ANTES que mise.toml (settings "miserc").
+# .tool-versions está deprecado (fallback asdf durante la migración a Mise);
+# mise no debe leerlo para no duplicar/conflictuar con los pins de mise.toml.
+ignored_config_paths = [".tool-versions"]
+# Carga automática de configs por plataforma (mise.windows.toml desactiva
+# guarddog en Windows; su sandbox nono-py no publica wheels win32).
+auto_env = true

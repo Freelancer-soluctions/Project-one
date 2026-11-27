@@ -319,10 +319,12 @@
  *
  *     BodyPurchasePatch:
  *       type: object
- *       description: "PATCH: al menos un campo."
+ *       description: "PATCH: al menos un campo. `status` se mueve solo por PATCH /purchases/{id}/status."
  *       properties:
  *         providerId: { type: integer, example: 1 }
  *         total: { type: number, minimum: 0, example: 1500.75 }
+ *         paymentMethod: { type: string, enum: [CASH, CARD, TRANSFER, OTHER], nullable: true, example: CASH }
+ *         invoiceNumber: { type: string, maxLength: 50, nullable: true, example: "FAC-2026-001" }
  *         details:
  *           type: array
  *           minItems: 1
@@ -335,10 +337,12 @@
  *
  *     BodySalePatch:
  *       type: object
- *       description: "PATCH: al menos un campo."
+ *       description: "PATCH: al menos un campo. `status` se mueve solo por PATCH /sales/{id}/status."
  *       properties:
  *         clientId: { type: integer, example: 1 }
  *         total: { type: number, minimum: 0, example: 1500.75 }
+ *         paymentMethod: { type: string, enum: [CASH, CARD, TRANSFER, OTHER], nullable: true, example: CASH }
+ *         invoiceNumber: { type: string, maxLength: 50, nullable: true, example: "FAC-2026-001" }
  *         details:
  *           type: array
  *           minItems: 1

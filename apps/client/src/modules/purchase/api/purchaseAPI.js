@@ -50,6 +50,15 @@ const purchaseApi = createApi({
       }),
       invalidatesTags: ['Purchases'],
     }),
+    // Lifecycle endpoint: only status + payment/invoice move through here.
+    updatePurchaseStatus: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/purchases/${id}/status`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Purchases'],
+    }),
   }),
 });
 
@@ -58,6 +67,7 @@ const purchaseApi = createApi({
 export const {
   useLazyGetAllPurchasesQuery,
   useUpdatePurchaseByIdMutation,
+  useUpdatePurchaseStatusMutation,
   useCreatePurchaseMutation,
   useDeletePurchaseByIdMutation,
   useDeletePurchaseDetailByIdMutation,

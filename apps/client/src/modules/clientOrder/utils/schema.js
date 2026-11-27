@@ -66,7 +66,7 @@ export const ClientOrderSchema = z
       message: getZodMessage('zod.clientOrder.details.min'),
     }),
   })
-  .passthrough();
+  .strict();
 
 export const ClientOrderFiltersSchema = z
   .object({

@@ -54,12 +54,17 @@ The system SHALL store an optional unique `invoiceNumber` on sale and purchase, 
 
 ### Requirement: Cancel with reversal
 
-The system SHALL, on cancellation, write compensating ADJUSTMENT inventoryMovement rows reversing the sale/purchase movements instead of hard-deleting.
+The system SHALL, on cancellation (and on refund of a paid sale), write compensating inventoryMovement rows with the opposite direction (EXIT→ENTRY, ENTRY→EXIT) and adjust the matching `stock` quantity by the reversed units, instead of hard-deleting. TRANSFERENCE/ADJUSTMENT movements have no single opposite and are left untouched. Cancelling twice is an idempotent no-op.
 
 #### Scenario: cancel reverses stock (RN-SP-007)
 
-- **WHEN** a sale with linked movements is cancelled
-- **THEN** compensating EXIT→ENTRY movements are created and sale status is CANCELLED
+- **WHEN** a sale with linked EXIT movements is cancelled
+- **THEN** a compensating ENTRY movement is created, the stock quantity is reduced by the reversed units, and sale status is CANCELLED
+
+#### Scenario: refund reverses stock (RN-SP-007)
+
+- **WHEN** a PAID sale transitions to REFUNDED
+- **THEN** the linked movements are reversed and the stock quantity is adjusted accordingly
 
 ### Requirement: Filtering
 
@@ -67,8 +72,8 @@ The system SHALL allow filtering sales/purchases by status.
 
 #### Scenario: filter by status (RN-SP-008)
 
-- **WHEN** list is called with `status=PAID`
-- **THEN** only PAID rows are returned
+- **WHEN** list is called with `status=PAID&page=1&limit=20`
+- **THEN** only PAID rows are returned and the pagination parameters are accepted by the query contract
 
 ### Requirement: NFR security
 

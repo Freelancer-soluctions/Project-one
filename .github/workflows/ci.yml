@@ -2,6 +2,13 @@ name: 'CI'
 
 permissions: {}
 
+# Mise = SSOT del toolchain de lint/seguridad (change ci-mise-toolchain-parity).
+# MISE_LOCKED=1: toda resolución de herramientas va contra mise.lock (fail si
+# falta una entrada o no coincide el checksum). Los jobs que usan mise
+# instalan con `mise install --locked` vía jdx/mise-action (SHA-pinned).
+env:
+  MISE_LOCKED: '1'
+
 on:
   pull_request:
     branches:
@@ -173,9 +180,67 @@ jobs:
   # STAGE 2: PRE-BUILD — VALIDATE (source code, 0 dependencia de build)
   # ═══════════════════════════════════════════════════════════════
   # ═══════════════════════════════════════════════════════════════
-  # SUBSTAGE 2A: GOVERNANCE — verify-signatures, commit-lint, dco, sast diff
+  # SUBSTAGE 2A: GOVERNANCE — toolchain-verify, verify-signatures, commit-lint, dco, sast diff
   # (los checks de METADATA — `PR Title Lint` y `Governance: PR Body Lint` —
   #  viven en `.github/workflows/pr-metadata.yml`; change `pr-metadata-workflow`)
+  # ═══════════════════════════════════════════════════════════════
+  # toolchain-verify (change ci-mise-toolchain-parity) — SSOT Mise
+  # ════════════════════════════════════════════════════════════════
+  # Detección de drift del toolchain: mise.lock debe coincidir exactamente con
+  # mise.toml (`mise lock --check`), todas las herramientas declaradas deben
+  # estar instaladas vía `--locked` (sin `(missing)`), y el pin de Node debe
+  # coincidir con `.nvmrc` (SSOT del runtime durante la migración — Non-Goal
+  # del design: no migrar el runtime aún). `mise doctor` aporta diagnóstico
+  # de entorno (shims, trust, backends).
+  toolchain-verify:
+    name: 'Governance: Toolchain Verify (Mise)'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Cache mise downloads-cas
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/mise/downloads-cas
+          key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
+      - name: Setup Mise toolchain (locked)
+        uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5.3.0
+        with:
+          cache: false # el cache interno cubre installs; D4 exige downloads-cas
+          install_args: --locked
+      - name: Lockfile drift check (mise lock --check)
+        run: mise lock --check
+        shell: bash
+      - name: Installed toolchain check (mise ls)
+        # `mise ls --locked` no existe como flag; el equivalente fail-closed es
+        # verificar que ninguna herramienta activa queda `(missing)` tras el
+        # install --locked del paso anterior.
+        run: |
+          mise ls --current
+          missing="$(mise ls --current --missing)"
+          if [ -n "$missing" ]; then
+            echo "::error::Herramientas declaradas sin instalar: $missing"
+            exit 1
+          fi
+        shell: bash
+      - name: Environment diagnostics (mise doctor)
+        run: mise doctor
+        shell: bash
+      - name: Node parity (.nvmrc == mise.toml)
+        run: |
+          nvmrc="$(tr -d '[:space:]' < .nvmrc)"
+          mise_node="$(sed -nE 's/^node = "([^"]+)".*/\1/p' mise.toml | head -n1)"
+          if [ "$nvmrc" != "$mise_node" ]; then
+            echo "::error::Node pin divergente: .nvmrc=$nvmrc mise.toml=$mise_node"
+            exit 1
+          fi
+          echo "Node parity OK: $nvmrc"
+        shell: bash
+
   # ═══════════════════════════════════════════════════════════════
   # verify-signatures (G3) — Verifica firma de commits vía GitHub REST API
   # ════════════════════════════════════════════════════════════════
@@ -1632,17 +1697,32 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Scan PR diff for secrets (Gitleaks OSS)
-        uses: docker://zricethezav/gitleaks:v8.30.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Cache de downloads-cas (NO installs — design D4): artefactos
+      # verificados por checksum, reutilizables entre runs.
+      - name: Cache mise downloads-cas
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
-          # El rango sale del evento: `pull_request` usa base/head del PR y
-          # `merge_group` los del grupo (mismo diff que la merge queue construye).
-          # Las opciones de `git log` van entrecomilladas: sin comillas el
-          # contenedor las recibe como flags de gitleaks
-          # ("unknown flag: --first-parent").
-          args: git --log-opts="--no-merges --first-parent ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}^..${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}" --redact --verbose
+          path: ~/.cache/mise/downloads-cas
+          key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
+      - name: Setup Mise toolchain (locked)
+        uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5.3.0
+        with:
+          cache: false # el cache interno cubre installs; D4 exige downloads-cas
+          install_args: --locked
+      - name: Scan PR diff for secrets (Gitleaks OSS)
+        # Migrado de docker://zricethezav/gitleaks:v8.30.1 al binario resuelto
+        # por mise (pin 8.30.1 en mise.toml/mise.lock — change
+        # ci-mise-toolchain-parity). Blocking: exit 1 con hallazgos.
+        # El rango sale del evento: `pull_request` usa base/head del PR y
+        # `merge_group` los del grupo (mismo diff que la merge queue construye).
+        # Las opciones de `git log` van entrecomilladas y los SHAs por env
+        # (nunca interpolados en run: — PRD regla #5).
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+        run: |
+          mise exec -- gitleaks git --log-opts="--no-merges --first-parent ${BASE_SHA}^..${HEAD_SHA}" --redact --verbose
+        shell: bash
       - name: Scan for secrets (licensed action - optional)
         # gitleaks-action v3 escanea pull requests: en `merge_group` no existe el
         # contexto de PR, así que la capa con licencia corre solo en PR (el diff
@@ -1993,16 +2073,42 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Run Checkov IaC scan (blocking, SARIF)
-        id: checkov-sarif
-        uses: bridgecrewio/checkov-action@45edc9d8856b664db2ec251f5f8632361f0a67aa # v12
+      - name: Cache mise downloads-cas
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
-          directory: .
-          framework: dockerfile terraform kubernetes
-          config_file: .checkov.yml
-          output_format: sarif
-          output_file_path: checkov-report.sarif
-          soft_fail: false
+          path: ~/.cache/mise/downloads-cas
+          key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
+      - name: Setup Mise toolchain (locked)
+        uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5.3.0
+        with:
+          cache: false # el cache interno cubre installs; D4 exige downloads-cas
+          install_args: --locked
+
+      # Migrado de bridgecrewio/checkov-action@v12 al CLI resuelto por mise
+      # (pin 3.2.0 en mise.toml/mise.lock — change ci-mise-toolchain-parity).
+      # El CLI escribe `results_sarif.sarif` dentro de --output-file-path
+      # (verificado 3.2.0); se renombra al nombre de evidencia histórico.
+      # `|| true` + enforce por SARIF: mismo patrón que el resto de gates
+      # (el exit code del scan no es la señal; crash sin SARIF = fail-closed).
+      - name: Run Checkov IaC scan (SARIF)
+        id: checkov-sarif
+        run: |
+          mise exec -- checkov -d . --config-file .checkov.yml --framework dockerfile terraform kubernetes --output sarif --output-file-path checkov-out || true
+          test -s checkov-out/results_sarif.sarif || { echo 'checkov SARIF vacío'; exit 1; }
+          mv checkov-out/results_sarif.sarif checkov-report.sarif
+          jq -e . checkov-report.sarif > /dev/null || { echo 'checkov SARIF no parseable'; exit 1; }
+        shell: bash
+      - name: Enforce Checkov findings (blocking)
+        # soft_fail: false del action original = cualquier hallazgo bloquea.
+        # El SARIF de checkov solo contiene checks fallidos como results.
+        run: |
+          if ! jq -e '[(.runs[0].results // [])[]] | length == 0' checkov-report.sarif > /dev/null; then
+            echo '::error::Checkov encontró hallazgos IaC (blocking)'
+            jq -r '(.runs[0].results // [])[] | "\(.ruleId) — \(.locations[0].physicalLocation.artifactLocation.uri)"' checkov-report.sarif
+            exit 1
+          fi
+          echo 'Sin hallazgos de Checkov.'
+        shell: bash
 
       - name: Upload Checkov report artifact (retention 14d)
         if: always()
@@ -2038,15 +2144,37 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Cache mise downloads-cas
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/mise/downloads-cas
+          key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
+      - name: Setup Mise toolchain (locked)
+        uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5.3.0
+        with:
+          cache: false # el cache interno cubre installs; D4 exige downloads-cas
+          install_args: --locked
+
+      # Migrado de hadolint/hadolint-action@v3.1.0 al binario resuelto por mise
+      # (pin 2.15.1 — change ci-mise-toolchain-parity). `failure-threshold:
+      # warning` del action se preserva en el enforce: bloquean solo niveles
+      # warning/error del SARIF (info/style quedan advisory, como DL3059).
       - name: Run Hadolint Containerfile lint (SARIF)
         id: hadolint-sarif
-        uses: hadolint/hadolint-action@54c9adbab1582c2ef04b2016b760714a4bfde3cf # v3.1.0
-        with:
-          dockerfile: apps/server/Dockerfile
-          config: .hadolint.yaml
-          format: sarif
-          output-file: hadolint.sarif
-          failure-threshold: warning
+        run: |
+          mise exec -- hadolint --config .hadolint.yaml --format sarif apps/server/Dockerfile > hadolint.sarif || true
+          test -s hadolint.sarif || { echo 'hadolint.sarif vacio'; exit 1; }
+          jq -e . hadolint.sarif > /dev/null || { echo 'hadolint.sarif no parseable'; exit 1; }
+        shell: bash
+      - name: Enforce Hadolint findings (blocking, threshold warning)
+        run: |
+          if ! jq -e '[(.runs[0].results // [])[] | select(.level == "warning" or .level == "error")] | length == 0' hadolint.sarif > /dev/null; then
+            echo '::error::Hadolint encontró hallazgos warning/error (FASE 2 blocking)'
+            jq -r '(.runs[0].results // [])[] | select(.level == "warning" or .level == "error") | "\(.ruleId) — \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine)"' hadolint.sarif
+            exit 1
+          fi
+          echo 'Sin hallazgos warning/error de Hadolint.'
+        shell: bash
 
       - name: Upload Hadolint SARIF to Code Scanning
         if: always() && hashFiles('hadolint.sarif') != ''
@@ -2072,9 +2200,9 @@ jobs:
   # a nivel job; el bloqueo reside SOLO en el step `Enforce actionlint findings`
   # (jq sobre el SARIF), y los uploads conservan `continue-on-error: true` a nivel
   # step (un fallo de permisos en fork PR / Security tab no tiñe el job).
-  # Ejecución vía imagen Docker pinneada
-  # `rhysd/actionlint:1.7.12` (sin curl|bash de scripts remotos; imagen
-  # oficial del autor del binario). La plantilla SARIF oficial se versiona en
+  # Ejecución vía binario resuelto por mise (pin 1.7.12 en mise.toml/mise.lock,
+  # change ci-mise-toolchain-parity; antes imagen Docker del autor). La
+  # plantilla SARIF oficial se versiona en
   # `.github/actionlint-sarif.tmpl` y se pasa como CONTENIDO de `-format` (la
   # pseudo-plantilla inline produce 0 bytes con exit 0 — verificado v1.7.12).
   # El step de scan lleva `|| true`: con hallazgos actionlint sale 1 y la
@@ -2097,10 +2225,21 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      - name: Cache mise downloads-cas
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/mise/downloads-cas
+          key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
+      - name: Setup Mise toolchain (locked)
+        uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5.3.0
+        with:
+          cache: false # el cache interno cubre installs; D4 exige downloads-cas
+          install_args: --locked
       - name: Run actionlint (SARIF, advisory)
+        # Migrado de la imagen Docker rhysd/actionlint:1.7.12 al binario
+        # resuelto por mise (mismo pin 1.7.12 — change ci-mise-toolchain-parity).
         run: |
-          docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 \
-            -no-color -config-file .github/actionlint.yaml \
+          mise exec -- actionlint -no-color -config-file .github/actionlint.yaml \
             -format "$(cat .github/actionlint-sarif.tmpl)" .github/workflows/*.y*ml > actionlint.sarif || true
           test -s actionlint.sarif || { echo 'actionlint.sarif vacio'; exit 1; }
           jq -e . actionlint.sarif > /dev/null || { echo 'actionlint.sarif no parseable'; exit 1; }
@@ -2135,8 +2274,8 @@ jobs:
 
   # Job advisory zizmor (change `pipeline-config-scan`): cubre el gap
   # `unpinned-uses` que actionlint no detecta. Instalación fijada (A4):
-  # setup-uv SHA-pinned (v6.7.0, ubuntu-latest NO trae uv) + `uvx zizmor@1.30.1`
-  # (versión exacta, no latest) + verificación de versión antes del scan.
+  # jdx/mise-action SHA-pinned + `mise install --locked` (pin 1.30.1 en
+  # mise.toml/mise.lock, change ci-mise-toolchain-parity; antes uvx).
   # `--format=sarif` SIEMPRE termina exit 0 → se valida el fichero (`test -s`
   # + `jq -e .`), nunca el exit code. Política `.github/zizmor.yml`
   # referenciada incondicionalmente (A3). FASE 2 BLOCKING ACTIVA (2026-11-10,
@@ -2162,11 +2301,22 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
+      - name: Cache mise downloads-cas
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/mise/downloads-cas
+          key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
+      - name: Setup Mise toolchain (locked)
+        uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5.3.0
+        with:
+          cache: false # el cache interno cubre installs; D4 exige downloads-cas
+          install_args: --locked
       - name: Run zizmor (SARIF, advisory)
+        # Migrado de uvx zizmor@1.30.1 al binario resuelto por mise (mismo pin
+        # 1.30.1 — change ci-mise-toolchain-parity). La verificación de versión
+        # la cubre el job toolchain-verify (mise ls --locked + lock --check).
         run: |
-          uvx zizmor@1.30.1 --version | grep -q '1.30.1' || { echo 'zizmor version mismatch'; exit 1; }
-          uvx zizmor@1.30.1 --format=sarif -c .github/zizmor.yml .github/workflows/ > zizmor.sarif || true
+          mise exec -- zizmor --format=sarif -c .github/zizmor.yml .github/workflows/ > zizmor.sarif || true
           test -s zizmor.sarif || { echo 'zizmor.sarif vacio'; exit 1; }
           jq -e . zizmor.sarif > /dev/null || { echo 'zizmor.sarif no parseable'; exit 1; }
         shell: bash
@@ -2232,7 +2382,16 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0 (SHA-pinned, nunca @main/@v*)
+      - name: Cache mise downloads-cas
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/mise/downloads-cas
+          key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
+      - name: Setup Mise toolchain (locked)
+        uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5.3.0
+        with:
+          cache: false # el cache interno cubre installs; D4 exige downloads-cas
+          install_args: --locked
       - name: Run GuardDog verify (SARIF, advisory)
         run: |
           bash scripts/guarddog-verify.sh > guarddog.sarif || true
@@ -2935,13 +3094,22 @@ jobs:
       - name: yamllint (workflows + dependabot)
         run: yamllint -c .yamllint.yml -f parsable .github/workflows/*.yml .github/dependabot.yml
         shell: bash
-      # actionlint REAL v1.7.12 (misma imagen pinneada que el job advisory): el
-      # stub npm `actionlint@2.0.6` es WASM y no expone binario, por eso aquí se
-      # usa el contenedor oficial. Sin `|| true`: un hallazgo FALLA el job.
+      - name: Cache mise downloads-cas
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/mise/downloads-cas
+          key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
+      - name: Setup Mise toolchain (locked)
+        uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5.3.0
+        with:
+          cache: false # el cache interno cubre installs; D4 exige downloads-cas
+          install_args: --locked
+      # actionlint REAL v1.7.12 (mismo pin mise que el job advisory): el stub
+      # npm `actionlint@2.0.6` es WASM y no expone binario. Sin `|| true`: un
+      # hallazgo FALLA el job.
       - name: actionlint (all workflows)
         run: |
-          docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 \
-            -no-color -config-file .github/actionlint.yaml .github/workflows/*.y*ml
+          mise exec -- actionlint -no-color -config-file .github/actionlint.yaml .github/workflows/*.y*ml
         shell: bash
 
   # --- Shared Pre-Build ---

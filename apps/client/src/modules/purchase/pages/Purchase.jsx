@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router';
 import {
   useLazyGetAllPurchasesQuery,
   useUpdatePurchaseByIdMutation,
+  useUpdatePurchaseStatusMutation,
   useCreatePurchaseMutation,
   useDeletePurchaseByIdMutation,
   useDeletePurchaseDetailByIdMutation,
@@ -149,6 +150,11 @@ const makeSaveHandler =
     setOpenDialog,
   }) =>
   async (result) => {
+    const showError = makeErrorAlertHandler({
+      t,
+      setAlertProps,
+      setOpenAlertDialog,
+    });
     try {
       if (result?.id) {
         // edit → result = { id, body } with only changed fields (PATCH)
@@ -164,8 +170,142 @@ const makeSaveHandler =
       setOpenAlertDialog(true);
     } catch (err) {
       console.error('Error:', err);
+      showError();
     }
   };
+
+const buildStatusUpdatedAlertProps = ({
+  t,
+  titleKey,
+  messageKey,
+  setOpenDialog,
+}) => ({
+  alertTitle: t(titleKey),
+  alertMessage: t(messageKey),
+  cancel: false,
+  success: true,
+  onSuccess: () => {
+    setOpenDialog(false);
+  },
+  variantSuccess: 'info',
+});
+
+/** Generic failure alert (destructive styling). */
+const buildErrorAlertProps = (t) => ({
+  alertTitle: t('operation_failed'),
+  alertMessage: t('operation_failed_message'),
+  cancel: false,
+  success: true,
+  onSuccess: () => {},
+  variantSuccess: 'destructive',
+});
+
+/** Reports a failed request through the alert dialog. */
+const makeErrorAlertHandler =
+  ({ t, setAlertProps, setOpenAlertDialog }) =>
+  () => {
+    setAlertProps(buildErrorAlertProps(t));
+    setOpenAlertDialog(true);
+  };
+
+/** Shows a status/payment success alert. */
+const makeStatusAlertHandler =
+  ({ t, setAlertProps, setOpenAlertDialog, setOpenDialog }) =>
+  (titleKey, messageKey) => {
+    setAlertProps(
+      buildStatusUpdatedAlertProps({
+        t,
+        titleKey,
+        messageKey,
+        setOpenDialog,
+      })
+    );
+    setOpenAlertDialog(true);
+  };
+
+/** Confirmation for transitions that reverse stock (cancel). */
+const buildCancelConfirmAlertProps = ({ t, onConfirm }) => ({
+  alertTitle: t('cancel_purchase'),
+  alertMessage: t('confirm_cancel_purchase'),
+  confirmLabel: t('cancel_purchase'),
+  cancel: true,
+  success: false,
+  destructive: true,
+  variantSuccess: '',
+  variantDestructive: 'destructive',
+  onSuccess: () => {},
+  onDelete: onConfirm,
+});
+
+/**
+ * Status/payment handlers for the panel: transitions go through
+ * `PATCH /purchases/:id/status` (cancelling asks for confirmation because it
+ * reverses stock) and payment edits through `PATCH /purchases/:id`.
+ */
+const makeStatusHandlers = ({
+  t,
+  updatePurchaseStatus,
+  updatePurchaseById,
+  setAlertProps,
+  setOpenAlertDialog,
+  setOpenDialog,
+}) => {
+  const showError = makeErrorAlertHandler({
+    t,
+    setAlertProps,
+    setOpenAlertDialog,
+  });
+  const showSuccess = makeStatusAlertHandler({
+    t,
+    setAlertProps,
+    setOpenAlertDialog,
+    setOpenDialog,
+  });
+
+  const runTransition = async (row, nextStatus) => {
+    try {
+      await updatePurchaseStatus({
+        id: row.id,
+        data: { status: nextStatus },
+      }).unwrap();
+      showSuccess('update_status', 'status_updated_successfully');
+    } catch (err) {
+      console.error('Error updating status:', err);
+      showError();
+    }
+  };
+
+  const handleTransitionStatus = (row, nextStatus) => {
+    if (!row?.id || !nextStatus) return;
+
+    if (nextStatus === 'CANCELLED') {
+      setAlertProps(
+        buildCancelConfirmAlertProps({
+          t,
+          onConfirm: () => runTransition(row, nextStatus),
+        })
+      );
+      setOpenAlertDialog(true);
+      return;
+    }
+
+    runTransition(row, nextStatus);
+  };
+
+  const handleSavePayment = async (row, payment) => {
+    if (!row?.id) return;
+
+    try {
+      await updatePurchaseById({ id: row.id, data: payment }).unwrap();
+      showSuccess('update_payment', 'payment_updated_successfully');
+    } catch (err) {
+      console.error('Error saving payment:', err);
+      showError();
+    }
+  };
+
+  return { handleTransitionStatus, handleSavePayment };
+};
 
 /** Dialog open/close/edit handlers (details reset on open). */
 const makeDialogHandlers = ({
@@ -330,6 +470,9 @@ function usePurchasePageState() {
   const [updatePurchaseById, { isLoading: isLoadingPut }] =
     useUpdatePurchaseByIdMutation();
 
+  const [updatePurchaseStatus, { isLoading: isLoadingStatus }] =
+    useUpdatePurchaseStatusMutation();
+
   const [createPurchase, { isLoading: isLoadingPost }] =
     useCreatePurchaseMutation();
 
@@ -353,7 +496,8 @@ function usePurchasePageState() {
     isLoadingPut ||
     isLoadingPost ||
     isLoadingDelete ||
-    isLoadingDeleteDetail;
+    isLoadingDeleteDetail ||
+    isLoadingStatus;
 
   return {
     navigate,
@@ -376,7 +520,9 @@ function usePurchasePageState() {
     dataProviders,
     dataProducts,
     isLoadingPage,
+    isSavingStatus: isLoadingPut || isLoadingStatus,
     updatePurchaseById,
+    updatePurchaseStatus,
     createPurchase,
     deletePurchaseById,
     deletePurchaseDetailById,
@@ -424,6 +570,9 @@ const buildPurchaseLayout = ({
           selectedRow={page.selectedRow}
           onSubmit={saveHandler}
           onDeleteById={deleteHandler}
+          onTransitionStatus={dialogHandlers.handleTransitionStatus}
+          onSavePayment={dialogHandlers.handleSavePayment}
+          isSavingStatus={page.isSavingStatus}
           actionDialog={page.actionDialog}
           onEditDetail={detailHandlers.handleEditDetail}
           onAddDetail={detailHandlers.handleAddDetail}
@@ -452,13 +601,23 @@ const Purchase = () => {
     setPagination: page.setPagination,
     setFilters: page.setFilters,
   });
-  const dialogHandlers = makeDialogHandlers({
-    t,
-    setOpenDialog: page.setOpenDialog,
-    setActionDialog: page.setActionDialog,
-    setSelectedRow: page.setSelectedRow,
-    setDetails: page.setDetails,
-  });
+  const dialogHandlers = {
+    ...makeDialogHandlers({
+      t,
+      setOpenDialog: page.setOpenDialog,
+      setActionDialog: page.setActionDialog,
+      setSelectedRow: page.setSelectedRow,
+      setDetails: page.setDetails,
+    }),
+    ...makeStatusHandlers({
+      t,
+      updatePurchaseStatus: page.updatePurchaseStatus,
+      updatePurchaseById: page.updatePurchaseById,
+      setAlertProps: page.setAlertProps,
+      setOpenAlertDialog: page.setOpenAlertDialog,
+      setOpenDialog: page.setOpenDialog,
+    }),
+  };
   const saveHandler = makeSaveHandler({
     t,
     updatePurchaseById: page.updatePurchaseById,

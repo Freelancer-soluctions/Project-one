@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { pickDirty } from '@/utils/pickDirty';
 import { sumLineItems } from '@/utils/money';
+import { buildCreatePayload } from '@/utils/buildCreatePayload';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,12 @@ import PropTypes from 'prop-types';
 import { SaleSchema } from '../utils';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
+import { StatusPaymentPanel } from '@/components/statusPaymentPanel';
+import {
+  NO_PAYMENT_METHOD,
+  PAYMENT_METHOD_OPTIONS,
+  paymentMethodLabelKey,
+} from '@/utils/salePurchaseStatus';
 
 /** Clears the form and closes the dialog. */
 const makeCloseHandler =
@@ -44,15 +51,21 @@ const makeCloseHandler =
     onCloseDialog();
   };
 
-/** Submit handler: PATCH dirty fields on edit, full payload on create. */
+/**
+ * Submit handler: PATCH dirty fields plus the panel draft on edit (so the
+ * dialog's Update never discards payment edits), full payload on create.
+ */
 const makeSubmitHandler =
-  ({ id, dirtyFields, onSubmit }) =>
+  ({ id, dirtyFields, paymentDraft, onSubmit }) =>
   (data) => {
     if (id) {
       const changes = pickDirty(data, dirtyFields);
+      if (paymentDraft?.id === id) {
+        Object.assign(changes, paymentDraft.payment);
+      }
       onSubmit({ id, body: changes });
     } else {
-      onSubmit(data);
+      onSubmit(buildCreatePayload(data, 'clientId'));
     }
   };
 
@@ -200,6 +213,71 @@ SaleAuditFieldPair.propTypes = {
   dateKey: PropTypes.string.isRequired,
   labelKey: PropTypes.string.isRequired,
   dateLabelKey: PropTypes.string.isRequired,
+};
+
+/** Optional payment data captured on create (edit mode uses the panel). */
+function SalePaymentFields({ control }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <FormField
+        control={control}
+        name="paymentMethod"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t('payment_method')}</FormLabel>
+            <Select
+              onValueChange={field.onChange}
+              value={field.value || NO_PAYMENT_METHOD}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('select_payment_method')} />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value={NO_PAYMENT_METHOD}>
+                  {t('payment_method_none')}
+                </SelectItem>
+                {PAYMENT_METHOD_OPTIONS.map((method) => (
+                  <SelectItem key={method} value={method}>
+                    {t(paymentMethodLabelKey(method))}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
+        name="invoiceNumber"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel htmlFor="sale-invoice-number">
+              {t('invoice_number')}
+            </FormLabel>
+            <FormControl>
+              <Input
+                id="sale-invoice-number"
+                maxLength={50}
+                autoComplete="off"
+                placeholder={t('invoice_number_placeholder')}
+                {...field}
+                value={field.value ?? ''}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </>
+  );
+}
+
+SalePaymentFields.propTypes = {
+  control: PropTypes.object.isRequired,
 };
 
 /** Detail product select with duplicate/auto-price handling. */
@@ -426,16 +504,48 @@ function buildAuditFields({ form, selectedRow }) {
   );
 }
 
-/** Header fields: client + total + audit pairs. */
+/** Header fields: client + total + create-only payment + audit pairs. */
 function buildHeaderFields({ form, clients, selectedRow }) {
+  // A new record has no id yet: that is the only case where payment is
+  // captured in the form (edit mode uses the status/payment panel).
+  const isCreate = !selectedRow?.id;
   return (
     <div className="grid grid-cols-1 gap-6 py-4 auto-rows-auto md:grid-cols-2">
       <SaleClientSelectField control={form.control} clients={clients} />
 
       <SaleTotalField control={form.control} />
 
+      {isCreate && <SalePaymentFields control={form.control} />}
+
       {buildAuditFields({ form, selectedRow })}
     </div>
+  );
+}
+
+/** Status/payment panel (edit mode only). */
+function buildStatusPaymentPanel({
+  saleId,
+  selectedRow,
+  onTransitionStatus,
+  onSavePayment,
+  onDraftChange,
+  isSavingStatus,
+}) {
+  if (!saleId) return null;
+
+  return (
+    <StatusPaymentPanel
+      key={saleId}
+      kind="sale"
+      status={selectedRow.status}
+      paymentMethod={selectedRow.paymentMethod}
+      invoiceNumber={selectedRow.invoiceNumber}
+      paidAt={selectedRow.paidAt}
+      onTransition={(nextStatus) => onTransitionStatus(selectedRow, nextStatus)}
+      onSavePayment={(payment) => onSavePayment(selectedRow, payment)}
+      onDraftChange={onDraftChange}
+      isSaving={isSavingStatus}
+    />
   );
 }
 
@@ -454,7 +564,10 @@ function buildDialogHeader({ t, actionDialog, saleId }) {
   );
 }
 
-/** Dialog footer: cancel, add detail, delete (edit only) and submit. */
+/**
+ * Dialog footer: close (does not void the document; that is the panel's
+ * "Cancel sale"), add detail, delete (edit only) and submit.
+ */
 function buildDialogFooter({ t, saleId, onAddDetail, handleDelete }) {
   return (
     <DialogFooter className="flex flex-wrap justify-between gap-3 mt-5 md:justify-end">
@@ -464,7 +577,7 @@ function buildDialogFooter({ t, saleId, onAddDetail, handleDelete }) {
           variant="secondary"
           className="flex-1 md:flex-initial md:w-24"
         >
-          {t('cancel')}
+          {t('close')}
         </Button>
       </DialogClose>
       <Button
@@ -570,6 +683,8 @@ const makeQuantityChangeHandler =
 const SALE_DEFAULT_VALUES = {
   clientId: '',
   total: '',
+  paymentMethod: NO_PAYMENT_METHOD,
+  invoiceNumber: '',
   createdOn: '',
   updatedOn: '',
   details: [
@@ -580,6 +695,16 @@ const SALE_DEFAULT_VALUES = {
     },
   ],
 };
+
+/** Latest panel draft, tagged with the record it belongs to. */
+function usePaymentDraft(id) {
+  const [paymentDraft, setPaymentDraft] = useState(null);
+  const handlePaymentDraftChange = useCallback(
+    (payment) => setPaymentDraft({ id, payment }),
+    [id]
+  );
+  return { paymentDraft, handlePaymentDraftChange };
+}
 
 /**
  * Dialog form state: reset from the selected row, auto-total from
@@ -610,6 +735,8 @@ function useSaleDialogForm({
   }, [form]);
 
   const saleId = useMemo(() => selectedRow?.id ?? null, [selectedRow]);
+
+  const { paymentDraft, handlePaymentDraftChange } = usePaymentDraft(saleId);
 
   // Actualiza todos los valores del formulario al cambiar `selectedRow`
   useEffect(() => {
@@ -655,7 +782,12 @@ function useSaleDialogForm({
 
   const handleCloseDialog = makeCloseHandler({ clearDialog, onCloseDialog });
 
-  const handleSubmit = makeSubmitHandler({ id: saleId, dirtyFields, onSubmit });
+  const handleSubmit = makeSubmitHandler({
+    id: saleId,
+    dirtyFields,
+    paymentDraft,
+    onSubmit,
+  });
 
   const handleDelete = () => {
     onDeleteById(saleId);
@@ -669,6 +801,7 @@ function useSaleDialogForm({
     handleSubmit,
     handleDelete,
     handleCloseDialog,
+    handlePaymentDraftChange,
     handleProductChange,
     handleQuantityChange,
   };
@@ -680,6 +813,9 @@ export const SalesDialog = ({
   selectedRow,
   onSubmit,
   onDeleteById,
+  onTransitionStatus,
+  onSavePayment,
+  isSavingStatus,
   actionDialog,
   onAddDetail,
   onRemoveDetail,
@@ -695,6 +831,7 @@ export const SalesDialog = ({
     handleSubmit,
     handleDelete,
     handleCloseDialog,
+    handlePaymentDraftChange,
     handleProductChange,
     handleQuantityChange,
   } = useSaleDialogForm({
@@ -728,6 +865,15 @@ export const SalesDialog = ({
           >
             {buildHeaderFields({ form, clients, selectedRow })}
 
+            {buildStatusPaymentPanel({
+              saleId,
+              selectedRow,
+              onTransitionStatus,
+              onSavePayment,
+              onDraftChange: handlePaymentDraftChange,
+              isSavingStatus,
+            })}
+
             <Separator className="my-4" />
 
             {buildDetailsList({
@@ -753,6 +899,9 @@ SalesDialog.propTypes = {
   selectedRow: PropTypes.object,
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
+  onTransitionStatus: PropTypes.func.isRequired,
+  onSavePayment: PropTypes.func.isRequired,
+  isSavingStatus: PropTypes.bool,
   actionDialog: PropTypes.string.isRequired,
   onAddDetail: PropTypes.func.isRequired,
   onRemoveDetail: PropTypes.func.isRequired,

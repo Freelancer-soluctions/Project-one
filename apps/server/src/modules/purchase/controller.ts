@@ -4,12 +4,14 @@ import {
   deletePurchaseById as deletePurchaseByIdService,
   deletePurchaseDetailById as deletePurchaseDetailByIdService,
   patchPurchaseById as patchPurchaseByIdService,
+  transitionPurchaseStatus as transitionPurchaseStatusService,
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import globalResponse from '../../utils/responses&Errors/globalResponse.js';
 import type {
   PurchaseCreateData,
   PurchasePatchData,
+  PurchaseStatusTransitionInput,
   PurchasesQuery,
 } from './types.js';
 
@@ -21,6 +23,7 @@ import type {
  * @param {number} [req.safeQuery.page] - Page number for pagination
  * @param {number} [req.safeQuery.limit] - Number of items per page
  * @param {number} [req.safeQuery.providerId] - Filter by provider ID
+ * @param {string} [req.safeQuery.status] - Filter by lifecycle status
  * @param {Date} [req.safeQuery.startDate] - Filter by start date
  * @param {Date} [req.safeQuery.endDate] - Filter by end date
  * @param {number} [req.safeQuery.minTotal] - Filter by minimum total
@@ -110,3 +113,31 @@ export const patchPurchaseById = handleCatchErrorAsync(async (req, res) => {
   } as PurchasePatchData);
   globalResponse(res, 200, purchase);
 });
+
+/**
+ * Move a purchase through its lifecycle.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.params - Request parameters
+ * @param {string} req.params.id - Purchase ID from URL
+ * @param {Object} req.body - Request body with the target status and optional payment data
+ * @param {string} req.body.status - Target status (PENDING, RECEIVED, PAID, CANCELLED)
+ * @param {string} [req.body.paymentMethod] - CASH, CARD, TRANSFER or OTHER
+ * @param {string} [req.body.invoiceNumber] - Invoice number (unique per provider)
+ * @param {Object} req.user - Authenticated user object
+ * @param {string} req.user.id - User ID from token verification
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} Updates the purchase status and returns the purchase
+ */
+export const transitionPurchaseStatus = handleCatchErrorAsync(
+  async (req, res) => {
+    const purchase = await transitionPurchaseStatusService(
+      Number(req.params['id']),
+      {
+        ...req.body,
+        updatedBy: req.user!['id'],
+      } as PurchaseStatusTransitionInput
+    );
+    globalResponse(res, 200, purchase);
+  }
+);

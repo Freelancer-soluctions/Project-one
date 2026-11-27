@@ -17,7 +17,9 @@ New `saleStatus` and `purchaseStatus` (not reusing `orderStatus` whose SHIPPED/R
 
 ### D2 — Cancel over delete
 
-Replace hard delete with status=CANCELLED + compensating ADJUSTMENT movements (only when linked movements exist); keep delete for admin cleanup. Sale/purchase creation does NOT create inventory movements (out of scope; inventory is managed via the separate inventoryMovement module).
+Replace hard delete with status=CANCELLED (or REFUNDED for a paid sale) plus compensating movements with the opposite direction (EXIT→ENTRY, ENTRY→EXIT) and a matching `stock.quantity` adjustment, all inside one transaction guarded by the starting status (only when linked movements exist). TRANSFERENCE/ADJUSTMENT rows are not reversible and are skipped. Keep delete for admin cleanup. Sale/purchase creation does NOT create inventory movements (out of scope; inventory is managed via the separate inventoryMovement module).
+
+The `stock` table is keyed by product/warehouse/lot/expiration, so the reversal adjusts the oldest matching row as a documented best effort; if no row exists only the audit movement is written.
 
 ### D3 — Backfill defaults
 

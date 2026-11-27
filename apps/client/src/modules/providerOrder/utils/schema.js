@@ -64,7 +64,7 @@ export const ProviderOrderSchema = z
       message: getZodMessage('zod.providerOrder.details.min'),
     }),
   })
-  .passthrough(); // Permite otros campos de solo lectura (auditoría)
+  .strict();
 
 export const ProviderOrdersFiltersSchema = z
   .object({

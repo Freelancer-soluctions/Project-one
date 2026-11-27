@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { DataTable } from '@/components/dataTable';
+import { StatusBadge } from '@/components/statusBadge';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
 
@@ -25,6 +26,12 @@ export const SalesDatatable = ({
         info
           .getValue()
           ?.toLocaleString('es-CO', { style: 'currency', currency: 'COP' }),
+    },
+    {
+      accessorKey: 'status',
+      header: t('status'),
+      enableColumnFilter: false, // Status is filtered server-side.
+      cell: (info) => <StatusBadge status={info.getValue()} />,
     },
     {
       accessorKey: 'saleDetail',
@@ -66,16 +73,12 @@ export const SalesDatatable = ({
     },
   ];
 
-  const handleEditDialog = (row) => {
-    onEditDialog(row);
-  };
-
   return (
     <DataTable
       columns={columnDefSales}
       data={dataList}
       totalRows={total}
-      handleRow={(row) => handleEditDialog(row)}
+      handleRow={onEditDialog}
       pagination={pagination}
       onPaginationChange={onPaginationChange}
     />

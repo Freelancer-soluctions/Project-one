@@ -5,6 +5,7 @@ import {
   deletePurchaseById,
   deletePurchaseDetailById,
   patchPurchaseById,
+  transitionPurchaseStatus,
 } from './controller.js';
 import {
   verifyToken,
@@ -16,6 +17,7 @@ import {
 import {
   purchaseFiltersSchema,
   purchaseCreateSchema,
+  purchaseStatusSchema,
   purchaseUpdateSchema,
 } from './schemas/purchase.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
@@ -39,6 +41,12 @@ router.use(verifyToken);
  *         schema:
  *           type: integer
  *         description: Filter by provider ID
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [PENDING, RECEIVED, PAID, CANCELLED]
+ *         description: Filter by lifecycle status
  *       - in: query
  *         name: startDate
  *         schema:
@@ -78,9 +86,15 @@ router.use(verifyToken);
  *                   type: integer
  *                   example: 200
  *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/ResponseGetPurchase'
+ *                   type: object
+ *                   properties:
+ *                     dataList:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/ResponseGetPurchase'
+ *                     total:
+ *                       type: integer
+ *                       description: Total rows matching the filters.
  *       401:
  *         $ref: '#/components/schemas/Unauthorized'
  *       500:
@@ -194,6 +208,64 @@ router.patch(
   validatePathParam,
   validateSchema(purchaseUpdateSchema),
   patchPurchaseById
+);
+
+/**
+ * @openapi
+ * /v1/purchases/{id}/status:
+ *   patch:
+ *     tags:
+ *       - Purchases
+ *     summary: Transition a purchase status (PAID stamps paidAt, CANCELLED reverses inventory)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Purchase ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/BodyPurchaseStatus'
+ *     responses:
+ *       200:
+ *         description: Purchase status updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 200
+ *                 data:
+ *                   $ref: '#/components/schemas/ResponsePurchaseUpdate'
+ *       400:
+ *         description: Invalid status transition
+ *       401:
+ *         $ref: '#/components/schemas/Unauthorized'
+ *       404:
+ *         description: Purchase not found
+ *       500:
+ *         $ref: '#/components/schemas/Error'
+ */
+router.patch(
+  '/:id/status',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER],
+    permissions: [PERMISSIONCODES.canEditPurchase],
+  }),
+  validatePathParam,
+  validateSchema(purchaseStatusSchema),
+  transitionPurchaseStatus
 );
 
 /**

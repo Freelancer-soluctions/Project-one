@@ -3,13 +3,20 @@ import {
   createSale as createSaleDao,
   deleteSaleById as deleteSaleByIdDao,
   deleteSaleDetailById as deleteSaleDetailByIdDao,
+  findSaleById as findSaleByIdDao,
   patchSaleById as patchSaleByIdDao,
+  transitionSaleStatus as transitionSaleStatusDao,
+  transitionSaleWithReversal as transitionSaleWithReversalDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
+import ClientError from '../../utils/responses&Errors/errors.js';
+import { assertValidSaleTransition } from '../../utils/lifecycle/salePurchase.js';
 import type {
   SaleCreateData,
   SaleInput,
   SalePatchData,
+  SaleRecord,
+  SaleStatusTransitionInput,
   SalesQuery,
 } from './types.js';
 
@@ -60,6 +67,12 @@ export const createSale = async (data: SaleInput) => {
     details: data.details ?? [],
     createdBy: Number(data.createdBy),
     createdOn: new Date(),
+    ...(data.paymentMethod !== undefined && {
+      paymentMethod: data.paymentMethod,
+    }),
+    ...(data.invoiceNumber !== undefined && {
+      invoiceNumber: data.invoiceNumber,
+    }),
   };
   return createSaleDao(dataToCreate);
 };
@@ -80,6 +93,8 @@ export const patchSaleById = async (id: number | string, data: SaleInput) => {
     clientId: data.clientId !== undefined ? Number(data.clientId) : undefined,
     total: data.total !== undefined ? Number(data.total) : undefined,
     details: data.details,
+    paymentMethod: data.paymentMethod,
+    invoiceNumber: data.invoiceNumber,
     updatedBy:
       data.updatedBy !== undefined ? Number(data.updatedBy) : undefined,
     updatedOn: new Date(),
@@ -89,6 +104,72 @@ export const patchSaleById = async (id: number | string, data: SaleInput) => {
     (key) => dataToUpdate[key] === undefined && delete dataToUpdate[key]
   );
   return patchSaleByIdDao(Number(id), dataToUpdate);
+};
+
+/**
+ * Move a sale through its lifecycle (RN-SP-001..RN-SP-005).
+ *
+ * `paidAt` is stamped automatically on PAID and cancellation writes the
+ * compensating inventory movements instead of deleting the row.
+ *
+ * @param {number|string} id - Sale ID.
+ * @param {Object} data - Target status plus optional payment/invoice fields.
+ * @returns {Promise<Object>} Updated sale.
+ * @throws {ClientError} 404 when missing, 400 on an invalid transition, 409 when already cancelled.
+ */
+export const transitionSaleStatus = async (
+  id: number | string,
+  data: SaleStatusTransitionInput
+): Promise<SaleRecord> => {
+  const saleId = Number(id);
+  const current = await findSaleByIdDao(saleId);
+
+  if (!current) {
+    throw new ClientError('Sale not found', 404);
+  }
+
+  assertValidSaleTransition(current.status, data.status);
+
+  const hasPaymentUpdate =
+    data.paymentMethod !== undefined || data.invoiceNumber !== undefined;
+
+  // Re-sending the current status is an idempotent no-op: it never pays twice
+  // and never writes a second set of compensating movements. Payment data sent
+  // with it is still persisted instead of being silently dropped.
+  if (current.status === data.status) {
+    if (!hasPaymentUpdate) return current;
+
+    return transitionSaleStatusDao(saleId, current.status, {
+      status: current.status,
+      ...(data.paymentMethod !== undefined && {
+        paymentMethod: data.paymentMethod,
+      }),
+      ...(data.invoiceNumber !== undefined && {
+        invoiceNumber: data.invoiceNumber,
+      }),
+      ...(data.updatedBy !== undefined && { updatedBy: data.updatedBy }),
+    });
+  }
+
+  if (data.status === 'CANCELLED' || data.status === 'REFUNDED') {
+    return transitionSaleWithReversalDao(saleId, current.status, data.status, {
+      paymentMethod: data.paymentMethod,
+      invoiceNumber: data.invoiceNumber,
+      updatedBy: data.updatedBy,
+    });
+  }
+
+  return transitionSaleStatusDao(saleId, current.status, {
+    status: data.status,
+    ...(data.status === 'PAID' && { paidAt: new Date() }),
+    ...(data.paymentMethod !== undefined && {
+      paymentMethod: data.paymentMethod,
+    }),
+    ...(data.invoiceNumber !== undefined && {
+      invoiceNumber: data.invoiceNumber,
+    }),
+    ...(data.updatedBy !== undefined && { updatedBy: data.updatedBy }),
+  });
 };
 
 /**

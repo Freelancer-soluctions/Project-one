@@ -1673,6 +1673,10 @@
  *         providerId:
  *           type: integer
  *           description: Filter by provider ID
+ *         status:
+ *           type: string
+ *           enum: [PENDING, RECEIVED, PAID, CANCELLED]
+ *           description: Filter by lifecycle status
  *         startDate:
  *           type: string
  *           format: date-time
@@ -1689,6 +1693,12 @@
  *           type: number
  *           minimum: 0
  *           description: Filter by maximum total
+ *         page:
+ *           type: integer
+ *           description: Page number (1-based)
+ *         limit:
+ *           type: integer
+ *           description: Items per page
  *
  *     PurchaseDetail:
  *       type: object
@@ -1723,6 +1733,16 @@
  *           type: number
  *           minimum: 0
  *           description: Total amount of the purchase
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *           description: How the purchase was paid (optional at creation)
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           description: Invoice number, unique per provider
  *         details:
  *           type: array
  *           items:
@@ -1739,6 +1759,21 @@
  *           type: integer
  *         total:
  *           type: number
+ *         status:
+ *           type: string
+ *           enum: [PENDING, RECEIVED, PAID, CANCELLED]
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         paidAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  *         createdOn:
  *           type: string
  *           format: date-time
@@ -1753,7 +1788,7 @@
  *           nullable: true
  *         provider:
  *           $ref: '#/components/schemas/ResponseGetProductProvider'
- *         details:
+ *         purchaseDetail:
  *           type: array
  *           items:
  *             type: object
@@ -1778,6 +1813,21 @@
  *           type: integer
  *         total:
  *           type: number
+ *         status:
+ *           type: string
+ *           enum: [PENDING, RECEIVED, PAID, CANCELLED]
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         paidAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  *         createdOn:
  *           type: string
  *           format: date-time
@@ -1785,7 +1835,7 @@
  *           type: integer
  *         provider:
  *           $ref: '#/components/schemas/ResponseGetProductProvider'
- *         details:
+ *         purchaseDetail:
  *           type: array
  *           items:
  *             type: object
@@ -1810,6 +1860,21 @@
  *           type: integer
  *         total:
  *           type: number
+ *         status:
+ *           type: string
+ *           enum: [PENDING, RECEIVED, PAID, CANCELLED]
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         paidAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  *         createdOn:
  *           type: string
  *           format: date-time
@@ -1822,7 +1887,7 @@
  *           type: integer
  *         provider:
  *           $ref: '#/components/schemas/ResponseGetProductProvider'
- *         details:
+ *         purchaseDetail:
  *           type: array
  *           items:
  *             type: object
@@ -1837,6 +1902,24 @@
  *                 type: number
  *               product:
  *                 $ref: '#/components/schemas/Product'
+ *
+ *     BodyPurchaseStatus:
+ *       type: object
+ *       required:
+ *         - status
+ *       properties:
+ *         status:
+ *           type: string
+ *           enum: [PENDING, RECEIVED, PAID, CANCELLED]
+ *           description: Target status; RECEIVED->PAID stamps paidAt and CANCELLED reverses linked inventory movements
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  */
 
 /** --------------------------------------
@@ -1986,6 +2069,10 @@
  *         clientId:
  *           type: integer
  *           description: Filter by client ID
+ *         status:
+ *           type: string
+ *           enum: [PENDING, PAID, CANCELLED, REFUNDED]
+ *           description: Filter by lifecycle status
  *         startDate:
  *           type: string
  *           format: date-time
@@ -2002,6 +2089,12 @@
  *           type: number
  *           minimum: 0
  *           description: Filter by maximum total
+ *         page:
+ *           type: integer
+ *           description: Page number (1-based)
+ *         limit:
+ *           type: integer
+ *           description: Items per page
  *
  *     SaleDetail:
  *       type: object
@@ -2036,6 +2129,16 @@
  *           type: number
  *           minimum: 0
  *           description: Total amount of the sale
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *           description: How the sale was paid (optional at creation)
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
+ *           description: Invoice number, globally unique
  *         details:
  *           type: array
  *           items:
@@ -2052,6 +2155,21 @@
  *           type: integer
  *         total:
  *           type: number
+ *         status:
+ *           type: string
+ *           enum: [PENDING, PAID, CANCELLED, REFUNDED]
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         paidAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  *         createdOn:
  *           type: string
  *           format: date-time
@@ -2066,7 +2184,7 @@
  *           nullable: true
  *         client:
  *           $ref: '#/components/schemas/ResponseGetClient'
- *         details:
+ *         saleDetail:
  *           type: array
  *           items:
  *             type: object
@@ -2089,14 +2207,27 @@
  *           type: integer
  *         total:
  *           type: number
+ *         status:
+ *           type: string
+ *           enum: [PENDING, PAID, CANCELLED, REFUNDED]
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         paidAt:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  *         createdOn:
  *           type: string
  *           format: date-time
  *         createdBy:
  *           type: integer
- *         client:
- *           $ref: '#/components/schemas/ResponseGetClient'
- *         details:
+ *         saleDetail:
  *           type: array
  *           items:
  *             type: object
@@ -2109,6 +2240,24 @@
  *                 type: integer
  *               price:
  *                 type: number
+ *
+ *     BodySaleStatus:
+ *       type: object
+ *       required:
+ *         - status
+ *       properties:
+ *         status:
+ *           type: string
+ *           enum: [PENDING, PAID, CANCELLED, REFUNDED]
+ *           description: Target status; PAID stamps paidAt, while CANCELLED and REFUNDED reverse the linked inventory movements
+ *         paymentMethod:
+ *           type: string
+ *           enum: [CASH, CARD, TRANSFER, OTHER]
+ *           nullable: true
+ *         invoiceNumber:
+ *           type: string
+ *           maxLength: 50
+ *           nullable: true
  */
 
 // {{ Expenses Schemas START }}
