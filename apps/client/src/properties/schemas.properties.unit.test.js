@@ -41,8 +41,8 @@ describe('zod schema properties', () => {
             max: new Date('2100-12-31T23:59:59.999Z'),
             noInvalidDate: true,
           }),
-          position: fc.string({ minLength: 1 }),
-          department: fc.string({ minLength: 1 }),
+          positionId: fc.integer({ min: 1 }),
+          departmentId: fc.integer({ min: 1 }),
           salary: fc.string({ minLength: 1 }),
         }),
         (cand) => {
@@ -103,25 +103,45 @@ describe('zod schema negative properties', () => {
       dni: '12345678',
       email: 'ana@example.com',
       startDate: new Date('2026-01-01T00:00:00.000Z'),
-      position: 'Dev',
-      department: 'IT',
+      positionId: 1,
+      departmentId: 1,
       salary: '1000',
     };
 
     fc.assert(
       fc.property(
-        fc.constantFrom(
-          'name',
-          'lastName',
-          'dni',
-          'position',
-          'department',
-          'salary'
-        ),
+        fc.constantFrom('name', 'lastName', 'dni', 'salary'),
         (field) => {
           const parsed = EmployeeSchema.safeParse({
             ...validEmployee,
             [field]: '',
+          });
+          expect(parsed.success).toBe(false);
+        }
+      )
+    );
+  });
+
+  it('EmployeeSchema rejects invalid catalog ids', () => {
+    const validEmployee = {
+      name: 'Ana',
+      lastName: 'Perez',
+      dni: '12345678',
+      email: 'ana@example.com',
+      startDate: new Date('2026-01-01T00:00:00.000Z'),
+      positionId: 1,
+      departmentId: 1,
+      salary: '1000',
+    };
+
+    fc.assert(
+      fc.property(
+        fc.constantFrom('positionId', 'departmentId'),
+        fc.constantFrom(0, -1, null, undefined, 'Dev'),
+        (field, invalidId) => {
+          const parsed = EmployeeSchema.safeParse({
+            ...validEmployee,
+            [field]: invalidId,
           });
           expect(parsed.success).toBe(false);
         }
@@ -138,8 +158,8 @@ describe('zod schema negative properties', () => {
           dni: '12345678',
           email: 'ana@example.com',
           startDate,
-          position: 'Dev',
-          department: 'IT',
+          positionId: 1,
+          departmentId: 1,
           salary: '1000',
         });
         // Una cadena ISO no se coerciona: el schema exige `z.date()`.

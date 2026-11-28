@@ -1,16 +1,21 @@
 import { z } from 'zod';
-import { getZodMessage, getZodMinMaxMessage } from '@/utils/zod-i18n-map';
+import {
+  getZodErrorMessage,
+  getZodMinMaxErrorMessage,
+} from '@/utils/zod-i18n-map';
 
 export const signInSchema = z.object({
   email: z
-    .string({ required_error: getZodMessage('zod.auth.email.empty') })
-    .email({ message: getZodMessage('zod.auth.email.invalid') }),
+    .string({ error: getZodErrorMessage('zod.auth.email.empty') })
+    .email({ error: getZodErrorMessage('zod.auth.email.invalid') }),
 
   password: z
-    .string({ required_error: getZodMessage('zod.auth.password.empty') })
-    .min(6, { message: getZodMinMaxMessage('zod.auth.password.minLength', 6) })
+    .string({ error: getZodErrorMessage('zod.auth.password.empty') })
+    .min(6, {
+      error: getZodMinMaxErrorMessage('zod.auth.password.minLength', 6),
+    })
     .max(16, {
-      message: getZodMinMaxMessage('zod.auth.password.maxLength', 16),
+      error: getZodMinMaxErrorMessage('zod.auth.password.maxLength', 16),
     }),
 });
 
@@ -20,14 +25,16 @@ export const signUpSchema = z.object({
   // birthday: Joi.date().required(),
 
   email: z
-    .string({ required_error: getZodMessage('zod.auth.email.empty') })
-    .email({ message: getZodMessage('zod.auth.email.invalid') }),
+    .string({ error: getZodErrorMessage('zod.auth.email.empty') })
+    .email({ error: getZodErrorMessage('zod.auth.email.invalid') }),
 
   password: z
-    .string({ required_error: getZodMessage('zod.auth.password.empty') })
-    .min(6, { message: getZodMinMaxMessage('zod.auth.password.minLength', 6) })
+    .string({ error: getZodErrorMessage('zod.auth.password.empty') })
+    .min(6, {
+      error: getZodMinMaxErrorMessage('zod.auth.password.minLength', 6),
+    })
     .max(16, {
-      message: getZodMinMaxMessage('zod.auth.password.maxLength', 16),
+      error: getZodMinMaxErrorMessage('zod.auth.password.maxLength', 16),
     }),
 });
 

@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { getZodMessage } from '@/utils/zod-i18n-map';
+import { getZodErrorMessage } from '@/utils/zod-i18n-map';
 
 export const NewsDialogSchema = z
   .object({
     description: z.string().min(1, {
-      message: getZodMessage('zod.news.description.empty'),
+      error: getZodErrorMessage('zod.news.description.empty'),
     }),
     status: z.object({
       id: z.number(), // No validación de mínimo o máximo
@@ -33,7 +33,7 @@ export const NewsFiltersSchema = z
       return true;
     },
     {
-      message: getZodMessage('zod.news.fdateAfterTdate'),
+      error: getZodErrorMessage('zod.news.fdateAfterTdate'),
       path: ['fdate'],
     }
   );

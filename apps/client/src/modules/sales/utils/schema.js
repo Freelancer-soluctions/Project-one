@@ -1,49 +1,59 @@
 import { z } from 'zod';
-import { getZodMessage } from '@/utils/zod-i18n-map';
+import { getZodErrorMessage } from '@/utils/zod-i18n-map';
 
 export const SaleSchema = z
   .object({
     clientId: z.string().min(1, {
-      message: getZodMessage('zod.sales.clientId.empty'),
+      error: getZodErrorMessage('zod.sales.clientId.empty'),
     }),
     total: z
       .string()
-      .min(1, { message: getZodMessage('zod.sales.total.empty') })
+      .min(1, { error: getZodErrorMessage('zod.sales.total.empty') })
       .transform((val) => Number(val))
       .pipe(
         z
           .number()
-          .int(getZodMessage('zod.sales.total.integer'))
-          .min(0, getZodMessage('zod.sales.total.min'))
+          .int({ error: getZodErrorMessage('zod.sales.total.integer') })
+          .min(0, { error: getZodErrorMessage('zod.sales.total.min') })
       ),
     paymentMethod: z.string().optional(),
     invoiceNumber: z.string().max(50).optional(),
     details: z.array(
       z.object({
         productId: z.string().min(1, {
-          message: getZodMessage('zod.sales.details.productId.empty'),
+          error: getZodErrorMessage('zod.sales.details.productId.empty'),
         }),
         quantity: z
           .string()
           .min(1, {
-            message: getZodMessage('zod.sales.details.quantity.empty'),
+            error: getZodErrorMessage('zod.sales.details.quantity.empty'),
           })
           .transform((val) => Number(val))
           .pipe(
             z
               .number()
-              .int(getZodMessage('zod.sales.details.quantity.integer'))
-              .min(1, getZodMessage('zod.sales.details.quantity.min'))
+              .int({
+                error: getZodErrorMessage('zod.sales.details.quantity.integer'),
+              })
+              .min(1, {
+                error: getZodErrorMessage('zod.sales.details.quantity.min'),
+              })
           ),
         price: z
           .string()
-          .min(1, { message: getZodMessage('zod.sales.details.price.empty') })
+          .min(1, {
+            error: getZodErrorMessage('zod.sales.details.price.empty'),
+          })
           .transform((val) => Number(val))
           .pipe(
             z
               .number()
-              .int(getZodMessage('zod.sales.details.price.integer'))
-              .min(0, getZodMessage('zod.sales.details.price.min'))
+              .int({
+                error: getZodErrorMessage('zod.sales.details.price.integer'),
+              })
+              .min(0, {
+                error: getZodErrorMessage('zod.sales.details.price.min'),
+              })
           ),
       })
     ),
@@ -73,7 +83,7 @@ export const SalesFiltersSchema = z
       return true;
     },
     {
-      message: getZodMessage('zod.sales.fromDateAfterToDate'),
+      error: getZodErrorMessage('zod.sales.fromDateAfterToDate'),
       path: ['fromDate'],
     }
   )
@@ -85,7 +95,7 @@ export const SalesFiltersSchema = z
       return true;
     },
     {
-      message: getZodMessage('zod.sales.minTotalGreaterThanMaxTotal'),
+      error: getZodErrorMessage('zod.sales.minTotalGreaterThanMaxTotal'),
       path: ['minTotal'],
     }
   );
