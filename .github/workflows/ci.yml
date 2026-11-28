@@ -1310,12 +1310,12 @@ jobs:
       # y `coverage/` con sus rutas relativas intactas. Con N=1 el patrón captura el
       # único artifact ⇒ mismo camino que con matriz (sin rama condicional que pueda
       # divergir y romperse sólo al pasar a matriz).
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: coverage-client-shard-*
           merge-multiple: true
           path: apps/client/
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: flaky-evidence-client
           path: apps/client/reports/
@@ -1416,12 +1416,12 @@ jobs:
           prisma: 'true'
       # change `coverage-merge-gate` (D3): descarga por patrón + `merge-multiple`
       # hacia la LCA `apps/server/` (restaura `tests/coverage/` y `.vitest-reports/`).
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: coverage-server-shard-*
           merge-multiple: true
           path: apps/server/
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: flaky-evidence-server
           path: apps/server/reports/
@@ -3631,7 +3631,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: client-dist
           path: apps/client/dist/
@@ -3640,7 +3640,7 @@ jobs:
       # (hoy en `if: false`) se actualiza ya a patrón + `merge-multiple` hacia la
       # LCA `apps/client/` — evita una bomba de reactivación con el rename y deja
       # el patrón correcto para N>1.
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: coverage-client-shard-*
           merge-multiple: true
@@ -3688,7 +3688,7 @@ jobs:
       # change `coverage-merge-gate` (task 1.4): mismo tratamiento que el consumidor
       # client — patrón + `merge-multiple` hacia `apps/server/` (evita dejar un
       # consumidor roto por el rename, aunque el job esté en `if: false`).
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: coverage-server-shard-*
           merge-multiple: true
