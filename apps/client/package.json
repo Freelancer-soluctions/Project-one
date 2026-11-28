@@ -111,7 +111,7 @@
     "@storybook/addon-links": "^10.6.7",
     "@storybook/addon-styling-webpack": "^3.0.2",
     "@storybook/react": "^10.6.7",
-    "@storybook/react-vite": "8.5.3",
+    "@storybook/react-vite": "10.6.8",
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
