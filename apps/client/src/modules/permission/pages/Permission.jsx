@@ -12,6 +12,7 @@ import {
   useCreatePermissionMutation,
   useDeletePermissionByIdMutation,
 } from '../api/permissionApi'; // Adjusted import path
+import { useGetApprovalAccessQuery } from '@/modules/vacation/api/vacationApi';
 import { useGetAllEmployeesFiltersQuery } from '@/modules/employees/api/employeesApi'; // Import employee query
 import AlertDialogComponent from '@/components/alertDialog/AlertDialog';
 import { Spinner } from '@/components/loader/Spinner';
@@ -200,6 +201,9 @@ function usePermissionPageState() {
     isFetching: isFetchingEmployees,
   } = useGetAllEmployeesFiltersQuery();
 
+  // Capacidad de aprobar permisos (task 5.4b): habilita las transiciones de estado.
+  const { data: approvalAccess } = useGetApprovalAccessQuery();
+
   const [
     triggerPermissions,
     {
@@ -256,6 +260,7 @@ function usePermissionPageState() {
     setFilters,
     dataPermissions,
     dataEmployees,
+    approvalAccess,
     isLoadingPage,
     updatePermissionById,
     createPermission,
@@ -304,6 +309,7 @@ const buildPermissionLayout = ({
           onSubmit={saveHandler}
           onDeleteById={deleteHandler}
           actionDialog={page.actionDialog}
+          canApprove={Boolean(page.approvalAccess?.data?.canApprovePermission)}
           dataEmployees={page.dataEmployees.data} // Pass employee data
         />
 

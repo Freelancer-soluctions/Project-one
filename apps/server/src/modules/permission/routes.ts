@@ -1,4 +1,5 @@
 import express from 'express';
+import { requireApprovalPermission } from '../../middleware/requireApprovalPermission.js';
 import {
   getAllPermissions,
   createPermission,
@@ -59,13 +60,30 @@ router.use(verifyToken);
  *           example: "Medical appointment"
  *         status:
  *           type: string
- *           enum: [PENDING, APPROVED, REJECTED]
+ *           enum: [PENDING, APPROVED, REJECTED, CANCELLED]
  *           description: Current status of the permission
  *           example: PENDING
  *         approvedBy:
  *           type: integer
- *           description: ID of the user who approved/rejected the permission
+ *           readOnly: true
+ *           description: ID of the user who approved the permission (asignado por el servidor)
  *           example: 2
+ *         rejectedBy:
+ *           type: integer
+ *           readOnly: true
+ *           nullable: true
+ *           description: ID of the user who rejected the permission (asignado por el servidor)
+ *           example: null
+ *         paid:
+ *           type: boolean
+ *           default: true
+ *           description: false = permiso sin goce; se descuenta de la nómina
+ *           example: true
+ *         comments:
+ *           type: string
+ *           maxLength: 1000
+ *           description: Comentarios del aprobador
+ *           example: "Aprobado"
  *         approvedAt:
  *           type: string
  *           format: date-time
@@ -110,7 +128,7 @@ router.use(verifyToken);
  *           example: SICK
  *         status:
  *           type: string
- *           enum: [PENDING, APPROVED, REJECTED]
+ *           enum: [PENDING, APPROVED, REJECTED, CANCELLED]
  *           description: Filter by permission status
  *           example: PENDING
  *         fromDate:
@@ -150,7 +168,7 @@ router.use(verifyToken);
  *         name: status
  *         schema:
  *           type: string
- *           enum: [PENDING, APPROVED, REJECTED]
+ *           enum: [PENDING, APPROVED, REJECTED, CANCELLED]
  *         description: Filter by permission status
  *       - in: query
  *         name: fromDate
@@ -235,6 +253,7 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canCreatePermission],
   }),
+  requireApprovalPermission(PERMISSIONCODES.canApprovePermission),
   validateSchema(permissionCreateSchema),
   createPermission
 );
@@ -290,6 +309,7 @@ router.patch(
     permissions: [PERMISSIONCODES.canEditPermission],
   }),
   validatePathParam,
+  requireApprovalPermission(PERMISSIONCODES.canApprovePermission),
   validateSchema(permissionUpdateSchema),
   patchPermissionById
 );

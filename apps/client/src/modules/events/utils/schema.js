@@ -1,18 +1,30 @@
 import { z } from 'zod';
-import { getZodMessage } from '@/utils/zod-i18n-map';
+import { getZodErrorMessage } from '@/utils/zod-i18n-map';
 
 const baseDialogSchema = z.object({
-  title: z.string().min(1, getZodMessage('zod.events.title.empty')),
-  description: z.string().min(1, getZodMessage('zod.events.description.empty')),
-  speaker: z.string().min(1, getZodMessage('zod.events.speaker.empty')),
-  startTime: z.string().min(5, getZodMessage('zod.events.startTime.empty')),
-  endTime: z.string().min(5, getZodMessage('zod.events.endTime.empty')),
+  title: z
+    .string()
+    .min(1, { error: getZodErrorMessage('zod.events.title.empty') }),
+  description: z
+    .string()
+    .min(1, { error: getZodErrorMessage('zod.events.description.empty') }),
+  speaker: z
+    .string()
+    .min(1, { error: getZodErrorMessage('zod.events.speaker.empty') }),
+  startTime: z
+    .string()
+    .min(5, { error: getZodErrorMessage('zod.events.startTime.empty') }),
+  endTime: z
+    .string()
+    .min(5, { error: getZodErrorMessage('zod.events.endTime.empty') }),
   eventDate: z.date().refine((date) => !isNaN(date.getTime()), {
-    message: getZodMessage('zod.events.eventDate.invalid'),
+    error: getZodErrorMessage('zod.events.eventDate.invalid'),
   }),
-  type: z.string().min(1, getZodMessage('zod.events.type.empty')),
+  type: z
+    .string()
+    .min(1, { error: getZodErrorMessage('zod.events.type.empty') }),
   modality: z.enum(['ONLINE', 'IN_PERSON', 'HYBRID'], {
-    required_error: getZodMessage('zod.events.modality.empty'),
+    error: getZodErrorMessage('zod.events.modality.empty'),
   }),
   meetingUrl: z.string().url().optional(),
   location: z.string().optional(),
@@ -24,7 +36,7 @@ export const createEventsDialogSchema = (isEditMode = false) =>
     // los `.refine()` (que devuelven ZodEffects, sin `.passthrough()`).
     .passthrough()
     .refine((data) => data.startTime < data.endTime, {
-      message: getZodMessage('zod.events.startTime.beforeEndTime'),
+      error: getZodErrorMessage('zod.events.startTime.beforeEndTime'),
       path: ['startTime'],
     })
     .refine(
@@ -42,7 +54,7 @@ export const createEventsDialogSchema = (isEditMode = false) =>
         return true;
       },
       {
-        message: getZodMessage('zod.events.modality.fieldsRequired'),
+        error: getZodErrorMessage('zod.events.modality.fieldsRequired'),
         path: ['meetingUrl'],
       }
     );

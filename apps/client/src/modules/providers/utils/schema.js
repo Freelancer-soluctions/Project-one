@@ -1,13 +1,13 @@
 import { z } from 'zod';
-import { getZodMessage } from '@/utils/zod-i18n-map';
+import { getZodErrorMessage } from '@/utils/zod-i18n-map';
 
 export const ProvidersDialogSchema = z
   .object({
     name: z.string().min(1, {
-      message: getZodMessage('zod.providers.name.empty'),
+      error: getZodErrorMessage('zod.providers.name.empty'),
     }),
     status: z.boolean({
-      message: getZodMessage('zod.providers.status.required'),
+      error: getZodErrorMessage('zod.providers.status.required'),
     }),
   })
   .passthrough(); // Permite otros campos

@@ -1,8 +1,12 @@
+import { getUserRoleByUserId } from '../users/service.js';
+import { resolveApprovalAccess } from '../../middleware/requireApprovalPermission.js';
 import {
   getAllVacation as getAllVacationService,
   createVacation as createVacationService,
   deleteVacationById as deleteVacationByIdService,
   patchVacationById as patchVacationByIdService,
+  runVacationAccrual as runVacationAccrualService,
+  getVacationBalance as getVacationBalanceService,
 } from './service.js';
 import handleCatchErrorAsync from '../../utils/responses&Errors/handleCatchErrorAsync.js';
 import type { VacationInput, VacationsQuery } from './types.js';
@@ -43,7 +47,10 @@ export const getAllVacation = handleCatchErrorAsync(async (req, res) => {
  * @returns {Promise<void>} Creates new vacation record and returns vacation object
  */
 export const createVacation = handleCatchErrorAsync(async (req, res) => {
-  const data = await createVacationService(req.body as VacationInput);
+  const data = await createVacationService(
+    req.body as VacationInput,
+    req.userId as number
+  );
   return globalResponse(res, 201, data);
 });
 
@@ -80,7 +87,43 @@ export const patchVacationById = handleCatchErrorAsync(async (req, res) => {
   const { id } = req.params;
   const data = await patchVacationByIdService(
     Number(id),
-    req.body as VacationInput
+    req.body as VacationInput,
+    req.userId as number
   );
   return globalResponse(res, 200, data);
+});
+
+/**
+ * POST /v1/vacation/accrual — devengo mensual manual (solo ADMIN en las rutas).
+ *
+ * @param {Object} req.body - { period: 'YYYY-MM' }
+ */
+export const runAccrual = handleCatchErrorAsync(async (req, res) => {
+  const { period } = req.body as { period: string };
+  const data = await runVacationAccrualService(period, req.userId as number);
+  return globalResponse(res, 200, data, 'Vacation accrual processed');
+});
+
+/**
+ * GET /v1/vacation/balance?employeeId&year — saldo de vacaciones del empleado.
+ */
+export const getBalance = handleCatchErrorAsync(async (req, res) => {
+  const { employeeId, year } = req.safeQuery as unknown as {
+    employeeId: number;
+    year: number;
+  };
+  const data = await getVacationBalanceService(
+    Number(employeeId),
+    Number(year)
+  );
+  return globalResponse(res, 200, data);
+});
+
+/**
+ * GET /v1/vacation/approval-access — capacidad de aprobar del usuario autenticado
+ * (solo booleanos; la UI la usa para habilitar las transiciones de estado).
+ */
+export const getApprovalAccess = handleCatchErrorAsync(async (req, res) => {
+  const user = await getUserRoleByUserId(req.userId as number);
+  return globalResponse(res, 200, resolveApprovalAccess(user));
 });

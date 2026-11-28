@@ -214,6 +214,10 @@
     "inventoryMovement_card_msg": "Manage your inventory movement efficiently.",
     "employees": "Employees",
     "employees_card_msg": "Manage your employees efficiently.",
+    "employee_catalogs": "Employee catalogs",
+    "employee_catalogs_card_msg": "Manage positions and departments catalogs.",
+    "positions": "Positions",
+    "departments": "Departments",
     "attendance": "Attendance",
     "performanceEvaluation": "Performance Evaluation",
     "performanceEvaluation_card_msg": "Manage your performance evaluation efficiently.",
@@ -223,6 +227,8 @@
     "permission_card_msg": "Manage your permission efficiently.",
     "payroll_card_msg": "Manage your payroll efficiently.",
     "add_client": "Add client",
+    "add_employee": "Add employee",
+    "edit_employee": "Edit employee",
     "edit_client": "Edit client",
     "client_name_placeholder": "Enter the client name",
     "client_email_placeholder": "Enter the client email",
@@ -265,7 +271,7 @@
     "status_updated_successfully": "Status updated successfully",
     "payment_updated_successfully": "Payment data updated successfully",
     "operation_failed": "Operation failed",
-    "operation_failed_message": "The change could not be saved. Please try again.",
+    "operation_failed_message": "The operation could not be completed. Please check your input and try again.",
     "status_pending": "Pending",
     "status_paid": "Paid",
     "status_received": "Received",
@@ -317,7 +323,6 @@
     "edit": "Edit",
     "select_role": "Select a role",
     "error_occurred_message": "An error occurred while processing your request. Please try again later.",
-    "operation_failed_message": "The operation could not be completed. Please check your input and try again.",
     "delete_failed_message": "The record could not be deleted. Please try again later.",
     "expense_category_rental": "Rental",
     "expense_category_utilities": "Utilities",
@@ -352,8 +357,19 @@
     "employee_phone_placeholder": "Enter the employee phone",
     "employee_address_placeholder": "Enter the employee address",
     "employee_position_placeholder": "Enter the employee position",
+    "select_position": "Select a position",
+    "all_positions": "All positions",
     "position": "Position",
     "department": "Department",
+    "select_department": "Select a department",
+    "all_departments": "All departments",
+    "add_position": "Add position",
+    "edit_position": "Edit position",
+    "add_department": "Add department",
+    "edit_department": "Edit department",
+    "catalog_code_placeholder": "Enter the code",
+    "catalog_name_placeholder": "Enter the name",
+    "all_statuses": "All statuses",
     "employee_department_placeholder": "Enter the employee department",
     "salary": "Salary",
     "employee_salary_placeholder": "Enter the employee salary",
@@ -631,6 +647,19 @@
           "empty": "Salary is required."
         }
       },
+      "employeeCatalogs": {
+        "code": {
+          "empty": "Code is required.",
+          "maxLength": "Code must be at most 20 characters."
+        },
+        "name": {
+          "empty": "Name is required.",
+          "maxLength": "Name must be at most 100 characters."
+        },
+        "active": {
+          "required": "Status is required."
+        }
+      },
       "events": {
         "title": {
           "empty": "Event title is required."
@@ -734,6 +763,12 @@
         },
         "endDate": {
           "required": "End date is required."
+        },
+        "reason": {
+          "maxLength": "Reason must be at most {{count}} characters."
+        },
+        "comments": {
+          "maxLength": "Comments must be at most {{count}} characters."
         }
       },
       "attendance": {
@@ -923,6 +958,24 @@
     "ws_status": "Status",
     "active": "Active",
     "inactive": "Inactive",
-    "ws_error_description": "WebSocket connection error"
+    "ws_error_description": "WebSocket connection error",
+    "approved_by": "Approved by",
+    "approved_on": "Approved on",
+    "rejected_by": "Rejected by",
+    "rejected_on": "Rejected on",
+    "paid": "Paid",
+    "balance": "Balance",
+    "remaining": "Remaining",
+    "accrued": "Accrued",
+    "used": "Used",
+    "insufficient_balance": "Insufficient balance: {{count}} day(s) remaining",
+    "no_approval_permission": "You do not have permission to approve or reject",
+    "paid_leave_hint": "Unpaid leave is deducted from payroll",
+    "yes": "Yes",
+    "no": "No",
+    "status_PENDING": "Pending",
+    "status_APPROVED": "Approved",
+    "status_REJECTED": "Rejected",
+    "status_CANCELLED": "Cancelled"
   }
 }

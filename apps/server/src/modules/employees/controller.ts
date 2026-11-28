@@ -22,7 +22,8 @@ import type {
  * @param {number} [req.safeQuery.limit] - Number of items per page
  * @param {string} [req.safeQuery.name] - Filter by employee name
  * @param {string} [req.safeQuery.email] - Filter by employee email
- * @param {string} [req.safeQuery.position] - Filter by employee position
+ * @param {number} [req.safeQuery.positionId] - Filter by position catalog id
+ * @param {number} [req.safeQuery.departmentId] - Filter by department catalog id
  * @param {Object} res - The HTTP response object.
  * @returns {Promise<void>} Returns paginated list of employees
  */
@@ -55,7 +56,8 @@ export const getAllEmployeesFilters = handleCatchErrorAsync(
  * @param {string} req.body.name - Employee name
  * @param {string} req.body.email - Employee email address
  * @param {string} req.body.phone - Employee phone number
- * @param {string} req.body.position - Employee position
+ * @param {number} req.body.positionId - Position catalog id
+ * @param {number} req.body.departmentId - Department catalog id
  * @param {number} req.body.salary - Employee salary
  * @param {Date} req.body.hireDate - Employee hire date
  * @param {string} req.userId - Authenticated user ID from token verification
@@ -63,7 +65,6 @@ export const getAllEmployeesFilters = handleCatchErrorAsync(
  * @returns {Promise<void>} Creates new employee and returns employee object
  */
 export const createEmployee = handleCatchErrorAsync(async (req, res) => {
-  console.log(req.body);
   // Cast único del body validado por Joi
   const body = req.body as Omit<CreateEmployeeInput, 'createdBy'>;
   const employee = await createEmployeeService({
@@ -83,7 +84,8 @@ export const createEmployee = handleCatchErrorAsync(async (req, res) => {
  * @param {string} [req.body.name] - Employee name
  * @param {string} [req.body.email] - Employee email address
  * @param {string} [req.body.phone] - Employee phone number
- * @param {string} [req.body.position] - Employee position
+ * @param {number} [req.body.positionId] - Position catalog id
+ * @param {number} [req.body.departmentId] - Department catalog id
  * @param {number} [req.body.salary] - Employee salary
  * @param {string} req.userId - Authenticated user ID from token verification
  * @param {Object} res - The HTTP response object.

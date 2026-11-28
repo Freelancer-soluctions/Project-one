@@ -76,6 +76,10 @@ export const FIELD_LIMITS = {
     phone: 15,
     address: 120,
   },
+  employeeCatalogs: {
+    code: 20,
+    name: 100,
+  },
   employees: {
     name: 100,
     lastName: 100,
@@ -83,8 +87,6 @@ export const FIELD_LIMITS = {
     phone: 15,
     email: 100,
     address: 120,
-    position: 100,
-    department: 100,
     salary: 128,
   },
   payroll: {
@@ -95,6 +97,10 @@ export const FIELD_LIMITS = {
   },
   performanceEvaluation: {
     comments: 200,
+  },
+  vacation: {
+    reason: 500,
+    comments: 1000,
   },
   permission: {
     type: 100,

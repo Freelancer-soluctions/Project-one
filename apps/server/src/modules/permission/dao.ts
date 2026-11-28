@@ -62,11 +62,13 @@ export const getAllPermissions = async (
         pe.*,
         e.name AS "employeeName",
         u.name AS "userPermissionCreatedName",
-        uu.name AS "userPermissionUpdatedName"
+        uu.name AS "userPermissionUpdatedName", ua.name AS "userPermissionApprovedName", ur.name AS "userPermissionRejectedName"
       FROM "permission" pe
       LEFT JOIN "employees" e ON pe."employeeId" = e.id
       LEFT JOIN "users" u ON pe."createdBy" = u.id
       LEFT JOIN "users" uu ON pe."updatedBy" = uu.id
+      LEFT JOIN "users" ua ON pe."approvedBy" = ua.id
+      LEFT JOIN "users" ur ON pe."rejectedBy" = ur.id
       ${whereSql}
       ORDER BY pe."createdOn" DESC
       LIMIT ${take}
@@ -125,19 +127,23 @@ export const getAllPermissions = async (
 export const createPermission = async (
   data: CreateEmployeePermissionData
 ): Promise<EmployeePermission> => {
+  // Escritura por FK escalares (unchecked): mezclar `connect` con escalares no es válido en Prisma.
   return await prisma.permission.create({
     data: {
-      createdOn: data.createdOn,
+      employeeId: data.employeeId,
+      type: data.type,
       startDate: data.startDate,
       endDate: data.endDate,
-      type: data.type,
+      createdOn: data.createdOn,
+      createdBy: data.createdBy,
+      reason: data.reason ?? null,
+      comments: data.comments ?? null,
+      paid: data.paid ?? true,
       ...(data.status !== undefined && { status: data.status }),
-      employee: {
-        connect: { id: data.employeeId },
-      },
-      userPermissionCreated: {
-        connect: { id: data.createdBy },
-      },
+      ...(data.approvedBy !== undefined && { approvedBy: data.approvedBy }),
+      ...(data.approvedAt !== undefined && { approvedAt: data.approvedAt }),
+      ...(data.rejectedBy !== undefined && { rejectedBy: data.rejectedBy }),
+      ...(data.rejectedAt !== undefined && { rejectedAt: data.rejectedAt }),
     },
     include: {
       employee: true,
@@ -149,15 +155,7 @@ export const createPermission = async (
  * Update a permission record by ID.
  *
  * @param {number|string} id - Permission ID.
- * @param {Object} data - Updated permission data.
- * @param {number} [data.employeeId] - Employee ID.
- * @param {string} [data.type] - Permission type.
- * @param {string} [data.startDate] - Start date (ISO format).
- * @param {string} [data.endDate] - End date (ISO format).
- * @param {string} [data.reason] - Reason for permission.
- * @param {string} [data.status] - Permission status.
- * @param {number} [data.approvedBy] - ID of user who approved/rejected.
- * @param {string} [data.comments] - Additional comments.
+ * @param {UpdateEmployeePermissionData} data - Normalized update payload (updatedBy/updatedOn set by the service).
  * @returns {Promise<Object>} Updated permission record with related data.
  */
 export const updatePermissionById = async (
@@ -170,20 +168,19 @@ export const updatePermissionById = async (
     where: { id: id as number },
     data: {
       updatedOn: data.updatedOn,
+      ...(data.employeeId !== undefined && { employeeId: data.employeeId }),
       ...(data.startDate !== undefined && { startDate: data.startDate }),
       ...(data.endDate !== undefined && { endDate: data.endDate }),
       ...(data.type !== undefined && { type: data.type }),
+      ...(data.reason !== undefined && { reason: data.reason }),
+      ...(data.comments !== undefined && { comments: data.comments }),
+      ...(data.paid !== undefined && { paid: data.paid }),
       ...(data.status !== undefined && { status: data.status }),
-      ...(data.employeeId !== undefined && {
-        employee: {
-          connect: { id: data.employeeId },
-        },
-      }),
-      ...(data.updatedBy !== undefined && {
-        userPermissionUpdated: {
-          connect: { id: data.updatedBy },
-        },
-      }),
+      ...(data.approvedBy !== undefined && { approvedBy: data.approvedBy }),
+      ...(data.approvedAt !== undefined && { approvedAt: data.approvedAt }),
+      ...(data.rejectedBy !== undefined && { rejectedBy: data.rejectedBy }),
+      ...(data.rejectedAt !== undefined && { rejectedAt: data.rejectedAt }),
+      ...(data.updatedBy !== undefined && { updatedBy: data.updatedBy }),
     },
     include: {
       employee: true,

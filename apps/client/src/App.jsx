@@ -35,6 +35,9 @@ const InventoryMovement = lazy(
 const Expenses = lazy(() => import('@/modules/expenses/pages/Expenses'));
 const Users = lazy(() => import('@/modules/users/pages/Users'));
 const Employees = lazy(() => import('@/modules/employees/pages/Employees'));
+const EmployeeCatalogs = lazy(
+  () => import('@/modules/employeeCatalogs/pages/EmployeeCatalogs')
+);
 const Attendance = lazy(() => import('@/modules/attendance/pages/Attendance'));
 const Payroll = lazy(() => import('@/modules/payroll/pages/Payroll'));
 const PerformanceEvaluation = lazy(
@@ -100,6 +103,7 @@ const App = () => {
             }
           />
           <Route path="employees" element={<Employees />} />
+          <Route path="employeeCatalogs" element={<EmployeeCatalogs />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="payroll" element={<Payroll />} />
           <Route

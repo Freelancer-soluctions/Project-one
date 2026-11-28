@@ -217,3 +217,18 @@ Dev Containers / Nix / Mise / Homebrew: Se define un único archivo de configura
 
 • Versionado estricto (Pinning): Nunca se usa :latest ni ramas main en CI o hooks; se fijan versiones exactas (ej. v1.7.12) y se actualizan automáticamente mediante Renovate o Dependabot.
 • Configuración centralizada: Se mantienen archivos .hadolint.yaml y configuraciones de actionlint estandarizadas para toda la organización (por ejemplo, prohibiendo imágenes base no autorizadas o exigiendo permisos mínimos en GITHUB_TOKEN).
+
+
+ci-mise-toolchain-parity
+repo-hygiene
+employee-position-department-catalogs x
+employee-salary-type 
+employee-user-linkage
+vacation-permission-full x
+payroll-payment-tracking-and-deductions
+expenses-payment-supplier-receipt-decimal
+product-reorder-and-tax-fields
+product-multi-provider-offers
+stock-unit-cost-per-batch
+docs-reorganize-by-area (review)
+docs-cleanup (review)

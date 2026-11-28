@@ -65,6 +65,11 @@ model users {
   userVacationUpdated              vacation[]              @relation("userVacationUpdated")
   userPermissionCreated            permission[]            @relation("userPermissionCreated")
   userPermissionUpdated            permission[]            @relation("userPermissionUpdated")
+  userVacationApproved             vacation[]              @relation("userVacationApproved")
+  userVacationRejected             vacation[]              @relation("userVacationRejected")
+  userPermissionApproved           permission[]            @relation("userPermissionApproved")
+  userPermissionRejected           permission[]            @relation("userPermissionRejected")
+  userVacationAccrualCreated       vacationAccrualRecord[] @relation("userVacationAccrualCreated")
   userClientOrderUpdated           clientOrder[]           @relation("userClientOrderUpdated")
   userClientOrderCreated           clientOrder[]           @relation("userClientOrderCreated")
   userProviderOrderUpdated         providerOrder[]         @relation("userProviderOrderUpdated")
@@ -592,6 +597,28 @@ model saleDetail {
   product   products @relation("saleDetailProduct", fields: [productId], references: [id])
 }
 
+// Catálogo de puestos de trabajo (employee-position-department-catalogs)
+model positions {
+  id        Int         @id @default(autoincrement())
+  code      String      @unique @db.VarChar(20)
+  name      String      @db.VarChar(100)
+  active    Boolean     @default(true)
+  createdOn DateTime    @db.Timestamp(3)
+  updatedOn DateTime?   @db.Timestamp(3)
+  employees employees[] @relation("employeePosition")
+}
+
+// Catálogo de departamentos (employee-position-department-catalogs)
+model departments {
+  id        Int         @id @default(autoincrement())
+  code      String      @unique @db.VarChar(20)
+  name      String      @db.VarChar(100)
+  active    Boolean     @default(true)
+  createdOn DateTime    @db.Timestamp(3)
+  updatedOn DateTime?   @db.Timestamp(3)
+  employees employees[] @relation("employeeDepartment")
+}
+
 model employees {
   id                     Int                     @id @default(autoincrement())
   name                   String                  @db.VarChar(100)
@@ -602,8 +629,10 @@ model employees {
   email                  String                  @unique @db.VarChar(100)
   address                String?                 @db.VarChar(120)
   startDate              DateTime                @db.Timestamp(3)
-  position               String                  @db.VarChar(100)
-  department             String                  @db.VarChar(100)
+  position               positions               @relation("employeePosition", fields: [positionId], references: [id], onDelete: Restrict)
+  positionId             Int                     @db.Integer
+  department             departments             @relation("employeeDepartment", fields: [departmentId], references: [id], onDelete: Restrict)
+  departmentId           Int                     @db.Integer
   salary                 String                  @db.VarChar(128)
   userEmployeeCreated    users                   @relation("userEmployeeCreated", fields: [createdBy], references: [id]) // Relación opcional con Usuario
   createdBy              Int                     @db.Integer // Si el empleado tiene una cuenta de usuario, se almacena aquí
@@ -614,8 +643,13 @@ model employees {
   performanceEvaluations performanceEvaluation[] @relation("performanceEvaluationEmployee")
   vacations              vacation[]              @relation("vacationEmployee")
   permissions            permission[]            @relation("permissionEmployee")
+  vacationBalances       vacationBalance[]       @relation("vacationBalanceEmployee")
+  vacationAccrualRecords vacationAccrualRecord[] @relation("vacationAccrualEmployee")
   createdOn              DateTime                @db.Timestamp(3)
   updatedOn              DateTime?               @db.Timestamp(3)
+
+  @@index([positionId])
+  @@index([departmentId])
 }
 
 // asistencia
@@ -671,48 +705,98 @@ model performanceEvaluation {
 }
 
 model vacation {
-  id                  Int            @id @default(autoincrement())
-  employeeId          Int            @db.Integer
-  startDate           DateTime       @db.Timestamp(3)
-  endDate             DateTime       @db.Timestamp(3)
-  status              vacationStatus @default(PENDING)
-  employee            employees      @relation("vacationEmployee", fields: [employeeId], references: [id])
-  createdOn           DateTime       @db.Timestamp(3)
-  updatedOn           DateTime?      @db.Timestamp(3)
-  userVacationCreated users          @relation("userVacationCreated", fields: [createdBy], references: [id])
-  createdBy           Int            @db.Integer
-  userVacationUpdated users?         @relation("userVacationUpdated", fields: [updatedBy], references: [id])
-  updatedBy           Int?           @db.Integer
+  id                   Int            @id @default(autoincrement())
+  employeeId           Int            @db.Integer
+  startDate            DateTime       @db.Timestamp(3)
+  endDate              DateTime       @db.Timestamp(3)
+  status               vacationStatus @default(PENDING)
+  employee             employees      @relation("vacationEmployee", fields: [employeeId], references: [id])
+  createdOn            DateTime       @db.Timestamp(3)
+  updatedOn            DateTime?      @db.Timestamp(3)
+  userVacationCreated  users          @relation("userVacationCreated", fields: [createdBy], references: [id])
+  createdBy            Int            @db.Integer
+  userVacationUpdated  users?         @relation("userVacationUpdated", fields: [updatedBy], references: [id])
+  updatedBy            Int?           @db.Integer
+  reason               String?        @db.VarChar(500)
+  comments             String?        @db.VarChar(1000)
+  paid                 Boolean        @default(true)
+  approvedBy           Int?           @db.Integer
+  approvedAt           DateTime?      @db.Timestamp(3)
+  userVacationApproved users?         @relation("userVacationApproved", fields: [approvedBy], references: [id])
+  rejectedBy           Int?           @db.Integer
+  rejectedAt           DateTime?      @db.Timestamp(3)
+  userVacationRejected users?         @relation("userVacationRejected", fields: [rejectedBy], references: [id])
 }
 
 enum vacationStatus {
   PENDING
   APPROVED
   REJECTED
+  CANCELLED
+}
+
+// Saldo anual de vacaciones por empleado (días en decimal, 2 decimales)
+model vacationBalance {
+  id         Int       @id @default(autoincrement())
+  employeeId Int       @db.Integer
+  employee   employees @relation("vacationBalanceEmployee", fields: [employeeId], references: [id])
+  year       Int       @db.Integer
+  accrued    Decimal   @default(0) @db.Decimal(5, 2)
+  used       Decimal   @default(0) @db.Decimal(5, 2)
+  remaining  Decimal   @default(0) @db.Decimal(5, 2)
+  createdOn  DateTime  @db.Timestamp(3)
+  updatedOn  DateTime? @db.Timestamp(3)
+
+  @@unique([employeeId, year])
+}
+
+// Ledger de devengos (accrual) por empleado y período (YYYY-MM)
+model vacationAccrualRecord {
+  id                         Int       @id @default(autoincrement())
+  employeeId                 Int       @db.Integer
+  employee                   employees @relation("vacationAccrualEmployee", fields: [employeeId], references: [id])
+  period                     String    @db.VarChar(7)
+  days                       Decimal   @db.Decimal(5, 2)
+  type                       String    @default("ACCRUAL") @db.VarChar(20)
+  createdOn                  DateTime  @db.Timestamp(3)
+  createdBy                  Int       @db.Integer
+  userVacationAccrualCreated users     @relation("userVacationAccrualCreated", fields: [createdBy], references: [id])
+
+  @@unique([employeeId, period, type])
 }
 
 // permisos
 // agregar un approvedBy
 model permission {
-  id                    Int              @id @default(autoincrement())
-  employeeId            Int              @db.Integer
-  type                  String           @db.VarChar(100) // Licencia médica, asuntos personales, etc.
-  startDate             DateTime         @db.Timestamp(3)
-  endDate               DateTime         @db.Timestamp(3)
-  status                permissionStatus @default(PENDING)
-  employee              employees        @relation("permissionEmployee", fields: [employeeId], references: [id])
-  createdOn             DateTime         @db.Timestamp(3)
-  updatedOn             DateTime?        @db.Timestamp(3)
-  userPermissionCreated users            @relation("userPermissionCreated", fields: [createdBy], references: [id])
-  createdBy             Int              @db.Integer
-  userPermissionUpdated users?           @relation("userPermissionUpdated", fields: [updatedBy], references: [id])
-  updatedBy             Int?             @db.Integer
+  id                     Int              @id @default(autoincrement())
+  employeeId             Int              @db.Integer
+  type                   String           @db.VarChar(100) // Licencia médica, asuntos personales, etc.
+  startDate              DateTime         @db.Timestamp(3)
+  endDate                DateTime         @db.Timestamp(3)
+  status                 permissionStatus @default(PENDING)
+  employee               employees        @relation("permissionEmployee", fields: [employeeId], references: [id])
+  createdOn              DateTime         @db.Timestamp(3)
+  updatedOn              DateTime?        @db.Timestamp(3)
+  userPermissionCreated  users            @relation("userPermissionCreated", fields: [createdBy], references: [id])
+  createdBy              Int              @db.Integer
+  userPermissionUpdated  users?           @relation("userPermissionUpdated", fields: [updatedBy], references: [id])
+  updatedBy              Int?             @db.Integer
+  reason                 String?          @db.VarChar(500)
+  comments               String?          @db.VarChar(1000)
+  paid                   Boolean          @default(true)
+  approvedBy             Int?             @db.Integer
+  approvedAt             DateTime?        @db.Timestamp(3)
+  userPermissionApproved users?           @relation("userPermissionApproved", fields: [approvedBy], references: [id])
+  rejectedBy             Int?             @db.Integer
+  rejectedAt             DateTime?        @db.Timestamp(3)
+  userPermissionRejected users?           @relation("userPermissionRejected", fields: [rejectedBy], references: [id])
 }
 
 enum permissionStatus {
   PENDING
   APPROVED
   REJECTED
+  CANCELLED
 }
 
 enum orderStatus {

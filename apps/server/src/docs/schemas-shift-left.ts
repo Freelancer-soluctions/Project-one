@@ -29,8 +29,8 @@
  *         email: { type: string, format: email, example: "ana.perez@example.com" }
  *         address: { type: string, maxLength: 120, nullable: true, example: "Av. Siempre Viva 742" }
  *         startDate: { type: string, format: date-time, example: "2020-01-01T00:00:00Z" }
- *         position: { type: string, maxLength: 100, example: "Analista" }
- *         department: { type: string, maxLength: 100, example: "Operaciones" }
+ *         positionId: { type: integer, example: 1 }
+ *         departmentId: { type: integer, example: 1 }
  *         salary:
  *           type: string
  *           maxLength: 128
@@ -113,8 +113,8 @@
  *         lastName: { type: string, maxLength: 100, example: "Pérez" }
  *         dni: { type: string, maxLength: 10, example: "12345678" }
  *         email: { type: string, format: email, example: "ana.perez@example.com" }
- *         department: { type: string, maxLength: 100, example: "Operaciones" }
- *         position: { type: string, maxLength: 100, example: "Analista" }
+ *         departmentId: { type: integer, example: 1 }
+ *         positionId: { type: integer, example: 1 }
  *         limit: { type: integer, minimum: 1, example: 20 }
  *         page: { type: integer, minimum: 1, example: 1 }
  *
@@ -129,8 +129,10 @@
  *         email: { type: string, format: email, example: "ana.perez@example.com" }
  *         address: { type: string, maxLength: 120, nullable: true, example: null }
  *         startDate: { type: string, format: date-time, example: "2020-01-01T00:00:00Z" }
- *         position: { type: string, maxLength: 100, example: "Analista" }
- *         department: { type: string, maxLength: 100, example: "Operaciones" }
+ *         positionId: { type: integer, example: 1 }
+ *         departmentId: { type: integer, example: 1 }
+ *         position: { type: string, example: "Analista" }
+ *         department: { type: string, example: "Operaciones" }
  *         salary: { type: string, maxLength: 128, example: "2500.50" }
  *         createdBy: { type: integer, example: 1 }
  *         createdOn: { type: string, format: date-time, example: "2024-03-15T10:30:00Z" }
@@ -141,7 +143,7 @@
  *
  *     BodyEmployeeCreate:
  *       type: object
- *       required: [name, lastName, dni, email, startDate, position, department, salary]
+ *       required: [name, lastName, dni, email, startDate, positionId, departmentId, salary]
  *       properties:
  *         name: { type: string, maxLength: 100, example: "Ana" }
  *         lastName: { type: string, maxLength: 100, example: "Pérez" }
@@ -150,8 +152,8 @@
  *         phone: { type: string, maxLength: 15, example: "+5491122334455" }
  *         address: { type: string, maxLength: 120, example: "Av. Siempre Viva 742" }
  *         startDate: { type: string, format: date-time, example: "2020-01-01T00:00:00Z" }
- *         position: { type: string, maxLength: 100, example: "Analista" }
- *         department: { type: string, maxLength: 100, example: "Operaciones" }
+ *         positionId: { type: integer, minimum: 1, example: 1 }
+ *         departmentId: { type: integer, minimum: 1, example: 1 }
  *         salary: { type: number, minimum: 0, example: 2500.5 }
  *
  *     BodyEmployeeUpdate:
@@ -165,8 +167,8 @@
  *         phone: { type: string, maxLength: 15, example: "+5491122334455" }
  *         address: { type: string, maxLength: 120, example: "Av. Siempre Viva 742" }
  *         startDate: { type: string, format: date-time, example: "2020-01-01T00:00:00Z" }
- *         position: { type: string, maxLength: 100, minLength: 1, example: "Analista" }
- *         department: { type: string, maxLength: 100, minLength: 1, example: "Operaciones" }
+ *         positionId: { type: integer, minimum: 1, example: 1 }
+ *         departmentId: { type: integer, minimum: 1, example: 1 }
  *         salary: { type: number, minimum: 0, example: 2500.5 }
  *
  *     ResponseEmployeeCreateUpdate:
@@ -180,13 +182,88 @@
  *         email: { type: string, format: email, example: "ana.perez@example.com" }
  *         address: { type: string, nullable: true, example: null }
  *         startDate: { type: string, format: date-time, example: "2020-01-01T00:00:00Z" }
- *         position: { type: string, example: "Analista" }
- *         department: { type: string, example: "Operaciones" }
+ *         positionId: { type: integer, example: 1 }
+ *         departmentId: { type: integer, example: 1 }
  *         salary: { type: string, example: "2500.50" }
  *         createdBy: { type: integer, example: 1 }
  *         createdOn: { type: string, format: date-time, example: "2024-03-15T10:30:00Z" }
  *         updatedBy: { type: integer, nullable: true, example: null }
  *         updatedOn: { type: string, format: date-time, nullable: true, example: null }
+ */
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Position:
+ *       type: object
+ *       properties:
+ *         id: { type: integer, example: 1 }
+ *         code: { type: string, maxLength: 20, example: "POS-0001" }
+ *         name: { type: string, maxLength: 100, example: "Analista" }
+ *         active: { type: boolean, example: true }
+ *         createdOn: { type: string, format: date-time, example: "2026-11-27T10:00:00Z" }
+ *         updatedOn: { type: string, format: date-time, nullable: true, example: null }
+ *
+ *     PositionFilters:
+ *       type: object
+ *       properties:
+ *         code: { type: string, maxLength: 20, example: "POS-0001" }
+ *         name: { type: string, maxLength: 100, example: "Analista" }
+ *         active: { type: boolean, example: true }
+ *         limit: { type: integer, minimum: 1, example: 20 }
+ *         page: { type: integer, minimum: 1, example: 1 }
+ *
+ *     BodyPositionCreate:
+ *       type: object
+ *       required: [code, name]
+ *       properties:
+ *         code: { type: string, maxLength: 20, example: "POS-0001" }
+ *         name: { type: string, maxLength: 100, example: "Analista" }
+ *         active: { type: boolean, example: true }
+ *
+ *     BodyPositionUpdate:
+ *       type: object
+ *       description: "PATCH: todos los campos son opcionales."
+ *       properties:
+ *         code: { type: string, maxLength: 20, minLength: 1, example: "POS-0001" }
+ *         name: { type: string, maxLength: 100, minLength: 1, example: "Analista" }
+ *         active: { type: boolean, example: true }
+ *
+ *     Department:
+ *       type: object
+ *       properties:
+ *         id: { type: integer, example: 1 }
+ *         code: { type: string, maxLength: 20, example: "DEP-0001" }
+ *         name: { type: string, maxLength: 100, example: "Operaciones" }
+ *         active: { type: boolean, example: true }
+ *         createdOn: { type: string, format: date-time, example: "2026-11-27T10:00:00Z" }
+ *         updatedOn: { type: string, format: date-time, nullable: true, example: null }
+ *
+ *     DepartmentFilters:
+ *       type: object
+ *       properties:
+ *         code: { type: string, maxLength: 20, example: "DEP-0001" }
+ *         name: { type: string, maxLength: 100, example: "Operaciones" }
+ *         active: { type: boolean, example: true }
+ *         limit: { type: integer, minimum: 1, example: 20 }
+ *         page: { type: integer, minimum: 1, example: 1 }
+ *
+ *     BodyDepartmentCreate:
+ *       type: object
+ *       required: [code, name]
+ *       properties:
+ *         code: { type: string, maxLength: 20, example: "DEP-0001" }
+ *         name: { type: string, maxLength: 100, example: "Operaciones" }
+ *         active: { type: boolean, example: true }
+ *
+ *     BodyDepartmentUpdate:
+ *       type: object
+ *       description: "PATCH: todos los campos son opcionales."
+ *       properties:
+ *         code: { type: string, maxLength: 20, minLength: 1, example: "DEP-0001" }
+ *         name: { type: string, maxLength: 100, minLength: 1, example: "Operaciones" }
+ *         active: { type: boolean, example: true }
  */
 
 /**
@@ -420,7 +497,11 @@
  *         employeeId: { type: integer, minimum: 1, example: 1 }
  *         startDate: { type: string, format: date-time, example: "2024-08-01T00:00:00Z" }
  *         endDate: { type: string, format: date-time, example: "2024-08-15T00:00:00Z" }
- *         status: { type: string, enum: [PENDING, APPROVED, REJECTED], example: PENDING }
+ *         status: { type: string, enum: [PENDING, APPROVED, REJECTED, CANCELLED], example: PENDING }
+ *         reason: { type: string, maxLength: 500, nullable: true, example: "Viaje familiar" }
+ *         comments: { type: string, maxLength: 1000, nullable: true, example: "Aprobado sin observaciones" }
+ *         paid: { type: boolean, default: true, example: true, description: "false = permiso sin goce; se descuenta de la nómina." }
+ *       description: "approvedBy/approvedAt/rejectedBy/rejectedAt son de solo lectura: el servidor los asigna según la transición de status y el cliente que los envíe recibe 400. Al pasar a APPROVED se descuentan los días del saldo (400 si no alcanza); al salir de APPROVED se devuelven."
  *
  *     EventsUpdateSchema:
  *       type: object

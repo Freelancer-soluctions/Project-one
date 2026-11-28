@@ -3404,7 +3404,7 @@
  *         employee:
  *           $ref: '#/components/schemas/Employee'
  *         type: { type: string, enum: [SICK, PERSONAL, MATERNITY, PATERNITY, OTHER], example: SICK }
- *         status: { type: string, enum: [PENDING, APPROVED, REJECTED], example: PENDING }
+ *         status: { type: string, enum: [PENDING, APPROVED, REJECTED, CANCELLED], example: PENDING }
  *         startDate: { type: string, format: date-time, example: "2024-08-01T00:00:00Z" }
  *         endDate: { type: string, format: date-time, example: "2024-08-15T00:00:00Z" }
  */

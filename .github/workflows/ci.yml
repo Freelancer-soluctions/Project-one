@@ -230,6 +230,12 @@ jobs:
       - name: Environment diagnostics (mise doctor)
         run: mise doctor
         shell: bash
+      - name: Workflow audit (no tool invocations outside Mise)
+        # change ci-mise-toolchain-parity, task 2.7: falla si un workflow vuelve a
+        # invocar gitleaks/checkov/hadolint/actionlint/zizmor/semgrep/guarddog
+        # vía docker://, docker run, uvx o una action de herramienta.
+        run: node scripts/ci/toolchain-audit.mjs
+        shell: bash
       - name: Node parity (.nvmrc == mise.toml)
         run: |
           nvmrc="$(tr -d '[:space:]' < .nvmrc)"

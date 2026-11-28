@@ -24,6 +24,7 @@ const STATUS_VARIANTS = {
   PENDING: 'warning',
   APPROVED: 'success',
   REJECTED: 'destructive',
+  CANCELLED: 'secondary',
 };
 
 const getStatusVariant = (status) => STATUS_VARIANTS[status] ?? 'secondary';
@@ -39,7 +40,7 @@ function StatusBadgeCell({ status }) {
   const { t } = useTranslation();
   return (
     <Badge variant={getStatusVariant(status)}>
-      {t(`status.${status}`)} {/* Assuming status translations */}
+      {t(`status_${status}`)} {/* Assuming status translations */}
     </Badge>
   );
 }
@@ -48,7 +49,15 @@ StatusBadgeCell.propTypes = {
   status: PropTypes.string,
 };
 
+/** Plain name cell for approver/rejecter (empty when absent). */
+const buildPlainNameCell = (rowKey) => (info) =>
+  info.row.original[rowKey] ?? null;
+
+/** Paid cell: Yes/No (task 5.3b). */
+const buildPaidCell = (t) => (info) => (info.getValue() ? t('yes') : t('no'));
+
 /** Column definitions for the permissions table. */
+/* eslint-disable max-lines-per-function */
 const buildPermissionColumns = (t) => [
   {
     accessorKey: 'employeeName',
@@ -80,6 +89,15 @@ const buildPermissionColumns = (t) => [
     },
   },
   {
+    accessorKey: 'comments',
+    header: t('comments'),
+  },
+  {
+    accessorKey: 'paid',
+    header: t('paid'),
+    cell: buildPaidCell(t),
+  },
+  {
     accessorKey: 'status',
     header: t('status'),
     cell: (info) => <StatusBadgeCell status={info.getValue()} />,
@@ -87,8 +105,7 @@ const buildPermissionColumns = (t) => [
   {
     accessorKey: 'userPermissionCreatedName',
     header: t('created_by'),
-    // Clave heredada del módulo performance (comportamiento original)
-    cell: buildRowNameCell('userPerformanceCreatedName'),
+    cell: buildRowNameCell('userPermissionCreatedName'),
   },
   {
     accessorKey: 'createdOn',
@@ -96,10 +113,29 @@ const buildPermissionColumns = (t) => [
     cell: buildFormattedDateCell,
   },
   {
+    accessorKey: 'userPermissionApprovedName',
+    header: t('approved_by'),
+    cell: buildPlainNameCell('userPermissionApprovedName'),
+  },
+  {
+    accessorKey: 'approvedAt',
+    header: t('approved_on'),
+    cell: buildFormattedDateCell,
+  },
+  {
+    accessorKey: 'userPermissionRejectedName',
+    header: t('rejected_by'),
+    cell: buildPlainNameCell('userPermissionRejectedName'),
+  },
+  {
+    accessorKey: 'rejectedAt',
+    header: t('rejected_on'),
+    cell: buildFormattedDateCell,
+  },
+  {
     accessorKey: 'userPermissionUpdatedName',
-    header: t('created_by'),
-    // Clave heredada del módulo performance (comportamiento original)
-    cell: buildRowNameCell('userPerformanceUpdatedName'),
+    header: t('updated_by'),
+    cell: buildRowNameCell('userPermissionUpdatedName'),
   },
   {
     accessorKey: 'updatedOn',
@@ -108,6 +144,7 @@ const buildPermissionColumns = (t) => [
   },
 ];
 
+/* eslint-enable max-lines-per-function */
 export const PermissionDatatable = ({
   dataPermissions,
   onEditDialog,

@@ -1,11 +1,14 @@
 import {
   getAllVacation as getAllVacationDao,
   createVacation as createVacationDao,
-  updateVacationById as updateVacationByIdDao,
+  updateVacationWithBalance as updateVacationWithBalanceDao,
+  runVacationAccrual as runVacationAccrualDao,
+  getVacationBalance as getVacationBalanceDao,
   deleteVacationById as deleteVacationByIdDao,
 } from './dao.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
 import type { vacationStatus } from '@prisma/client';
+import { buildApprovalStamps } from '../../utils/approval/approval-stamps.js';
 import type {
   VacationCreateData,
   VacationInput,
@@ -50,13 +53,17 @@ export const getAllVacation = async (filters: VacationsQuery) => {
  * @param {string} data.reason - Reason for the vacation.
  * @returns {Promise<Object>} Created vacation record.
  */
-export const createVacation = async (data: VacationInput) => {
+export const createVacation = async (data: VacationInput, userId?: number) => {
+  // Whitelist explícita: nunca se reenvía el body completo (evita forjar trazabilidad).
   const vacation: VacationCreateData = {
     employeeId: Number(data.employeeId),
     startDate: new Date(data.startDate as Date | string),
     endDate: new Date(data.endDate as Date | string),
     status: data.status as vacationStatus | undefined,
-    createdBy: data.createdBy,
+    reason: data.reason,
+    comments: data.comments,
+    paid: data.paid,
+    createdBy: userId,
     createdOn: new Date(),
   };
   return await createVacationDao(vacation);
@@ -89,15 +96,51 @@ export const deleteVacationById = async (id: number | string) => {
  */
 export const patchVacationById = async (
   id: number | string,
-  data: VacationInput
+  data: VacationInput,
+  userId?: number
 ) => {
-  const vacation: VacationUpdateData & { updatedOn?: Date } = {
-    ...data,
+  // Whitelist explícita (sin spread de `data`): approvedBy/rejectedBy/createdBy
+  // nunca llegan a la DAO desde el body; updatedBy siempre viene del token.
+  const vacation: VacationUpdateData = {
+    employeeId: data.employeeId,
     startDate: data.startDate
       ? new Date(data.startDate as Date | string)
       : undefined,
     endDate: data.endDate ? new Date(data.endDate as Date | string) : undefined,
+    status: data.status as vacationStatus | undefined,
+    reason: data.reason,
+    comments: data.comments,
+    paid: data.paid,
+    ...buildApprovalStamps(data.status, userId),
+    updatedBy: userId,
     updatedOn: new Date(),
   };
-  return await updateVacationByIdDao(Number(id), vacation);
+  return await updateVacationWithBalanceDao(Number(id), vacation);
+};
+
+/**
+ * Dispara el devengo mensual manual (RN-VP-013). Valida el periodo YYYY-MM.
+ *
+ * @param {string} period - Periodo YYYY-MM.
+ * @param {number} userId - Usuario autenticado.
+ */
+export const runVacationAccrual = async (period: string, userId: number) => {
+  return await runVacationAccrualDao(period, userId);
+};
+
+/**
+ * Saldo del empleado para el año; si no existe, todo a cero.
+ *
+ * @param {number} employeeId - Empleado.
+ * @param {number} year - Año.
+ */
+export const getVacationBalance = async (employeeId: number, year: number) => {
+  const row = await getVacationBalanceDao(employeeId, year);
+  return {
+    employeeId,
+    year,
+    accrued: Number(row?.accrued ?? 0),
+    used: Number(row?.used ?? 0),
+    remaining: Number(row?.remaining ?? 0),
+  };
 };

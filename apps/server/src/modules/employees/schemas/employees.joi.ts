@@ -5,8 +5,8 @@ export const employeeFiltersSchema = Joi.object({
   lastName: Joi.string().max(100).allow(''),
   dni: Joi.string().max(10).allow(''),
   email: Joi.string().email().allow(''),
-  department: Joi.string().max(100).allow(''),
-  position: Joi.string().max(100).allow(''),
+  departmentId: Joi.number().integer().positive(),
+  positionId: Joi.number().integer().positive(),
   limit: Joi.number().integer(),
   page: Joi.number().integer(),
 });
@@ -19,8 +19,8 @@ export const employeeCreateSchema = Joi.object({
   phone: Joi.string().max(15).allow(''),
   address: Joi.string().max(120).allow(''),
   startDate: Joi.date().required(),
-  position: Joi.string().max(100).required(),
-  department: Joi.string().max(100).required(),
+  positionId: Joi.number().integer().positive().required(),
+  departmentId: Joi.number().integer().positive().required(),
   salary: Joi.number().precision(2).positive().required(),
 });
 
@@ -32,7 +32,7 @@ export const employeeUpdateSchema = Joi.object({
   phone: Joi.string().max(15).optional().min(1),
   address: Joi.string().max(120).optional().min(1),
   startDate: Joi.date().optional(),
-  position: Joi.string().max(100).optional().min(1),
-  department: Joi.string().max(100).optional().min(1),
+  positionId: Joi.number().integer().positive().optional(),
+  departmentId: Joi.number().integer().positive().optional(),
   salary: Joi.number().precision(2).positive().optional(),
 });

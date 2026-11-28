@@ -9,7 +9,7 @@ const vacationApi = createApi({
   baseQuery: axiosPrivateBaseQuery({
     baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
   }),
-  tagTypes: ['Vacation'],
+  tagTypes: ['Vacation', 'VacationBalance', 'ApprovalAccess'],
   keepUnusedDataFor: 300, // 5 minutos
   endpoints: (builder) => ({
     getAllVacations: builder.query({
@@ -20,12 +20,25 @@ const vacationApi = createApi({
       providesTags: ['Vacation'],
     }),
 
+    getVacationBalance: builder.query({
+      query: ({ employeeId, year }) => ({
+        url: '/vacation/balance',
+        params: { employeeId, year },
+      }),
+      providesTags: ['VacationBalance'],
+    }),
+
+    getApprovalAccess: builder.query({
+      query: () => '/vacation/approval-access',
+      providesTags: ['ApprovalAccess'],
+    }),
+
     deleteVacationById: builder.mutation({
       query: (id) => ({
         url: `/vacation/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Vacation'],
+      invalidatesTags: ['Vacation', 'VacationBalance'],
     }),
 
     createVacation: builder.mutation({
@@ -34,7 +47,7 @@ const vacationApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['Vacation'],
+      invalidatesTags: ['Vacation', 'VacationBalance'],
     }),
 
     updateVacationById: builder.mutation({
@@ -43,7 +56,7 @@ const vacationApi = createApi({
         method: 'PATCH',
         body: data,
       }),
-      invalidatesTags: ['Vacation'],
+      invalidatesTags: ['Vacation', 'VacationBalance'],
     }),
   }),
 });
@@ -55,6 +68,8 @@ export const {
   useUpdateVacationByIdMutation,
   useCreateVacationMutation,
   useDeleteVacationByIdMutation,
+  useGetVacationBalanceQuery,
+  useGetApprovalAccessQuery,
 } = vacationApi;
 
 export default vacationApi;

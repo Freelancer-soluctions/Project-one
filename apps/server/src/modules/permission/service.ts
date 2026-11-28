@@ -7,12 +7,14 @@ import {
 import type {
   CreateEmployeePermissionData,
   CreateEmployeePermissionInput,
+  UpdateEmployeePermissionData,
   EmployeePermission,
   EmployeePermissionFilters,
   EmployeePermissionServiceResult,
   UpdateEmployeePermissionInput,
 } from './types.js';
 import { getSafePagination } from '../../utils/pagination/pagination.js';
+import { buildApprovalStamps } from '../../utils/approval/approval-stamps.js';
 
 /**
  * Retrieve all permissions with optional filters.
@@ -60,13 +62,20 @@ export const createPermission = async (
 ): Promise<EmployeePermission> => {
   // El objeto se declara con el payload de persistencia: el service normaliza el
   // empleado, los timestamps y el autor antes de llegar al dao.
+  // Whitelist explícita (sin spread del body): los campos de aprobación nunca se
+  // persisten desde el cliente; el autor llega del token.
   const permissionData: CreateEmployeePermissionData = {
-    ...data,
     employeeId: Number(data.employeeId),
+    type: data.type,
+    startDate: new Date(data.startDate),
+    endDate: new Date(data.endDate),
+    reason: data.reason,
+    comments: data.comments,
+    paid: data.paid,
+    status: data.status,
     createdOn: new Date(),
-    fromDate: new Date(data.fromDate!),
-    toDate: new Date(data.toDate!),
     createdBy: userId,
+    ...buildApprovalStamps(data.status, userId),
   };
   return await createPermissionDao(permissionData);
 };
@@ -92,12 +101,19 @@ export const updatePermissionById = async (
   data: UpdateEmployeePermissionInput,
   userId?: number
 ): Promise<EmployeePermission> => {
-  const permissionData = {
-    ...data,
-    employeeId: Number(data.employeeId),
+  // Whitelist explícita (sin spread del body): updatedBy siempre viene del token.
+  const permissionData: UpdateEmployeePermissionData = {
+    employeeId:
+      data.employeeId !== undefined ? Number(data.employeeId) : undefined,
+    type: data.type,
+    startDate: data.startDate ? new Date(data.startDate) : undefined,
+    endDate: data.endDate ? new Date(data.endDate) : undefined,
+    reason: data.reason,
+    comments: data.comments,
+    paid: data.paid,
+    status: data.status,
     updatedOn: new Date(),
-    fromDate: new Date(data.fromDate!),
-    toDate: new Date(data.toDate!),
+    ...buildApprovalStamps(data.status, userId),
     updatedBy: userId,
   };
   return await updatePermissionByIdDao(id, permissionData);

@@ -83,6 +83,14 @@ const permissions = [
     description: 'Puede editar solicitudes de vacaciones',
   },
   { code: 'canViewPermission', description: 'Puede ver permisos' },
+  {
+    code: 'canApproveVacation',
+    description: 'Puede aprobar o rechazar vacaciones',
+  },
+  {
+    code: 'canApprovePermission',
+    description: 'Puede aprobar o rechazar permisos',
+  },
   { code: 'canEditPermission', description: 'Puede editar permisos' },
   { code: 'canDeletePermission', description: 'Puede eliminar permisos' },
   { code: 'canCreatePermission', description: 'Puede crear permisos' },

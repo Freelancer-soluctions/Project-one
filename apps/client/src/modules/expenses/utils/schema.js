@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { getZodMessage } from '@/utils/zod-i18n-map';
+import { getZodErrorMessage, getZodMessage } from '@/utils/zod-i18n-map';
 
 export const ExpenseSchema = z
   .object({
     description: z.string().min(1, {
-      message: getZodMessage('zod.expenses.description.empty'),
+      error: getZodErrorMessage('zod.expenses.description.empty'),
     }),
     total: z.preprocess(
       (val) =>
@@ -13,15 +13,19 @@ export const ExpenseSchema = z
           : parseFloat(String(val)),
       z
         .number({
-          required_error: getZodMessage('zod.expenses.total.required'),
-          invalid_type_error: getZodMessage('zod.expenses.total.invalid'),
+          // zod v4: un solo `error` para todos los issues del tipo; se
+          // distingue el campo vacío del valor no numérico.
+          error: (issue) =>
+            issue.input === undefined
+              ? getZodMessage('zod.expenses.total.required')
+              : getZodMessage('zod.expenses.total.invalid'),
         })
         .positive({
-          message: getZodMessage('zod.expenses.total.positive'),
+          error: getZodErrorMessage('zod.expenses.total.positive'),
         })
     ),
     category: z.string().min(1, {
-      message: getZodMessage('zod.expenses.category.empty'),
+      error: getZodErrorMessage('zod.expenses.category.empty'),
     }),
   })
   .passthrough(); // Allows other fields not explicitly defined in the schema

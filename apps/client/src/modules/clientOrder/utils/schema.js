@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getZodMessage } from '@/utils/zod-i18n-map';
+import { getZodErrorMessage } from '@/utils/zod-i18n-map';
 
 /**
  * Client order form schema. Money arrives as Decimal strings from the API but
@@ -26,28 +26,28 @@ const requiredNumber = (message) =>
       value === '' || value === null || value === undefined
         ? undefined
         : Number(value),
-    z.number({ required_error: message })
+    z.number({ error: message })
   );
 
 const requiredMoney = () =>
-  requiredNumber(getZodMessage('zod.clientOrder.unitPrice.required'))
+  requiredNumber(getZodErrorMessage('zod.clientOrder.unitPrice.required'))
     .refine((value) => value >= 0, {
-      message: getZodMessage('zod.clientOrder.unitPrice.invalid'),
+      error: getZodErrorMessage('zod.clientOrder.unitPrice.invalid'),
     })
     .refine(hasAtMostTwoDecimals, {
-      message: getZodMessage('zod.clientOrder.unitPrice.invalid'),
+      error: getZodErrorMessage('zod.clientOrder.unitPrice.invalid'),
     });
 
 export const ClientOrderDetailSchema = z.object({
   productId: requiredNumber(
-    getZodMessage('zod.clientOrder.details.productId.required')
+    getZodErrorMessage('zod.clientOrder.details.productId.required')
   ).refine((value) => Number.isInteger(value) && value > 0, {
-    message: getZodMessage('zod.clientOrder.details.productId.required'),
+    error: getZodErrorMessage('zod.clientOrder.details.productId.required'),
   }),
   quantity: requiredNumber(
-    getZodMessage('zod.clientOrder.details.quantity.required')
+    getZodErrorMessage('zod.clientOrder.details.quantity.required')
   ).refine((value) => Number.isInteger(value) && value >= 1, {
-    message: getZodMessage('zod.clientOrder.details.quantity.min'),
+    error: getZodErrorMessage('zod.clientOrder.details.quantity.min'),
   }),
   unitPrice: requiredMoney(),
 });
@@ -55,15 +55,15 @@ export const ClientOrderDetailSchema = z.object({
 export const ClientOrderSchema = z
   .object({
     clientId: requiredNumber(
-      getZodMessage('zod.clientOrder.clientId.empty')
+      getZodErrorMessage('zod.clientOrder.clientId.empty')
     ).refine((value) => Number.isInteger(value) && value > 0, {
-      message: getZodMessage('zod.clientOrder.clientId.empty'),
+      error: getZodErrorMessage('zod.clientOrder.clientId.empty'),
     }),
     status: z.enum(ORDER_STATUSES).optional(),
     notes: z.string().max(500).optional(),
     expectedDeliveryDate: z.string().optional(),
     details: z.array(ClientOrderDetailSchema).min(1, {
-      message: getZodMessage('zod.clientOrder.details.min'),
+      error: getZodErrorMessage('zod.clientOrder.details.min'),
     }),
   })
   .strict();

@@ -165,7 +165,7 @@ exports[`VacationDatatable - UI snapshot > renders each column header with its f
     role="button"
     tabindex="0"
   >
-    Created by
+    Reason
     <svg
       class="inline-block"
       fill="none"
@@ -204,7 +204,7 @@ exports[`VacationDatatable - UI snapshot > renders each column header with its f
     role="button"
     tabindex="0"
   >
-    Created on
+    Comments
     <svg
       class="inline-block"
       fill="none"
@@ -243,7 +243,7 @@ exports[`VacationDatatable - UI snapshot > renders each column header with its f
     role="button"
     tabindex="0"
   >
-    Created by
+    Paid
     <svg
       class="inline-block"
       fill="none"
@@ -274,6 +274,279 @@ exports[`VacationDatatable - UI snapshot > renders each column header with its f
 `;
 
 exports[`VacationDatatable - UI snapshot > renders each column header with its filter > column header 8 with sort and filter 1`] = `
+<th
+  class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
+>
+  <div
+    class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
+  >
+    Created by
+    <svg
+      class="inline-block"
+      fill="none"
+      height="15"
+      viewBox="0 0 15 15"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+  </div>
+  <div
+    class="pt-2 "
+  >
+    <input
+      class="flex h-9 border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full border rounded shadow"
+      placeholder="Search..."
+      type="text"
+      value=""
+    />
+  </div>
+</th>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each column header with its filter > column header 9 with sort and filter 1`] = `
+<th
+  class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
+>
+  <div
+    class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
+  >
+    Created on
+    <svg
+      class="inline-block"
+      fill="none"
+      height="15"
+      viewBox="0 0 15 15"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+  </div>
+  <div
+    class="pt-2 "
+  >
+    <input
+      class="flex h-9 border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full border rounded shadow"
+      placeholder="Search..."
+      type="text"
+      value=""
+    />
+  </div>
+</th>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each column header with its filter > column header 10 with sort and filter 1`] = `
+<th
+  class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
+>
+  <div
+    class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
+  >
+    Approved by
+    <svg
+      class="inline-block"
+      fill="none"
+      height="15"
+      viewBox="0 0 15 15"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+  </div>
+  <div
+    class="pt-2 "
+  >
+    <input
+      class="flex h-9 border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full border rounded shadow"
+      placeholder="Search..."
+      type="text"
+      value=""
+    />
+  </div>
+</th>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each column header with its filter > column header 11 with sort and filter 1`] = `
+<th
+  class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
+>
+  <div
+    class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
+  >
+    Approved on
+    <svg
+      class="inline-block"
+      fill="none"
+      height="15"
+      viewBox="0 0 15 15"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+  </div>
+  <div
+    class="pt-2 "
+  >
+    <input
+      class="flex h-9 border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full border rounded shadow"
+      placeholder="Search..."
+      type="text"
+      value=""
+    />
+  </div>
+</th>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each column header with its filter > column header 12 with sort and filter 1`] = `
+<th
+  class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
+>
+  <div
+    class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
+  >
+    Rejected by
+    <svg
+      class="inline-block"
+      fill="none"
+      height="15"
+      viewBox="0 0 15 15"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+  </div>
+  <div
+    class="pt-2 "
+  >
+    <input
+      class="flex h-9 border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full border rounded shadow"
+      placeholder="Search..."
+      type="text"
+      value=""
+    />
+  </div>
+</th>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each column header with its filter > column header 13 with sort and filter 1`] = `
+<th
+  class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
+>
+  <div
+    class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
+  >
+    Rejected on
+    <svg
+      class="inline-block"
+      fill="none"
+      height="15"
+      viewBox="0 0 15 15"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+  </div>
+  <div
+    class="pt-2 "
+  >
+    <input
+      class="flex h-9 border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full border rounded shadow"
+      placeholder="Search..."
+      type="text"
+      value=""
+    />
+  </div>
+</th>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each column header with its filter > column header 14 with sort and filter 1`] = `
+<th
+  class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
+>
+  <div
+    class="cursor-pointer select-none text-center"
+    role="button"
+    tabindex="0"
+  >
+    Updated by
+    <svg
+      class="inline-block"
+      fill="none"
+      height="15"
+      viewBox="0 0 15 15"
+      width="15"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        clip-rule="evenodd"
+        d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z"
+        fill="currentColor"
+        fill-rule="evenodd"
+      />
+    </svg>
+  </div>
+  <div
+    class="pt-2 "
+  >
+    <input
+      class="flex h-9 border-input bg-transparent px-3 py-1 text-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 w-full border rounded shadow"
+      placeholder="Search..."
+      type="text"
+      value=""
+    />
+  </div>
+</th>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each column header with its filter > column header 15 with sort and filter 1`] = `
 <th
   class="h-10 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-3 border"
 >
@@ -360,9 +633,9 @@ exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fix
     data-state="closed"
   >
     <div
-      class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80"
+      class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
     >
-      status.approved
+      Approved
        
     </div>
   </div>
@@ -376,11 +649,52 @@ exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fix
   <div
     class="truncate"
     data-state="closed"
-  />
+  >
+    Family trip
+  </div>
 </td>
 `;
 
 exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 6 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    Approved without notes
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 7 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    Yes
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 8 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    OLIVER OPS
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 9 1`] = `
 <td
   class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
@@ -393,7 +707,33 @@ exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fix
 </td>
 `;
 
-exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 7 1`] = `
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 10 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    Oliver Ops
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 11 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 5th, 2026
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 12 1`] = `
 <td
   class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
@@ -404,7 +744,31 @@ exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fix
 </td>
 `;
 
-exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 8 1`] = `
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 13 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 14 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    OLIVER OPS
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 1 cell 15 1`] = `
 <td
   class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
@@ -465,9 +829,9 @@ exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fix
     data-state="closed"
   >
     <div
-      class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80"
+      class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
     >
-      status.pending
+      Pending
        
     </div>
   </div>
@@ -481,11 +845,50 @@ exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fix
   <div
     class="truncate"
     data-state="closed"
-  />
+  >
+    Medical appointment
+  </div>
 </td>
 `;
 
 exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 6 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 7 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    No
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 8 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    IVY INSPECTOR
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 9 1`] = `
 <td
   class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
@@ -498,7 +901,7 @@ exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fix
 </td>
 `;
 
-exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 7 1`] = `
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 10 1`] = `
 <td
   class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
@@ -509,7 +912,51 @@ exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fix
 </td>
 `;
 
-exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 8 1`] = `
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 11 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 12 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 13 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 14 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 2 cell 15 1`] = `
 <td
   class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
@@ -568,9 +1015,9 @@ exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fix
     data-state="closed"
   >
     <div
-      class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80"
+      class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80"
     >
-      status.rejected
+      Rejected
        
     </div>
   </div>
@@ -584,11 +1031,52 @@ exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fix
   <div
     class="truncate"
     data-state="closed"
-  />
+  >
+    Personal matters
+  </div>
 </td>
 `;
 
 exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 6 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    Overlaps another request
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 7 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    Yes
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 8 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    OLIVER OPS
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 9 1`] = `
 <td
   class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
@@ -601,7 +1089,7 @@ exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fix
 </td>
 `;
 
-exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 7 1`] = `
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 10 1`] = `
 <td
   class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >
@@ -612,7 +1100,57 @@ exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fix
 </td>
 `;
 
-exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 8 1`] = `
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 11 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  />
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 12 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    Ivy Inspector
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 13 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    January 8th, 2026
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 14 1`] = `
+<td
+  class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
+>
+  <div
+    class="truncate"
+    data-state="closed"
+  >
+    IVY INSPECTOR
+  </div>
+</td>
+`;
+
+exports[`VacationDatatable - UI snapshot > renders each frozen fixture row > fixture row 3 cell 15 1`] = `
 <td
   class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-2 text-center border cursor-pointer select-none"
 >

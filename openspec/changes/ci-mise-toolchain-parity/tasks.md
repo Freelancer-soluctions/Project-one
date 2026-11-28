@@ -3,7 +3,7 @@
 ## 1. Toolchain declaration
 
 - [x] 1.1 Create `mise.toml` in repo root with node/python/uv and lint/security tools (aqua + pipx). Align Node/Python scope with design Non-Goals: declare Node for parity but keep `.nvmrc` as SSOT during migration.
-- [ ] 1.2 Generate `mise.lock` with `mise lock --platform linux-x64,linux-arm64,macos-x64,macos-arm64,windows-x64`
+- [x] 1.2 Generate `mise.lock` with `mise lock --platform linux-x64,linux-arm64,macos-x64,macos-arm64,windows-x64`
 - [ ] 1.3 Commit `mise.lock` and verify with `mise install --locked` on Windows + Linux
 - [x] 1.4 Mark `.tool-versions` as deprecated (add header comment pointing to `mise.toml`)
 - [x] 1.5 Reconcile hard-coded version constants in `scripts/sast-diff.mjs`, `scripts/guarddog-verify.sh`, `security/semgrep.ps1` with `mise.toml`

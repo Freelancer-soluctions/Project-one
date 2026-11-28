@@ -20,6 +20,7 @@ const globalTags = [
     description: 'Órdenes de cliente y conversión a venta',
   },
   { name: 'Clients', description: 'Clientes' },
+  { name: 'Departments', description: 'Catálogo de departamentos' },
   { name: 'Employees', description: 'Empleados' },
   { name: 'Events', description: 'Eventos y asistentes' },
   { name: 'Expenses', description: 'Gastos operativos' },
@@ -31,6 +32,7 @@ const globalTags = [
     description: 'Evaluaciones de desempeño',
   },
   { name: 'Permissions', description: 'Permisos y licencias' },
+  { name: 'Positions', description: 'Catálogo de puestos de trabajo' },
   {
     name: 'ProviderOrders',
     description: 'Órdenes a proveedores y conversión a compra',

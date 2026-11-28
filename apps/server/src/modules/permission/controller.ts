@@ -90,7 +90,8 @@ export const patchPermissionById = handleCatchErrorAsync(async (req, res) => {
   // Cast único del body validado por Joi
   const permission = await patchPermissionByIdService(
     numericId,
-    req.body as UpdateEmployeePermissionInput
+    req.body as UpdateEmployeePermissionInput,
+    req.userId as number
   );
   return globalResponse(res, 200, permission);
 });

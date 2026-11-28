@@ -32,6 +32,7 @@ import {
   LuFile,
   LuBackpack,
   LuClipboard,
+  LuBriefcase,
 } from 'react-icons/lu';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';
@@ -167,6 +168,12 @@ const MODULES_ROW_3 = [
     titleKey: 'permission',
     msgKey: 'permission_card_msg',
     Icon: LuClipboard,
+  },
+  {
+    to: 'employeeCatalogs',
+    titleKey: 'employee_catalogs',
+    msgKey: 'employee_catalogs_card_msg',
+    Icon: LuBriefcase,
   },
 ];
 

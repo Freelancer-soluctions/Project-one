@@ -133,7 +133,7 @@ function FilterStatusSelectField({ control }) {
             <SelectContent>
               {PERMISSION_STATUS.map((status) => (
                 <SelectItem key={status} value={status}>
-                  {t(`status.${status}`)}
+                  {t(`status_${status}`)}
                 </SelectItem>
               ))}
             </SelectContent>

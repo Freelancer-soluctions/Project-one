@@ -10,6 +10,11 @@ on:
 permissions:
   contents: read
 
+# Mise = SSOT del toolchain (change ci-mise-toolchain-parity). MISE_LOCKED=1:
+# toda resolución de herramientas va contra mise.lock.
+env:
+  MISE_LOCKED: '1'
+
 concurrency:
   group: release
   cancel-in-progress: false
@@ -40,14 +45,28 @@ jobs:
           fi
         shell: bash
 
+      # Cache de downloads-cas (NO installs — design D4) + toolchain locked
+      # (change ci-mise-toolchain-parity). Gitleaks ya no se ejecuta vía
+      # docker://: el binario lo resuelve mise (pin en mise.toml/mise.lock).
+      - name: Cache mise downloads-cas
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/mise/downloads-cas
+          key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
+      - name: Setup Mise toolchain (locked)
+        uses: jdx/mise-action@924e7c586e33d7d4bae9c14e26c5d22e2beb6e78 # v5.3.0
+        with:
+          cache: false # el cache interno cubre installs; D4 exige downloads-cas
+          install_args: --locked
+
       # `--redact` evita volcar el valor en los logs; los hallazgos fallan el job
       # (exit 1) y, por el `needs`, también el release.
       - name: Gitleaks full-history scan (fail on findings)
-        uses: docker://zricethezav/gitleaks:v8.30.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: git --log-opts="--all" --redact --verbose
+        run: |
+          mise exec -- gitleaks git --log-opts="--all" --redact --verbose
+        shell: bash
 
       # Misma capa de verificación que `security.yml` (change `ci-shifting-left` A6):
       # solo falla con secretos VERIFICADOS (exit 183 con `--fail`).
