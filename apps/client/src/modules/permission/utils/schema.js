@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getZodMessage } from '@/utils/zod-i18n-map';
+import { getZodErrorMessage } from '@/utils/zod-i18n-map';
 
 // Define enums based on your backend Joi schemas or Prisma enums
 const PermissionTypeEnum = z.enum([
@@ -9,7 +9,12 @@ const PermissionTypeEnum = z.enum([
   'PATERNITY',
   'OTHER',
 ]);
-const PermissionStatusEnum = z.enum(['PENDING', 'APPROVED', 'REJECTED']);
+const PermissionStatusEnum = z.enum([
+  'PENDING',
+  'APPROVED',
+  'REJECTED',
+  'CANCELLED',
+]);
 
 export const PermissionSchema = z
   .object({
@@ -17,31 +22,38 @@ export const PermissionSchema = z
       (val) => (val === '' ? undefined : Number(val)),
       z
         .number({
-          required_error: getZodMessage('zod.permission.employeeId.required'),
+          error: getZodErrorMessage('zod.permission.employeeId.required'),
         })
         .int()
-        .positive(getZodMessage('zod.permission.employeeId.positive'))
+        .positive({
+          error: getZodErrorMessage('zod.permission.employeeId.positive'),
+        })
     ),
     type: PermissionTypeEnum.refine((val) => val !== undefined, {
-      message: getZodMessage('zod.permission.type.required'),
+      error: getZodErrorMessage('zod.permission.type.required'),
     }),
     startDate: z.date({
-      required_error: getZodMessage('zod.permission.startDate.required'),
+      error: getZodErrorMessage('zod.permission.startDate.required'),
     }),
     endDate: z.date({
-      required_error: getZodMessage('zod.permission.endDate.required'),
+      error: getZodErrorMessage('zod.permission.endDate.required'),
     }),
     reason: z
       .string()
-      .min(1, getZodMessage('zod.permission.reason.empty'))
-      .max(500, getZodMessage('zod.permission.reason.maxLength')),
+      .min(1, { error: getZodErrorMessage('zod.permission.reason.empty') })
+      .max(500, {
+        error: getZodErrorMessage('zod.permission.reason.maxLength'),
+      }),
     status: PermissionStatusEnum.default('PENDING'), // Default to PENDING
     // approvedBy: z.number().int().optional(), // Not typically set via form
     // approvedAt: z.date().optional(), // Not typically set via form
     comments: z
       .string()
-      .max(1000, getZodMessage('zod.permission.comments.maxLength'))
+      .max(1000, {
+        error: getZodErrorMessage('zod.permission.comments.maxLength'),
+      })
       .optional(),
+    paid: z.boolean().default(true),
   })
 
   .passthrough(); // Allows other fields not defined in the schema

@@ -21,6 +21,7 @@ const STATUS_VARIANTS = {
   PENDING: 'warning',
   APPROVED: 'success',
   REJECTED: 'destructive',
+  CANCELLED: 'secondary',
 };
 
 const getStatusVariant = (status) => STATUS_VARIANTS[status] ?? 'secondary';
@@ -30,7 +31,7 @@ function StatusBadgeCell({ status }) {
   const { t } = useTranslation();
   return (
     <Badge variant={getStatusVariant(status)}>
-      {t(`status.${status}`)} {/* Assuming status translations */}
+      {t(`status_${status}`)} {/* Assuming status translations */}
     </Badge>
   );
 }
@@ -44,6 +45,13 @@ const buildEmployeeCell = (info) => {
   const employee = info.getValue();
   return employee ? `${employee.name} ${employee.lastName}` : '';
 };
+
+/** Cell renderer for the approver/rejecter name columns (empty when absent). */
+const buildPlainNameCell = (rowKey) => (info) =>
+  info.row.original[rowKey] ?? null;
+
+/** Cell renderer for boolean "paid" (task 5.3a). */
+const buildPaidCell = (t) => (info) => (info.getValue() ? t('yes') : t('no'));
 
 /** Column definitions for the vacations table. */
 const buildVacationColumns = (t) => [
@@ -68,10 +76,22 @@ const buildVacationColumns = (t) => [
     cell: (info) => <StatusBadgeCell status={info.getValue()} />,
   },
   {
+    accessorKey: 'reason',
+    header: t('reason'),
+  },
+  {
+    accessorKey: 'comments',
+    header: t('comments'),
+  },
+  {
+    accessorKey: 'paid',
+    header: t('paid'),
+    cell: buildPaidCell(t),
+  },
+  {
     accessorKey: 'userVacationCreatedName',
     header: t('created_by'),
-    // Clave heredada del módulo performance (comportamiento original)
-    cell: buildRowNameCell('userPerformanceCreatedName'),
+    cell: buildRowNameCell('userVacationCreatedName'),
   },
   {
     accessorKey: 'createdOn',
@@ -79,10 +99,29 @@ const buildVacationColumns = (t) => [
     cell: buildFormattedDateCell,
   },
   {
+    accessorKey: 'userVacationApprovedName',
+    header: t('approved_by'),
+    cell: buildPlainNameCell('userVacationApprovedName'),
+  },
+  {
+    accessorKey: 'approvedAt',
+    header: t('approved_on'),
+    cell: buildFormattedDateCell,
+  },
+  {
+    accessorKey: 'userVacationRejectedName',
+    header: t('rejected_by'),
+    cell: buildPlainNameCell('userVacationRejectedName'),
+  },
+  {
+    accessorKey: 'rejectedAt',
+    header: t('rejected_on'),
+    cell: buildFormattedDateCell,
+  },
+  {
     accessorKey: 'userVacationUpdatedName',
-    header: t('created_by'),
-    // Clave heredada del módulo performance (comportamiento original)
-    cell: buildRowNameCell('userPerformanceUpdatedName'),
+    header: t('updated_by'),
+    cell: buildRowNameCell('userVacationUpdatedName'),
   },
   {
     accessorKey: 'updatedOn',

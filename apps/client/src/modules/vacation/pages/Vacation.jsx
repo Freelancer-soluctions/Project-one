@@ -11,6 +11,7 @@ import {
   useUpdateVacationByIdMutation,
   useCreateVacationMutation,
   useDeleteVacationByIdMutation,
+  useGetApprovalAccessQuery,
 } from '../api/vacationApi'; // Adjusted import path
 import { useGetAllEmployeesFiltersQuery } from '@/modules/employees/api/employeesApi'; // Import employee query
 
@@ -198,6 +199,9 @@ function useVacationPageState() {
     isFetching: isFetchingEmployees,
   } = useGetAllEmployeesFiltersQuery();
 
+  // Capacidad de aprobar (RBAC del servidor); habilita las transiciones de estado (task 5.4b).
+  const { data: approvalAccess } = useGetApprovalAccessQuery();
+
   const [
     triggerVacations,
     {
@@ -254,6 +258,7 @@ function useVacationPageState() {
     setFilters,
     dataVacations,
     dataEmployees,
+    approvalAccess,
     isLoadingPage,
     updateVacationById,
     createVacation,
@@ -302,6 +307,7 @@ const buildVacationLayout = ({
           onSubmit={saveHandler}
           onDeleteById={deleteHandler}
           actionDialog={page.actionDialog}
+          canApprove={Boolean(page.approvalAccess?.data?.canApproveVacation)}
           dataEmployees={page.dataEmployees.data} // Pass employee data
         />
 

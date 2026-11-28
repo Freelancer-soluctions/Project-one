@@ -3,9 +3,12 @@ import { useForm } from 'react-hook-form';
 import { pickDirty } from '@/utils/pickDirty';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
+import { format, differenceInCalendarDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import PropTypes from 'prop-types';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { useGetVacationBalanceQuery } from '../api/vacationApi';
 
 import { VacationSchema, VACATION_STATUS } from '../utils'; // Import schema
 
@@ -54,6 +57,13 @@ const mapRowToFormValues = (row) => ({
   updatedOn: row.updatedOn,
   userVacationCreatedName: row.userVacationCreatedName,
   userVacationUpdatedName: row.userVacationUpdatedName,
+  reason: row.reason ?? '',
+  comments: row.comments ?? '',
+  paid: row.paid ?? true,
+  approvedOn: row.approvedAt,
+  rejectedOn: row.rejectedAt,
+  userVacationApprovedName: row.userVacationApprovedName,
+  userVacationRejectedName: row.userVacationRejectedName,
 });
 
 const EMPTY_FORM_VALUES = {
@@ -61,6 +71,9 @@ const EMPTY_FORM_VALUES = {
   startDate: null,
   endDate: null,
   status: 'PENDING',
+  reason: '',
+  comments: '',
+  paid: true,
 };
 
 /** Converts form dates to ISO strings for submission. */
@@ -110,7 +123,7 @@ VacationEmployeeField.propTypes = {
 };
 
 /** Status select field. */
-function VacationStatusField({ control }) {
+function VacationStatusField({ control, canApprove }) {
   const { t } = useTranslation();
   return (
     <FormField
@@ -122,7 +135,7 @@ function VacationStatusField({ control }) {
           <Select
             onValueChange={field.onChange}
             value={field.value ?? 'PENDING'}
-            // Consider disabling if not admin/manager
+            disabled={!canApprove}
           >
             <FormControl>
               <SelectTrigger>
@@ -132,7 +145,7 @@ function VacationStatusField({ control }) {
             <SelectContent>
               {VACATION_STATUS.map((status) => (
                 <SelectItem key={status} value={status}>
-                  {t(`status.${status}`)}{' '}
+                  {t(`status_${status}`)}{' '}
                   {/* Assumes translations like status.PENDING */}
                 </SelectItem>
               ))}
@@ -146,6 +159,7 @@ function VacationStatusField({ control }) {
 }
 
 VacationStatusField.propTypes = {
+  canApprove: PropTypes.bool,
   control: PropTypes.object.isRequired,
 };
 
@@ -292,6 +306,96 @@ VacationReadonlyDateField.propTypes = {
   labelKey: PropTypes.string.isRequired,
 };
 
+/** Reason (requester), comments (approver) and paid toggle (task 5.1a). */
+function VacationDetailFields({ control }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <FormField
+        control={control}
+        name="reason"
+        render={({ field }) => (
+          <FormItem className="col-span-2">
+            <FormLabel htmlFor="reason">{t('reason')}</FormLabel>
+            <FormControl>
+              <Input
+                id="reason"
+                maxLength={500}
+                {...field}
+                value={field.value ?? ''}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
+        name="comments"
+        render={({ field }) => (
+          <FormItem className="col-span-2">
+            <FormLabel htmlFor="comments">{t('comments')}</FormLabel>
+            <FormControl>
+              <Textarea
+                id="comments"
+                maxLength={1000}
+                {...field}
+                value={field.value ?? ''}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
+        name="paid"
+        render={({ field }) => (
+          <FormItem className="flex items-center justify-between col-span-2">
+            <FormLabel htmlFor="paid">{t('paid')}</FormLabel>
+            <FormControl>
+              <Switch
+                id="paid"
+                checked={Boolean(field.value)}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+    </>
+  );
+}
+
+VacationDetailFields.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
+/** Balance summary + insufficient-balance hint (task 5.4b). */
+function VacationBalanceInfo({ balance, insufficient }) {
+  const { t } = useTranslation();
+  if (!balance) return null;
+  return (
+    <div className="col-span-2 text-sm">
+      <p>
+        {t('balance')}: {t('remaining')} {Number(balance.remaining)} ·{' '}
+        {t('accrued')} {Number(balance.accrued)} · {t('used')}{' '}
+        {Number(balance.used)}
+      </p>
+      {insufficient && (
+        <p className="text-destructive">
+          {t('insufficient_balance', { count: Number(balance.remaining) })}
+        </p>
+      )}
+    </div>
+  );
+}
+
+VacationBalanceInfo.propTypes = {
+  balance: PropTypes.object,
+  insufficient: PropTypes.bool.isRequired,
+};
+
 /** Read-only audit pair: created/updated by + created/updated on. */
 function buildAuditPair({ form, nameKey, dateKey, byLabelKey, onLabelKey }) {
   return (
@@ -311,7 +415,14 @@ function buildAuditPair({ form, nameKey, dateKey, byLabelKey, onLabelKey }) {
 }
 
 /** Grid of dialog form fields in display order. */
-function buildVacationFields({ form, dataEmployees, hasCreated, hasUpdated }) {
+function buildVacationFields({
+  form,
+  dataEmployees,
+  hasCreated,
+  hasUpdated,
+  canApprove,
+  balanceInfo,
+}) {
   return (
     <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
       {/* Employee Select */}
@@ -321,7 +432,9 @@ function buildVacationFields({ form, dataEmployees, hasCreated, hasUpdated }) {
       />
 
       {/* Status Select */}
-      <VacationStatusField control={form.control} />
+      <VacationStatusField control={form.control} canApprove={canApprove} />
+
+      <VacationDetailFields control={form.control} />
 
       {/* Start Date Picker */}
       <VacationDateField
@@ -347,6 +460,26 @@ function buildVacationFields({ form, dataEmployees, hasCreated, hasUpdated }) {
           dateKey: 'createdOn',
           byLabelKey: 'created_by',
           onLabelKey: 'created_on',
+        })}
+
+      {balanceInfo}
+
+      {/* Approval audit (task 5.1a) */}
+      {hasCreated &&
+        buildAuditPair({
+          form,
+          nameKey: 'userVacationApprovedName',
+          dateKey: 'approvedOn',
+          byLabelKey: 'approved_by',
+          onLabelKey: 'approved_on',
+        })}
+      {hasCreated &&
+        buildAuditPair({
+          form,
+          nameKey: 'userVacationRejectedName',
+          dateKey: 'rejectedOn',
+          byLabelKey: 'rejected_by',
+          onLabelKey: 'rejected_on',
         })}
 
       {/* Updated By/On Fields */}
@@ -378,7 +511,7 @@ function buildDialogHeader({ t, actionDialog, vacationId }) {
 }
 
 /** Dialog footer: cancel, delete (edit only) and save/update. */
-function buildDialogFooter({ t, vacationId, handleDelete }) {
+function buildDialogFooter({ t, vacationId, handleDelete, saveDisabled }) {
   return (
     <DialogFooter>
       <DialogClose asChild>
@@ -404,6 +537,7 @@ function buildDialogFooter({ t, vacationId, handleDelete }) {
       <Button
         type="submit"
         variant="info"
+        disabled={saveDisabled}
         className="flex-1 md:flex-initial md:w-24"
       >
         {vacationId ? t('update') : t('save')}
@@ -469,10 +603,30 @@ export const VacationDialog = ({
   onDeleteById,
   actionDialog,
   dataEmployees,
+  canApprove = false,
 }) => {
   const { t } = useTranslation();
   const { form, vacationId, handleSubmit, handleDelete } =
     useVacationDialogForm({ openDialog, selectedRow, onSubmit, onDeleteById });
+
+  const startValue = form.watch('startDate');
+  const endValue = form.watch('endDate');
+  const employeeValue = form.watch('employeeId');
+  const days =
+    startValue && endValue
+      ? differenceInCalendarDays(endValue, startValue) + 1
+      : 0;
+  const { data: balance } = useGetVacationBalanceQuery(
+    {
+      employeeId: Number(employeeValue),
+      year: startValue ? startValue.getFullYear() : new Date().getFullYear(),
+    },
+    { skip: !employeeValue || !startValue }
+  );
+  const insufficientBalance =
+    form.watch('status') === 'APPROVED' &&
+    Boolean(balance) &&
+    days > Number(balance.remaining);
 
   const hasCreated = selectedRow?.createdOn && vacationId;
   const hasUpdated = selectedRow?.updatedOn && vacationId;
@@ -495,9 +649,22 @@ export const VacationDialog = ({
               dataEmployees,
               hasCreated,
               hasUpdated,
+              canApprove,
+              balanceInfo: (
+                <VacationBalanceInfo
+                  balance={balance}
+                  days={days}
+                  insufficient={insufficientBalance}
+                />
+              ),
             })}
 
-            {buildDialogFooter({ t, vacationId, handleDelete })}
+            {buildDialogFooter({
+              t,
+              vacationId,
+              handleDelete,
+              saveDisabled: insufficientBalance,
+            })}
           </form>
         </Form>
       </DialogContent>
@@ -512,5 +679,6 @@ VacationDialog.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
   actionDialog: PropTypes.string.isRequired,
+  canApprove: PropTypes.bool,
   dataEmployees: PropTypes.array.isRequired,
 };

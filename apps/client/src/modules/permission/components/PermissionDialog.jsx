@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { pickDirty } from '@/utils/pickDirty';
 import { format } from 'date-fns';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import PropTypes from 'prop-types';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
@@ -63,6 +64,11 @@ const mapRowToFormValues = (row) => ({
   updatedOn: row.updatedOn,
   userPermissionCreatedName: row.userPermissionCreatedName,
   userPermissionUpdatedName: row.userPermissionUpdatedName,
+  paid: row.paid ?? true,
+  approvedOn: row.approvedAt,
+  rejectedOn: row.rejectedAt,
+  userPermissionApprovedName: row.userPermissionApprovedName,
+  userPermissionRejectedName: row.userPermissionRejectedName,
   // approvedBy and approvedAt are likely handled by the backend
 });
 
@@ -73,6 +79,7 @@ const EMPTY_FORM_VALUES = {
   endDate: null,
   reason: '',
   status: 'PENDING',
+  paid: true,
   comments: '',
 };
 
@@ -161,7 +168,7 @@ PermissionTypeField.propTypes = {
 };
 
 /** Status select field. */
-function PermissionStatusField({ control }) {
+function PermissionStatusField({ control, canApprove }) {
   const { t } = useTranslation();
   return (
     <FormField
@@ -173,7 +180,7 @@ function PermissionStatusField({ control }) {
           <Select
             onValueChange={field.onChange}
             value={field.value ?? 'PENDING'}
-            // Consider disabling based on user role
+            disabled={!canApprove}
           >
             <FormControl>
               <SelectTrigger>
@@ -183,7 +190,7 @@ function PermissionStatusField({ control }) {
             <SelectContent>
               {PERMISSION_STATUS.map((status) => (
                 <SelectItem key={status} value={status}>
-                  {t(`status.${status}`)}
+                  {t(`status_${status}`)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -196,6 +203,7 @@ function PermissionStatusField({ control }) {
 }
 
 PermissionStatusField.propTypes = {
+  canApprove: PropTypes.bool,
   control: PropTypes.object.isRequired,
 };
 
@@ -406,12 +414,41 @@ function buildAuditPair({ form, nameKey, dateKey, byLabelKey, onLabelKey }) {
   );
 }
 
+/** Paid toggle: false = unpaid leave, deducted from payroll (task 5.2a). */
+function PermissionPaidField({ control }) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name="paid"
+      render={({ field }) => (
+        <FormItem className="flex items-center justify-between">
+          <FormLabel htmlFor="paid">{t('paid')}</FormLabel>
+          <FormControl>
+            <Switch
+              id="paid"
+              checked={Boolean(field.value)}
+              onCheckedChange={field.onChange}
+            />
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  );
+}
+
+PermissionPaidField.propTypes = {
+  control: PropTypes.object.isRequired,
+};
+
 /** Grid of dialog form fields in display order. */
+/* eslint-disable max-lines-per-function */
 function buildPermissionFields({
   form,
   dataEmployees,
   hasCreated,
   hasUpdated,
+  canApprove,
 }) {
   return (
     <div className="grid grid-cols-1 gap-6 py-4 md:grid-cols-3 auto-rows-auto">
@@ -425,7 +462,7 @@ function buildPermissionFields({
       <PermissionTypeField control={form.control} />
 
       {/* Status Select */}
-      <PermissionStatusField control={form.control} />
+      <PermissionStatusField control={form.control} canApprove={canApprove} />
 
       {/* Start Date Picker */}
       <PermissionDateField
@@ -442,6 +479,8 @@ function buildPermissionFields({
         name="endDate"
         labelKey="end_date"
       />
+
+      <PermissionPaidField control={form.control} />
 
       {/* Spacer - Can add another field like approvedBy if needed and handled by FE */}
       <div className="md:col-span-1"></div>
@@ -473,6 +512,24 @@ function buildPermissionFields({
           onLabelKey: 'created_on',
         })}
 
+      {/* Approval audit (task 5.2a) */}
+      {hasCreated &&
+        buildAuditPair({
+          form,
+          nameKey: 'userPermissionApprovedName',
+          dateKey: 'approvedOn',
+          byLabelKey: 'approved_by',
+          onLabelKey: 'approved_on',
+        })}
+      {hasCreated &&
+        buildAuditPair({
+          form,
+          nameKey: 'userPermissionRejectedName',
+          dateKey: 'rejectedOn',
+          byLabelKey: 'rejected_by',
+          onLabelKey: 'rejected_on',
+        })}
+
       {/* Updated By/On Fields */}
       {hasUpdated &&
         buildAuditPair({
@@ -487,6 +544,7 @@ function buildPermissionFields({
 }
 
 /** Dialog header: clipboard icon, action title and edit/add description. */
+/* eslint-enable max-lines-per-function */
 function buildDialogHeader({ t, actionDialog, permissionId }) {
   return (
     <DialogHeader>
@@ -597,6 +655,7 @@ export const PermissionDialog = ({
   onDeleteById,
   actionDialog,
   dataEmployees,
+  canApprove = false,
 }) => {
   const { t } = useTranslation();
   const { form, permissionId, handleSubmit, handleDelete } =
@@ -630,6 +689,7 @@ export const PermissionDialog = ({
               dataEmployees,
               hasCreated,
               hasUpdated,
+              canApprove,
             })}
 
             {buildDialogFooter({ t, permissionId, handleDelete })}
@@ -647,5 +707,6 @@ PermissionDialog.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onDeleteById: PropTypes.func.isRequired,
   actionDialog: PropTypes.string.isRequired,
+  canApprove: PropTypes.bool,
   dataEmployees: PropTypes.array.isRequired,
 };

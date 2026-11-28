@@ -1,7 +1,12 @@
 import { z } from 'zod';
-import { getZodMessage } from '@/utils/zod-i18n-map';
+import { getZodErrorMessage } from '@/utils/zod-i18n-map';
 
-const VacationStatusEnum = z.enum(['PENDING', 'APPROVED', 'REJECTED']);
+const VacationStatusEnum = z.enum([
+  'PENDING',
+  'APPROVED',
+  'REJECTED',
+  'CANCELLED',
+]);
 
 export const VacationSchema = z
   .object({
@@ -9,18 +14,39 @@ export const VacationSchema = z
       (val) => (val === '' ? undefined : Number(val)),
       z
         .number({
-          required_error: getZodMessage('zod.vacation.employeeId.required'),
+          error: getZodErrorMessage('zod.vacation.employeeId.required'),
         })
         .int()
-        .positive(getZodMessage('zod.vacation.employeeId.positive'))
+        .positive({
+          error: getZodErrorMessage('zod.vacation.employeeId.positive'),
+        })
     ),
     startDate: z.date({
-      required_error: getZodMessage('zod.vacation.startDate.required'),
+      error: getZodErrorMessage('zod.vacation.startDate.required'),
     }),
     endDate: z.date({
-      required_error: getZodMessage('zod.vacation.endDate.required'),
+      error: getZodErrorMessage('zod.vacation.endDate.required'),
     }),
     status: VacationStatusEnum.default('PENDING'), // Default to PENDING
+    reason: z
+      .string()
+      .max(500, {
+        error: getZodErrorMessage('zod.vacation.reason.maxLength', {
+          count: 500,
+        }),
+      })
+      .optional()
+      .nullable(),
+    comments: z
+      .string()
+      .max(1000, {
+        error: getZodErrorMessage('zod.vacation.comments.maxLength', {
+          count: 1000,
+        }),
+      })
+      .optional()
+      .nullable(),
+    paid: z.boolean().default(true),
   })
 
   .passthrough(); // Allows other fields not defined in the schema
