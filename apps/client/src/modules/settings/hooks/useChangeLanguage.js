@@ -6,9 +6,8 @@ import { useToast } from '@/components/ui/use-toast';
 export function useChangeLanguage() {
   const dispatch = useDispatch();
   const { i18n, t } = useTranslation();
-  const { data } = useSelector(
-    (state) => state.settings.dataSettings?.userSettings
-  );
+  const { data } =
+    useSelector((state) => state.settings.dataSettings?.userSettings) ?? {};
   const { toast } = useToast();
 
   const onChangeLanguage = async (value) => {

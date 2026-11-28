@@ -82,9 +82,10 @@ const renderTabsContent = ({
 
 export default function Settings() {
   const { t } = useTranslation();
-  const { data } = useSelector(
-    (state) => state.settings.dataSettings?.userSettings
-  );
+  // `userSettings` arranca en null y se llena tras el fetch; sin el fallback
+  // el primer render desestructura null y tumba la página.
+  const { data } =
+    useSelector((state) => state.settings.dataSettings?.userSettings) ?? {};
   //language
   const { onChangeLanguage } = useChangeLanguage();
   //display
