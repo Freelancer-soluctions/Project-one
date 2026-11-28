@@ -199,6 +199,8 @@ export const PERMISSIONCODES = {
   canRequestVacation: 'canRequestVacation',
   canViewVacations: 'canViewVacations',
   canEditRequestVacation: 'canEditRequestVacation',
+  canApproveVacation: 'canApproveVacation',
+  canApprovePermission: 'canApprovePermission',
   canDeleteVacation: 'canDeleteVacation',
   canViewPermission: 'canViewPermission',
   canCreatePermission: 'canCreatePermission',

@@ -8,6 +8,8 @@ export type VacationListItem = VacationRecord & {
   employeeName: string | null;
   userVacationCreatedName: string | null;
   userVacationUpdatedName: string | null;
+  userVacationApprovedName: string | null;
+  userVacationRejectedName: string | null;
 };
 
 /** Paginated vacation list. */
@@ -40,6 +42,9 @@ export interface VacationCreateData {
   startDate: Date;
   endDate: Date;
   status?: vacationStatus | undefined;
+  reason?: string | undefined;
+  comments?: string | undefined;
+  paid?: boolean | undefined;
   createdBy?: number | undefined;
   createdOn: Date;
 }
@@ -50,6 +55,14 @@ export interface VacationUpdateData {
   startDate?: Date | undefined;
   endDate?: Date | undefined;
   status?: vacationStatus | undefined;
+  reason?: string | undefined;
+  comments?: string | undefined;
+  paid?: boolean | undefined;
+  /** Trazabilidad: solo la asigna el service según la transición de estado (RN-VP-001/002). */
+  approvedBy?: number | null | undefined;
+  approvedAt?: Date | null | undefined;
+  rejectedBy?: number | null | undefined;
+  rejectedAt?: Date | null | undefined;
   updatedBy?: number | undefined;
   updatedOn?: Date | undefined;
 }
@@ -62,6 +75,8 @@ export interface VacationInput {
   status?: vacationStatus;
   type?: string;
   reason?: string;
+  comments?: string;
+  paid?: boolean;
   createdBy?: number;
   updatedBy?: number;
 }

@@ -179,3 +179,12 @@ export const deletePayrollById = async (id: number): Promise<Payroll> => {
     where: { id },
   });
 };
+
+/**
+ * Lee un registro de nómina por id (null si no existe).
+ *
+ * @param {number} id - ID de la nómina.
+ */
+export const getPayrollById = async (id: number): Promise<Payroll | null> => {
+  return await prisma.payroll.findUnique({ where: { id } });
+};

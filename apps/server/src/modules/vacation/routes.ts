@@ -1,9 +1,13 @@
 import express from 'express';
+import { requireApprovalPermission } from '../../middleware/requireApprovalPermission.js';
 import {
   getAllVacation,
   createVacation,
   deleteVacationById,
   patchVacationById,
+  runAccrual,
+  getBalance,
+  getApprovalAccess,
 } from './controller.js';
 import {
   verifyToken,
@@ -16,6 +20,8 @@ import {
   vacationFiltersSchema,
   vacationCreateSchema,
   vacationUpdateSchema,
+  vacationAccrualSchema,
+  vacationBalanceQuerySchema,
 } from './schemas/vacation.joi.js';
 import { ROLESCODES, PERMISSIONCODES } from '../../utils/constants/enums.js';
 
@@ -41,7 +47,7 @@ router.use(verifyToken);
  *         name: status
  *         schema:
  *           type: string
- *           enum: [PENDING, APPROVED, REJECTED]
+ *           enum: [PENDING, APPROVED, REJECTED, CANCELLED]
  *         description: Filter by status
  *       - in: query
  *         name: fromDate
@@ -135,7 +141,7 @@ router.get(
  *                 format: date
  *               status:
  *                 type: string
- *                 enum: [PENDING, APPROVED, REJECTED]
+ *                 enum: [PENDING, APPROVED, REJECTED, CANCELLED]
  *                 default: PENDING
  *     responses:
  *       201:
@@ -170,6 +176,7 @@ router.post(
     allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
     permissions: [PERMISSIONCODES.canRequestVacation],
   }),
+  requireApprovalPermission(PERMISSIONCODES.canApproveVacation),
   validateSchema(vacationCreateSchema),
   createVacation
 );
@@ -275,8 +282,79 @@ router.patch(
     permissions: [PERMISSIONCODES.canEditRequestVacation],
   }),
   validatePathParam,
+  requireApprovalPermission(PERMISSIONCODES.canApproveVacation),
   validateSchema(vacationUpdateSchema),
   patchVacationById
 );
+
+/**
+ * @swagger
+ * /v1/vacation/accrual:
+ *   post:
+ *     summary: Ejecuta el devengo mensual de vacaciones (idempotente por periodo)
+ *     tags: [Vacation]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Devengo procesado
+ *       403:
+ *         description: Solo ADMIN
+ */
+router.post(
+  '/accrual',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN],
+  }),
+  validateSchema(vacationAccrualSchema),
+  runAccrual
+);
+
+/**
+ * @swagger
+ * /v1/vacation/balance:
+ *   get:
+ *     summary: Saldo de vacaciones de un empleado para un año
+ *     tags: [Vacation]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: employeeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: year
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: accrued, used y remaining (días)
+ */
+router.get(
+  '/balance',
+  checkRoleAuthOrPermisssion({
+    allowedRoles: [ROLESCODES.ADMIN, ROLESCODES.MANAGER, ROLESCODES.USER],
+    permissions: [PERMISSIONCODES.canViewVacations],
+  }),
+  validateQueryParams(vacationBalanceQuerySchema),
+  getBalance
+);
+
+/**
+ * @swagger
+ * /v1/vacation/approval-access:
+ *   get:
+ *     summary: Capacidad de aprobación del usuario autenticado
+ *     tags: [Vacation]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: canApproveVacation / canApprovePermission (booleans)
+ */
+router.get('/approval-access', getApprovalAccess);
 
 export default router;

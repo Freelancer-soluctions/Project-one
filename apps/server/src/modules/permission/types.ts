@@ -17,6 +17,8 @@ export type EmployeePermissionListRow = EmployeePermission & {
   employeeName: string | null;
   userPermissionCreatedName: string | null;
   userPermissionUpdatedName: string | null;
+  userPermissionApprovedName: string | null;
+  userPermissionRejectedName: string | null;
 };
 
 /**
@@ -29,10 +31,10 @@ export interface CreateEmployeePermissionInput {
   type: string;
   startDate: Date;
   endDate: Date;
-  reason?: string;
-  status?: PermissionStatus;
-  approvedBy?: number;
-  comments?: string;
+  reason?: string | undefined;
+  status?: PermissionStatus | undefined;
+  paid?: boolean | undefined;
+  comments?: string | undefined;
   /** Fechas que el service normaliza pero el dao no persiste. */
   fromDate?: Date;
   toDate?: Date;
@@ -46,7 +48,7 @@ export interface UpdateEmployeePermissionInput {
   endDate?: Date | undefined;
   reason?: string | undefined;
   status?: PermissionStatus | undefined;
-  approvedBy?: number | undefined;
+  paid?: boolean | undefined;
   comments?: string | undefined;
   fromDate?: Date | undefined;
   toDate?: Date | undefined;
@@ -57,7 +59,7 @@ export interface UpdateEmployeePermissionInput {
 export interface EmployeePermissionFilters {
   employeeId?: number;
   type?: string;
-  status?: PermissionStatus;
+  status?: PermissionStatus | undefined;
   fromDate?: Date | string;
   toDate?: Date | string;
   page?: number;
@@ -76,12 +78,17 @@ export interface CreateEmployeePermissionData {
   type: string;
   startDate: Date;
   endDate: Date;
-  reason?: string;
-  status?: PermissionStatus;
-  approvedBy?: number;
-  comments?: string;
+  reason?: string | undefined;
+  status?: PermissionStatus | undefined;
+  paid?: boolean | undefined;
+  comments?: string | undefined;
   createdOn: Date;
   createdBy: number;
+  /** Trazabilidad (solo la asigna el service por transición). */
+  approvedBy?: number | null | undefined;
+  approvedAt?: Date | null | undefined;
+  rejectedBy?: number | null | undefined;
+  rejectedAt?: Date | null | undefined;
   fromDate?: Date;
   toDate?: Date;
 }
@@ -89,6 +96,11 @@ export interface CreateEmployeePermissionData {
 /** Datos de actualización ya normalizados por el service (timestamp + autor). */
 export type UpdateEmployeePermissionData = UpdateEmployeePermissionInput & {
   updatedOn: Date;
+  /** Trazabilidad (solo la asigna el service por transición). */
+  approvedBy?: number | null | undefined;
+  approvedAt?: Date | null | undefined;
+  rejectedBy?: number | null | undefined;
+  rejectedAt?: Date | null | undefined;
 };
 
 /** Resultado paginado del listado de permisos. */
