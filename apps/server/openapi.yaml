@@ -112,16 +112,50 @@ components:
           minLength: 1
           type: string
       type: object
+    BodyDepartmentCreate:
+      properties:
+        active:
+          example: true
+          type: boolean
+        code:
+          example: DEP-0001
+          maxLength: 20
+          type: string
+        name:
+          example: Operaciones
+          maxLength: 100
+          type: string
+      required:
+        - code
+        - name
+      type: object
+    BodyDepartmentUpdate:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        active:
+          example: true
+          type: boolean
+        code:
+          example: DEP-0001
+          maxLength: 20
+          minLength: 1
+          type: string
+        name:
+          example: Operaciones
+          maxLength: 100
+          minLength: 1
+          type: string
+      type: object
     BodyEmployeeCreate:
       properties:
         address:
           example: Av. Siempre Viva 742
           maxLength: 120
           type: string
-        department:
-          example: Operaciones
-          maxLength: 100
-          type: string
+        departmentId:
+          example: 1
+          minimum: 1
+          type: integer
         dni:
           example: "12345678"
           maxLength: 10
@@ -142,10 +176,10 @@ components:
           example: "+5491122334455"
           maxLength: 15
           type: string
-        position:
-          example: Analista
-          maxLength: 100
-          type: string
+        positionId:
+          example: 1
+          minimum: 1
+          type: integer
         salary:
           example: 2500.5
           minimum: 0
@@ -160,8 +194,8 @@ components:
         - dni
         - email
         - startDate
-        - position
-        - department
+        - positionId
+        - departmentId
         - salary
       type: object
     BodyEmployeeUpdate:
@@ -171,11 +205,10 @@ components:
           example: Av. Siempre Viva 742
           maxLength: 120
           type: string
-        department:
-          example: Operaciones
-          maxLength: 100
-          minLength: 1
-          type: string
+        departmentId:
+          example: 1
+          minimum: 1
+          type: integer
         dni:
           example: "12345678"
           maxLength: 10
@@ -199,11 +232,10 @@ components:
           example: "+5491122334455"
           maxLength: 15
           type: string
-        position:
-          example: Analista
-          maxLength: 100
-          minLength: 1
-          type: string
+        positionId:
+          example: 1
+          minimum: 1
+          type: integer
         salary:
           example: 2500.5
           minimum: 0
@@ -438,6 +470,40 @@ components:
           maximum: 2100
           minimum: 1900
           type: integer
+      type: object
+    BodyPositionCreate:
+      properties:
+        active:
+          example: true
+          type: boolean
+        code:
+          example: POS-0001
+          maxLength: 20
+          type: string
+        name:
+          example: Analista
+          maxLength: 100
+          type: string
+      required:
+        - code
+        - name
+      type: object
+    BodyPositionUpdate:
+      description: "PATCH: todos los campos son opcionales."
+      properties:
+        active:
+          example: true
+          type: boolean
+        code:
+          example: POS-0001
+          maxLength: 20
+          minLength: 1
+          type: string
+        name:
+          example: Analista
+          maxLength: 100
+          minLength: 1
+          type: string
       type: object
     BodyProductCategoryCreate:
       properties:
@@ -953,7 +1019,16 @@ components:
           type: string
       type: object
     BodyVacationPatch:
+      description: "approvedBy/approvedAt/rejectedBy/rejectedAt son de solo lectura:
+        el servidor los asigna según la transición de status y el cliente que
+        los envíe recibe 400. Al pasar a APPROVED se descuentan los días del
+        saldo (400 si no alcanza); al salir de APPROVED se devuelven."
       properties:
+        comments:
+          example: Aprobado sin observaciones
+          maxLength: 1000
+          nullable: true
+          type: string
         employeeId:
           example: 1
           minimum: 1
@@ -961,6 +1036,16 @@ components:
         endDate:
           example: 2024-08-15T00:00:00Z
           format: date-time
+          type: string
+        paid:
+          default: true
+          description: false = permiso sin goce; se descuenta de la nómina.
+          example: true
+          type: boolean
+        reason:
+          example: Viaje familiar
+          maxLength: 500
+          nullable: true
           type: string
         startDate:
           example: 2024-08-01T00:00:00Z
@@ -971,6 +1056,7 @@ components:
             - PENDING
             - APPROVED
             - REJECTED
+            - CANCELLED
           example: PENDING
           type: string
       type: object
@@ -1053,6 +1139,54 @@ components:
           example: 200
           type: integer
       type: object
+    Department:
+      properties:
+        active:
+          example: true
+          type: boolean
+        code:
+          example: DEP-0001
+          maxLength: 20
+          type: string
+        createdOn:
+          example: 2026-11-27T10:00:00Z
+          format: date-time
+          type: string
+        id:
+          example: 1
+          type: integer
+        name:
+          example: Operaciones
+          maxLength: 100
+          type: string
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
+          type: string
+      type: object
+    DepartmentFilters:
+      properties:
+        active:
+          example: true
+          type: boolean
+        code:
+          example: DEP-0001
+          maxLength: 20
+          type: string
+        limit:
+          example: 20
+          minimum: 1
+          type: integer
+        name:
+          example: Operaciones
+          maxLength: 100
+          type: string
+        page:
+          example: 1
+          minimum: 1
+          type: integer
+      type: object
     Employee:
       properties:
         address:
@@ -1067,10 +1201,9 @@ components:
           example: 2024-03-15T10:30:00Z
           format: date-time
           type: string
-        department:
-          example: Operaciones
-          maxLength: 100
-          type: string
+        departmentId:
+          example: 1
+          type: integer
         dni:
           example: "12345678"
           maxLength: 128
@@ -1095,10 +1228,9 @@ components:
           maxLength: 15
           nullable: true
           type: string
-        position:
-          example: Analista
-          maxLength: 100
-          type: string
+        positionId:
+          example: 1
+          type: integer
         salary:
           description: Salario serializado por la columna VarChar(128), no un número.
           example: "2500.50"
@@ -1120,10 +1252,9 @@ components:
       type: object
     EmployeeFilters:
       properties:
-        department:
-          example: Operaciones
-          maxLength: 100
-          type: string
+        departmentId:
+          example: 1
+          type: integer
         dni:
           example: "12345678"
           maxLength: 10
@@ -1148,10 +1279,9 @@ components:
           example: 1
           minimum: 1
           type: integer
-        position:
-          example: Analista
-          maxLength: 100
-          type: string
+        positionId:
+          example: 1
+          type: integer
       type: object
     Error:
       properties:
@@ -1474,60 +1604,31 @@ components:
       type: object
     Permission:
       properties:
-        approvedAt:
-          description: Date and time when the permission was approved/rejected
-          example: 2024-03-25T10:00:00Z
-          format: date-time
-          type: string
-        approvedBy:
-          description: ID of the user who approved/rejected the permission
-          example: 2
-          type: integer
-        approver:
-          $ref: "#/components/schemas/ResponseGetUser"
-        comments:
-          description: Additional comments about the permission
-          example: Approved with conditions
-          type: string
-        createdOn:
-          description: Creation date and time
-          example: 2024-03-25T09:00:00Z
-          format: date-time
-          type: string
         employee:
           $ref: "#/components/schemas/Employee"
         employeeId:
-          description: The ID of the employee requesting permission
           example: 1
           type: integer
         endDate:
-          description: End date of the permission
           example: 2024-08-15T00:00:00Z
           format: date-time
           type: string
         id:
-          description: The permission ID
           example: 1
           type: integer
-        reason:
-          description: Reason for requesting permission
-          example: Medical appointment
-          type: string
         startDate:
-          description: Start date of the permission
           example: 2024-08-01T00:00:00Z
           format: date-time
           type: string
         status:
-          description: Current status of the permission
           enum:
             - PENDING
             - APPROVED
             - REJECTED
+            - CANCELLED
           example: PENDING
           type: string
         type:
-          description: The type of permission
           enum:
             - SICK
             - PERSONAL
@@ -1536,52 +1637,54 @@ components:
             - OTHER
           example: SICK
           type: string
-        updatedOn:
-          description: Last update date and time
-          example: 2024-03-25T10:00:00Z
+      type: object
+    Position:
+      properties:
+        active:
+          example: true
+          type: boolean
+        code:
+          example: POS-0001
+          maxLength: 20
+          type: string
+        createdOn:
+          example: 2026-11-27T10:00:00Z
           format: date-time
           type: string
-      required:
-        - employeeId
-        - type
-        - startDate
-        - endDate
-        - reason
-      type: object
-    PermissionFilters:
-      properties:
-        employeeId:
-          description: Filter by employee ID
+        id:
           example: 1
           type: integer
-        fromDate:
-          description: Filter by start date (inclusive)
-          example: 2024-03-01
-          format: date
+        name:
+          example: Analista
+          maxLength: 100
           type: string
-        status:
-          description: Filter by permission status
-          enum:
-            - PENDING
-            - APPROVED
-            - REJECTED
-          example: PENDING
+        updatedOn:
+          example: null
+          format: date-time
+          nullable: true
           type: string
-        toDate:
-          description: Filter by end date (inclusive)
-          example: 2024-03-31
-          format: date
+      type: object
+    PositionFilters:
+      properties:
+        active:
+          example: true
+          type: boolean
+        code:
+          example: POS-0001
+          maxLength: 20
           type: string
-        type:
-          description: Filter by permission type
-          enum:
-            - SICK
-            - PERSONAL
-            - MATERNITY
-            - PATERNITY
-            - OTHER
-          example: SICK
+        limit:
+          example: 20
+          minimum: 1
+          type: integer
+        name:
+          example: Analista
+          maxLength: 100
           type: string
+        page:
+          example: 1
+          minimum: 1
+          type: integer
       type: object
     Product:
       properties:
@@ -1780,9 +1883,9 @@ components:
           example: 2024-03-15T10:30:00Z
           format: date-time
           type: string
-        department:
-          example: Operaciones
-          type: string
+        departmentId:
+          example: 1
+          type: integer
         dni:
           example: "12345678"
           type: string
@@ -1803,9 +1906,9 @@ components:
           example: null
           nullable: true
           type: string
-        position:
-          example: Analista
-          type: string
+        positionId:
+          example: 1
+          type: integer
         salary:
           example: "2500.50"
           type: string
@@ -2056,8 +2159,10 @@ components:
           type: string
         department:
           example: Operaciones
-          maxLength: 100
           type: string
+        departmentId:
+          example: 1
+          type: integer
         dni:
           example: "12345678"
           maxLength: 128
@@ -2084,8 +2189,10 @@ components:
           type: string
         position:
           example: Analista
-          maxLength: 100
           type: string
+        positionId:
+          example: 1
+          type: integer
         salary:
           example: "2500.50"
           maxLength: 128
@@ -4681,6 +4788,217 @@ paths:
       summary: Partially update a client by ID
       tags:
         - Clients
+  /api/v1/departments:
+    get:
+      parameters:
+        - description: Filtros opcionales para buscar departamentos.
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/DepartmentFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    properties:
+                      dataList:
+                        items:
+                          $ref: "#/components/schemas/Department"
+                        type: array
+                      total:
+                        example: 1
+                        type: integer
+                    type: object
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get all departments with optional filters
+      tags:
+        - Departments
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyDepartmentCreate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Department"
+                type: object
+          description: Department created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Duplicate department code
+      security:
+        - bearerAuth: []
+      summary: Create a new department
+      tags:
+        - Departments
+  /api/v1/departments/options:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    properties:
+                      dataList:
+                        items:
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                          type: object
+                        type: array
+                      total:
+                        type: integer
+                    type: object
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+      summary: All departments as id/name pairs for select inputs (not paginated)
+      tags:
+        - Departments
+  /api/v1/departments/{id}:
+    delete:
+      parameters:
+        - description: Department ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: Department deleted
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Department still assigned to employees
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Delete a department by ID
+      tags:
+        - Departments
+    patch:
+      parameters:
+        - description: Department ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyDepartmentUpdate"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Department"
+                type: object
+          description: Department updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+          description: Not found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Duplicate department code
+      security:
+        - bearerAuth: []
+      summary: Partially update a department by ID
+      tags:
+        - Departments
   /api/v1/employees:
     get:
       parameters:
@@ -5978,6 +6296,7 @@ paths:
               - PENDING
               - APPROVED
               - REJECTED
+              - CANCELLED
             type: string
         - description: Filter by start date (inclusive)
           in: query
@@ -6125,6 +6444,217 @@ paths:
       summary: Partially update a permission
       tags:
         - Permissions
+  /api/v1/positions:
+    get:
+      parameters:
+        - description: Filtros opcionales para buscar puestos.
+          in: query
+          name: filters
+          required: false
+          schema:
+            $ref: "#/components/schemas/PositionFilters"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    properties:
+                      dataList:
+                        items:
+                          $ref: "#/components/schemas/Position"
+                        type: array
+                      total:
+                        example: 1
+                        type: integer
+                    type: object
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Get all positions with optional filters
+      tags:
+        - Positions
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyPositionCreate"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Position"
+                type: object
+          description: Position created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Duplicate position code
+      security:
+        - bearerAuth: []
+      summary: Create a new position
+      tags:
+        - Positions
+  /api/v1/positions/options:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    properties:
+                      dataList:
+                        items:
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                          type: object
+                        type: array
+                      total:
+                        type: integer
+                    type: object
+                type: object
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+      summary: All positions as id/name pairs for select inputs (not paginated)
+      tags:
+        - Positions
+  /api/v1/positions/{id}:
+    delete:
+      parameters:
+        - description: Position ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delete"
+          description: Position deleted
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Position still assigned to employees
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Server error
+      security:
+        - bearerAuth: []
+      summary: Delete a position by ID
+      tags:
+        - Positions
+    patch:
+      parameters:
+        - description: Position ID
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BodyPositionUpdate"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Position"
+                type: object
+          description: Position updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+          description: Bad request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+          description: Not found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          description: Duplicate position code
+      security:
+        - bearerAuth: []
+      summary: Partially update a position by ID
+      tags:
+        - Positions
   /api/v1/provider/{id}:
     delete:
       description: Este endpoint requiere autenticación. El userId se extrae
@@ -7863,6 +8393,7 @@ paths:
               - PENDING
               - APPROVED
               - REJECTED
+              - CANCELLED
             type: string
         - description: Filter by start date (greater than or equal)
           in: query
@@ -7941,6 +8472,7 @@ paths:
                     - PENDING
                     - APPROVED
                     - REJECTED
+                    - CANCELLED
                   type: string
               required:
                 - employeeId
@@ -7977,6 +8509,49 @@ paths:
       security:
         - bearerAuth: []
       summary: Create a new vacation record
+      tags:
+        - Vacation
+  /api/v1/vacation/accrual:
+    post:
+      responses:
+        "200":
+          description: Devengo procesado
+        "403":
+          description: Solo ADMIN
+      security:
+        - bearerAuth: []
+      summary: Ejecuta el devengo mensual de vacaciones (idempotente por periodo)
+      tags:
+        - Vacation
+  /api/v1/vacation/approval-access:
+    get:
+      responses:
+        "200":
+          description: canApproveVacation / canApprovePermission (booleans)
+      security:
+        - bearerAuth: []
+      summary: Capacidad de aprobación del usuario autenticado
+      tags:
+        - Vacation
+  /api/v1/vacation/balance:
+    get:
+      parameters:
+        - in: query
+          name: employeeId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: year
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: accrued, used y remaining (días)
+      security:
+        - bearerAuth: []
+      summary: Saldo de vacaciones de un empleado para un año
       tags:
         - Vacation
   /api/v1/vacation/{id}:
@@ -8244,6 +8819,8 @@ tags:
     name: ClientOrders
   - description: Clientes
     name: Clients
+  - description: Catálogo de departamentos
+    name: Departments
   - description: Empleados
     name: Employees
   - description: Eventos y asistentes
@@ -8260,6 +8837,8 @@ tags:
     name: Performance Evaluations
   - description: Permisos y licencias
     name: Permissions
+  - description: Catálogo de puestos de trabajo
+    name: Positions
   - description: Órdenes a proveedores y conversión a compra
     name: ProviderOrders
   - description: Proveedores

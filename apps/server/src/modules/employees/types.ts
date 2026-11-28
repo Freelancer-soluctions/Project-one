@@ -5,8 +5,10 @@ import type { Prisma } from '@prisma/client';
 /** Fila de `employees`. */
 export type Employee = Prisma.employeesGetPayload<object>;
 
-/** Fila del listado: `$queryRaw` (empleado + nombres de creador/editor). */
+/** Fila del listado: `$queryRaw` (empleado + catálogos + nombres de creador/editor). */
 export type EmployeeListRow = Employee & {
+  position: string | null;
+  department: string | null;
   userEmployeeCreatedName: string | null;
   userEmployeeUpdatedName: string | null;
 };
@@ -20,8 +22,10 @@ export interface CreateEmployeeInput {
   phone?: string;
   address?: string;
   startDate: Date;
-  position: string;
-  department: string;
+  /** FK a `positions` (catálogo). */
+  positionId: number;
+  /** FK a `departments` (catálogo). */
+  departmentId: number;
   /**
    * VarChar(128) en el schema Prisma. El Joi lo valida como número: la
    * inconsistencia es preexistente y queda fuera del alcance de este change
@@ -40,8 +44,8 @@ export interface UpdateEmployeeInput {
   phone?: string;
   address?: string;
   startDate?: Date;
-  position?: string;
-  department?: string;
+  positionId?: number;
+  departmentId?: number;
   /** VarChar(128) en el schema Prisma (misma inconsistencia que en la creación). */
   salary?: string;
   updatedBy?: number;
@@ -53,8 +57,8 @@ export interface EmployeeFilters {
   lastName?: string;
   dni?: string;
   email?: string;
-  department?: string;
-  position?: string;
+  departmentId?: number;
+  positionId?: number;
   page?: number;
   limit?: number;
 }
