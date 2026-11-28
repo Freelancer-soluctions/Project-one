@@ -138,7 +138,7 @@ jobs:
       # gitleaks ya lo redacta y aquí solo se leen RuleID/File/Commit/StartLine.
       - name: Create failure issue when a scan step failed
         if: needs.gitleaks-full-scan.outputs.scan-json-outcome == 'failure' || needs.gitleaks-full-scan.outputs.scan-sarif-outcome == 'failure'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const fs = require('fs');
