@@ -4,7 +4,7 @@
 
 Garantizar paridad de versiones y herramientas de lint/seguridad entre entorno local y CI mediante Mise, con lockfile verificable por checksum y ejecución bloqueante (`--locked`), de forma reproducible en Windows/macOS/Linux y air-gapped.
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: Toolchain SSOT via Mise
 
