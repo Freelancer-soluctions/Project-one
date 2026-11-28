@@ -62,7 +62,7 @@ jobs:
 
       # Sin cache npm: este workflow publica la imagen, así que un PR podría
       # envenenar la caché que luego restaura el run de main (cache-poisoning).
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: '.nvmrc'
           package-manager-cache: false
@@ -105,7 +105,7 @@ jobs:
 
       # Sin cache npm: este workflow publica la imagen, así que un PR podría
       # envenenar la caché que luego restaura el run de main (cache-poisoning).
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: '.nvmrc'
           package-manager-cache: false
@@ -155,7 +155,7 @@ jobs:
 
       # Sin cache npm: este workflow publica la imagen, así que un PR podría
       # envenenar la caché que luego restaura el run de main (cache-poisoning).
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: '.nvmrc'
           package-manager-cache: false
@@ -418,7 +418,7 @@ jobs:
 
       # Sin cache npm: este workflow publica la imagen, así que un PR podría
       # envenenar la caché que luego restaura el run de main (cache-poisoning).
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: '.nvmrc'
           package-manager-cache: false
