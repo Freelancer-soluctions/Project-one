@@ -203,7 +203,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Cache mise downloads-cas
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/mise/downloads-cas
           key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
@@ -1706,7 +1706,7 @@ jobs:
       # Cache de downloads-cas (NO installs — design D4): artefactos
       # verificados por checksum, reutilizables entre runs.
       - name: Cache mise downloads-cas
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/mise/downloads-cas
           key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
@@ -2080,7 +2080,7 @@ jobs:
           persist-credentials: false
 
       - name: Cache mise downloads-cas
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/mise/downloads-cas
           key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
@@ -2151,7 +2151,7 @@ jobs:
           persist-credentials: false
 
       - name: Cache mise downloads-cas
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/mise/downloads-cas
           key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
@@ -2232,7 +2232,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - name: Cache mise downloads-cas
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/mise/downloads-cas
           key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
@@ -2308,7 +2308,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Cache mise downloads-cas
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/mise/downloads-cas
           key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
@@ -2389,7 +2389,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Cache mise downloads-cas
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/mise/downloads-cas
           key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
@@ -2479,7 +2479,7 @@ jobs:
       - uses: ./.github/actions/setup-monorepo
       # Caché de ESLint (P1.1): `content` invalida por contenido, no por mtime.
       - name: Restore ESLint cache
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: apps/client/.cache/eslint
           key: eslint-client-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js') }}
@@ -2535,7 +2535,7 @@ jobs:
       # `restore-keys` permite hit parcial (tsc re-chequea solo lo que cambió).
       # Sin promesa de speedup: con `--noEmit` el beneficio es marginal (A2).
       - name: Restore tsc cache
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: apps/client/.cache/tsc
           key: tsc-client-${{ runner.os }}-${{ hashFiles('package-lock.json', 'tsconfig.json', 'apps/client/tsconfig.json', 'apps/client/src/**', 'apps/client/tests/**') }}
@@ -2690,7 +2690,7 @@ jobs:
         with:
           prisma: 'true'
       - name: Restore ESLint cache
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: apps/server/.cache/eslint
           key: eslint-server-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js') }}
@@ -2757,7 +2757,7 @@ jobs:
       # client-typecheck. Clave = lockfile + tsconfigs + fuentes (src + tests,
       # los `include` de apps/server/tsconfig.json); `restore-keys` = hit parcial.
       - name: Restore tsc cache
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: apps/server/.cache/tsc
           key: tsc-server-${{ runner.os }}-${{ hashFiles('package-lock.json', 'tsconfig.json', 'apps/server/tsconfig.json', 'apps/server/src/**', 'apps/server/tests/**') }}
@@ -2964,7 +2964,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-monorepo
       - name: Restore ESLint cache
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: e2e/.cache/eslint
           key: eslint-e2e-${{ runner.os }}-${{ hashFiles('package-lock.json', 'eslint.config.js') }}
@@ -3101,7 +3101,7 @@ jobs:
         run: yamllint -c .yamllint.yml -f parsable .github/workflows/*.yml .github/dependabot.yml
         shell: bash
       - name: Cache mise downloads-cas
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/mise/downloads-cas
           key: mise-cas-${{ runner.os }}-${{ hashFiles('mise.lock') }}
@@ -3592,7 +3592,7 @@ jobs:
         working-directory: apps/server
       - name: Cache Playwright Browsers
         id: cache-playwright
-        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
