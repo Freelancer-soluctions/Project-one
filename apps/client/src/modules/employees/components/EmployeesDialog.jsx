@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import PropTypes from 'prop-types';
 
 import { EmployeeSchema } from '../utils';
+import { selectableCatalogItems } from '../utils/catalog-options';
 
 import {
   Dialog,
@@ -33,8 +34,19 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from '@radix-ui/react-icons';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import {
+  useGetDepartmentOptionsQuery,
+  useGetPositionOptionsQuery,
+} from '../api/employeesApi';
 import { LuUsersRound } from 'react-icons/lu';
 import { FIELD_LIMITS } from '@/config/fieldLimits';
 
@@ -47,8 +59,8 @@ const mapRowToFormValues = (row) => ({
   phone: row.phone || '',
   address: row.address || '',
   startDate: row.startDate ? new Date(row.startDate) : new Date(),
-  position: row.position,
-  department: row.department,
+  positionId: row.positionId ?? null,
+  departmentId: row.departmentId ?? null,
   salary: row.salary.toString(),
   createdOn: row.createdOn,
   updatedOn: row.updatedOn,
@@ -65,8 +77,8 @@ const getEmptyFormValues = () => ({
   phone: '',
   address: '',
   startDate: new Date(),
-  position: '',
-  department: '',
+  positionId: null,
+  departmentId: null,
   salary: '',
   createdOn: '',
   updatedOn: '',
@@ -154,6 +166,60 @@ function EmployeeSalaryField({ control }) {
 
 EmployeeSalaryField.propTypes = {
   control: PropTypes.object.isRequired,
+};
+
+/** Catalog select (position/department): stores the catalog id as a number. */
+function EmployeeCatalogSelectField({
+  control,
+  name,
+  labelKey,
+  placeholderKey,
+  items,
+}) {
+  const { t } = useTranslation();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel htmlFor={name}>{t(labelKey)}*</FormLabel>
+          <Select
+            onValueChange={(value) => field.onChange(Number(value))}
+            value={field.value != null ? String(field.value) : ''}
+          >
+            <FormControl>
+              <SelectTrigger
+                id={name}
+                className={cn(
+                  'w-full',
+                  field.value == null && 'text-muted-foreground'
+                )}
+              >
+                <SelectValue placeholder={t(placeholderKey)} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {selectableCatalogItems(items, field.value).map((item) => (
+                <SelectItem key={item.id} value={String(item.id)}>
+                  {item.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+EmployeeCatalogSelectField.propTypes = {
+  control: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  labelKey: PropTypes.string.isRequired,
+  placeholderKey: PropTypes.string.isRequired,
+  items: PropTypes.array.isRequired,
 };
 
 /** Start date picker (dates before 1900 disabled). */
@@ -327,22 +393,6 @@ const TOP_TEXT_FIELDS = [
   },
 ];
 
-/** Text fields rendered between the start-date picker and salary. */
-const BOTTOM_TEXT_FIELDS = [
-  {
-    name: 'position',
-    labelKey: 'position',
-    placeholderKey: 'employee_position_placeholder',
-    required: true,
-  },
-  {
-    name: 'department',
-    labelKey: 'department',
-    placeholderKey: 'employee_department_placeholder',
-    required: true,
-  },
-];
-
 /** Renders a list of text-field definitions in order. */
 const renderTextFields = (form, defs) =>
   defs.map((def) => (
@@ -368,12 +418,31 @@ function buildAuditPair({ form, nameKey, dateKey, byLabelKey, onLabelKey }) {
 }
 
 /** Grid of dialog form fields in display order. */
-function buildEmployeeFields({ form, hasCreated, hasUpdated }) {
+function buildEmployeeFields({
+  form,
+  hasCreated,
+  hasUpdated,
+  positions,
+  departments,
+}) {
   return (
     <div className="grid grid-cols-2 gap-6 py-4 auto-rows-auto">
       {renderTextFields(form, TOP_TEXT_FIELDS)}
       <EmployeeStartDateField control={form.control} />
-      {renderTextFields(form, BOTTOM_TEXT_FIELDS)}
+      <EmployeeCatalogSelectField
+        control={form.control}
+        name="positionId"
+        labelKey="position"
+        placeholderKey="select_position"
+        items={positions}
+      />
+      <EmployeeCatalogSelectField
+        control={form.control}
+        name="departmentId"
+        labelKey="department"
+        placeholderKey="select_department"
+        items={departments}
+      />
       <EmployeeSalaryField control={form.control} />
 
       {/* Created By/On Fields */}
@@ -512,6 +581,11 @@ export const EmployeesDialog = ({
   const { form, employeeId, handleSubmit, handleDelete } =
     useEmployeeDialogForm({ openDialog, selectedRow, onSubmit, onDeleteById });
 
+  const { data: positionsData } = useGetPositionOptionsQuery();
+  const { data: departmentsData } = useGetDepartmentOptionsQuery();
+  const positions = positionsData?.data?.dataList ?? [];
+  const departments = departmentsData?.data?.dataList ?? [];
+
   const hasCreated = selectedRow?.createdOn && employeeId;
   const hasUpdated = selectedRow?.updatedOn && employeeId;
 
@@ -528,7 +602,13 @@ export const EmployeesDialog = ({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="flex flex-col flex-wrap gap-5"
           >
-            {buildEmployeeFields({ form, hasCreated, hasUpdated })}
+            {buildEmployeeFields({
+              form,
+              hasCreated,
+              hasUpdated,
+              positions,
+              departments,
+            })}
             {buildDialogFooter({ t, employeeId, handleDelete })}
           </form>
         </Form>

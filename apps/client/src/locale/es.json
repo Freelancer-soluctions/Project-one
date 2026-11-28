@@ -214,6 +214,10 @@
     "inventoryMovement_card_msg": "Gestione los movimientos de su inventario de manera eficiente.",
     "employees": "Empleados",
     "employees_card_msg": "Gestione sus empleados de manera eficiente.",
+    "employee_catalogs": "Catálogos de empleados",
+    "employee_catalogs_card_msg": "Gestione los catálogos de puestos y departamentos.",
+    "positions": "Puestos",
+    "departments": "Departamentos",
     "attendance": "Asistencia",
     "performanceEvaluation": "Evaluación de Desempeño",
     "performanceEvaluation_card_msg": "Gestione la evaluación de desempeño de manera eficiente.",
@@ -223,6 +227,8 @@
     "permission_card_msg": "Gestione sus permisos de manera eficiente.",
     "payroll_card_msg": "Gestione su nómina de manera eficiente.",
     "add_client": "Agregar cliente",
+    "add_employee": "Agregar empleado",
+    "edit_employee": "Editar empleado",
     "edit_client": "Editar cliente",
     "client_name_placeholder": "Ingrese el nombre del cliente",
     "client_email_placeholder": "Ingrese el correo del cliente",
@@ -265,7 +271,7 @@
     "status_updated_successfully": "Estado actualizado exitosamente",
     "payment_updated_successfully": "Datos de pago actualizados exitosamente",
     "operation_failed": "La operación falló",
-    "operation_failed_message": "No se pudo guardar el cambio. Inténtelo de nuevo.",
+    "operation_failed_message": "La operación no se pudo completar. Por favor, verifique su entrada e inténtelo de nuevo.",
     "status_pending": "Pendiente",
     "status_paid": "Pagada",
     "status_received": "Recibida",
@@ -317,7 +323,6 @@
     "edit": "Editar",
     "select_role": "Seleccione un rol",
     "error_occurred_message": "Ocurrió un error al procesar su solicitud. Por favor, inténtelo de nuevo más tarde.",
-    "operation_failed_message": "La operación no se pudo completar. Por favor, verifique su entrada e inténtelo de nuevo.",
     "delete_failed_message": "No se pudo eliminar el registro. Por favor, inténtelo de nuevo más tarde.",
     "expense_category_rental": "Alquiler",
     "expense_category_utilities": "Servicios",
@@ -342,7 +347,7 @@
     "edit_attendance": "Editar asistencia",
     "entry_time": "Hora de entrada",
     "exit_time": "Hora de salida",
-    " worked_hours": "Horas trabajadas",
+    "worked_hours": "Horas trabajadas",
     "worked_hours_placeholder": "Ingrese las horas trabajadas",
     "employee_name_placeholder": "Ingrese el nombre del empleado",
     "dni_placeholder": "Ingrese el DNI del empleado",
@@ -352,8 +357,19 @@
     "employee_phone_placeholder": "Ingrese el teléfono del empleado",
     "employee_address_placeholder": "Ingrese la dirección del empleado",
     "employee_position_placeholder": "Ingrese el puesto del empleado",
+    "select_position": "Seleccione un puesto",
+    "all_positions": "Todos los puestos",
     "position": "Puesto",
     "department": "Departamento",
+    "select_department": "Seleccione un departamento",
+    "all_departments": "Todos los departamentos",
+    "add_position": "Agregar puesto",
+    "edit_position": "Editar puesto",
+    "add_department": "Agregar departamento",
+    "edit_department": "Editar departamento",
+    "catalog_code_placeholder": "Ingrese el código",
+    "catalog_name_placeholder": "Ingrese el nombre",
+    "all_statuses": "Todos los estados",
     "employee_department_placeholder": "Ingrese el departamento del empleado",
     "salary": "Salario",
     "employee_salary_placeholder": "Ingrese el salario del empleado",
@@ -631,6 +647,19 @@
           "empty": "El salario es obligatorio."
         }
       },
+      "employeeCatalogs": {
+        "code": {
+          "empty": "El código es obligatorio.",
+          "maxLength": "El código debe tener como máximo 20 caracteres."
+        },
+        "name": {
+          "empty": "El nombre es obligatorio.",
+          "maxLength": "El nombre debe tener como máximo 100 caracteres."
+        },
+        "active": {
+          "required": "El estado es obligatorio."
+        }
+      },
       "events": {
         "title": {
           "empty": "El título del evento es obligatorio."
@@ -730,6 +759,12 @@
         },
         "endDate": {
           "required": "La fecha de finalización es obligatoria."
+        },
+        "reason": {
+          "maxLength": "El motivo debe tener como máximo {{count}} caracteres."
+        },
+        "comments": {
+          "maxLength": "Los comentarios deben tener como máximo {{count}} caracteres."
         }
       },
       "attendance": {
@@ -921,6 +956,24 @@
     "ws_status": "Estado",
     "active": "Activo",
     "inactive": "Inactivo",
-    "ws_error_description": "Error en la conexión WebSocket"
+    "ws_error_description": "Error en la conexión WebSocket",
+    "approved_by": "Aprobado por",
+    "approved_on": "Aprobado el",
+    "rejected_by": "Rechazado por",
+    "rejected_on": "Rechazado el",
+    "paid": "Remunerado",
+    "balance": "Saldo",
+    "remaining": "Restantes",
+    "accrued": "Devengados",
+    "used": "Usados",
+    "insufficient_balance": "Saldo insuficiente: quedan {{count}} día(s)",
+    "no_approval_permission": "No tienes permiso para aprobar o rechazar",
+    "paid_leave_hint": "Los permisos no remunerados se descuentan de la nómina",
+    "yes": "Sí",
+    "no": "No",
+    "status_PENDING": "Pendiente",
+    "status_APPROVED": "Aprobado",
+    "status_REJECTED": "Rechazado",
+    "status_CANCELLED": "Cancelado"
   }
 }
